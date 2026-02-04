@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import logoFreela from "@/assets/logo-freela-transparent.png";
+import logoFreela from "@/assets/logo-freela.png";
 import ModeSelector from "@/components/ModeSelector";
 
 const Header = () => {
