@@ -30,13 +30,13 @@ const CTASection = () => {
             )}
           </div>
           
-          <h2 className="text-secondary mb-6 hero-text-shadow">
+          <h2 className="text-secondary mb-8 hero-text-shadow">
             {isFreelaCasa
               ? "Pronto para fazer seu evento?"
               : "Pronto para começar sua jornada?"}
           </h2>
           
-          <p className="text-xl text-secondary/80 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-secondary/80 mb-12 max-w-2xl mx-auto leading-relaxed">
             {isFreelaCasa
               ? "Contrate um profissional de forma simples e rápida. Churrasqueiro, barman, músico e muito mais. Sem negociação, preço automático."
               : "Junte-se a milhares de profissionais e empresas que já transformaram a forma de trabalhar. Cadastre-se agora e comece em minutos."}

@@ -76,11 +76,11 @@ const BenefitsSection = () => {
     <section className="section-padding bg-background">
       <div className="container mx-auto container-padding">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="badge-primary mb-4 inline-block">
-            {isFreelaCasa ? "Vantagens" : "Por que escolher a Freela"}
+        <div className="text-center max-w-4xl mx-auto mb-20">
+          <span className="badge-primary mb-6 inline-block text-base px-5 py-2">
+            {isFreelaCasa ? "✨ Vantagens" : "⭐ Por que escolher a Freela"}
           </span>
-          <h2 className="mb-4">
+          <h2 className="mb-6 section-title section-title-center">
             {isFreelaCasa ? (
               <>
                 Seu evento{" "}
@@ -93,7 +93,7 @@ const BenefitsSection = () => {
               </>
             )}
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             {isFreelaCasa
               ? "Contrate profissionais para seu evento de forma prática. Preço fechado, sem surpresas e com profissionais avaliados."
               : "Criamos uma plataforma completa pensando em cada detalhe para facilitar sua vida, seja você freelancer ou cliente."}

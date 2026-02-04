@@ -125,10 +125,10 @@ const HowItWorksSection = () => {
     <section className="section-padding bg-muted">
       <div className="container mx-auto container-padding">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="badge-primary mb-4 inline-block">Como funciona</span>
-          <h2 className="mb-4">Simples para todos</h2>
-          <p className="text-lg text-muted-foreground">
+        <div className="text-center max-w-4xl mx-auto mb-20">
+          <span className="badge-primary mb-6 inline-block text-base px-5 py-2">🚀 Como funciona</span>
+          <h2 className="mb-6 section-title section-title-center">Simples para todos</h2>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             {isFreelaCasa
               ? "Contrate um profissional para seu evento ou cadastre-se para trabalhar. Tudo de forma rápida e prática."
               : "Seja você um cliente buscando talentos ou um freelancer em busca de oportunidades, o processo é rápido e intuitivo."}

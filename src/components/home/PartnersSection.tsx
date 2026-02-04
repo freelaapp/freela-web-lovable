@@ -74,14 +74,14 @@ const PartnersSection = () => {
     <section className="section-padding bg-background">
       <div className="container mx-auto container-padding">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="badge-primary mb-4 inline-block">
+        <div className="text-center max-w-4xl mx-auto mb-16">
+          <span className="badge-primary mb-6 inline-block text-base px-5 py-2">
             🎉 Parceiros & Negócios Locais
           </span>
-          <h2 className="mb-4">
+          <h2 className="mb-6 section-title section-title-center">
             Tudo para sua festa em um só lugar
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Descubra os melhores fornecedores da sua região para tornar seu evento inesquecível. Salões, buffets, decoração e muito mais!
           </p>
         </div>
