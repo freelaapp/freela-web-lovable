@@ -1,0 +1,127 @@
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Users, Briefcase, Star } from "lucide-react";
+
+const HeroSection = () => {
+  const stats = [
+    { icon: Users, value: "50.000+", label: "Freelancers" },
+    { icon: Briefcase, value: "120.000+", label: "Projetos" },
+    { icon: Star, value: "4.9", label: "Avaliação média" },
+  ];
+
+  return (
+    <section className="relative min-h-screen flex items-center hero-gradient overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-secondary rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary rounded-full blur-3xl" />
+      </div>
+
+      <div className="container mx-auto container-padding relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center pt-24 pb-16">
+          {/* Content */}
+          <div className="text-center lg:text-left animate-slide-up">
+            <span className="inline-block bg-secondary/10 text-secondary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              🚀 A maior plataforma de serviços do Brasil
+            </span>
+            
+            <h1 className="text-secondary mb-6 hero-text-shadow">
+              Conecte-se aos melhores{" "}
+              <span className="relative">
+                talentos
+                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
+                  <path d="M2 8C50 2 150 2 198 8" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+                </svg>
+              </span>{" "}
+              do mercado
+            </h1>
+            
+            <p className="text-lg md:text-xl text-secondary/80 mb-8 max-w-xl mx-auto lg:mx-0">
+              Encontre freelancers qualificados para qualquer projeto ou ofereça 
+              seus serviços para milhares de clientes. Simples, rápido e seguro.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
+              <Button variant="hero" size="xl" asChild className="group">
+                <Link to="/cadastro">
+                  Começar agora
+                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+              <Button variant="hero-outline" size="xl" asChild>
+                <Link to="/como-funciona">
+                  Como funciona
+                </Link>
+              </Button>
+            </div>
+
+            {/* Stats */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-8">
+              {stats.map((stat) => (
+                <div key={stat.label} className="flex items-center gap-3">
+                  <div className="p-2 bg-secondary/10 rounded-lg">
+                    <stat.icon className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="font-display font-bold text-lg text-secondary">{stat.value}</p>
+                    <p className="text-sm text-secondary/70">{stat.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Hero Illustration */}
+          <div className="relative hidden lg:block">
+            <div className="relative z-10 animate-float">
+              {/* Main Card */}
+              <div className="bg-card rounded-2xl shadow-lg p-6 max-w-sm ml-auto">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                    JC
+                  </div>
+                  <div>
+                    <p className="font-semibold text-card-foreground">João Carlos</p>
+                    <p className="text-sm text-muted-foreground">Designer Gráfico</p>
+                  </div>
+                  <div className="ml-auto flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-primary text-primary" />
+                    <span className="font-medium">4.9</span>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  "Excelente profissional! Entregou o projeto antes do prazo e superou as expectativas."
+                </p>
+                <div className="flex gap-2">
+                  <span className="px-3 py-1 bg-primary-light rounded-full text-xs font-medium text-primary">
+                    Logo Design
+                  </span>
+                  <span className="px-3 py-1 bg-primary-light rounded-full text-xs font-medium text-primary">
+                    Branding
+                  </span>
+                </div>
+              </div>
+
+              {/* Floating Elements */}
+              <div className="absolute -left-8 top-1/2 bg-card rounded-xl shadow-md p-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-primary rounded-full" />
+                  <span className="text-sm font-medium">Projeto contratado!</span>
+                </div>
+              </div>
+
+              <div className="absolute -right-4 bottom-8 bg-card rounded-xl shadow-md p-4 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">+R$ 2.500</p>
+                  <p className="text-xs text-muted-foreground">Ganhos este mês</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default HeroSection;
