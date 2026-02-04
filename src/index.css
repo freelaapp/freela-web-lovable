@@ -227,7 +227,8 @@
 
   /* Badge Styles */
   .badge-primary {
-    @apply bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium;
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground px-6 py-2.5 rounded-full text-base font-bold shadow-md;
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
   }
 
   /* Link Styles */
