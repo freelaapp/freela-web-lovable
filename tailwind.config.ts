@@ -71,6 +71,16 @@ export default {
           gray: "hsl(var(--freela-gray))",
           "gray-dark": "hsl(var(--freela-gray-dark))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          light: "hsl(var(--success-light))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+          light: "hsl(var(--warning-light))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
