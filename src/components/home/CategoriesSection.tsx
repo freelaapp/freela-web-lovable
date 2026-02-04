@@ -38,6 +38,7 @@ const CategoriesSection = () => {
     { icon: Sparkles, name: "Auxiliar de Limpeza", count: "1.200+ profissionais", color: "bg-primary-light text-primary" },
     { icon: UserCheck, name: "Garçom", count: "950+ profissionais", color: "bg-primary-light text-primary" },
     { icon: Music, name: "Músico", count: "430+ profissionais", color: "bg-primary-light text-primary" },
+    { icon: Music, name: "DJ", count: "380+ profissionais", color: "bg-primary-light text-primary" },
   ];
 
   const categories = isFreelaCasa ? categoriesPF : categoriesPJ;

@@ -6,6 +6,7 @@ export const servicosPF = [
   { id: "auxiliar-limpeza", label: "Auxiliar de Limpeza", pricePerHour: 50 },
   { id: "garcom", label: "Garçom", pricePerHour: 60 },
   { id: "musico", label: "Músico", pricePerHour: 150 },
+  { id: "dj", label: "DJ", pricePerHour: 180 },
 ] as const;
 
 // Estilos musicais para músicos
