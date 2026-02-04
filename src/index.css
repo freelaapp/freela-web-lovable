@@ -279,6 +279,33 @@
     }
   }
 
+  @keyframes blink {
+    0%, 90%, 100% { 
+      opacity: 1;
+    }
+    95% { 
+      opacity: 0.7;
+      transform: scaleY(0.98);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .animate-blink {
+    animation: blink 4s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
   /* Hover Scale */
   .hover-scale {
     @apply transition-transform duration-300;
