@@ -227,8 +227,13 @@
 
   /* Badge Styles */
   .badge-primary {
-    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground px-6 py-2.5 rounded-full text-base font-bold shadow-md;
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground px-6 py-2.5 rounded-full text-base font-bold shadow-md transition-all duration-300 cursor-default;
     text-shadow: 0 1px 2px hsl(0 0% 0% / 0.1);
+  }
+
+  .badge-primary:hover {
+    @apply scale-105 shadow-lg;
+    box-shadow: var(--shadow-amber);
   }
 
   /* Link Styles */
