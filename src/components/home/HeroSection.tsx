@@ -31,12 +31,12 @@ const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center pt-24 pb-16">
           {/* Content */}
           <div className="text-center lg:text-left animate-slide-up">
-            {/* Logo destacada */}
+            {/* Logo destacada com animação */}
             <div className="mb-8 flex justify-center lg:justify-start">
               <img 
                 src={logoFreela} 
                 alt="Freela Serviços" 
-                className="h-20 md:h-28 lg:h-32 w-auto drop-shadow-lg"
+                className="h-20 md:h-28 lg:h-32 w-auto drop-shadow-lg animate-blink hover:scale-105 transition-transform cursor-pointer"
               />
             </div>
             
