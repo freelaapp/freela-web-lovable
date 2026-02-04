@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Users, Briefcase, Star, Home, Building2 } from "lucide-react";
 import { useMode } from "@/contexts/ModeContext";
+import logoFreela from "@/assets/logo-freela.png";
 
 const HeroSection = () => {
   const { isFreelaCasa } = useMode();
@@ -30,7 +31,16 @@ const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center pt-24 pb-16">
           {/* Content */}
           <div className="text-center lg:text-left animate-slide-up">
-            <span className="inline-block bg-primary/20 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+            {/* Logo destacada */}
+            <div className="mb-8 flex justify-center lg:justify-start">
+              <img 
+                src={logoFreela} 
+                alt="Freela Serviços" 
+                className="h-20 md:h-28 lg:h-32 w-auto drop-shadow-lg"
+              />
+            </div>
+            
+            <span className="inline-block bg-secondary/10 text-secondary px-4 py-2 rounded-full text-sm font-medium mb-6">
               {isFreelaCasa ? (
                 <>🏠 Freela em Casa - Eventos particulares</>
               ) : (
@@ -38,7 +48,7 @@ const HeroSection = () => {
               )}
             </span>
             
-            <h1 className="text-primary mb-6 hero-text-shadow">
+            <h1 className="text-secondary mb-6 hero-text-shadow">
               {isFreelaCasa ? (
                 <>
                   Contrate um profissional para{" "}
@@ -63,7 +73,7 @@ const HeroSection = () => {
               )}
             </h1>
             
-            <p className="text-lg md:text-xl text-white/90 mb-8 max-w-xl mx-auto lg:mx-0">
+            <p className="text-lg md:text-xl text-secondary/80 mb-8 max-w-xl mx-auto lg:mx-0">
               {isFreelaCasa
                 ? "Churrasqueiro, barman, músico, DJ, garçom e mais. Profissionais qualificados para festas, confraternizações e eventos em sua casa. Simples e sem negociação."
                 : "Encontre freelancers qualificados para qualquer projeto ou ofereça seus serviços para milhares de clientes. Simples, rápido e seguro."}
@@ -87,12 +97,12 @@ const HeroSection = () => {
             <div className="flex flex-wrap justify-center lg:justify-start gap-8">
               {stats.map((stat) => (
                 <div key={stat.label} className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/20 rounded-lg">
-                    <stat.icon className="w-5 h-5 text-primary" />
+                  <div className="p-2 bg-secondary/10 rounded-lg">
+                    <stat.icon className="w-5 h-5 text-secondary" />
                   </div>
                   <div>
-                    <p className="font-display font-bold text-lg text-white">{stat.value}</p>
-                    <p className="text-sm text-white/70">{stat.label}</p>
+                    <p className="font-display font-bold text-lg text-secondary">{stat.value}</p>
+                    <p className="text-sm text-secondary/70">{stat.label}</p>
                   </div>
                 </div>
               ))}
