@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Users, Briefcase, Star, Home, Building2 } from "lucide-react";
 import { useMode } from "@/contexts/ModeContext";
-import logoFreela from "@/assets/logo-freela-transparent.png";
+import logoFreela from "@/assets/logo-freela.png";
 
 const HeroSection = () => {
   const { isFreelaCasa } = useMode();
