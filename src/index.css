@@ -134,15 +134,15 @@
 
   /* Typography Hierarchy */
   h1 {
-    @apply font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+    @apply font-display text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-tight;
   }
 
   h2 {
-    @apply font-display text-3xl md:text-4xl font-bold tracking-tight;
+    @apply font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight;
   }
 
   h3 {
-    @apply font-display text-2xl md:text-3xl font-semibold;
+    @apply font-display text-2xl md:text-3xl lg:text-4xl font-semibold;
   }
 
   h4 {
@@ -204,11 +204,25 @@
 
   /* Section Styles */
   .section-padding {
-    @apply py-16 md:py-24 lg:py-32;
+    @apply py-20 md:py-28 lg:py-36;
   }
 
   .container-padding {
     @apply px-4 md:px-6 lg:px-8;
+  }
+
+  /* Section Title Styles */
+  .section-title {
+    @apply relative inline-block;
+  }
+
+  .section-title::after {
+    content: '';
+    @apply absolute -bottom-3 left-0 w-20 h-1 bg-primary rounded-full;
+  }
+
+  .section-title-center::after {
+    @apply left-1/2 -translate-x-1/2;
   }
 
   /* Badge Styles */

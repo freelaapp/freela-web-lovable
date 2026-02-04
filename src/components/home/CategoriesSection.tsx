@@ -47,14 +47,14 @@ const CategoriesSection = () => {
     <section className="section-padding bg-background">
       <div className="container mx-auto container-padding">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="badge-primary mb-4 inline-block">
-            {isFreelaCasa ? "Serviços disponíveis" : "Categorias"}
+        <div className="text-center max-w-4xl mx-auto mb-16">
+          <span className="badge-primary mb-6 inline-block text-base px-5 py-2">
+            {isFreelaCasa ? "🎯 Serviços disponíveis" : "📂 Categorias"}
           </span>
-          <h2 className="mb-4">
+          <h2 className="mb-6 section-title section-title-center">
             {isFreelaCasa ? "Profissionais para seu evento" : "Explore todas as áreas"}
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             {isFreelaCasa
               ? "Encontre o profissional ideal para fazer da sua festa um sucesso. Contratação simples e sem negociação."
               : "Milhares de profissionais em diversas categorias prontos para transformar suas ideias em realidade."}
