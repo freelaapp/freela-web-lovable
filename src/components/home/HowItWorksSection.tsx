@@ -1,9 +1,13 @@
-import { UserPlus, Search, MessageSquare, CheckCircle } from "lucide-react";
+import { UserPlus, Search, MessageSquare, CheckCircle, Calendar, MapPin, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useMode } from "@/contexts/ModeContext";
 
 const HowItWorksSection = () => {
-  const clientSteps = [
+  const { isFreelaCasa } = useMode();
+
+  // Passos para clientes PJ (modo empresas)
+  const clientStepsPJ = [
     {
       icon: UserPlus,
       step: "01",
@@ -30,7 +34,36 @@ const HowItWorksSection = () => {
     },
   ];
 
-  const freelancerSteps = [
+  // Passos para clientes PF (Freela em Casa)
+  const clientStepsPF = [
+    {
+      icon: Calendar,
+      step: "01",
+      title: "Escolha o serviço",
+      description: "Selecione o tipo de profissional, data, horário e quantidade de horas.",
+    },
+    {
+      icon: MapPin,
+      step: "02",
+      title: "Informe o endereço",
+      description: "Digite o local do evento. O profissional irá até sua casa.",
+    },
+    {
+      icon: CreditCard,
+      step: "03",
+      title: "Veja o valor",
+      description: "O preço é calculado automaticamente. Sem negociação, simples e direto.",
+    },
+    {
+      icon: CheckCircle,
+      step: "04",
+      title: "Confirme e pronto!",
+      description: "O profissional é notificado e confirma sua presença. Aproveite seu evento!",
+    },
+  ];
+
+  // Passos para freelancers PJ
+  const freelancerStepsPJ = [
     {
       icon: UserPlus,
       step: "01",
@@ -57,6 +90,37 @@ const HowItWorksSection = () => {
     },
   ];
 
+  // Passos para freelancers PF
+  const freelancerStepsPF = [
+    {
+      icon: UserPlus,
+      step: "01",
+      title: "Cadastre-se",
+      description: "Crie seu perfil, informe seu serviço e adicione estilos (se for músico).",
+    },
+    {
+      icon: Search,
+      step: "02",
+      title: "Receba oportunidades",
+      description: "Eventos em residências aparecerão para você aceitar ou recusar.",
+    },
+    {
+      icon: MapPin,
+      step: "03",
+      title: "Confira os detalhes",
+      description: "Veja endereço, data, horário e o valor que você irá receber.",
+    },
+    {
+      icon: CheckCircle,
+      step: "04",
+      title: "Aceite e trabalhe",
+      description: "Confirme sua presença, realize o serviço e receba seu pagamento.",
+    },
+  ];
+
+  const clientSteps = isFreelaCasa ? clientStepsPF : clientStepsPJ;
+  const freelancerSteps = isFreelaCasa ? freelancerStepsPF : freelancerStepsPJ;
+
   return (
     <section className="section-padding bg-muted">
       <div className="container mx-auto container-padding">
@@ -65,8 +129,9 @@ const HowItWorksSection = () => {
           <span className="badge-primary mb-4 inline-block">Como funciona</span>
           <h2 className="mb-4">Simples para todos</h2>
           <p className="text-lg text-muted-foreground">
-            Seja você um cliente buscando talentos ou um freelancer em busca de 
-            oportunidades, o processo é rápido e intuitivo.
+            {isFreelaCasa
+              ? "Contrate um profissional para seu evento ou cadastre-se para trabalhar. Tudo de forma rápida e prática."
+              : "Seja você um cliente buscando talentos ou um freelancer em busca de oportunidades, o processo é rápido e intuitivo."}
           </p>
         </div>
 
@@ -76,7 +141,7 @@ const HowItWorksSection = () => {
           <div>
             <div className="bg-primary rounded-2xl p-6 mb-8">
               <h3 className="text-xl font-display font-bold text-primary-foreground text-center">
-                Para Clientes
+                {isFreelaCasa ? "Para quem contrata" : "Para Clientes"}
               </h3>
             </div>
             <div className="space-y-6">
@@ -99,7 +164,9 @@ const HowItWorksSection = () => {
             </div>
             <div className="mt-8">
               <Button size="lg" asChild className="w-full sm:w-auto">
-                <Link to="/cadastro?tipo=cliente">Quero contratar</Link>
+                <Link to={isFreelaCasa ? "/criar-evento" : "/cadastro?tipo=cliente"}>
+                  {isFreelaCasa ? "Contratar agora" : "Quero contratar"}
+                </Link>
               </Button>
             </div>
           </div>
@@ -108,7 +175,7 @@ const HowItWorksSection = () => {
           <div>
             <div className="bg-secondary rounded-2xl p-6 mb-8">
               <h3 className="text-xl font-display font-bold text-secondary-foreground text-center">
-                Para Freelancers
+                {isFreelaCasa ? "Para profissionais" : "Para Freelancers"}
               </h3>
             </div>
             <div className="space-y-6">
@@ -131,7 +198,9 @@ const HowItWorksSection = () => {
             </div>
             <div className="mt-8">
               <Button variant="secondary" size="lg" asChild className="w-full sm:w-auto">
-                <Link to="/cadastro?tipo=freelancer">Quero trabalhar</Link>
+                <Link to="/cadastro?tipo=freelancer">
+                  {isFreelaCasa ? "Quero trabalhar" : "Quero trabalhar"}
+                </Link>
               </Button>
             </div>
           </div>

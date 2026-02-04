@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle, Music } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
+import { estilosMusicais, servicosPF } from "@/lib/services";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Cadastro = () => {
   const [searchParams] = useSearchParams();
@@ -18,6 +20,8 @@ const Cadastro = () => {
     password: "",
     confirmPassword: "",
     tipo: defaultTipo,
+    cargoFreelancer: "",
+    estilosMusicais: [] as string[],
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -25,6 +29,9 @@ const Cadastro = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
+
+  const isMusician = formData.cargoFreelancer === "musico";
+  const isFreelancer = formData.tipo === "freelancer";
 
   const passwordRequirements = [
     { label: "Mínimo 8 caracteres", valid: formData.password.length >= 8 },
@@ -63,6 +70,16 @@ const Cadastro = () => {
       newErrors.terms = "Você deve aceitar os termos de uso";
     }
 
+    // Validação para freelancer
+    if (isFreelancer && !formData.cargoFreelancer) {
+      newErrors.cargoFreelancer = "Selecione um serviço";
+    }
+
+    // Validação para músico - estilos obrigatórios
+    if (isFreelancer && isMusician && formData.estilosMusicais.length === 0) {
+      newErrors.estilosMusicais = "Selecione pelo menos um estilo musical";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -83,11 +100,19 @@ const Cadastro = () => {
     }, 1500);
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const toggleEstiloMusical = (estiloId: string) => {
+    const current = formData.estilosMusicais;
+    const newEstilos = current.includes(estiloId)
+      ? current.filter((e) => e !== estiloId)
+      : [...current, estiloId];
+    handleChange("estilosMusicais", newEstilos);
   };
 
   return (
@@ -218,10 +243,10 @@ const Cadastro = () => {
                     <div 
                       key={req.label} 
                       className={`flex items-center gap-2 text-xs ${
-                        req.valid ? "text-green-600" : "text-muted-foreground"
+                        req.valid ? "text-success" : "text-muted-foreground"
                       }`}
                     >
-                      <CheckCircle className={`w-3.5 h-3.5 ${req.valid ? "text-green-600" : "text-muted-foreground/50"}`} />
+                      <CheckCircle className={`w-3.5 h-3.5 ${req.valid ? "text-success" : "text-muted-foreground/50"}`} />
                       {req.label}
                     </div>
                   ))}
@@ -252,7 +277,64 @@ const Cadastro = () => {
               {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
             </div>
 
-            {/* Terms */}
+            {/* Campos para Freelancer */}
+            {isFreelancer && (
+              <>
+                {/* Seleção de Cargo */}
+                <div className="space-y-2">
+                  <Label htmlFor="cargoFreelancer">Tipo de serviço que você oferece</Label>
+                  <Select
+                    value={formData.cargoFreelancer}
+                    onValueChange={(value) => handleChange("cargoFreelancer", value)}
+                  >
+                    <SelectTrigger className={`h-12 ${errors.cargoFreelancer ? "border-destructive" : ""}`}>
+                      <SelectValue placeholder="Selecione seu serviço" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {servicosPF.map((servico) => (
+                        <SelectItem key={servico.id} value={servico.id}>
+                          {servico.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.cargoFreelancer && <p className="text-sm text-destructive">{errors.cargoFreelancer}</p>}
+                </div>
+
+                {/* Estilos Musicais - Apenas para Músicos */}
+                {isMusician && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Music className="w-4 h-4 text-primary" />
+                      <Label>Estilos musicais que você toca</Label>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Selecione todos os estilos que fazem parte do seu repertório
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {estilosMusicais.map((estilo) => {
+                        const isSelected = formData.estilosMusicais.includes(estilo.id);
+                        return (
+                          <button
+                            key={estilo.id}
+                            type="button"
+                            onClick={() => toggleEstiloMusical(estilo.id)}
+                            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                              isSelected
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background border-border text-muted-foreground hover:border-primary/50"
+                            }`}
+                          >
+                            {estilo.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {errors.estilosMusicais && <p className="text-sm text-destructive">{errors.estilosMusicais}</p>}
+                  </div>
+                )}
+              </>
+            )}
             <div className="space-y-2">
               <div className="flex items-start gap-2">
                 <Checkbox
