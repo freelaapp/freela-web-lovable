@@ -354,59 +354,69 @@ const Solutions = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Empresas */}
-          <div className="card-elevated p-8 md:p-10 card-hover border-2 border-transparent hover:border-primary/20">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Building2 className="w-7 h-7 text-primary" />
-              </div>
-              <h3 className="text-xl md:text-2xl font-bold">Freela para Empresas</h3>
-            </div>
-            <p className="text-muted-foreground mb-8">
-              Equipe extra para bares, restaurantes, eventos corporativos e grandes operações.
-            </p>
-            <div className="grid grid-cols-2 gap-3 mb-8">
-              {empresas.map((s) => (
-                <div key={s.label} className="flex items-center gap-2 p-3 rounded-lg bg-background">
-                  <s.icon className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-sm font-medium">{s.label}</span>
+          {[
+            {
+              icon: Building2,
+              title: "Freela para Empresas",
+              desc: "Equipe extra para bares, restaurantes, eventos corporativos e grandes operações.",
+              items: empresas,
+              link: "/inicio?modo=empresas",
+              btnLabel: "Conhecer Freela para Empresas",
+              bg: "bg-secondary",
+              textColor: "text-secondary-foreground",
+              descColor: "text-secondary-foreground/60",
+              iconBg: "bg-primary",
+              iconColor: "text-primary-foreground",
+              itemBg: "bg-secondary-foreground/10",
+              itemText: "text-secondary-foreground",
+              itemIconColor: "text-primary",
+              btnVariant: "default" as const,
+            },
+            {
+              icon: Home,
+              title: "Freela em Casa",
+              desc: "Profissionais para festas, aniversários, churrascos e eventos particulares.",
+              items: casa,
+              link: "/inicio?modo=casa",
+              btnLabel: "Conhecer Freela em Casa",
+              bg: "bg-primary",
+              textColor: "text-primary-foreground",
+              descColor: "text-primary-foreground/70",
+              iconBg: "bg-secondary",
+              iconColor: "text-secondary-foreground",
+              itemBg: "bg-primary-foreground/10",
+              itemText: "text-primary-foreground",
+              itemIconColor: "text-secondary",
+              btnVariant: "secondary" as const,
+            },
+          ].map((card) => {
+            const CardIcon = card.icon;
+            return (
+              <div key={card.title} className={`${card.bg} rounded-2xl p-8 md:p-10 shadow-lg flex flex-col`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`p-3 ${card.iconBg} rounded-xl`}>
+                    <CardIcon className={`w-7 h-7 ${card.iconColor}`} />
+                  </div>
+                  <h3 className={`text-xl md:text-2xl font-bold ${card.textColor}`}>{card.title}</h3>
                 </div>
-              ))}
-            </div>
-            <Button size="lg" className="w-full" asChild>
-              <Link to="/inicio?modo=empresas">
-                Conhecer Freela para Empresas
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
-          </div>
-
-          {/* Casa */}
-          <div className="card-elevated p-8 md:p-10 card-hover border-2 border-transparent hover:border-primary/20">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Home className="w-7 h-7 text-primary" />
-              </div>
-              <h3 className="text-xl md:text-2xl font-bold">Freela em Casa</h3>
-            </div>
-            <p className="text-muted-foreground mb-8">
-              Profissionais para festas, aniversários, churrascos e eventos particulares.
-            </p>
-            <div className="grid grid-cols-2 gap-3 mb-8">
-              {casa.map((s) => (
-                <div key={s.label} className="flex items-center gap-2 p-3 rounded-lg bg-background">
-                  <s.icon className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-sm font-medium">{s.label}</span>
+                <p className={`${card.descColor} mb-6`}>{card.desc}</p>
+                <div className="grid grid-cols-2 gap-3 mb-8 flex-1">
+                  {card.items.map((s) => (
+                    <div key={s.label} className={`flex items-center gap-2 p-3 rounded-lg ${card.itemBg}`}>
+                      <s.icon className={`w-4 h-4 ${card.itemIconColor} flex-shrink-0`} />
+                      <span className={`text-sm font-semibold ${card.itemText}`}>{s.label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <Button size="lg" className="w-full" asChild>
-              <Link to="/inicio?modo=casa">
-                Conhecer Freela em Casa
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
-          </div>
+                <Button size="lg" variant={card.btnVariant} className="w-full mt-auto" asChild>
+                  <Link to={card.link}>
+                    {card.btnLabel}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -441,13 +451,13 @@ const Objections = () => {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <div key={item.title} className="card-elevated p-6 card-hover text-center">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <item.icon className="w-7 h-7 text-primary" />
+          {items.map((item, i) => (
+            <div key={item.title} className={`p-6 rounded-2xl shadow-lg card-hover text-center flex flex-col items-center ${i % 2 === 0 ? 'bg-secondary' : 'bg-primary'}`}>
+              <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center ${i % 2 === 0 ? 'bg-primary' : 'bg-secondary'}`}>
+                <item.icon className={`w-7 h-7 ${i % 2 === 0 ? 'text-primary-foreground' : 'text-secondary-foreground'}`} />
               </div>
-              <h5 className="font-bold mb-2">{item.title}</h5>
-              <p className="text-sm text-muted-foreground">{item.desc}</p>
+              <h5 className={`font-bold mb-2 ${i % 2 === 0 ? 'text-secondary-foreground' : 'text-primary-foreground'}`}>{item.title}</h5>
+              <p className={`text-sm ${i % 2 === 0 ? 'text-secondary-foreground/60' : 'text-primary-foreground/70'}`}>{item.desc}</p>
             </div>
           ))}
         </div>
