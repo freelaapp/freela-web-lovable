@@ -221,9 +221,9 @@ const HeroHome = () => {
             { icon: Star, label: "Profissionais avaliados" },
             { icon: MessageCircle, label: "Suporte ativo" },
           ].map((b) => (
-            <div key={b.label} className="flex items-center gap-2 bg-secondary-foreground/15 px-4 py-2 rounded-full">
-              <b.icon className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-secondary-foreground/90">{b.label}</span>
+            <div key={b.label} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-5 py-2.5 rounded-full shadow-md hover:scale-105 transition-transform duration-300">
+              <b.icon className="w-5 h-5 text-primary" />
+              <span className="text-sm font-bold">{b.label}</span>
             </div>
           ))}
         </div>
