@@ -90,7 +90,7 @@ const HeroHome = () => (
         />
 
         <h1 className="text-secondary-foreground mb-6 hero-text-shadow">
-          Profissionais para seu evento ou empresa{" "}
+          Profissionais Freelancers para seus eventos particulares ou seu bar, restaurante, buffet e empresa de eventos{" "}
           <span className="text-primary">em poucos cliques.</span>
         </h1>
 
