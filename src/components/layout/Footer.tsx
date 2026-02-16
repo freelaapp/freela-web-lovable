@@ -7,22 +7,21 @@ const Footer = () => {
 
   const footerLinks = {
     plataforma: [
-      { href: "/como-funciona", label: "Como Funciona" },
-      { href: "/para-freelancers", label: "Para Freelancers" },
-      { href: "/para-clientes", label: "Para Clientes" },
-      { href: "/categorias", label: "Categorias" },
+      { href: "/", label: "Sobre o Freela" },
+      { href: "/#como-funciona", label: "Como Funciona" },
+      { href: "/inicio?modo=empresas", label: "Freela para Empresas" },
+      { href: "/inicio?modo=casa", label: "Freela em Casa" },
     ],
     suporte: [
-      { href: "/ajuda", label: "Central de Ajuda" },
       { href: "/contato", label: "Contato" },
-      { href: "/faq", label: "Perguntas Frequentes" },
       { href: "/termos", label: "Termos de Uso" },
-    ],
-    empresa: [
-      { href: "/sobre", label: "Sobre Nós" },
-      { href: "/blog", label: "Blog" },
-      { href: "/carreiras", label: "Carreiras" },
       { href: "/privacidade", label: "Política de Privacidade" },
+    ],
+    acesso: [
+      { href: "/login", label: "Entrar" },
+      { href: "/cadastro", label: "Cadastre-se" },
+      { href: "/freelancers", label: "Ver Profissionais" },
+      { href: "/criar-evento", label: "Criar Evento" },
     ],
   };
 
@@ -40,28 +39,17 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link to="/" className="inline-block mb-6">
-              <img 
-                src={logoFreela} 
-                alt="Freela Serviços" 
-                className="h-14 w-auto brightness-0 invert"
-              />
+              <img src={logoFreela} alt="Freela Serviços" className="h-14 w-auto brightness-0 invert" />
             </Link>
             <p className="text-secondary-foreground/70 mb-6 max-w-sm">
-              Conectamos talentos a oportunidades. Encontre os melhores freelancers ou 
-              ofereça seus serviços para clientes em todo o Brasil.
+              Conectamos você a profissionais qualificados para eventos e estabelecimentos em todo o Brasil.
             </p>
             <div className="space-y-3">
-              <a 
-                href="mailto:contato@freela.com.br" 
-                className="flex items-center gap-3 text-secondary-foreground/70 hover:text-primary transition-colors"
-              >
+              <a href="mailto:contato@freela.com.br" className="flex items-center gap-3 text-secondary-foreground/70 hover:text-primary transition-colors">
                 <Mail size={18} />
                 <span>contato@freela.com.br</span>
               </a>
-              <a 
-                href="tel:+5511999999999" 
-                className="flex items-center gap-3 text-secondary-foreground/70 hover:text-primary transition-colors"
-              >
+              <a href="tel:+5511999999999" className="flex items-center gap-3 text-secondary-foreground/70 hover:text-primary transition-colors">
                 <Phone size={18} />
                 <span>(11) 99999-9999</span>
               </a>
@@ -72,18 +60,12 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Links Columns */}
           <div>
             <h4 className="font-display font-semibold text-lg mb-4">Plataforma</h4>
             <ul className="space-y-3">
               {footerLinks.plataforma.map((link) => (
-                <li key={link.href}>
-                  <Link 
-                    to={link.href} 
-                    className="text-secondary-foreground/70 hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </Link>
+                <li key={link.href + link.label}>
+                  <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
                 </li>
               ))}
             </ul>
@@ -94,35 +76,24 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.suporte.map((link) => (
                 <li key={link.href}>
-                  <Link 
-                    to={link.href} 
-                    className="text-secondary-foreground/70 hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </Link>
+                  <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-display font-semibold text-lg mb-4">Empresa</h4>
+            <h4 className="font-display font-semibold text-lg mb-4">Acesso</h4>
             <ul className="space-y-3">
-              {footerLinks.empresa.map((link) => (
+              {footerLinks.acesso.map((link) => (
                 <li key={link.href}>
-                  <Link 
-                    to={link.href} 
-                    className="text-secondary-foreground/70 hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </Link>
+                  <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-secondary-foreground/20 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-secondary-foreground/60 text-sm">
             © {currentYear} Freela Serviços. Todos os direitos reservados.
