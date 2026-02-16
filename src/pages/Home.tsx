@@ -196,21 +196,21 @@ const HeroHome = () => {
 
         {/* Animated Counters */}
         <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-12">
-          <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-bold text-primary">
+          <div className="text-center animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <p className="font-display text-4xl md:text-5xl font-extrabold text-secondary hero-text-shadow">
               <AnimatedCounter target={180000} suffix="+" />
             </p>
-            <p className="text-sm text-secondary-foreground/70 mt-1">profissionais cadastrados</p>
+            <p className="text-sm font-semibold text-secondary/90 mt-2 uppercase tracking-wider">profissionais cadastrados</p>
           </div>
-          <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-bold text-primary">🇧🇷</p>
-            <p className="text-sm text-secondary-foreground/70 mt-1">Presente em todo o Brasil</p>
+          <div className="text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+            <p className="font-display text-4xl md:text-5xl font-extrabold text-secondary hero-text-shadow">🇧🇷</p>
+            <p className="text-sm font-semibold text-secondary/90 mt-2 uppercase tracking-wider">Presente em todo o Brasil</p>
           </div>
-          <div className="text-center">
-            <p className="font-display text-3xl md:text-4xl font-bold text-primary">
+          <div className="text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
+            <p className="font-display text-4xl md:text-5xl font-extrabold text-secondary hero-text-shadow">
               <AnimatedCounter target={50000} suffix="+" />
             </p>
-            <p className="text-sm text-secondary-foreground/70 mt-1">contratações realizadas</p>
+            <p className="text-sm font-semibold text-secondary/90 mt-2 uppercase tracking-wider">contratações realizadas</p>
           </div>
         </div>
 
