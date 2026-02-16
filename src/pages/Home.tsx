@@ -346,7 +346,7 @@ const Solutions = () => {
   ];
 
   return (
-    <section id="o-que-e" className="section-padding bg-muted/50 scroll-mt-24">
+    <section className="section-padding bg-muted/50">
       <div className="container mx-auto container-padding">
         <div className="text-center mb-16">
           <span className="badge-primary mb-4 inline-block">Soluções</span>
@@ -424,42 +424,98 @@ const Solutions = () => {
 };
 
 /* ═══════════════════════════════════════════════════
-   4️⃣  QUEBRA DE OBJEÇÕES
+   4️⃣  O QUE É O FREELA
    ═══════════════════════════════════════════════════ */
-const Objections = () => {
-  const items = [
-    { icon: Shield, title: "Segurança", desc: "Você sabe quem está contratando" },
-    { icon: Zap, title: "Agilidade", desc: "Evite grupos de WhatsApp e indicações inseguras" },
-    { icon: LayoutGrid, title: "Organização", desc: "Tudo centralizado na plataforma" },
-    { icon: ScaleIcon, title: "Escalabilidade", desc: "Contrate 1 ou 50 profissionais" },
-    { icon: Eye, title: "Transparência", desc: "Avaliações reais de quem já contratou" },
-    { icon: Clock, title: "Economia de tempo", desc: "Resolva em minutos, não em dias" },
+const OQueEoFreela = () => {
+  const beneficios = [
+    { icon: CheckCircle2, title: "Sem custo adicional", desc: "Você paga o valor de mercado. Sem taxas escondidas." },
+    { icon: Star, title: "Profissionais avaliados", desc: "Cadastrados e avaliados por quem já contratou." },
+    { icon: Zap, title: "Processo rápido e digital", desc: "Encontre e contrate em poucos cliques." },
+    { icon: TrendingUp, title: "Presença nacional", desc: "Profissionais disponíveis em todo o Brasil." },
+    { icon: MessageCircle, title: "Suporte da plataforma", desc: "Apoio do início ao fim da contratação." },
   ];
 
   return (
-    <section className="section-padding bg-background">
+    <section id="o-que-e" className="section-padding bg-background scroll-mt-24">
       <div className="container mx-auto container-padding">
-        <div className="text-center mb-16">
-          <span className="badge-primary mb-4 inline-block">Diferencial</span>
-          <h2 className="section-title section-title-center mb-4">
-            Por que contratar pelo Freela?
+        {/* Header */}
+        <div className="text-center mb-14">
+          <span className="badge-primary mb-4 inline-block">Conheça o Freela</span>
+          <h2 className="section-title section-title-center mb-6">
+            O jeito mais seguro e organizado de contratar profissionais.
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            O modelo tradicional é informal, desorganizado e inseguro.{" "}
-            <span className="text-primary font-semibold">O Freela profissionaliza a contratação.</span>
+          <p className="text-muted-foreground max-w-3xl mx-auto text-lg">
+            Conectamos você a profissionais qualificados para empresas e eventos particulares em todo o Brasil —{" "}
+            <span className="text-primary font-bold">sem custo adicional.</span>
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item, i) => (
-            <div key={item.title} className={`p-6 rounded-2xl shadow-lg card-hover text-center flex flex-col items-center ${i % 2 === 0 ? 'bg-secondary' : 'bg-primary'}`}>
-              <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center ${i % 2 === 0 ? 'bg-primary' : 'bg-secondary'}`}>
-                <item.icon className={`w-7 h-7 ${i % 2 === 0 ? 'text-primary-foreground' : 'text-secondary-foreground'}`} />
+        {/* Texto persuasivo */}
+        <div className="max-w-3xl mx-auto mb-16">
+          <div className="bg-secondary rounded-2xl p-8 md:p-10 shadow-lg">
+            <p className="text-secondary-foreground/80 text-base md:text-lg leading-relaxed mb-6">
+              O Freela é uma plataforma que conecta contratantes a profissionais qualificados de forma{" "}
+              <span className="text-primary font-bold">rápida, segura e organizada.</span>
+            </p>
+            <p className="text-secondary-foreground/80 text-base md:text-lg leading-relaxed mb-6">
+              Seja para reforçar a equipe do seu negócio ou para seu evento em casa, você encontra profissionais prontos para trabalhar em poucos cliques.
+            </p>
+            <div className="bg-primary rounded-xl p-6 mt-4">
+              <p className="text-primary-foreground font-bold text-lg md:text-xl text-center leading-snug">
+                Você não paga nada a mais por contratar pelo Freela.
+              </p>
+              <p className="text-primary-foreground/80 text-center text-sm md:text-base mt-2">
+                O valor é o valor de mercado. Sem taxas escondidas. Sem surpresas.
+              </p>
+              <p className="text-primary-foreground/70 text-center text-sm mt-2">
+                A plataforma apenas organiza, facilita e dá segurança à contratação.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Blocos com ícones */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-16">
+          {beneficios.map((item) => (
+            <div key={item.title} className="bg-card rounded-2xl p-6 shadow-md card-hover text-center flex flex-col items-center border border-border">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center">
+                <item.icon className="w-6 h-6 text-primary" />
               </div>
-              <h5 className={`font-bold mb-2 ${i % 2 === 0 ? 'text-secondary-foreground' : 'text-primary-foreground'}`}>{item.title}</h5>
-              <p className={`text-sm ${i % 2 === 0 ? 'text-secondary-foreground/60' : 'text-primary-foreground/70'}`}>{item.desc}</p>
+              <h5 className="font-bold text-sm mb-1">{item.title}</h5>
+              <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* Mini quebra de objeção */}
+        <div className="max-w-3xl mx-auto text-center mb-14">
+          <div className="bg-muted rounded-2xl p-8">
+            <p className="text-muted-foreground text-base md:text-lg mb-3">
+              Contratar da forma tradicional pode gerar <span className="font-semibold text-foreground">desorganização, insegurança e perda de tempo.</span>
+            </p>
+            <p className="text-foreground font-semibold text-base md:text-lg">
+              Com o Freela, você mantém controle, clareza e praticidade — pagando{" "}
+              <span className="text-primary font-bold">exatamente o que pagaria no mercado.</span>
+            </p>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button size="lg" asChild>
+            <Link to="/inicio?modo=empresas">
+              <Building2 className="w-5 h-5" />
+              Contratar para Empresa
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </Button>
+          <Button size="lg" variant="outline" asChild>
+            <Link to="/inicio?modo=casa">
+              <Home className="w-5 h-5" />
+              Contratar para Evento em Casa
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </Button>
         </div>
       </div>
     </section>
@@ -594,7 +650,7 @@ const HomePage = () => {
       <HeroHome />
       <HowItWorks />
       <Solutions />
-      <Objections />
+      <OQueEoFreela />
       <SocialProof />
       <CtaSection />
     </AppLayout>
