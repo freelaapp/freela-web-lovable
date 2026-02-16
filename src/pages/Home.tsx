@@ -238,14 +238,14 @@ const HeroHome = () => {
    ═══════════════════════════════════════════════════ */
 const HowItWorks = () => {
   const contratante = [
-    { icon: Search, title: "Publique sua necessidade", desc: "Informe o tipo de profissional que precisa, data e local." },
-    { icon: Users, title: "Receba candidatos qualificados", desc: "Profissionais avaliados se candidatam à sua vaga." },
-    { icon: CalendarCheck, title: "Confirme e acompanhe", desc: "Escolha o melhor e gerencie tudo pelo app." },
+    { icon: Search, step: "01", title: "Publique sua necessidade", desc: "Informe o tipo de profissional que precisa, data e local." },
+    { icon: Users, step: "02", title: "Receba candidatos qualificados", desc: "Profissionais avaliados se candidatam à sua vaga." },
+    { icon: CalendarCheck, step: "03", title: "Confirme e acompanhe", desc: "Escolha o melhor e gerencie tudo pelo app." },
   ];
   const profissional = [
-    { icon: UserPlus, title: "Cadastre-se gratuitamente", desc: "Crie seu perfil e mostre suas habilidades." },
-    { icon: Search, title: "Receba oportunidades", desc: "Oportunidades na sua região chegam até você." },
-    { icon: Briefcase, title: "Trabalhe e receba", desc: "Aceite serviços e receba pelas oportunidades." },
+    { icon: UserPlus, step: "01", title: "Cadastre-se gratuitamente", desc: "Crie seu perfil e mostre suas habilidades." },
+    { icon: Search, step: "02", title: "Receba oportunidades", desc: "Oportunidades na sua região chegam até você." },
+    { icon: Briefcase, step: "03", title: "Trabalhe e receba", desc: "Aceite serviços e receba pelas oportunidades." },
   ];
 
   return (
@@ -254,53 +254,69 @@ const HowItWorks = () => {
         <div className="text-center mb-16">
           <span className="badge-primary mb-4 inline-block">Simples e rápido</span>
           <h2 className="section-title section-title-center mb-4">Como funciona?</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">Seja para contratar ou trabalhar, o processo é rápido e descomplicado.</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-16">
+        <div className="grid lg:grid-cols-2 gap-8">
           {/* Contratantes */}
-          <div>
-            <h4 className="text-primary font-display font-bold mb-8 text-center">Para contratantes</h4>
-            <div className="space-y-8">
-              {contratante.map((s, i) => (
-                <div key={s.title} className="flex gap-5 items-start card-elevated p-6 card-hover">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                    {i + 1}
+          <div className="bg-secondary rounded-2xl p-8 md:p-10 shadow-lg">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 bg-primary rounded-xl">
+                <Building2 className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <h4 className="text-secondary-foreground font-display font-bold text-xl md:text-2xl">Para Contratantes</h4>
+            </div>
+            <div className="space-y-6">
+              {contratante.map((s) => (
+                <div key={s.title} className="flex gap-4 items-start group">
+                  <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-primary flex flex-col items-center justify-center shadow-amber">
+                    <s.icon className="w-5 h-5 text-primary-foreground" />
+                    <span className="text-[10px] font-extrabold text-primary-foreground mt-0.5">{s.step}</span>
                   </div>
-                  <div>
-                    <h5 className="font-semibold mb-1">{s.title}</h5>
-                    <p className="text-muted-foreground text-sm">{s.desc}</p>
+                  <div className="pt-1">
+                    <h5 className="font-bold text-secondary-foreground text-base mb-1 group-hover:text-primary transition-colors">{s.title}</h5>
+                    <p className="text-secondary-foreground/60 text-sm leading-relaxed">{s.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
+            <Button size="lg" className="w-full mt-8" asChild>
+              <Link to="/criar-evento">
+                Contratar Agora
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
           </div>
 
           {/* Profissionais */}
-          <div>
-            <h4 className="text-primary font-display font-bold mb-8 text-center">Para profissionais</h4>
-            <div className="space-y-8">
-              {profissional.map((s, i) => (
-                <div key={s.title} className="flex gap-5 items-start card-elevated p-6 card-hover">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                    {i + 1}
+          <div className="bg-primary rounded-2xl p-8 md:p-10 shadow-lg">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 bg-secondary rounded-xl">
+                <UserPlus className="w-6 h-6 text-secondary-foreground" />
+              </div>
+              <h4 className="text-primary-foreground font-display font-bold text-xl md:text-2xl">Para Freelancers</h4>
+            </div>
+            <div className="space-y-6">
+              {profissional.map((s) => (
+                <div key={s.title} className="flex gap-4 items-start group">
+                  <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-secondary flex flex-col items-center justify-center">
+                    <s.icon className="w-5 h-5 text-secondary-foreground" />
+                    <span className="text-[10px] font-extrabold text-secondary-foreground mt-0.5">{s.step}</span>
                   </div>
-                  <div>
-                    <h5 className="font-semibold mb-1">{s.title}</h5>
-                    <p className="text-muted-foreground text-sm">{s.desc}</p>
+                  <div className="pt-1">
+                    <h5 className="font-bold text-primary-foreground text-base mb-1 group-hover:text-secondary transition-colors">{s.title}</h5>
+                    <p className="text-primary-foreground/70 text-sm leading-relaxed">{s.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
+            <Button size="lg" variant="secondary" className="w-full mt-8 bg-secondary text-secondary-foreground hover:bg-secondary/90" asChild>
+              <Link to="/cadastro">
+                Quero me cadastrar
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
           </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-14">
-          <Button size="lg" asChild>
-            <Link to="/criar-evento">Contratar Agora</Link>
-          </Button>
-          <Button variant="outline" size="lg" asChild>
-            <Link to="/cadastro">Quero me cadastrar</Link>
-          </Button>
         </div>
       </div>
     </section>
