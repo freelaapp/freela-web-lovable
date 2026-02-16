@@ -25,6 +25,7 @@ import {
   TrendingUp,
   Eye,
   ScaleIcon,
+  GraduationCap,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import logoFreela from "@/assets/logo-freela.png";
@@ -595,7 +596,95 @@ const SocialProof = () => {
 };
 
 /* ═══════════════════════════════════════════════════
-   6️⃣  CTA FORTE
+   6️⃣  PARCEIROS & BENEFÍCIOS
+   ═══════════════════════════════════════════════════ */
+const PartnersCards = () => (
+  <section className="section-padding bg-background">
+    <div className="container mx-auto container-padding">
+      <div className="text-center mb-14">
+        <span className="badge-primary mb-4 inline-block">🎁 Benefícios exclusivos</span>
+        <h2 className="section-title section-title-center mb-4">
+          Vantagens de fazer parte do Freela
+        </h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Economia real e capacitação profissional para quem usa o ecossistema Freela.
+        </p>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Card Prospera */}
+        <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-400/5 to-transparent rounded-2xl border border-emerald-500/20 p-8 md:p-10 flex flex-col">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-full mb-6 self-start">
+            <Zap className="w-4 h-4" />
+            <span className="text-sm font-bold">Parceiro oficial</span>
+          </div>
+
+          <h3 className="text-xl md:text-2xl font-display font-bold text-foreground mb-4">
+            Grupo Prospera — Economia na Energia
+          </h3>
+
+          <p className="text-muted-foreground mb-6 leading-relaxed">
+            Ao se cadastrar no Freela e aderir à <span className="font-semibold text-foreground">Assinatura Verde</span> do Grupo Prospera, você garante{" "}
+            <span className="text-emerald-600 font-bold">10% de desconto na sua conta de energia</span>.
+          </p>
+
+          <div className="bg-emerald-600 rounded-xl p-5 mb-6 text-center">
+            <p className="text-white text-3xl font-display font-extrabold mb-1">10% OFF</p>
+            <p className="text-emerald-100 text-sm">na conta de energia elétrica</p>
+          </div>
+
+          <p className="text-muted-foreground text-sm mb-8 leading-relaxed">
+            E quanto mais você usa o Freela, <span className="font-semibold text-foreground">mais desconto pode ter na conta de energia</span>. Seus pontos acumulados se convertem em economia real.
+          </p>
+
+          <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white mt-auto group w-full">
+            Quero cadastrar agora!
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </div>
+
+        {/* Card Capacitação */}
+        <div className="bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-transparent rounded-2xl border border-blue-500/20 p-8 md:p-10 flex flex-col">
+          <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-600 px-4 py-2 rounded-full mb-6 self-start">
+            <GraduationCap className="w-4 h-4" />
+            <span className="text-sm font-bold">Capacitação profissional</span>
+          </div>
+
+          <h3 className="text-xl md:text-2xl font-display font-bold text-foreground mb-4">
+            Treinamentos e Capacitação
+          </h3>
+
+          <p className="text-muted-foreground mb-8 leading-relaxed">
+            Aprimore suas habilidades com cursos dos melhores parceiros do setor de hospitalidade e destaque-se no mercado.
+          </p>
+
+          <div className="space-y-4 mb-8 flex-1">
+            {[
+              { emoji: "🍺", name: "Bares SP", desc: "Coquetelaria, gestão de bares e tendências do mercado." },
+              { emoji: "🥃", name: "Diageo Bar Academy", desc: "Certificação internacional em mixologia e atendimento premium." },
+              { emoji: "📊", name: "Sebrae", desc: "Gestão financeira, marketing e formalização para empresários." },
+            ].map((partner) => (
+              <div key={partner.name} className="flex items-start gap-4 bg-card rounded-xl p-4 border border-border group hover:border-blue-500/30 transition-colors">
+                <span className="text-2xl flex-shrink-0">{partner.emoji}</span>
+                <div className="flex-1">
+                  <h5 className="font-bold text-foreground text-sm mb-1">{partner.name}</h5>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{partner.desc}</p>
+                </div>
+                <Button variant="ghost" size="sm" className="flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10 text-xs">
+                  Saber mais
+                  <ArrowRight className="w-3 h-3 ml-1" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+/* ═══════════════════════════════════════════════════
+   7️⃣  CTA FORTE
    ═══════════════════════════════════════════════════ */
 const CtaSection = () => (
   <section className="py-20 md:py-28 hero-gradient">
@@ -652,6 +741,7 @@ const HomePage = () => {
       <Solutions />
       <OQueEoFreela />
       <SocialProof />
+      <PartnersCards />
       <CtaSection />
     </AppLayout>
   );
