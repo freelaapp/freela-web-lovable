@@ -74,11 +74,11 @@ const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: str
    1️⃣  HERO
    ═══════════════════════════════════════════════════ */
 const HeroHome = () => (
-  <section className="relative min-h-screen flex items-center overflow-hidden bg-secondary">
+  <section className="relative min-h-screen flex items-center overflow-hidden hero-gradient">
     {/* BG blobs */}
-    <div className="absolute inset-0 opacity-15">
-      <div className="absolute top-20 left-10 w-80 h-80 bg-primary rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary rounded-full blur-3xl" />
+    <div className="absolute inset-0 opacity-10">
+      <div className="absolute top-20 left-10 w-80 h-80 bg-white rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
     </div>
 
     <div className="container mx-auto container-padding relative z-10 pt-28 pb-20">
@@ -89,31 +89,31 @@ const HeroHome = () => (
           className="h-20 md:h-28 mx-auto mb-8 drop-shadow-lg animate-blink"
         />
 
-        <h1 className="text-secondary-foreground mb-6 hero-text-shadow">
+        <h1 className="text-secondary mb-6 hero-text-shadow">
           Milhares de Freelancers disponíveis para seu bar, restaurante, buffets, ou para sua{" "}
           <span className="text-primary">festa particular.</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-secondary-foreground/80 max-w-2xl mx-auto mb-10">
+        <p className="text-lg md:text-xl text-secondary/80 max-w-2xl mx-auto mb-10">
           Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
         </p>
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
-          <Button variant="cta" size="xl" asChild className="group">
+          <Button variant="hero" size="xl" asChild className="group">
             <Link to="/inicio?modo=empresas">
               <Building2 className="w-5 h-5" />
               Contratar para minha Empresa
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
-          <Button variant="hero" size="xl" asChild className="group bg-primary text-primary-foreground hover:bg-primary-hover">
+          <Button variant="hero" size="xl" asChild className="group bg-secondary text-secondary-foreground hover:bg-secondary/90">
             <Link to="/inicio?modo=casa">
               <Home className="w-5 h-5" />
               Contratar para Evento em Casa
             </Link>
           </Button>
-          <Button variant="outline" size="xl" asChild className="border-secondary-foreground/30 text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground">
+          <Button variant="hero-outline" size="xl" asChild>
             <Link to="/cadastro">
               <Briefcase className="w-5 h-5" />
               Quero trabalhar pelo Freela
@@ -127,17 +127,17 @@ const HeroHome = () => (
             <p className="font-display text-3xl md:text-4xl font-bold text-primary">
               <AnimatedCounter target={180000} suffix="+" />
             </p>
-            <p className="text-sm text-secondary-foreground/70 mt-1">profissionais cadastrados</p>
+            <p className="text-sm text-secondary/70 mt-1">profissionais cadastrados</p>
           </div>
           <div className="text-center">
             <p className="font-display text-3xl md:text-4xl font-bold text-primary">🇧🇷</p>
-            <p className="text-sm text-secondary-foreground/70 mt-1">Presente em todo o Brasil</p>
+            <p className="text-sm text-secondary/70 mt-1">Presente em todo o Brasil</p>
           </div>
           <div className="text-center">
             <p className="font-display text-3xl md:text-4xl font-bold text-primary">
               <AnimatedCounter target={50000} suffix="+" />
             </p>
-            <p className="text-sm text-secondary-foreground/70 mt-1">contratações realizadas</p>
+            <p className="text-sm text-secondary/70 mt-1">contratações realizadas</p>
           </div>
         </div>
 
@@ -148,9 +148,9 @@ const HeroHome = () => (
             { icon: Star, label: "Profissionais avaliados" },
             { icon: MessageCircle, label: "Suporte ativo" },
           ].map((b) => (
-            <div key={b.label} className="flex items-center gap-2 bg-secondary-foreground/10 px-4 py-2 rounded-full">
-              <b.icon className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-secondary-foreground/90">{b.label}</span>
+            <div key={b.label} className="flex items-center gap-2 bg-secondary/10 px-4 py-2 rounded-full">
+              <b.icon className="w-4 h-4 text-secondary" />
+              <span className="text-sm font-medium text-secondary/90">{b.label}</span>
             </div>
           ))}
         </div>
