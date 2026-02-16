@@ -130,127 +130,127 @@ const PartnersBenefitsSection = () => {
           </div>
         </div>
 
-        {/* ========== CURSOS E CAPACITAÇÃO ========== */}
-        <div>
-          <div className="text-center mb-12">
-            <span className="badge-primary mb-6 inline-block text-base px-5 py-2">
-              📚 Capacitação profissional
-            </span>
-            <h3 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-4">
-              Cursos, treinamentos e capacitação
-            </h3>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {isFreelaCasa
-                ? "Aprimore suas habilidades com nossos parceiros de educação e destaque-se no mercado."
-                : "Capacite sua equipe e seus freelancers com cursos dos melhores parceiros do setor de hospitalidade."}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Bares SP */}
-            <div className="card-elevated overflow-hidden card-hover group">
-              <div className="bg-gradient-to-br from-amber-500/20 to-amber-400/5 p-8 text-center">
-                <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto">
-                  <span className="text-3xl">🍺</span>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="w-4 h-4 text-amber-600" />
-                  <span className="text-xs font-bold text-amber-600 uppercase tracking-wide">Parceiro</span>
-                </div>
-                <h4 className="font-display font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  Bares SP
-                </h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Cursos práticos de coquetelaria, gestão de bares e tendências do mercado. Ideal para bartenders e donos de bares.
-                </p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">Coquetelaria</span>
-                  <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">Gestão</span>
-                  <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">Tendências</span>
-                </div>
-                <Button variant="outline" size="sm" className="w-full group/btn">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Ver cursos
-                  <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Diageo */}
-            <div className="card-elevated overflow-hidden card-hover group">
-              <div className="bg-gradient-to-br from-blue-500/20 to-blue-400/5 p-8 text-center">
-                <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto">
-                  <span className="text-3xl">🥃</span>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="w-4 h-4 text-blue-600" />
-                  <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">Parceiro</span>
-                </div>
-                <h4 className="font-display font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  Cursos Diageo
-                </h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Programa de treinamento Diageo Bar Academy. Certificação internacional em mixologia e atendimento premium.
-                </p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded-full">Mixologia</span>
-                  <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded-full">Certificação</span>
-                  <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded-full">Premium</span>
-                </div>
-                <Button variant="outline" size="sm" className="w-full group/btn">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ver cursos
-                  <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Sebrae */}
-            <div className="card-elevated overflow-hidden card-hover group">
-              <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-8 text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-                  <span className="text-3xl">📊</span>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold text-primary uppercase tracking-wide">Parceiro</span>
-                </div>
-                <h4 className="font-display font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  Cursos Sebrae
-                </h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Capacitação para empresários do setor de alimentação e eventos. Gestão financeira, marketing e formalização.
-                </p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Gestão</span>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Finanças</span>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Marketing</span>
-                </div>
-                <Button variant="outline" size="sm" className="w-full group/btn">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Ver cursos
-                  <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom CTA */}
-          <div className="mt-12 text-center">
-            <div className="inline-flex items-center gap-2 bg-muted rounded-full px-6 py-3">
-              <Gift className="w-5 h-5 text-primary" />
-              <span className="text-foreground font-medium">
-                Parceiros Freela têm acesso a descontos exclusivos em todos os cursos
+        {/* ========== CURSOS E CAPACITAÇÃO (Apenas para Empresas) ========== */}
+        {!isFreelaCasa && (
+          <div>
+            <div className="text-center mb-12">
+              <span className="badge-primary mb-6 inline-block text-base px-5 py-2">
+                📚 Capacitação profissional
               </span>
+              <h3 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-4">
+                Cursos, treinamentos e capacitação
+              </h3>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Capacite sua equipe e seus freelancers com cursos dos melhores parceiros do setor de hospitalidade.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {/* Bares SP */}
+              <div className="card-elevated overflow-hidden card-hover group">
+                <div className="bg-gradient-to-br from-amber-500/20 to-amber-400/5 p-8 text-center">
+                  <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto">
+                    <span className="text-3xl">🍺</span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs font-bold text-amber-600 uppercase tracking-wide">Parceiro</span>
+                  </div>
+                  <h4 className="font-display font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    Bares SP
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Cursos práticos de coquetelaria, gestão de bares e tendências do mercado. Ideal para bartenders e donos de bares.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">Coquetelaria</span>
+                    <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">Gestão</span>
+                    <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">Tendências</span>
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full group/btn">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Ver cursos
+                    <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Diageo */}
+              <div className="card-elevated overflow-hidden card-hover group">
+                <div className="bg-gradient-to-br from-blue-500/20 to-blue-400/5 p-8 text-center">
+                  <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto">
+                    <span className="text-3xl">🥃</span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">Parceiro</span>
+                  </div>
+                  <h4 className="font-display font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    Cursos Diageo
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Programa de treinamento Diageo Bar Academy. Certificação internacional em mixologia e atendimento premium.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded-full">Mixologia</span>
+                    <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded-full">Certificação</span>
+                    <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded-full">Premium</span>
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full group/btn">
+                    <GraduationCap className="w-4 h-4 mr-2" />
+                    Ver cursos
+                    <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Sebrae */}
+              <div className="card-elevated overflow-hidden card-hover group">
+                <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-8 text-center">
+                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+                    <span className="text-3xl">📊</span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-bold text-primary uppercase tracking-wide">Parceiro</span>
+                  </div>
+                  <h4 className="font-display font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    Cursos Sebrae
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Capacitação para empresários do setor de alimentação e eventos. Gestão financeira, marketing e formalização.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Gestão</span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Finanças</span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Marketing</span>
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full group/btn">
+                    <GraduationCap className="w-4 h-4 mr-2" />
+                    Ver cursos
+                    <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom CTA */}
+            <div className="mt-12 text-center">
+              <div className="inline-flex items-center gap-2 bg-muted rounded-full px-6 py-3">
+                <Gift className="w-5 h-5 text-primary" />
+                <span className="text-foreground font-medium">
+                  Parceiros Freela têm acesso a descontos exclusivos em todos os cursos
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
