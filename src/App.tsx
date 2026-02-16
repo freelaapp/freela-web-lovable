@@ -18,6 +18,8 @@ import DashboardContratante from "./pages/DashboardContratante";
 import Mensagens from "./pages/Mensagens";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
+import TermosDeUso from "./pages/TermosDeUso";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,8 @@ const App = () => (
             <Route path="/dashboard-contratante" element={<DashboardContratante />} />
             <Route path="/mensagens" element={<Mensagens />} />
             <Route path="/perfil" element={<Perfil />} />
+            <Route path="/termos" element={<TermosDeUso />} />
+            <Route path="/privacidade" element={<PoliticaPrivacidade />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
