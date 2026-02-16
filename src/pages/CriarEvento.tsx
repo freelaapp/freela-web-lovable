@@ -35,10 +35,12 @@ const CriarEvento = () => {
 
   const valorCalculado = useMemo(() => {
     if (!servicoSelecionado) return null;
+    const hours = Math.max(formData.horas, servicoSelecionado.minHours);
     return calcularValorTotal(
       servicoSelecionado.pricePerHour,
-      formData.horas,
-      formData.quantidade
+      hours,
+      formData.quantidade,
+      servicoSelecionado.insuranceFee
     );
   }, [servicoSelecionado, formData.horas, formData.quantidade]);
 
@@ -257,18 +259,25 @@ const CriarEvento = () => {
               )}
 
               {/* Cálculo automático para PF */}
-              {isFreelaCasa && valorCalculado && (
+              {isFreelaCasa && valorCalculado && servicoSelecionado && (
                 <div className="bg-muted rounded-xl p-6 space-y-4">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Calculator className="w-4 h-4" />
                     Valor total do serviço
                   </div>
+                  {formData.horas < servicoSelecionado.minHours && (
+                    <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
+                      ⚠️ Jornada mínima de {servicoSelecionado.minHours}h para {servicoSelecionado.label}. O cálculo considera {servicoSelecionado.minHours}h.
+                    </p>
+                  )}
                   <div className="text-4xl font-display font-bold text-primary">
                     R$ {valorCalculado.total.toFixed(2).replace(".", ",")}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {formData.horas} horas
-                  </p>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>{formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {Math.max(formData.horas, servicoSelecionado.minHours)} horas</p>
+                    <p>Taxa de seguro: R$ {valorCalculado.insurance.toFixed(2).replace(".", ",")}</p>
+                    <p className="text-xs">Freelancer recebe: R$ {valorCalculado.freelancerValue.toFixed(2).replace(".", ",")} cada</p>
+                  </div>
                 </div>
               )}
 

@@ -3,18 +3,30 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Users, ChefHat, Wine, Music, Sparkles, UtensilsCrossed, Disc3 } from "lucide-react";
+import { Search, MapPin, Users, ChefHat, Wine, Music, Sparkles, UtensilsCrossed, Disc3, Coffee, ShieldCheck, DoorOpen, Car, Flame, ConciergeBell, BedDouble } from "lucide-react";
 import { useMode } from "@/contexts/ModeContext";
 import { Link } from "react-router-dom";
 
 const categorias = [
-  { id: "churrasqueiro", label: "Churrasqueiro", icon: ChefHat, disponiveis: 2847, cor: "bg-orange-500/10 text-orange-600" },
-  { id: "barman", label: "Barman", icon: Wine, disponiveis: 1923, cor: "bg-purple-500/10 text-purple-600" },
-  { id: "cozinheira", label: "Cozinheira(o)", icon: UtensilsCrossed, disponiveis: 3412, cor: "bg-red-500/10 text-red-600" },
+  { id: "barista", label: "Barista", icon: Coffee, disponiveis: 1540, cor: "bg-amber-500/10 text-amber-600" },
+  { id: "barman", label: "Barman/Bartender", icon: Wine, disponiveis: 1923, cor: "bg-purple-500/10 text-purple-600" },
+  { id: "cozinheiro", label: "Cozinheiro(a)", icon: UtensilsCrossed, disponiveis: 3412, cor: "bg-red-500/10 text-red-600" },
+  { id: "garcom", label: "Garçom/Garçonete", icon: Users, disponiveis: 5234, cor: "bg-green-500/10 text-green-600" },
   { id: "auxiliar-limpeza", label: "Auxiliar de Limpeza", icon: Sparkles, disponiveis: 4156, cor: "bg-cyan-500/10 text-cyan-600" },
-  { id: "garcom", label: "Garçom", icon: Users, disponiveis: 5234, cor: "bg-green-500/10 text-green-600" },
-  { id: "musico", label: "Músico", icon: Music, disponiveis: 1287, cor: "bg-yellow-500/10 text-yellow-600" },
+  { id: "auxiliar-cozinha", label: "Auxiliar de Cozinha", icon: ChefHat, disponiveis: 2180, cor: "bg-orange-500/10 text-orange-600" },
+  { id: "camareira", label: "Camareira", icon: BedDouble, disponiveis: 1890, cor: "bg-indigo-500/10 text-indigo-600" },
+  { id: "chapeiro", label: "Chapeiro(a)", icon: Flame, disponiveis: 1320, cor: "bg-red-500/10 text-red-600" },
+  { id: "cumim", label: "Cumim", icon: ConciergeBell, disponiveis: 2450, cor: "bg-teal-500/10 text-teal-600" },
+  { id: "churrasqueiro", label: "Churrasqueiro", icon: ChefHat, disponiveis: 2847, cor: "bg-orange-500/10 text-orange-600" },
+  { id: "seguranca", label: "Segurança (Não Armado)", icon: ShieldCheck, disponiveis: 1650, cor: "bg-slate-500/10 text-slate-600" },
+  { id: "hostess", label: "Hostess/Recepcionista", icon: DoorOpen, disponiveis: 1780, cor: "bg-pink-500/10 text-pink-600" },
+  { id: "manobrista", label: "Manobrista", icon: Car, disponiveis: 980, cor: "bg-blue-500/10 text-blue-600" },
   { id: "dj", label: "DJ", icon: Disc3, disponiveis: 876, cor: "bg-pink-500/10 text-pink-600" },
+  { id: "musico-sertanejo", label: "Músico (Sertanejo)", icon: Music, disponiveis: 650, cor: "bg-yellow-500/10 text-yellow-600" },
+  { id: "musico-rock", label: "Músico (Rock)", icon: Music, disponiveis: 420, cor: "bg-yellow-500/10 text-yellow-600" },
+  { id: "musico-samba-pagode", label: "Músico (Samba e Pagode)", icon: Music, disponiveis: 530, cor: "bg-yellow-500/10 text-yellow-600" },
+  { id: "musico-mpb", label: "Músico (MPB)", icon: Music, disponiveis: 380, cor: "bg-yellow-500/10 text-yellow-600" },
+  { id: "musico-multi", label: "Músico (Multi Estilo)", icon: Music, disponiveis: 710, cor: "bg-yellow-500/10 text-yellow-600" },
 ];
 
 const Freelancers = () => {
