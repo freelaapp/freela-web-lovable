@@ -7,33 +7,33 @@ const BenefitsSection = () => {
   const benefitsPJ = [
     {
       icon: Zap,
-      title: "Rápido e Fácil",
-      description: "Publique seu projeto em minutos e receba propostas de freelancers qualificados rapidamente.",
+      title: "Contratação Imediata",
+      description: "Precisa de um garçom para amanhã? Encontre freelancers disponíveis e contrate na hora.",
     },
     {
       icon: Shield,
       title: "Pagamento Seguro",
-      description: "Seu dinheiro fica protegido até você aprovar a entrega do trabalho. Garantia total.",
+      description: "Pague pelo app com total segurança. O freelancer só recebe após realizar o serviço.",
     },
     {
       icon: Users,
-      title: "Talentos Verificados",
-      description: "Freelancers passam por verificação de identidade e têm portfólios e avaliações reais.",
+      title: "Profissionais Avaliados",
+      description: "Garçons, bartenders e cozinheiros verificados com avaliações reais de outros estabelecimentos.",
     },
     {
       icon: Clock,
-      title: "Suporte 24/7",
-      description: "Nossa equipe está sempre disponível para ajudar você em qualquer etapa do processo.",
+      title: "Reforço Quando Precisar",
+      description: "Fim de semana lotado? Evento especial? Tenha freelancers extras sem vínculo empregatício.",
     },
     {
       icon: CreditCard,
-      title: "Sem Taxas Ocultas",
-      description: "Transparência total nos custos. Você sabe exatamente quanto vai pagar antes de contratar.",
+      title: "Valor Pré-fixado",
+      description: "Sem negociação! O valor da diária já é definido por tipo de serviço. Transparência total.",
     },
     {
       icon: Award,
-      title: "Qualidade Garantida",
-      description: "Se não estiver satisfeito, devolvemos seu dinheiro. Sem perguntas, sem burocracia.",
+      title: "Para Todo Tipo de Negócio",
+      description: "Bares, restaurantes, buffets, hotéis, motéis e empresas de eventos. Atendemos todos.",
     },
   ];
 
@@ -78,7 +78,7 @@ const BenefitsSection = () => {
         {/* Section Header */}
         <div className="text-center max-w-4xl mx-auto mb-20">
           <span className="badge-primary mb-6 inline-block text-base px-5 py-2">
-            {isFreelaCasa ? "✨ Vantagens" : "⭐ Por que escolher a Freela"}
+            {isFreelaCasa ? "✨ Vantagens" : "⭐ Por que usar o Freela"}
           </span>
           <h2 className="mb-6 section-title section-title-center">
             {isFreelaCasa ? (
@@ -88,15 +88,15 @@ const BenefitsSection = () => {
               </>
             ) : (
               <>
-                Tudo que você precisa para{" "}
-                <span className="text-gradient">trabalhar com confiança</span>
+                Reforce sua equipe{" "}
+                <span className="text-gradient">sem burocracia</span>
               </>
             )}
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             {isFreelaCasa
               ? "Contrate profissionais para seu evento de forma prática. Preço fechado, sem surpresas e com profissionais avaliados."
-              : "Criamos uma plataforma completa pensando em cada detalhe para facilitar sua vida, seja você freelancer ou cliente."}
+              : "Garçons, bartenders, cozinheiros e auxiliares prontos para trabalhar no seu bar, restaurante ou hotel. Valor pré-fixado e sem vínculo."}
           </p>
         </div>
 
