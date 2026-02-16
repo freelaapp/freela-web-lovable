@@ -11,7 +11,6 @@ const Header = () => {
 
   const navLinks = [
     { href: "/", label: "Início" },
-    { href: "/criar-evento", label: "Criar Evento" },
     { href: "/freelancers", label: "Freelancers" },
   ];
 
