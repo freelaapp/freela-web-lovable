@@ -1,20 +1,39 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import logoFreela from "@/assets/logo-freela.png";
 import ModeSelector from "@/components/ModeSelector";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navLinks = [
     { href: "/", label: "Início" },
+    { href: "/#o-que-e", label: "O que é o Freela" },
+    { href: "/#como-funciona", label: "Como funciona" },
     { href: "/freelancers", label: "Freelancers" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleNavClick = useCallback((e: React.MouseEvent, href: string) => {
+    if (href.includes("#")) {
+      e.preventDefault();
+      const hash = href.split("#")[1];
+      if (location.pathname !== "/") {
+        navigate("/");
+        setTimeout(() => {
+          document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+        }, 300);
+      } else {
+        document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+      }
+      setIsMenuOpen(false);
+    }
+  }, [location.pathname, navigate]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border">
@@ -40,6 +59,7 @@ const Header = () => {
               <Link
                 key={link.href}
                 to={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className={`text-sm font-medium transition-colors duration-200 ${
                   isActive(link.href)
                     ? "text-primary"
@@ -84,7 +104,7 @@ const Header = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={(e) => handleNavClick(e, link.href)}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     isActive(link.href)
                       ? "bg-primary-light text-primary"
