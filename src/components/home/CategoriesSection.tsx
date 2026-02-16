@@ -1,18 +1,16 @@
 import { 
-  Palette, 
-  Code, 
-  PenTool, 
-  Video, 
-  BarChart3, 
-  Megaphone,
-  FileText,
   Music,
   ArrowRight,
   Flame,
   Wine,
   ChefHat,
   Sparkles,
-  UserCheck
+  UserCheck,
+  UtensilsCrossed,
+  Building2,
+  Hotel,
+  PartyPopper,
+  BedDouble
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMode } from "@/contexts/ModeContext";
@@ -21,14 +19,12 @@ const CategoriesSection = () => {
   const { isFreelaCasa } = useMode();
 
   const categoriesPJ = [
-    { icon: Palette, name: "Design Gráfico", count: "2.500+ freelancers", color: "bg-primary-light text-primary" },
-    { icon: Code, name: "Desenvolvimento", count: "3.200+ freelancers", color: "bg-primary-light text-primary" },
-    { icon: PenTool, name: "Redação", count: "1.800+ freelancers", color: "bg-primary-light text-primary" },
-    { icon: Video, name: "Vídeo & Animação", count: "980+ freelancers", color: "bg-primary-light text-primary" },
-    { icon: BarChart3, name: "Finanças", count: "750+ freelancers", color: "bg-primary-light text-primary" },
-    { icon: Megaphone, name: "Marketing Digital", count: "2.100+ freelancers", color: "bg-primary-light text-primary" },
-    { icon: FileText, name: "Tradução", count: "620+ freelancers", color: "bg-primary-light text-primary" },
-    { icon: Music, name: "Música & Áudio", count: "430+ freelancers", color: "bg-primary-light text-primary" },
+    { icon: UtensilsCrossed, name: "Bares", count: "1.200+ estabelecimentos", color: "bg-primary-light text-primary" },
+    { icon: ChefHat, name: "Restaurantes", count: "2.800+ estabelecimentos", color: "bg-primary-light text-primary" },
+    { icon: PartyPopper, name: "Buffets", count: "950+ estabelecimentos", color: "bg-primary-light text-primary" },
+    { icon: Sparkles, name: "Empresas de Eventos", count: "680+ estabelecimentos", color: "bg-primary-light text-primary" },
+    { icon: Hotel, name: "Hotéis", count: "1.500+ estabelecimentos", color: "bg-primary-light text-primary" },
+    { icon: BedDouble, name: "Motéis", count: "420+ estabelecimentos", color: "bg-primary-light text-primary" },
   ];
 
   const categoriesPF = [
@@ -49,24 +45,24 @@ const CategoriesSection = () => {
         {/* Section Header */}
         <div className="text-center max-w-4xl mx-auto mb-16">
           <span className="badge-primary mb-6 inline-block text-base px-5 py-2">
-            {isFreelaCasa ? "🎯 Serviços disponíveis" : "📂 Categorias"}
+            {isFreelaCasa ? "🎯 Serviços disponíveis" : "🏢 Segmentos atendidos"}
           </span>
           <h2 className="mb-6 section-title section-title-center">
-            {isFreelaCasa ? "Profissionais para seu evento" : "Explore todas as áreas"}
+            {isFreelaCasa ? "Profissionais para seu evento" : "Empresas que contratam Freelas"}
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             {isFreelaCasa
               ? "Encontre o profissional ideal para fazer da sua festa um sucesso. Contratação simples e sem negociação."
-              : "Milhares de profissionais em diversas categorias prontos para transformar suas ideias em realidade."}
+              : "Bares, restaurantes, buffets e mais — contrate freelancers qualificados com valor já pré-fixado e sem burocracia."}
           </p>
         </div>
 
         {/* Categories Grid */}
-        <div className={`grid ${isFreelaCasa ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-4"} gap-4 md:gap-6 mb-8`}>
+        <div className={`grid ${isFreelaCasa ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3"} gap-4 md:gap-6 mb-8`}>
           {categories.map((category) => (
             <Link
               key={category.name}
-              to={isFreelaCasa ? `/criar-evento` : `/categorias/${category.name.toLowerCase().replace(/ /g, "-")}`}
+              to={isFreelaCasa ? `/criar-evento` : `/freelancers`}
               className="group card-elevated p-6 card-hover text-center"
             >
               <div className={`w-14 h-14 rounded-xl ${category.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
@@ -85,10 +81,10 @@ const CategoriesSection = () => {
         {/* View All Link */}
         <div className="text-center">
           <Link 
-            to={isFreelaCasa ? "/freelancers" : "/categorias"} 
+            to={isFreelaCasa ? "/freelancers" : "/freelancers"} 
             className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
           >
-            {isFreelaCasa ? "Ver todos os profissionais" : "Ver todas as categorias"}
+            {isFreelaCasa ? "Ver todos os profissionais" : "Ver todos os segmentos"}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
