@@ -11,6 +11,11 @@ import EsqueciMinhaSenha from "./pages/EsqueciMinhaSenha";
 import CriarEvento from "./pages/CriarEvento";
 import Freelancers from "./pages/Freelancers";
 import AceitarJob from "./pages/AceitarJob";
+import PerfilFreelancer from "./pages/PerfilFreelancer";
+import DashboardFreelancer from "./pages/DashboardFreelancer";
+import DashboardContratante from "./pages/DashboardContratante";
+import Mensagens from "./pages/Mensagens";
+import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +35,11 @@ const App = () => (
             <Route path="/criar-evento" element={<CriarEvento />} />
             <Route path="/freelancers" element={<Freelancers />} />
             <Route path="/aceitar-job/:jobId" element={<AceitarJob />} />
+            <Route path="/freelancer/:id" element={<PerfilFreelancer />} />
+            <Route path="/dashboard-freelancer" element={<DashboardFreelancer />} />
+            <Route path="/dashboard-contratante" element={<DashboardContratante />} />
+            <Route path="/mensagens" element={<Mensagens />} />
+            <Route path="/perfil" element={<Perfil />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
