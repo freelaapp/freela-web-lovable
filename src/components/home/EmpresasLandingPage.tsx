@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import PartnersBenefitsSection from "@/components/home/PartnersBenefitsSection";
+import AppDownloadCard from "@/components/home/AppDownloadCard";
 import {
   ArrowRight,
   CheckCircle2,
@@ -252,6 +253,9 @@ const EmpresasLandingPage = () => {
 
       {/* ========== BENEFÍCIOS PARCEIROS ========== */}
       <PartnersBenefitsSection />
+
+      {/* ========== BAIXE O APP ========== */}
+      <AppDownloadCard />
 
       {/* ========== CTA FINAL ========== */}
       <section className="section-padding hero-gradient relative overflow-hidden">
