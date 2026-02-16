@@ -599,7 +599,7 @@ const SocialProof = () => {
    6️⃣  PARCEIROS & BENEFÍCIOS
    ═══════════════════════════════════════════════════ */
 const PartnersCards = () => (
-  <section className="section-padding bg-background">
+  <section id="parcerias" className="section-padding bg-background scroll-mt-24">
     <div className="container mx-auto container-padding">
       <div className="text-center mb-14">
         <span className="badge-primary mb-4 inline-block">🎁 Benefícios exclusivos</span>

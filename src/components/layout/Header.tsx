@@ -14,6 +14,7 @@ const Header = () => {
     { href: "/", label: "Início" },
     { href: "/#o-que-e", label: "O que é o Freela" },
     { href: "/#como-funciona", label: "Como funciona" },
+    { href: "/#parcerias", label: "Parcerias" },
     { href: "/freelancers", label: "Freelancers" },
   ];
 
