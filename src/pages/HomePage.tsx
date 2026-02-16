@@ -97,7 +97,7 @@ const HomePage = () => {
                 <div className="relative z-10 text-center container-padding max-w-4xl mx-auto">
                   <span className="badge-primary mb-6 inline-block">Para Você</span>
                   <h1 className="text-secondary-foreground mb-6 hero-text-shadow">
-                    Festa em família sem <span className="text-gradient">preocupação!</span>
+                    Festa em família sem <span className="text-foreground">preocupação!</span>
                   </h1>
                   <p className="text-lg md:text-xl text-secondary-foreground/80 mb-10 max-w-2xl mx-auto">
                     Com o Freela, contrate freelancers para sua festa particular e apenas curta e relaxe.
