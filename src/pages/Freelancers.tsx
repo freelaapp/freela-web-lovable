@@ -3,248 +3,120 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, Search, Filter, Music, MapPin } from "lucide-react";
+import { Search, MapPin, Users, ChefHat, Wine, Music, Sparkles, UtensilsCrossed, Disc3 } from "lucide-react";
 import { useMode } from "@/contexts/ModeContext";
-import { servicosPF, estilosMusicais } from "@/lib/services";
-import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
-// Dados mock de freelancers
-const freelancersMock = [
-  {
-    id: "1",
-    nome: "Carlos Silva",
-    foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-    cargo: "churrasqueiro",
-    avaliacao: 4.9,
-    avaliacoes: 47,
-    estilosMusicais: [],
-    cidade: "São Paulo, SP",
-    bio: "Especialista em churrasco para eventos há mais de 10 anos.",
-  },
-  {
-    id: "2",
-    nome: "Ana Beatriz",
-    foto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
-    cargo: "barman",
-    avaliacao: 4.8,
-    avaliacoes: 62,
-    estilosMusicais: [],
-    cidade: "Rio de Janeiro, RJ",
-    bio: "Bartender profissional com especialização em drinks clássicos e autorais.",
-  },
-  {
-    id: "3",
-    nome: "João Pedro",
-    foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
-    cargo: "musico",
-    avaliacao: 5.0,
-    avaliacoes: 89,
-    estilosMusicais: ["sertanejo", "mpb", "pop"],
-    cidade: "Belo Horizonte, MG",
-    bio: "Cantor e violonista com repertório variado para todos os públicos.",
-  },
-  {
-    id: "4",
-    nome: "Maria Clara",
-    foto: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
-    cargo: "cozinheira",
-    avaliacao: 4.7,
-    avaliacoes: 34,
-    estilosMusicais: [],
-    cidade: "Curitiba, PR",
-    bio: "Chef especializada em culinária brasileira e internacional.",
-  },
-  {
-    id: "5",
-    nome: "Lucas Mendes",
-    foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-    cargo: "garcom",
-    avaliacao: 4.9,
-    avaliacoes: 78,
-    estilosMusicais: [],
-    cidade: "Porto Alegre, RS",
-    bio: "Experiência em eventos de alto padrão e festas particulares.",
-  },
-  {
-    id: "6",
-    nome: "Fernanda Lima",
-    foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face",
-    cargo: "musico",
-    avaliacao: 4.8,
-    avaliacoes: 56,
-    estilosMusicais: ["pagode", "samba", "forro"],
-    cidade: "Salvador, BA",
-    bio: "Cantora e percussionista especializada em música brasileira.",
-  },
+const categorias = [
+  { id: "churrasqueiro", label: "Churrasqueiro", icon: ChefHat, disponiveis: 2847, cor: "bg-orange-500/10 text-orange-600" },
+  { id: "barman", label: "Barman", icon: Wine, disponiveis: 1923, cor: "bg-purple-500/10 text-purple-600" },
+  { id: "cozinheira", label: "Cozinheira(o)", icon: UtensilsCrossed, disponiveis: 3412, cor: "bg-red-500/10 text-red-600" },
+  { id: "auxiliar-limpeza", label: "Auxiliar de Limpeza", icon: Sparkles, disponiveis: 4156, cor: "bg-cyan-500/10 text-cyan-600" },
+  { id: "garcom", label: "Garçom", icon: Users, disponiveis: 5234, cor: "bg-green-500/10 text-green-600" },
+  { id: "musico", label: "Músico", icon: Music, disponiveis: 1287, cor: "bg-yellow-500/10 text-yellow-600" },
+  { id: "dj", label: "DJ", icon: Disc3, disponiveis: 876, cor: "bg-pink-500/10 text-pink-600" },
 ];
 
 const Freelancers = () => {
   const { isFreelaCasa } = useMode();
-  const [filtroServico, setFiltroServico] = useState<string>("todos");
-  const [filtroEstilo, setFiltroEstilo] = useState<string>("todos");
   const [busca, setBusca] = useState("");
 
-  const getCargoLabel = (cargoId: string) => {
-    const servico = servicosPF.find(s => s.id === cargoId);
-    return servico?.label || cargoId;
-  };
+  const categoriasFiltradas = categorias.filter(c =>
+    c.label.toLowerCase().includes(busca.toLowerCase())
+  );
 
-  const getEstiloLabel = (estiloId: string) => {
-    const estilo = estilosMusicais.find(e => e.id === estiloId);
-    return estilo?.label || estiloId;
-  };
-
-  const freelancersFiltrados = freelancersMock.filter(f => {
-    const matchServico = filtroServico === "todos" || f.cargo === filtroServico;
-    const matchEstilo = filtroEstilo === "todos" || f.estilosMusicais.includes(filtroEstilo);
-    const matchBusca = f.nome.toLowerCase().includes(busca.toLowerCase());
-    return matchServico && matchEstilo && matchBusca;
-  });
-
-  const mostrarFiltroMusica = filtroServico === "musico" || filtroServico === "todos";
+  const totalDisponiveis = categorias.reduce((acc, c) => acc + c.disponiveis, 0);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      
+
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto container-padding">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6">
             <h1 className="text-3xl font-display font-bold mb-2">
-              {isFreelaCasa ? "Freelancers disponíveis" : "Profissionais cadastrados"}
+              Profissionais disponíveis
             </h1>
-            <p className="text-muted-foreground">
-              {isFreelaCasa
-                ? "Encontre o profissional ideal para seu evento"
-                : "Gerencie e visualize profissionais disponíveis"}
-            </p>
-          </div>
-
-          {/* Filtros */}
-          <div className="bg-card border border-border rounded-xl p-4 mb-8">
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* Busca */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome..."
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                  className="pl-10 h-11"
-                />
-              </div>
-
-              {/* Filtro por serviço */}
-              <Select value={filtroServico} onValueChange={setFiltroServico}>
-                <SelectTrigger className="w-full sm:w-[200px] h-11">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Tipo de serviço" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os serviços</SelectItem>
-                  {servicosPF.map((servico) => (
-                    <SelectItem key={servico.id} value={servico.id}>
-                      {servico.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Filtro por estilo musical */}
-              {mostrarFiltroMusica && (
-                <Select value={filtroEstilo} onValueChange={setFiltroEstilo}>
-                  <SelectTrigger className="w-full sm:w-[200px] h-11">
-                    <Music className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Estilo musical" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos os estilos</SelectItem>
-                    {estilosMusicais.map((estilo) => (
-                      <SelectItem key={estilo.id} value={estilo.id}>
-                        {estilo.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span>No raio de <strong className="text-foreground">30 km</strong> da sua localização</span>
             </div>
           </div>
 
-          {/* Lista de Freelancers */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {freelancersFiltrados.map((freelancer) => (
-              <div
-                key={freelancer.id}
-                className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-all hover:shadow-lg"
-              >
-                {/* Foto e Info básica */}
-                <div className="flex items-start gap-4 mb-4">
-                  <img
-                    src={freelancer.foto}
-                    alt={freelancer.nome}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg truncate">{freelancer.nome}</h3>
-                    <p className="text-primary font-medium text-sm">
-                      {getCargoLabel(freelancer.cargo)}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="w-4 h-4 fill-primary text-primary" />
-                      <span className="font-semibold text-sm">{freelancer.avaliacao}</span>
-                      <span className="text-muted-foreground text-sm">
-                        ({freelancer.avaliacoes} avaliações)
-                      </span>
+          {/* Total */}
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold text-primary">
+                {totalDisponiveis.toLocaleString("pt-BR")}+
+              </p>
+              <p className="text-sm text-muted-foreground">
+                freelancers disponíveis na sua região
+              </p>
+            </div>
+          </div>
+
+          {/* Busca */}
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por tipo de profissional..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="pl-10 h-11"
+            />
+          </div>
+
+          {/* Grid de categorias */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categoriasFiltradas.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <Link
+                  key={cat.id}
+                  to={`/freelancers/${cat.id}`}
+                  className="group bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-all hover:shadow-lg cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-14 h-14 rounded-xl ${cat.cor} flex items-center justify-center shrink-0`}>
+                      <Icon className="w-7 h-7" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-lg">{cat.label}</h3>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Raio de 30 km</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Cidade */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                  <MapPin className="w-4 h-4" />
-                  <span>{freelancer.cidade}</span>
-                </div>
-
-                {/* Estilos musicais (apenas para músicos) */}
-                {freelancer.cargo === "musico" && freelancer.estilosMusicais.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {freelancer.estilosMusicais.map((estilo) => (
-                      <Badge key={estilo} variant="secondary" className="text-xs">
-                        {getEstiloLabel(estilo)}
-                      </Badge>
-                    ))}
+                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-display font-bold text-primary">
+                        {cat.disponiveis.toLocaleString("pt-BR")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">disponíveis agora</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      Ver profissionais
+                    </Button>
                   </div>
-                )}
-
-                {/* Bio - Apenas para modo empresas */}
-                {!isFreelaCasa && (
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {freelancer.bio}
-                  </p>
-                )}
-
-                {/* Botão */}
-                <Button variant="outline" className="w-full">
-                  Ver perfil
-                </Button>
-              </div>
-            ))}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Empty state */}
-          {freelancersFiltrados.length === 0 && (
+          {categoriasFiltradas.length === 0 && (
             <div className="text-center py-16">
               <p className="text-muted-foreground text-lg mb-4">
-                Nenhum freelancer encontrado com os filtros selecionados
+                Nenhuma categoria encontrada
               </p>
-              <Button variant="outline" onClick={() => {
-                setFiltroServico("todos");
-                setFiltroEstilo("todos");
-                setBusca("");
-              }}>
-                Limpar filtros
+              <Button variant="outline" onClick={() => setBusca("")}>
+                Limpar busca
               </Button>
             </div>
           )}
