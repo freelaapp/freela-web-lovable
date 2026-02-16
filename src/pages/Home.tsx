@@ -95,72 +95,94 @@ const bannerSlides = [
 ];
 
 const HeroHome = () => {
-  const [current, setCurrent] = useState(0);
-  const [animating, setAnimating] = useState(false);
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setAnimating(true);
-      setTimeout(() => {
-        setCurrent((prev) => (prev + 1) % bannerSlides.length);
-        setAnimating(false);
-      }, 600);
-    }, 5000);
+      setActive((prev) => (prev + 1) % bannerSlides.length);
+    }, 4000);
     return () => clearInterval(timer);
   }, []);
 
-  const slide = bannerSlides[current];
+  const ActiveIcon = bannerSlides[active].cta.icon;
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background images */}
-      {bannerSlides.map((s, i) => (
-        <div
-          key={i}
-          className="absolute inset-0 transition-opacity duration-1000"
-          style={{ opacity: i === current ? 1 : 0 }}
-        >
-          <img
-            src={s.image}
-            alt={s.headline}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ))}
-
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-secondary/70" />
+    <section className="relative min-h-screen flex items-center overflow-hidden hero-gradient">
+      {/* BG blobs */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-80 h-80 bg-secondary rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary rounded-full blur-3xl" />
+      </div>
 
       <div className="container mx-auto container-padding relative z-10 pt-28 pb-20">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-5xl mx-auto text-center">
           <img
             src={logoFreela}
             alt="Freela Serviços"
             className="h-20 md:h-28 mx-auto mb-8 drop-shadow-lg animate-blink"
           />
 
-          <h1 className="text-secondary-foreground mb-6 hero-text-shadow">
+          <h1 className="text-secondary mb-6 hero-text-shadow">
             Milhares de Freelancers disponíveis para{" "}
             <br className="hidden md:block" />
-            <span
-              className={`text-primary inline-block transition-all duration-500 ${
-                animating ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
-              }`}
-            >
-              {slide.headline}
+            <span className="text-secondary-foreground">
+              {bannerSlides[active].headline}
             </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-secondary-foreground/80 max-w-2xl mx-auto mb-10">
+          <p className="text-lg md:text-xl text-secondary/80 max-w-2xl mx-auto mb-12">
             Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
-            <Button variant="cta" size="xl" asChild className="group">
-              <Link to={slide.cta.link}>
-                <slide.cta.icon className="w-5 h-5" />
-                {slide.cta.label}
+          {/* 3 Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {bannerSlides.map((slide, i) => {
+              const SlideIcon = slide.cta.icon;
+              return (
+                <Link
+                  key={i}
+                  to={slide.cta.link}
+                  onClick={(e) => { e.preventDefault(); setActive(i); }}
+                  className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer ${
+                    i === active
+                      ? "ring-4 ring-secondary shadow-lg scale-[1.03]"
+                      : "ring-2 ring-secondary/20 hover:ring-secondary/50 opacity-80 hover:opacity-100"
+                  }`}
+                >
+                  <div className="aspect-[16/10] overflow-hidden">
+                    <img
+                      src={slide.image}
+                      alt={slide.headline}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/30 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      <SlideIcon className="w-5 h-5 text-primary" />
+                      <span className="text-xs font-bold text-primary uppercase tracking-wide">
+                        {slide.cta.label}
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-secondary-foreground leading-tight">
+                      {slide.headline}
+                    </p>
+                  </div>
+                  {i === active && (
+                    <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
+                      Destaque
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
+            <Button variant="hero" size="xl" asChild className="group">
+              <Link to={bannerSlides[active].cta.link}>
+                <ActiveIcon className="w-5 h-5" />
+                {bannerSlides[active].cta.label}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
@@ -170,20 +192,6 @@ const HeroHome = () => {
                 Quero trabalhar pelo Freela
               </Link>
             </Button>
-          </div>
-
-          {/* Slide indicators */}
-          <div className="flex justify-center gap-3 mb-14">
-            {bannerSlides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => { setAnimating(true); setTimeout(() => { setCurrent(i); setAnimating(false); }, 300); }}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === current ? "w-10 bg-primary" : "w-3 bg-secondary-foreground/40 hover:bg-secondary-foreground/60"
-                }`}
-                aria-label={`Slide ${i + 1}`}
-              />
-            ))}
           </div>
 
         {/* Animated Counters */}
