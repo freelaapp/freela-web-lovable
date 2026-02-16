@@ -203,8 +203,8 @@ const Login = () => {
             Conecte-se a oportunidades incríveis
           </h2>
           <p className="text-secondary/80 text-lg">
-            Milhares de projetos esperando por você. Entre agora e comece a 
-            transformar suas habilidades em resultados.
+            Milhares de oportunidades de serviços esperando por você. Entre agora e 
+            encontre os melhores profissionais para seu estabelecimento.
           </p>
         </div>
       </div>
