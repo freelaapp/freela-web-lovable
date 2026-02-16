@@ -544,23 +544,19 @@ const CtaSection = () => (
           </Link>
         </Button>
       </div>
+      <div className="mt-10 flex justify-center">
+        <a
+          href="https://wa.me/5511999999999"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-secondary text-secondary-foreground px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2 font-semibold text-sm"
+        >
+          <MessageCircle className="w-5 h-5" />
+          Fale com nosso suporte
+        </a>
+      </div>
     </div>
   </section>
-);
-
-/* ═══════════════════════════════════════════════════
-   7️⃣  FLOATING SUPPORT BUTTON
-   ═══════════════════════════════════════════════════ */
-const FloatingSupport = () => (
-  <a
-    href="https://wa.me/5511999999999"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="fixed bottom-24 lg:bottom-8 right-6 z-50 bg-primary text-primary-foreground px-5 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2 font-semibold text-sm"
-  >
-    <MessageCircle className="w-5 h-5" />
-    <span className="hidden sm:inline">Fale com nosso suporte</span>
-  </a>
 );
 
 /* ═══════════════════════════════════════════════════
@@ -575,7 +571,6 @@ const HomePage = () => {
       <Objections />
       <SocialProof />
       <CtaSection />
-      <FloatingSupport />
     </AppLayout>
   );
 };
