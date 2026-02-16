@@ -1,8 +1,19 @@
 import { useMode, ServiceMode } from "@/contexts/ModeContext";
 import { Home, Building2 } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const ModeSelector = () => {
   const { mode, setMode } = useMode();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleModeChange = (newMode: ServiceMode) => {
+    setMode(newMode);
+    // If on Home Page or already on /inicio, navigate/refresh with param
+    if (location.pathname === "/" || location.pathname === "/inicio") {
+      navigate(`/inicio?modo=${newMode}`);
+    }
+  };
 
   const modes: { value: ServiceMode; label: string; icon: React.ReactNode; description: string }[] = [
     {
@@ -24,7 +35,7 @@ const ModeSelector = () => {
       {modes.map((m) => (
         <button
           key={m.value}
-          onClick={() => setMode(m.value)}
+          onClick={() => handleModeChange(m.value)}
           className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
             mode === m.value
               ? "bg-primary text-primary-foreground shadow-sm"
