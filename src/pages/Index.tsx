@@ -8,6 +8,7 @@ import PartnersSection from "@/components/home/PartnersSection";
 import PartnersBenefitsSection from "@/components/home/PartnersBenefitsSection";
 import CTASection from "@/components/home/CTASection";
 import EmpresasLandingPage from "@/components/home/EmpresasLandingPage";
+import AppDownloadCard from "@/components/home/AppDownloadCard";
 import { useMode } from "@/contexts/ModeContext";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -40,6 +41,7 @@ const Index = () => {
       <TestimonialsSection />
       <PartnersSection />
       <HowItWorksSection />
+      <AppDownloadCard />
       <CTASection />
     </AppLayout>
   );
