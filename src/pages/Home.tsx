@@ -73,6 +73,38 @@ const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: str
 /* ═══════════════════════════════════════════════════
    1️⃣  HERO
    ═══════════════════════════════════════════════════ */
+const rotatingPhrases = [
+  "seu Bar, Restaurante, Buffet e Empresa de Eventos",
+  "seu Churrasco, Aniversário ou Casamento",
+  "eventos na sua Empresa",
+];
+
+const RotatingText = () => {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % rotatingPhrases.length);
+        setVisible(true);
+      }, 500);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span
+      className={`text-secondary-foreground inline-block transition-all duration-500 ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+      }`}
+    >
+      {rotatingPhrases[index]}
+    </span>
+  );
+};
+
 const HeroHome = () => (
   <section className="relative min-h-screen flex items-center overflow-hidden hero-gradient">
     {/* BG blobs */}
@@ -90,8 +122,9 @@ const HeroHome = () => (
         />
 
         <h1 className="text-secondary mb-6 hero-text-shadow">
-          Milhares de Freelancers disponíveis para seu bar, restaurante, buffets, ou para sua{" "}
-          <span className="text-primary">festa particular.</span>
+          Milhares de Freelancers disponíveis para{" "}
+          <br className="hidden md:block" />
+          <RotatingText />
         </h1>
 
         <p className="text-lg md:text-xl text-secondary/80 max-w-2xl mx-auto mb-10">
