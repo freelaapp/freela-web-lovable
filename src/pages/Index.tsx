@@ -1,5 +1,4 @@
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import AppLayout from "@/components/layout/AppLayout";
 import HeroSection from "@/components/home/HeroSection";
 import BenefitsSection from "@/components/home/BenefitsSection";
 import HowItWorksSection from "@/components/home/HowItWorksSection";
@@ -10,19 +9,15 @@ import CTASection from "@/components/home/CTASection";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main>
-        <HeroSection />
-        <BenefitsSection />
-        <CategoriesSection />
-        <TestimonialsSection />
-        <PartnersSection />
-        <HowItWorksSection />
-        <CTASection />
-      </main>
-      <Footer />
-    </div>
+    <AppLayout>
+      <HeroSection />
+      <BenefitsSection />
+      <CategoriesSection />
+      <TestimonialsSection />
+      <PartnersSection />
+      <HowItWorksSection />
+      <CTASection />
+    </AppLayout>
   );
 };
 
