@@ -249,7 +249,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="section-padding bg-background">
+    <section id="como-funciona" className="section-padding bg-background scroll-mt-24">
       <div className="container mx-auto container-padding">
         <div className="text-center mb-16">
           <span className="badge-primary mb-4 inline-block">Simples e rápido</span>
@@ -346,7 +346,7 @@ const Solutions = () => {
   ];
 
   return (
-    <section className="section-padding bg-muted/50">
+    <section id="o-que-e" className="section-padding bg-muted/50 scroll-mt-24">
       <div className="container mx-auto container-padding">
         <div className="text-center mb-16">
           <span className="badge-primary mb-4 inline-block">Soluções</span>
