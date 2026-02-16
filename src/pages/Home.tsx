@@ -90,8 +90,8 @@ const HeroHome = () => (
         />
 
         <h1 className="text-secondary-foreground mb-6 hero-text-shadow">
-          Profissionais Freelancers para seus eventos particulares ou seu bar, restaurante, buffet e empresa de eventos{" "}
-          <span className="text-primary">em poucos cliques.</span>
+          Milhares de Freelancers disponíveis para seu bar, restaurante, buffets, ou para sua{" "}
+          <span className="text-primary">festa particular.</span>
         </h1>
 
         <p className="text-lg md:text-xl text-secondary-foreground/80 max-w-2xl mx-auto mb-10">
