@@ -25,7 +25,7 @@ const CTASection = () => {
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">Comece gratuitamente</span>
+                <span className="text-sm font-medium">Cadastro gratuito</span>
               </>
             )}
           </div>
@@ -33,25 +33,25 @@ const CTASection = () => {
           <h2 className="text-secondary mb-8 hero-text-shadow">
             {isFreelaCasa
               ? "Pronto para fazer seu evento?"
-              : "Pronto para começar sua jornada?"}
+              : "Precisa reforçar sua equipe?"}
           </h2>
           
           <p className="text-xl md:text-2xl text-secondary/80 mb-12 max-w-2xl mx-auto leading-relaxed">
             {isFreelaCasa
               ? "Contrate um profissional de forma simples e rápida. Churrasqueiro, barman, músico e muito mais. Sem negociação, preço automático."
-              : "Junte-se a milhares de profissionais e empresas que já transformaram a forma de trabalhar. Cadastre-se agora e comece em minutos."}
+              : "Garçons, bartenders, cozinheiros e auxiliares disponíveis para seu bar, restaurante ou hotel. Valor pré-fixado e contratação imediata."}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="hero" size="xl" asChild className="group">
               <Link to={isFreelaCasa ? "/criar-evento" : "/cadastro"}>
-                {isFreelaCasa ? "Contratar agora" : "Criar conta gratuita"}
+                {isFreelaCasa ? "Contratar agora" : "Cadastrar meu estabelecimento"}
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
             <Button variant="hero-outline" size="xl" asChild>
-              <Link to={isFreelaCasa ? "/freelancers" : "/contato"}>
-                {isFreelaCasa ? "Ver profissionais" : "Fale conosco"}
+              <Link to={isFreelaCasa ? "/freelancers" : "/freelancers"}>
+                {isFreelaCasa ? "Ver profissionais" : "Ver freelancers disponíveis"}
               </Link>
             </Button>
           </div>
@@ -59,7 +59,7 @@ const CTASection = () => {
           <p className="mt-6 text-sm text-secondary/60">
             {isFreelaCasa
               ? "Preço fechado • Sem surpresas • Pagamento seguro"
-              : "Sem cartão de crédito • Sem compromisso • Cancele quando quiser"}
+              : "Valor pré-fixado • Sem vínculo • Profissionais avaliados"}
           </p>
         </div>
       </div>

@@ -14,8 +14,8 @@ const HeroSection = () => {
         { icon: Star, value: "4.9", label: "Avaliação média" },
       ]
     : [
-        { icon: Users, value: "50.000+", label: "Freelancers" },
-        { icon: Briefcase, value: "120.000+", label: "Projetos" },
+        { icon: Users, value: "15.000+", label: "Freelancers cadastrados" },
+        { icon: Briefcase, value: "8.000+", label: "Estabelecimentos" },
         { icon: Star, value: "4.9", label: "Avaliação média" },
       ];
 
@@ -44,7 +44,7 @@ const HeroSection = () => {
               {isFreelaCasa ? (
                 <>🏠 Freela em Casa - Eventos particulares</>
               ) : (
-                <>🚀 A maior plataforma de serviços do Brasil</>
+                <>🏢 Freelancers para bares, restaurantes e eventos</>
               )}
             </span>
             
@@ -61,14 +61,13 @@ const HeroSection = () => {
                 </>
               ) : (
                 <>
-                  Conecte-se aos melhores{" "}
+                  Freelancers prontos para o seu{" "}
                   <span className="relative">
-                    talentos
+                    estabelecimento
                     <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
                       <path d="M2 8C50 2 150 2 198 8" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
                     </svg>
-                  </span>{" "}
-                  do mercado
+                  </span>
                 </>
               )}
             </h1>
@@ -76,19 +75,19 @@ const HeroSection = () => {
             <p className="text-lg md:text-xl text-secondary/80 mb-8 max-w-xl mx-auto lg:mx-0">
               {isFreelaCasa
                 ? "Churrasqueiro, barman, músico, DJ, garçom e mais. Profissionais qualificados para festas, confraternizações e eventos em sua casa. Simples e sem negociação."
-                : "Encontre freelancers qualificados para qualquer projeto ou ofereça seus serviços para milhares de clientes. Simples, rápido e seguro."}
+                : "Garçons, bartenders, cozinheiros e mais para bares, restaurantes, buffets e hotéis. Valor pré-fixado, sem negociação e profissionais avaliados."}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
               <Button variant="hero" size="xl" asChild className="group">
                 <Link to={isFreelaCasa ? "/criar-evento" : "/cadastro"}>
-                  {isFreelaCasa ? "Contratar agora" : "Começar agora"}
+                  {isFreelaCasa ? "Contratar agora" : "Cadastrar meu estabelecimento"}
                   <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
               <Button variant="hero-outline" size="xl" asChild>
                 <Link to="/freelancers">
-                  {isFreelaCasa ? "Ver profissionais" : "Explorar freelancers"}
+                  {isFreelaCasa ? "Ver profissionais" : "Ver freelancers disponíveis"}
                 </Link>
               </Button>
             </div>
@@ -120,10 +119,10 @@ const HeroSection = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-card-foreground">
-                      {isFreelaCasa ? "Carlos Silva" : "João Carlos"}
+                      {isFreelaCasa ? "Carlos Silva" : "Felipe Santos"}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {isFreelaCasa ? "Churrasqueiro" : "Designer Gráfico"}
+                      {isFreelaCasa ? "Churrasqueiro" : "Garçom"}
                     </p>
                   </div>
                   <div className="ml-auto flex items-center gap-1">
@@ -134,7 +133,7 @@ const HeroSection = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   {isFreelaCasa
                     ? "\"Churrasco incrível! Carlos cuidou de tudo e os convidados amaram. Super recomendo!\""
-                    : "\"Excelente profissional! Entregou o projeto antes do prazo e superou as expectativas.\""}
+                    : "\"Profissional pontual e atencioso. Atendeu meu restaurante num sábado lotado e deu conta de tudo.\""}
                 </p>
                 <div className="flex gap-2">
                   {isFreelaCasa ? (
@@ -149,10 +148,10 @@ const HeroSection = () => {
                   ) : (
                     <>
                       <span className="px-3 py-1 bg-primary-light rounded-full text-xs font-medium text-primary">
-                        Logo Design
+                        Garçom
                       </span>
                       <span className="px-3 py-1 bg-primary-light rounded-full text-xs font-medium text-primary">
-                        Branding
+                        Restaurantes
                       </span>
                     </>
                   )}
@@ -164,7 +163,7 @@ const HeroSection = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-primary rounded-full" />
                   <span className="text-sm font-medium">
-                    {isFreelaCasa ? "Profissional contratado!" : "Projeto contratado!"}
+                    {isFreelaCasa ? "Profissional contratado!" : "Freelancer confirmado!"}
                   </span>
                 </div>
               </div>
@@ -172,10 +171,10 @@ const HeroSection = () => {
               <div className="absolute -right-4 bottom-8 bg-card rounded-xl shadow-md p-4 animate-fade-in" style={{ animationDelay: "0.5s" }}>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">
-                    {isFreelaCasa ? "R$ 480" : "+R$ 2.500"}
+                    {isFreelaCasa ? "R$ 480" : "R$ 180"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {isFreelaCasa ? "Valor do serviço" : "Ganhos este mês"}
+                    {isFreelaCasa ? "Valor do serviço" : "Valor pré-fixado/diária"}
                   </p>
                 </div>
               </div>

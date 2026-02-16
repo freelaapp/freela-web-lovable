@@ -11,26 +11,26 @@ const HowItWorksSection = () => {
     {
       icon: UserPlus,
       step: "01",
-      title: "Crie sua conta",
-      description: "Cadastro rápido e gratuito. Em poucos minutos você estará pronto para começar.",
+      title: "Cadastre seu estabelecimento",
+      description: "Informe seu bar, restaurante, buffet ou hotel. Cadastro rápido e gratuito.",
     },
     {
       icon: Search,
       step: "02",
-      title: "Publique seu projeto",
-      description: "Descreva o que precisa, defina o orçamento e prazo. Simples assim.",
+      title: "Escolha os freelancers",
+      description: "Garçons, bartenders, cozinheiros e mais. Veja avaliações e perfis completos.",
     },
     {
       icon: MessageSquare,
       step: "03",
-      title: "Receba propostas",
-      description: "Freelancers qualificados enviarão propostas. Compare e converse com eles.",
+      title: "Valor pré-fixado",
+      description: "Sem negociação! O valor já está definido por tipo de serviço e diária.",
     },
     {
       icon: CheckCircle,
       step: "04",
-      title: "Contrate e aprove",
-      description: "Escolha o melhor, acompanhe o trabalho e pague apenas quando aprovar.",
+      title: "Confirme e receba",
+      description: "O freelancer confirma presença e vai até seu estabelecimento no dia combinado.",
     },
   ];
 
@@ -67,26 +67,26 @@ const HowItWorksSection = () => {
     {
       icon: UserPlus,
       step: "01",
-      title: "Crie seu perfil",
-      description: "Monte seu portfólio, adicione suas habilidades e mostre seu diferencial.",
+      title: "Cadastre-se como freelancer",
+      description: "Informe seu serviço (garçom, bartender, cozinheiro, etc.) e sua disponibilidade.",
     },
     {
       icon: Search,
       step: "02",
-      title: "Encontre projetos",
-      description: "Navegue por milhares de oportunidades que combinam com suas habilidades.",
+      title: "Receba oportunidades",
+      description: "Bares, restaurantes e hotéis da sua região vão solicitar seus serviços.",
     },
     {
       icon: MessageSquare,
       step: "03",
-      title: "Envie propostas",
-      description: "Apresente-se, mostre seu trabalho anterior e faça sua oferta.",
+      title: "Aceite e confirme",
+      description: "Veja os detalhes do estabelecimento, data e valor. Aceite com um clique.",
     },
     {
       icon: CheckCircle,
       step: "04",
-      title: "Entregue e receba",
-      description: "Realize o trabalho, receba a aprovação e o pagamento cai na sua conta.",
+      title: "Trabalhe e receba",
+      description: "Compareça ao local, realize o serviço e receba o pagamento na sua conta.",
     },
   ];
 
@@ -131,7 +131,7 @@ const HowItWorksSection = () => {
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             {isFreelaCasa
               ? "Contrate um profissional para seu evento ou cadastre-se para trabalhar. Tudo de forma rápida e prática."
-              : "Seja você um cliente buscando talentos ou um freelancer em busca de oportunidades, o processo é rápido e intuitivo."}
+              : "Seja você um bar buscando garçons ou um freelancer em busca de diárias, o processo é rápido e sem burocracia."}
           </p>
         </div>
 
@@ -141,7 +141,7 @@ const HowItWorksSection = () => {
           <div>
             <div className="bg-primary rounded-2xl p-6 mb-8">
               <h3 className="text-xl font-display font-bold text-primary-foreground text-center">
-                {isFreelaCasa ? "Para quem contrata" : "Para Clientes"}
+                {isFreelaCasa ? "Para quem contrata" : "Para Estabelecimentos"}
               </h3>
             </div>
             <div className="space-y-6">
@@ -165,7 +165,7 @@ const HowItWorksSection = () => {
             <div className="mt-8">
               <Button size="lg" asChild className="w-full sm:w-auto">
                 <Link to={isFreelaCasa ? "/criar-evento" : "/cadastro?tipo=cliente"}>
-                  {isFreelaCasa ? "Contratar agora" : "Quero contratar"}
+                  {isFreelaCasa ? "Contratar agora" : "Cadastrar estabelecimento"}
                 </Link>
               </Button>
             </div>
