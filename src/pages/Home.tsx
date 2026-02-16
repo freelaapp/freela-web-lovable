@@ -28,6 +28,9 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import logoFreela from "@/assets/logo-freela.png";
+import bannerEmpresas from "@/assets/banner-empresas.jpg";
+import bannerFesta from "@/assets/banner-festa.jpg";
+import bannerCorporativo from "@/assets/banner-corporativo.jpg";
 import AppLayout from "@/components/layout/AppLayout";
 
 /* ─── Animated Counter ─── */
@@ -73,86 +76,115 @@ const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: str
 /* ═══════════════════════════════════════════════════
    1️⃣  HERO
    ═══════════════════════════════════════════════════ */
-const rotatingPhrases = [
-  "seu Bar, Restaurante, Buffet e Empresa de Eventos",
-  "seu Churrasco, Aniversário ou Casamento",
-  "eventos na sua Empresa",
+const bannerSlides = [
+  {
+    image: bannerEmpresas,
+    headline: "seu Bar, Restaurante, Buffet e Empresa de Eventos",
+    cta: { label: "Contratar para minha Empresa", link: "/inicio?modo=empresas", icon: Building2 },
+  },
+  {
+    image: bannerFesta,
+    headline: "seu Churrasco, Aniversário ou Casamento",
+    cta: { label: "Contratar para Evento em Casa", link: "/inicio?modo=casa", icon: Home },
+  },
+  {
+    image: bannerCorporativo,
+    headline: "eventos Corporativos e grandes operações",
+    cta: { label: "Quero contratar agora", link: "/criar-evento", icon: Briefcase },
+  },
 ];
 
-const RotatingText = () => {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
+const HeroHome = () => {
+  const [current, setCurrent] = useState(0);
+  const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setVisible(false);
+    const timer = setInterval(() => {
+      setAnimating(true);
       setTimeout(() => {
-        setIndex((prev) => (prev + 1) % rotatingPhrases.length);
-        setVisible(true);
-      }, 500);
-    }, 3500);
-    return () => clearInterval(interval);
+        setCurrent((prev) => (prev + 1) % bannerSlides.length);
+        setAnimating(false);
+      }, 600);
+    }, 5000);
+    return () => clearInterval(timer);
   }, []);
 
+  const slide = bannerSlides[current];
+
   return (
-    <span
-      className={`text-secondary-foreground inline-block transition-all duration-500 ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-      }`}
-    >
-      {rotatingPhrases[index]}
-    </span>
-  );
-};
-
-const HeroHome = () => (
-  <section className="relative min-h-screen flex items-center overflow-hidden hero-gradient">
-    {/* BG blobs */}
-    <div className="absolute inset-0 opacity-10">
-      <div className="absolute top-20 left-10 w-80 h-80 bg-white rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
-    </div>
-
-    <div className="container mx-auto container-padding relative z-10 pt-28 pb-20">
-      <div className="max-w-4xl mx-auto text-center animate-slide-up">
-        <img
-          src={logoFreela}
-          alt="Freela Serviços"
-          className="h-20 md:h-28 mx-auto mb-8 drop-shadow-lg animate-blink"
-        />
-
-        <h1 className="text-secondary mb-6 hero-text-shadow">
-          Milhares de Freelancers disponíveis para{" "}
-          <br className="hidden md:block" />
-          <RotatingText />
-        </h1>
-
-        <p className="text-lg md:text-xl text-secondary/80 max-w-2xl mx-auto mb-10">
-          Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
-          <Button variant="hero" size="xl" asChild className="group">
-            <Link to="/inicio?modo=empresas">
-              <Building2 className="w-5 h-5" />
-              Contratar para minha Empresa
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
-          <Button variant="hero" size="xl" asChild className="group bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            <Link to="/inicio?modo=casa">
-              <Home className="w-5 h-5" />
-              Contratar para Evento em Casa
-            </Link>
-          </Button>
-          <Button variant="hero-outline" size="xl" asChild>
-            <Link to="/cadastro">
-              <Briefcase className="w-5 h-5" />
-              Quero trabalhar pelo Freela
-            </Link>
-          </Button>
+    <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Background images */}
+      {bannerSlides.map((s, i) => (
+        <div
+          key={i}
+          className="absolute inset-0 transition-opacity duration-1000"
+          style={{ opacity: i === current ? 1 : 0 }}
+        >
+          <img
+            src={s.image}
+            alt={s.headline}
+            className="w-full h-full object-cover"
+          />
         </div>
+      ))}
+
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-secondary/70" />
+
+      <div className="container mx-auto container-padding relative z-10 pt-28 pb-20">
+        <div className="max-w-4xl mx-auto text-center">
+          <img
+            src={logoFreela}
+            alt="Freela Serviços"
+            className="h-20 md:h-28 mx-auto mb-8 drop-shadow-lg animate-blink"
+          />
+
+          <h1 className="text-secondary-foreground mb-6 hero-text-shadow">
+            Milhares de Freelancers disponíveis para{" "}
+            <br className="hidden md:block" />
+            <span
+              className={`text-primary inline-block transition-all duration-500 ${
+                animating ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
+              }`}
+            >
+              {slide.headline}
+            </span>
+          </h1>
+
+          <p className="text-lg md:text-xl text-secondary-foreground/80 max-w-2xl mx-auto mb-10">
+            Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+            <Button variant="cta" size="xl" asChild className="group">
+              <Link to={slide.cta.link}>
+                <slide.cta.icon className="w-5 h-5" />
+                {slide.cta.label}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+            <Button variant="hero-outline" size="xl" asChild>
+              <Link to="/cadastro">
+                <UserPlus className="w-5 h-5" />
+                Quero trabalhar pelo Freela
+              </Link>
+            </Button>
+          </div>
+
+          {/* Slide indicators */}
+          <div className="flex justify-center gap-3 mb-14">
+            {bannerSlides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { setAnimating(true); setTimeout(() => { setCurrent(i); setAnimating(false); }, 300); }}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === current ? "w-10 bg-primary" : "w-3 bg-secondary-foreground/40 hover:bg-secondary-foreground/60"
+                }`}
+                aria-label={`Slide ${i + 1}`}
+              />
+            ))}
+          </div>
 
         {/* Animated Counters */}
         <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-12">
@@ -160,17 +192,17 @@ const HeroHome = () => (
             <p className="font-display text-3xl md:text-4xl font-bold text-primary">
               <AnimatedCounter target={180000} suffix="+" />
             </p>
-            <p className="text-sm text-secondary/70 mt-1">profissionais cadastrados</p>
+            <p className="text-sm text-secondary-foreground/70 mt-1">profissionais cadastrados</p>
           </div>
           <div className="text-center">
             <p className="font-display text-3xl md:text-4xl font-bold text-primary">🇧🇷</p>
-            <p className="text-sm text-secondary/70 mt-1">Presente em todo o Brasil</p>
+            <p className="text-sm text-secondary-foreground/70 mt-1">Presente em todo o Brasil</p>
           </div>
           <div className="text-center">
             <p className="font-display text-3xl md:text-4xl font-bold text-primary">
               <AnimatedCounter target={50000} suffix="+" />
             </p>
-            <p className="text-sm text-secondary/70 mt-1">contratações realizadas</p>
+            <p className="text-sm text-secondary-foreground/70 mt-1">contratações realizadas</p>
           </div>
         </div>
 
@@ -181,16 +213,17 @@ const HeroHome = () => (
             { icon: Star, label: "Profissionais avaliados" },
             { icon: MessageCircle, label: "Suporte ativo" },
           ].map((b) => (
-            <div key={b.label} className="flex items-center gap-2 bg-secondary/10 px-4 py-2 rounded-full">
-              <b.icon className="w-4 h-4 text-secondary" />
-              <span className="text-sm font-medium text-secondary/90">{b.label}</span>
+            <div key={b.label} className="flex items-center gap-2 bg-secondary-foreground/15 px-4 py-2 rounded-full">
+              <b.icon className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-secondary-foreground/90">{b.label}</span>
             </div>
           ))}
         </div>
       </div>
     </div>
   </section>
-);
+  );
+};
 
 /* ═══════════════════════════════════════════════════
    2️⃣  COMO FUNCIONA
