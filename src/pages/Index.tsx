@@ -5,6 +5,7 @@ import HowItWorksSection from "@/components/home/HowItWorksSection";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import PartnersSection from "@/components/home/PartnersSection";
+import PartnersBenefitsSection from "@/components/home/PartnersBenefitsSection";
 import CTASection from "@/components/home/CTASection";
 import EmpresasLandingPage from "@/components/home/EmpresasLandingPage";
 import { useMode } from "@/contexts/ModeContext";
@@ -25,6 +26,7 @@ const Index = () => {
       <HeroSection />
       <BenefitsSection />
       <CategoriesSection />
+      <PartnersBenefitsSection />
       <TestimonialsSection />
       <PartnersSection />
       <HowItWorksSection />
