@@ -3,45 +3,48 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import logoFreela from "@/assets/logo-freela.png";
+import ModeSelector from "@/components/ModeSelector";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
   const navLinks = [
-    { href: "/como-funciona", label: "Como Funciona" },
-    { href: "/para-empresas", label: "Para Empresas" },
-    { href: "/freela-em-casa", label: "Freela em Casa" },
-    { href: "/profissionais", label: "Profissionais" },
-    { href: "/sobre", label: "Sobre o Freela" },
-    { href: "/contato", label: "Contato" },
+    { href: "/", label: "Início" },
+    { href: "/criar-evento", label: "Criar Evento" },
+    { href: "/freelancers", label: "Freelancers" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-secondary/95 backdrop-blur-md border-b border-secondary-foreground/10">
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border">
       <div className="container mx-auto container-padding">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 hover-scale shrink-0">
-            <img
-              src={logoFreela}
-              alt="Freela"
+          <Link to="/" className="flex items-center gap-2 hover-scale">
+            <img 
+              src={logoFreela} 
+              alt="Freela Serviços" 
               className="h-10 md:h-12 w-auto"
             />
           </Link>
 
+          {/* Mode Selector - Desktop */}
+          <div className="hidden lg:block">
+            <ModeSelector />
+          </div>
+
           {/* Desktop Navigation */}
-          <nav className="hidden xl:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className={`text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
+                className={`text-sm font-medium transition-colors duration-200 ${
                   isActive(link.href)
                     ? "text-primary"
-                    : "text-secondary-foreground/80 hover:text-primary"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {link.label}
@@ -50,18 +53,18 @@ const Header = () => {
           </nav>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden xl:flex items-center gap-3 shrink-0">
-            <Button variant="ghost" asChild className="text-secondary-foreground hover:text-primary hover:bg-secondary-foreground/10">
+          <div className="hidden lg:flex items-center gap-3">
+            <Button variant="ghost" asChild>
               <Link to="/login">Entrar</Link>
             </Button>
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary-hover">
-              <Link to="/cadastro">Criar Conta</Link>
+            <Button asChild>
+              <Link to="/cadastro">Cadastre-se</Link>
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="xl:hidden p-2 text-secondary-foreground"
+            className="lg:hidden p-2 text-foreground"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
           >
@@ -71,8 +74,13 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="xl:hidden py-4 border-t border-secondary-foreground/10 animate-fade-in">
-            <nav className="flex flex-col gap-1">
+          <div className="lg:hidden py-4 border-t border-border animate-fade-in">
+            {/* Mode Selector - Mobile */}
+            <div className="px-4 mb-4">
+              <ModeSelector />
+            </div>
+            
+            <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -80,22 +88,22 @@ const Header = () => {
                   onClick={() => setIsMenuOpen(false)}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     isActive(link.href)
-                      ? "bg-primary/20 text-primary"
-                      : "text-secondary-foreground/80 hover:bg-secondary-foreground/10 hover:text-primary"
+                      ? "bg-primary-light text-primary"
+                      : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
                   {link.label}
                 </Link>
               ))}
               <div className="flex flex-col gap-2 mt-4 px-4">
-                <Button variant="outline" asChild className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-secondary-foreground/10">
+                <Button variant="outline" asChild className="w-full">
                   <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                     Entrar
                   </Link>
                 </Button>
-                <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary-hover">
+                <Button asChild className="w-full">
                   <Link to="/cadastro" onClick={() => setIsMenuOpen(false)}>
-                    Criar Conta
+                    Cadastre-se
                   </Link>
                 </Button>
               </div>
