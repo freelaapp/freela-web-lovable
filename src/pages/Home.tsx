@@ -130,15 +130,15 @@ const HeroHome = () => {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary rounded-full blur-3xl" />
       </div>
 
-      <div className="container mx-auto container-padding relative z-10 pt-28 pb-20 py-[12px]">
-        <div className="max-w-5xl mx-auto text-center py-[10px]">
-          
+      <div className="container mx-auto container-padding relative z-10 pt-28 pb-20">
+        <div className="max-w-5xl mx-auto text-center">
+          <img
+            src={logoFreela}
+            alt="Freela Serviços"
+            className="h-20 md:h-28 mx-auto mb-8 drop-shadow-lg animate-blink" />
 
 
-
-
-
-          <h1 className="text-secondary mb-6 hero-text-shadow text-5xl">
+          <h1 className="text-secondary mb-6 hero-text-shadow">
             Milhares de Freelancers disponíveis para{" "}
             <br className="hidden md:block" />
             <span className="text-secondary-foreground">
@@ -211,7 +211,7 @@ const HeroHome = () => {
           </div>
 
         {/* Animated Counters */}
-        <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-12 py-0 bg-destructive">
+        <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-12 bg-[#e29d12]/0">
           <div className="text-center animate-fade-in" style={{ animationDelay: "0.2s" }}>
             <p className="font-display text-4xl md:text-5xl font-extrabold text-secondary hero-text-shadow">
               <AnimatedCounter target={180000} suffix="+" />
@@ -231,7 +231,7 @@ const HeroHome = () => {
         </div>
 
         {/* Trust Badges */}
-        <div className="flex-wrap items-center justify-center flex flex-row gap-[30px]">
+        <div className="flex flex-wrap justify-center gap-6">
           {[
             { icon: Shield, label: "Plataforma segura" },
             { icon: Star, label: "Profissionais avaliados" },
@@ -265,11 +265,11 @@ const HowItWorks = () => {
 
 
   return (
-    <section id="como-funciona" className="section-padding bg-background scroll-mt-24 py-px">
-      <div className="container mx-auto container-padding bg-muted">
-        <div className="text-center mb-16 py-[30px]">
-          <span className="badge-primary mb-4 inline-block my-0">Simples e rápido</span>
-          <h2 className="section-title section-title-center mb-4 mx-[30px] my-0">Como funciona?</h2>
+    <section id="como-funciona" className="section-padding bg-background scroll-mt-24">
+      <div className="container mx-auto container-padding">
+        <div className="text-center mb-16">
+          <span className="badge-primary mb-4 inline-block">Simples e rápido</span>
+          <h2 className="section-title section-title-center mb-4">Como funciona?</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">Seja para contratar ou trabalhar, o processo é rápido e descomplicado.</p>
         </div>
 
@@ -362,11 +362,11 @@ const Solutions = () => {
 
 
   return (
-    <section className="section-padding py-[100px] border-secondary-foreground bg-secondary-foreground">
-      <div className="container mx-auto container-padding bg-destructive-foreground">
+    <section className="section-padding bg-muted/50">
+      <div className="container mx-auto container-padding">
         <div className="text-center mb-16">
           <span className="badge-primary mb-4 inline-block">Soluções</span>
-          <h2 className="section-title section-title-center mb-4 mx-[30px]">Nossas Soluções</h2>
+          <h2 className="section-title section-title-center mb-4">Nossas Soluções</h2>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -452,7 +452,7 @@ const OQueEoFreela = () => {
 
 
   return (
-    <section id="o-que-e" className="section-padding scroll-mt-24 py-[136px] border-secondary-foreground bg-destructive-foreground">
+    <section id="o-que-e" className="section-padding bg-background scroll-mt-24">
       <div className="container mx-auto container-padding">
         {/* Header */}
         <div className="text-center mb-14">
@@ -561,11 +561,11 @@ const SocialProof = () => {
 
 
   return (
-    <section className="section-padding bg-muted/50 py-px">
-      <div className="container mx-auto container-padding py-[30px]">
-        <div className="text-center mb-16 py-[30px]">
+    <section className="section-padding bg-muted/50">
+      <div className="container mx-auto container-padding">
+        <div className="text-center mb-16">
           <span className="badge-primary mb-4 inline-block">Depoimentos</span>
-          <h2 className="section-title section-title-center mb-4 mx-[30px]">
+          <h2 className="section-title section-title-center mb-4">
             Quem usa, recomenda
           </h2>
         </div>
@@ -618,7 +618,7 @@ const PartnersCards = () =>
     <div className="container mx-auto container-padding">
       <div className="text-center mb-14">
         <span className="badge-primary mb-4 inline-block">🎁 Benefícios exclusivos</span>
-        <h2 className="section-title section-title-center mb-4 mx-[30px]">
+        <h2 className="section-title section-title-center mb-4">
           Vantagens de fazer parte do Freela
         </h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -749,7 +749,7 @@ const FAQSection = () =>
     <div className="container mx-auto container-padding">
       <div className="text-center mb-14">
         <span className="badge-primary mb-4 inline-block">❓ Tire suas dúvidas</span>
-        <h2 className="section-title section-title-center mb-4 mx-[30px]">Dúvidas Frequentes</h2>
+        <h2 className="section-title section-title-center mb-4">Dúvidas Frequentes</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Tudo o que você precisa saber antes de contratar ou se cadastrar.
         </p>
@@ -924,15 +924,15 @@ const CtaSection = () =>
    FREELANCERS PERTO DE VOCÊ
    ═══════════════════════════════════════════════════ */
 const FreelancersNearYou = () =>
-<section className="section-padding border-secondary-foreground bg-muted">
+<section className="section-padding bg-background">
     <div className="container mx-auto container-padding">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         {/* Imagem do mapa */}
         <div className="flex justify-center">
           <img
-
+          src={brazilMap}
           alt="Mapa do Brasil - Freelancers disponíveis"
-          className="w-full max-w-md lg:max-w-lg drop-shadow-2xl" src="/lovable-uploads/6c415550-33af-4ed9-96f3-fab4c495fbbe.png" />
+          className="w-full max-w-md lg:max-w-lg drop-shadow-2xl" />
 
         </div>
 
