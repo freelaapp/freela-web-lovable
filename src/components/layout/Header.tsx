@@ -10,12 +10,12 @@ const Header = () => {
   const navigate = useNavigate();
 
   const navLinks = [
-    { href: "/", label: "Início" },
-    { href: "/#o-que-e", label: "O que é o Freela" },
-    { href: "/#como-funciona", label: "Como funciona" },
-    { href: "/#parcerias", label: "Parcerias" },
-    { href: "/#duvidas", label: "Dúvidas" },
-  ];
+  { href: "/", label: "Início" },
+  { href: "/#o-que-e", label: "O que é o Freela" },
+  { href: "/#como-funciona", label: "Como funciona" },
+  { href: "/#parcerias", label: "Parcerias" },
+  { href: "/#duvidas", label: "Dúvidas" }];
+
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -41,29 +41,29 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 hover-scale">
-            <img 
-              src={logoFreela} 
-              alt="Freela Serviços" 
-              className="h-10 md:h-12 w-auto"
-            />
+            <img
+              src={logoFreela}
+              alt="Freela Serviços"
+              className="h-10 md:h-12 w-auto object-fill" />
+
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                onClick={(e) => handleNavClick(e, link.href)}
-                className={`text-sm font-medium transition-colors duration-200 ${
-                  isActive(link.href)
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
+            {navLinks.map((link) =>
+            <Link
+              key={link.href}
+              to={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
+              className={`text-sm font-medium transition-colors duration-200 ${
+              isActive(link.href) ?
+              "text-primary" :
+              "text-muted-foreground hover:text-foreground"}`
+              }>
+
                 {link.label}
               </Link>
-            ))}
+            )}
           </nav>
 
           {/* Desktop Auth Buttons */}
@@ -80,30 +80,30 @@ const Header = () => {
           <button
             className="lg:hidden p-2 text-foreground"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
-          >
+            aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}>
+
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-border animate-fade-in">
+        {isMenuOpen &&
+        <div className="lg:hidden py-4 border-t border-border animate-fade-in">
             <nav className="flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(link.href)
-                      ? "bg-primary-light text-primary"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
+              {navLinks.map((link) =>
+            <Link
+              key={link.href}
+              to={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
+              className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              isActive(link.href) ?
+              "bg-primary-light text-primary" :
+              "text-muted-foreground hover:bg-muted"}`
+              }>
+
                   {link.label}
                 </Link>
-              ))}
+            )}
               <div className="flex flex-col gap-2 mt-4 px-4">
                 <Button variant="outline" asChild className="w-full">
                   <Link to="/login" onClick={() => setIsMenuOpen(false)}>
@@ -118,10 +118,10 @@ const Header = () => {
               </div>
             </nav>
           </div>
-        )}
+        }
       </div>
-    </header>
-  );
+    </header>);
+
 };
 
 export default Header;
