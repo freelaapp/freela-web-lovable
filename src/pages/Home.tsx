@@ -132,13 +132,13 @@ const HeroHome = () => {
 
       <div className="container mx-auto container-padding relative z-10 pt-28 pb-20">
         <div className="max-w-5xl mx-auto text-center">
-          
+          <img
+            src={logoFreela}
+            alt="Freela Serviços"
+            className="h-20 md:h-28 mx-auto mb-8 drop-shadow-lg animate-blink" />
 
 
-
-
-
-          <h1 className="text-secondary mb-6 hero-text-shadow">
+          <h1 className="text-secondary mb-6 hero-text-shadow text-5xl">
             Milhares de Freelancers disponíveis para{" "}
             <br className="hidden md:block" />
             <span className="text-secondary-foreground">
