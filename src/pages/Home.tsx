@@ -132,10 +132,10 @@ const HeroHome = () => {
 
       <div className="container mx-auto container-padding relative z-10 pt-28 pb-20">
         <div className="max-w-5xl mx-auto text-center">
-          <img
-            src={logoFreela}
-            alt="Freela Serviços"
-            className="h-20 md:h-28 mx-auto mb-8 drop-shadow-lg animate-blink" />
+          
+
+
+
 
 
           <h1 className="text-secondary mb-6 hero-text-shadow text-5xl">
@@ -265,15 +265,15 @@ const HowItWorks = () => {
 
 
   return (
-    <section id="como-funciona" className="section-padding bg-background scroll-mt-24">
-      <div className="container mx-auto container-padding">
-        <div className="text-center mb-16">
+    <section id="como-funciona" className="section-padding scroll-mt-24 py-[30px] bg-secondary-foreground">
+      <div className="container mx-auto container-padding bg-secondary-foreground">
+        <div className="text-center mb-16 py-[30px]">
           <span className="badge-primary mb-4 inline-block">Simples e rápido</span>
-          <h2 className="section-title section-title-center mb-4">Como funciona?</h2>
+          <h2 className="section-title section-title-center mb-4 mx-[30px]">Como funciona?</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">Seja para contratar ou trabalhar, o processo é rápido e descomplicado.</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8 bg-secondary-foreground">
           {/* Contratantes */}
           <div className="bg-secondary rounded-2xl p-8 md:p-10 shadow-lg">
             <div className="flex items-center gap-3 mb-8">
@@ -362,14 +362,14 @@ const Solutions = () => {
 
 
   return (
-    <section className="section-padding bg-muted/50">
-      <div className="container mx-auto container-padding">
-        <div className="text-center mb-16">
+    <section className="section-padding py-[60px] bg-muted">
+      <div className="container mx-auto container-padding bg-muted">
+        <div className="text-center mb-16 py-[30px]">
           <span className="badge-primary mb-4 inline-block">Soluções</span>
-          <h2 className="section-title section-title-center mb-4">Nossas Soluções</h2>
+          <h2 className="section-title section-title-center mb-4 mx-[30px]">Nossas Soluções</h2>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8 bg-muted">
           {[
           {
             icon: Building2,
@@ -452,7 +452,7 @@ const OQueEoFreela = () => {
 
 
   return (
-    <section id="o-que-e" className="section-padding bg-background scroll-mt-24">
+    <section id="o-que-e" className="section-padding bg-background scroll-mt-24 py-[30px]">
       <div className="container mx-auto container-padding">
         {/* Header */}
         <div className="text-center mb-14">
@@ -561,11 +561,11 @@ const SocialProof = () => {
 
 
   return (
-    <section className="section-padding bg-muted/50">
+    <section className="section-padding bg-muted/50 py-[60px]">
       <div className="container mx-auto container-padding">
         <div className="text-center mb-16">
           <span className="badge-primary mb-4 inline-block">Depoimentos</span>
-          <h2 className="section-title section-title-center mb-4">
+          <h2 className="section-title section-title-center mb-4 mx-[30px]">
             Quem usa, recomenda
           </h2>
         </div>
@@ -614,11 +614,11 @@ const SocialProof = () => {
    6️⃣  PARCEIROS & BENEFÍCIOS
    ═══════════════════════════════════════════════════ */
 const PartnersCards = () =>
-<section id="parcerias" className="section-padding bg-background scroll-mt-24">
+<section id="parcerias" className="section-padding bg-background scroll-mt-24 py-[60px]">
     <div className="container mx-auto container-padding">
       <div className="text-center mb-14">
         <span className="badge-primary mb-4 inline-block">🎁 Benefícios exclusivos</span>
-        <h2 className="section-title section-title-center mb-4">
+        <h2 className="section-title section-title-center mb-4 mx-[30px]">
           Vantagens de fazer parte do Freela
         </h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -749,7 +749,7 @@ const FAQSection = () =>
     <div className="container mx-auto container-padding">
       <div className="text-center mb-14">
         <span className="badge-primary mb-4 inline-block">❓ Tire suas dúvidas</span>
-        <h2 className="section-title section-title-center mb-4">Dúvidas Frequentes</h2>
+        <h2 className="section-title section-title-center mb-4 mx-[30px]">Dúvidas Frequentes</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Tudo o que você precisa saber antes de contratar ou se cadastrar.
         </p>
@@ -924,15 +924,15 @@ const CtaSection = () =>
    FREELANCERS PERTO DE VOCÊ
    ═══════════════════════════════════════════════════ */
 const FreelancersNearYou = () =>
-<section className="section-padding bg-background">
+<section className="section-padding bg-background py-[60px]">
     <div className="container mx-auto container-padding">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         {/* Imagem do mapa */}
         <div className="flex justify-center">
           <img
-          src={brazilMap}
+
           alt="Mapa do Brasil - Freelancers disponíveis"
-          className="w-full max-w-md lg:max-w-lg drop-shadow-2xl" />
+          className="w-full max-w-md lg:max-w-lg drop-shadow-2xl" src="/lovable-uploads/6bc76b0e-48cd-43dd-9799-173f81a4f62b.png" />
 
         </div>
 
