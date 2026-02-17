@@ -42,11 +42,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-red.svg";
 import bannerEmpresas from "@/assets/banner-empresas.jpg";
 import bannerFesta from "@/assets/banner-festa.jpg";
 import bannerCorporativo from "@/assets/banner-corporativo.jpg";
 import AppLayout from "@/components/layout/AppLayout";
+import brazilMap from "@/assets/brazil-map-freela.png";
 
 /* ─── Animated Counter ─── */
 const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: string }) => {
@@ -920,15 +921,54 @@ const CtaSection = () => (
 );
 
 /* ═══════════════════════════════════════════════════
+   FREELANCERS PERTO DE VOCÊ
+   ═══════════════════════════════════════════════════ */
+const FreelancersNearYou = () => (
+  <section className="section-padding bg-background">
+    <div className="container mx-auto container-padding">
+      <div className="grid lg:grid-cols-2 gap-12 items-center">
+        {/* Imagem do mapa */}
+        <div className="flex justify-center">
+          <img
+            src={brazilMap}
+            alt="Mapa do Brasil - Freelancers disponíveis"
+            className="w-full max-w-md lg:max-w-lg drop-shadow-2xl"
+          />
+        </div>
+
+        {/* Conteúdo */}
+        <div className="text-center lg:text-left">
+          <span className="badge-primary mb-4 inline-block">📍 Cobertura Nacional</span>
+          <h2 className="section-title mb-6">
+            Veja a quantidade de freelancers perto de você
+          </h2>
+          <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto lg:mx-0">
+            Milhares de profissionais qualificados espalhados por todo o Brasil, prontos para trabalhar na sua região. Encontre garçons, bartenders, cozinheiros e muito mais.
+          </p>
+          <Button size="xl" asChild className="group">
+            <Link to="/freelancers">
+              <MapPin className="w-5 h-5" />
+              Ver freelancers disponíveis
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+/* ═══════════════════════════════════════════════════
    PAGE
    ═══════════════════════════════════════════════════ */
 const HomePage = () => {
   return (
     <AppLayout showBottomNav={false}>
       <HeroHome />
+      <OQueEoFreela />
       <HowItWorks />
       <Solutions />
-      <OQueEoFreela />
+      <FreelancersNearYou />
       <SocialProof />
       <PartnersCards />
       <FAQSection />

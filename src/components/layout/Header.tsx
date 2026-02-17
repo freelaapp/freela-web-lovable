@@ -2,8 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState, useCallback } from "react";
-import logoFreela from "@/assets/logo-freela.png";
-import ModeSelector from "@/components/ModeSelector";
+import logoFreela from "@/assets/logo-freela-red.svg";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,7 +15,6 @@ const Header = () => {
     { href: "/#como-funciona", label: "Como funciona" },
     { href: "/#parcerias", label: "Parcerias" },
     { href: "/#duvidas", label: "Dúvidas" },
-    { href: "/freelancers", label: "Freelancers" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -49,11 +47,6 @@ const Header = () => {
               className="h-10 md:h-12 w-auto"
             />
           </Link>
-
-          {/* Mode Selector - Desktop */}
-          <div className="hidden lg:block">
-            <ModeSelector />
-          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
@@ -96,11 +89,6 @@ const Header = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="lg:hidden py-4 border-t border-border animate-fade-in">
-            {/* Mode Selector - Mobile */}
-            <div className="px-4 mb-4">
-              <ModeSelector />
-            </div>
-            
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link

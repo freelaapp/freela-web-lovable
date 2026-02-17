@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-red.svg";
 import { Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 
 const Footer = () => {
@@ -39,7 +39,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link to="/" className="inline-block mb-6">
-              <img src={logoFreela} alt="Freela Serviços" className="h-14 w-auto brightness-0 invert" />
+              <img src={logoFreela} alt="Freela Serviços" className="h-14 w-auto invert" />
             </Link>
             <p className="text-secondary-foreground/70 mb-6 max-w-sm">
               Conectamos você a profissionais qualificados para eventos e estabelecimentos em todo o Brasil.
