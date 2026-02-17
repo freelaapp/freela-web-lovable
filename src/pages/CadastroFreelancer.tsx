@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,16 +7,37 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowRight, CalendarIcon, Music, Briefcase, CheckCircle } from "lucide-react";
+import { ArrowRight, CalendarIcon, Briefcase, CheckCircle, Camera, X, User } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
-import { servicosPF, estilosMusicais } from "@/lib/services";
 
 const estadosBR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
+];
+
+const areasAtuacao = [
+  { id: "garcom", label: "Garçom" },
+  { id: "bartender", label: "Bartender" },
+  { id: "cozinheiro", label: "Cozinheiro(a)" },
+  { id: "auxiliar-cozinha", label: "Auxiliar de Cozinha" },
+  { id: "recepcao", label: "Recepção" },
+  { id: "caixa", label: "Caixa" },
+  { id: "churrasqueiro", label: "Churrasqueiro" },
+  { id: "copeira", label: "Copeira" },
+  { id: "recreacao-infantil", label: "Recreação Infantil" },
+  { id: "musica-ao-vivo", label: "Música ao Vivo" },
+  { id: "dj", label: "DJ" },
+  { id: "barista", label: "Barista" },
+  { id: "seguranca", label: "Segurança" },
+  { id: "hostess", label: "Hostess" },
+  { id: "manobrista", label: "Manobrista" },
+  { id: "camareira", label: "Camareira" },
+  { id: "auxiliar-limpeza", label: "Auxiliar de Limpeza" },
+  { id: "chapeiro", label: "Chapeiro(a)" },
+  { id: "cumim", label: "Cumim" },
 ];
 
 const maskCPF = (v: string) => {
@@ -24,63 +45,55 @@ const maskCPF = (v: string) => {
   return d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 };
 
-const maskCEP = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 8);
-  return d.replace(/(\d{5})(\d)/, "$1-$2");
-};
-
 const CadastroFreelancer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [fotoPerfil, setFotoPerfil] = useState<File | null>(null);
+  const [nomeCompleto, setNomeCompleto] = useState("");
   const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState<Date>();
-  const [servico, setServico] = useState("");
-  const [estilosSelecionados, setEstilosSelecionados] = useState<string[]>([]);
-  const [cep, setCep] = useState("");
-  const [rua, setRua] = useState("");
-  const [numero, setNumero] = useState("");
-  const [complemento, setComplemento] = useState("");
-  const [bairro, setBairro] = useState("");
+  const [sexo, setSexo] = useState("");
+  const [endereco, setEndereco] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
+  const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const isMusician = servico === "musico" || servico.startsWith("musico-");
+  const previewFoto = useMemo(() => fotoPerfil ? URL.createObjectURL(fotoPerfil) : null, [fotoPerfil]);
 
-  const toggleEstilo = (id: string) => {
-    setEstilosSelecionados((prev) =>
-      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
+  const toggleArea = (id: string) => {
+    setAreasSelecionadas((prev) =>
+      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
     );
   };
 
   const validate = () => {
     const e: Record<string, string> = {};
+    if (!fotoPerfil) e.fotoPerfil = "Foto de perfil é obrigatória";
+    if (!nomeCompleto.trim() || nomeCompleto.trim().length < 3) e.nomeCompleto = "Nome completo é obrigatório (mínimo 3 caracteres)";
     if (!cpf.replace(/\D/g, "") || cpf.replace(/\D/g, "").length !== 11) e.cpf = "CPF inválido";
     if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
     else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
-    if (!servico) e.servico = "Selecione um serviço";
-    if (isMusician && estilosSelecionados.length === 0) e.estilos = "Selecione pelo menos um estilo musical";
-    if (!cep.replace(/\D/g, "")) e.cep = "CEP é obrigatório";
-    if (!rua.trim()) e.rua = "Rua é obrigatória";
-    if (!numero.trim()) e.numero = "Número é obrigatório";
-    if (!bairro.trim()) e.bairro = "Bairro é obrigatório";
+    if (!sexo) e.sexo = "Sexo é obrigatório";
+    if (!endereco.trim()) e.endereco = "Endereço é obrigatório";
     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
     if (!estado) e.estado = "Estado é obrigatório";
+    if (areasSelecionadas.length === 0) e.areas = "Selecione pelo menos uma área de atuação";
     if (!acceptTerms) e.terms = "Você deve aceitar os termos";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (ev: React.FormEvent) => {
+    ev.preventDefault();
     if (!validate()) return;
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
       toast({ title: "Cadastro realizado!", description: "Bem-vindo à Freela." });
-      navigate("/dashboard-freelancer");
+      navigate("/video-apresentacao");
     }, 1500);
   };
 
@@ -113,133 +126,225 @@ const CadastroFreelancer = () => {
           </Link>
 
           <h1 className="text-3xl font-display font-bold mb-2">Cadastro Freelancer</h1>
-          <p className="text-muted-foreground mb-6">Complete seus dados profissionais</p>
+          <p className="text-muted-foreground mb-8">Complete seus dados para começar a trabalhar</p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* CPF */}
-            <div className="space-y-2">
-              <Label>CPF</Label>
-              <Input placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(maskCPF(e.target.value))} className={`h-12 ${errors.cpf ? "border-destructive" : ""}`} />
-              {errors.cpf && <p className="text-sm text-destructive">{errors.cpf}</p>}
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* ===== Seção 1 - Informações Pessoais ===== */}
+            <div className="space-y-5">
+              <h3 className="text-lg font-display font-semibold flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" />
+                Informações Pessoais
+              </h3>
 
-            {/* Data de Nascimento */}
-            <div className="space-y-2">
-              <Label>Data de Nascimento</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full h-12 justify-start text-left font-normal", !dataNascimento && "text-muted-foreground", errors.dataNascimento && "border-destructive")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataNascimento ? format(dataNascimento, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dataNascimento}
-                    onSelect={setDataNascimento}
-                    disabled={(date) => date > new Date()}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                    captionLayout="dropdown-buttons"
-                    fromYear={1940}
-                    toYear={new Date().getFullYear()}
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.dataNascimento && <p className="text-sm text-destructive">{errors.dataNascimento}</p>}
-            </div>
-
-            {/* Serviço */}
-            <div className="space-y-2">
-              <Label>Tipo de serviço que você oferece</Label>
-              <Select value={servico} onValueChange={setServico}>
-                <SelectTrigger className={`h-12 ${errors.servico ? "border-destructive" : ""}`}>
-                  <SelectValue placeholder="Selecione seu serviço" />
-                </SelectTrigger>
-                <SelectContent>
-                  {servicosPF.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.servico && <p className="text-sm text-destructive">{errors.servico}</p>}
-            </div>
-
-            {/* Estilos musicais */}
-            {isMusician && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Music className="w-4 h-4 text-primary" />
-                  <Label>Estilos musicais que você toca</Label>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {estilosMusicais.map((estilo) => {
-                    const isSelected = estilosSelecionados.includes(estilo.id);
-                    return (
+              {/* Foto de Perfil */}
+              <div className="space-y-2">
+                <Label>Foto de Perfil</Label>
+                <div className="flex items-center gap-4">
+                  {previewFoto ? (
+                    <div className="relative">
+                      <img src={previewFoto} alt="Foto de perfil" className="w-24 h-24 rounded-full object-cover border-2 border-primary" />
                       <button
-                        key={estilo.id}
                         type="button"
-                        onClick={() => toggleEstilo(estilo.id)}
-                        className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
-                          isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-muted-foreground hover:border-primary/50"
-                        }`}
+                        onClick={() => setFotoPerfil(null)}
+                        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1"
                       >
-                        {estilo.label}
+                        <X className="w-3 h-3" />
                       </button>
-                    );
-                  })}
+                    </div>
+                  ) : (
+                    <label className={`w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors ${errors.fotoPerfil ? "border-destructive" : "border-border"}`}>
+                      <Camera className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground mt-1">Adicionar</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file && file.type.startsWith("image/")) setFotoPerfil(file);
+                        }}
+                      />
+                    </label>
+                  )}
+                  <p className="text-sm text-muted-foreground">Escolha uma foto profissional e com boa iluminação.</p>
                 </div>
-                {errors.estilos && <p className="text-sm text-destructive">{errors.estilos}</p>}
+                {errors.fotoPerfil && <p className="text-sm text-destructive">{errors.fotoPerfil}</p>}
               </div>
-            )}
 
-            {/* Endereço */}
-            <div className="border-t border-border pt-5 mt-5 space-y-4">
-              <h3 className="text-lg font-display font-semibold">Endereço</h3>
+              {/* Nome Completo */}
+              <div className="space-y-2">
+                <Label>Nome Completo</Label>
+                <Input
+                  placeholder="Seu nome completo"
+                  value={nomeCompleto}
+                  onChange={(e) => setNomeCompleto(e.target.value)}
+                  className={`h-12 ${errors.nomeCompleto ? "border-destructive" : ""}`}
+                />
+                {errors.nomeCompleto && <p className="text-sm text-destructive">{errors.nomeCompleto}</p>}
+              </div>
+
+              {/* CPF */}
+              <div className="space-y-2">
+                <Label>CPF</Label>
+                <Input
+                  placeholder="000.000.000-00"
+                  value={cpf}
+                  onChange={(e) => setCpf(maskCPF(e.target.value))}
+                  className={`h-12 ${errors.cpf ? "border-destructive" : ""}`}
+                />
+                <p className="text-xs text-muted-foreground italic">
+                  Seu CPF só será visível para o contratante após a confirmação da contratação de uma vaga.
+                </p>
+                {errors.cpf && <p className="text-sm text-destructive">{errors.cpf}</p>}
+              </div>
+
+              {/* Data de Nascimento */}
+              <div className="space-y-2">
+                <Label>Data de Nascimento</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full h-12 justify-start text-left font-normal",
+                        !dataNascimento && "text-muted-foreground",
+                        errors.dataNascimento && "border-destructive"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataNascimento ? format(dataNascimento, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dataNascimento}
+                      onSelect={setDataNascimento}
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                      captionLayout="dropdown-buttons"
+                      fromYear={1940}
+                      toYear={new Date().getFullYear()}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.dataNascimento && <p className="text-sm text-destructive">{errors.dataNascimento}</p>}
+              </div>
+
+              {/* Sexo */}
+              <div className="space-y-2">
+                <Label>Sexo</Label>
+                <Select value={sexo} onValueChange={setSexo}>
+                  <SelectTrigger className={`h-12 ${errors.sexo ? "border-destructive" : ""}`}>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="masculino">Masculino</SelectItem>
+                    <SelectItem value="feminino">Feminino</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                    <SelectItem value="prefiro-nao-dizer">Prefiro não dizer</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.sexo && <p className="text-sm text-destructive">{errors.sexo}</p>}
+              </div>
+
+              {/* Endereço */}
+              <div className="space-y-2">
+                <Label>Endereço</Label>
+                <Input
+                  placeholder="Rua, número, complemento"
+                  value={endereco}
+                  onChange={(e) => setEndereco(e.target.value)}
+                  className={`h-12 ${errors.endereco ? "border-destructive" : ""}`}
+                />
+                {errors.endereco && <p className="text-sm text-destructive">{errors.endereco}</p>}
+              </div>
+
+              {/* Cidade + Estado */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>CEP</Label>
-                  <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(maskCEP(e.target.value))} className={`h-12 ${errors.cep ? "border-destructive" : ""}`} />
-                  {errors.cep && <p className="text-xs text-destructive">{errors.cep}</p>}
+                  <Label>Cidade</Label>
+                  <Input
+                    placeholder="Cidade"
+                    value={cidade}
+                    onChange={(e) => setCidade(e.target.value)}
+                    className={`h-12 ${errors.cidade ? "border-destructive" : ""}`}
+                  />
+                  {errors.cidade && <p className="text-xs text-destructive">{errors.cidade}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Estado</Label>
                   <Select value={estado} onValueChange={setEstado}>
-                    <SelectTrigger className={`h-12 ${errors.estado ? "border-destructive" : ""}`}><SelectValue placeholder="UF" /></SelectTrigger>
-                    <SelectContent>{estadosBR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className={`h-12 ${errors.estado ? "border-destructive" : ""}`}>
+                      <SelectValue placeholder="UF" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {estadosBR.map((uf) => (
+                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                   {errors.estado && <p className="text-xs text-destructive">{errors.estado}</p>}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Rua</Label>
-                <Input placeholder="Nome da rua" value={rua} onChange={(e) => setRua(e.target.value)} className={`h-12 ${errors.rua ? "border-destructive" : ""}`} />
-                {errors.rua && <p className="text-xs text-destructive">{errors.rua}</p>}
+            </div>
+
+            {/* ===== Seção 2 - Áreas de Atuação ===== */}
+            <div className="border-t border-border pt-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
+                  <Briefcase className="w-5 h-5 text-primary" />
+                  Áreas de Atuação
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Selecione todas as áreas em que você atua. Isso ajudará a encontrar vagas compatíveis na sua região.
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Número</Label>
-                  <Input placeholder="Nº" value={numero} onChange={(e) => setNumero(e.target.value)} className={`h-12 ${errors.numero ? "border-destructive" : ""}`} />
-                  {errors.numero && <p className="text-xs text-destructive">{errors.numero}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label>Complemento</Label>
-                  <Input placeholder="Apto, Bloco..." value={complemento} onChange={(e) => setComplemento(e.target.value)} className="h-12" />
-                </div>
+
+              <div className="flex flex-wrap gap-2">
+                {areasAtuacao.map((area) => {
+                  const isSelected = areasSelecionadas.includes(area.id);
+                  return (
+                    <button
+                      key={area.id}
+                      type="button"
+                      onClick={() => toggleArea(area.id)}
+                      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all border ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                          : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                      }`}
+                    >
+                      {area.label}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Bairro</Label>
-                  <Input placeholder="Bairro" value={bairro} onChange={(e) => setBairro(e.target.value)} className={`h-12 ${errors.bairro ? "border-destructive" : ""}`} />
-                  {errors.bairro && <p className="text-xs text-destructive">{errors.bairro}</p>}
+              {errors.areas && <p className="text-sm text-destructive">{errors.areas}</p>}
+
+              {/* Tags selecionadas preview */}
+              {areasSelecionadas.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs text-muted-foreground mb-2">Suas tags de perfil:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {areasSelecionadas.map((id) => {
+                      const area = areasAtuacao.find((a) => a.id === id);
+                      return (
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full border border-primary/20"
+                        >
+                          {area?.label}
+                          <button type="button" onClick={() => toggleArea(id)} className="hover:text-destructive">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Cidade</Label>
-                  <Input placeholder="Cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} className={`h-12 ${errors.cidade ? "border-destructive" : ""}`} />
-                  {errors.cidade && <p className="text-xs text-destructive">{errors.cidade}</p>}
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Termos */}
