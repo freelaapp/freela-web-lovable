@@ -138,7 +138,7 @@ const HeroHome = () => {
             className="h-20 md:h-28 mx-auto mb-8 drop-shadow-lg animate-blink" />
 
 
-          <h1 className="text-secondary mb-6 hero-text-shadow">
+          <h1 className="text-secondary mb-6 hero-text-shadow text-5xl">
             Milhares de Freelancers disponíveis para{" "}
             <br className="hidden md:block" />
             <span className="text-secondary-foreground">
@@ -211,7 +211,7 @@ const HeroHome = () => {
           </div>
 
         {/* Animated Counters */}
-        <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-12 bg-[#e29d12]/0">
+        <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-12">
           <div className="text-center animate-fade-in" style={{ animationDelay: "0.2s" }}>
             <p className="font-display text-4xl md:text-5xl font-extrabold text-secondary hero-text-shadow">
               <AnimatedCounter target={180000} suffix="+" />
