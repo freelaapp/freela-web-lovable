@@ -20,6 +20,9 @@ import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 import TermosDeUso from "./pages/TermosDeUso";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
+import EscolherPerfil from "./pages/EscolherPerfil";
+import CadastroContratante from "./pages/CadastroContratante";
+import CadastroFreelancer from "./pages/CadastroFreelancer";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +49,9 @@ const App = () => (
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/escolher-perfil" element={<EscolherPerfil />} />
+            <Route path="/cadastro-contratante" element={<CadastroContratante />} />
+            <Route path="/cadastro-freelancer" element={<CadastroFreelancer />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
