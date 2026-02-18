@@ -98,7 +98,7 @@ const DetalheVaga = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button size="lg" className="gap-2 text-base" disabled variant="secondary">
-                    <Ban className="w-5 h-5" /> Se Aplicar
+                    <Ban className="w-5 h-5" /> Perfil Indisponível
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Vaga incompatível com seu perfil</TooltipContent>
