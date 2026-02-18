@@ -25,7 +25,8 @@ const Footer = () => {
 
     testes: [
     { href: "/dashboard-freelancer", label: "Dashboard Freelancer" },
-    { href: "/dashboard-contratante", label: "Dashboard Contratante" }]
+    { href: "/dashboard-contratante", label: "Dashboard Contratante" },
+    { href: "/tela-pix", label: "Tela Pix" }]
 
   };
 

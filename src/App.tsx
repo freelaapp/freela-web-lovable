@@ -41,6 +41,7 @@ import AjudaContratante from "./pages/AjudaContratante";
 import Carteira from "./pages/Carteira";
 import DetalheEventoContratante from "./pages/DetalheEventoContratante";
 import PerfilContratante from "./pages/PerfilContratante";
+import TelaPix from "./pages/TelaPix";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/carteira" element={<Carteira />} />
             <Route path="/evento/:eventoId" element={<DetalheEventoContratante />} />
             <Route path="/perfil-contratante/:clientId" element={<PerfilContratante />} />
+            <Route path="/tela-pix" element={<TelaPix />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

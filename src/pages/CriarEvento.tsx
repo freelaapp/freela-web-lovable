@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, MapPin, Users, Briefcase, ArrowRight, Calculator, Home, Info } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Briefcase, ArrowRight, Calculator, Home, Info, FileText, AlertCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { useMode } from "@/contexts/ModeContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { servicosPF, calcularValorTotal } from "@/lib/services";
@@ -28,6 +29,7 @@ const CriarEvento = () => {
     data: "",
     horario: "",
     endereco: "",
+    descricao: "",
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -273,6 +275,31 @@ const CriarEvento = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Descrição da Vaga */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Descrição da vaga
+                  </Label>
+                  <Textarea
+                    placeholder="Descreva detalhes importantes sobre o evento, como dresscode, tipo de comida, etc."
+                    value={formData.descricao}
+                    onChange={(e) => handleChange("descricao", e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                </div>
+
+                {/* Informativo */}
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Contratação</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400/80">
+                      Você pode criar vagas 1 hora antes do início à 3 meses antes do início.
+                    </p>
+                  </div>
+                </div>
 
                 {/* Submit */}
                 <Button 
