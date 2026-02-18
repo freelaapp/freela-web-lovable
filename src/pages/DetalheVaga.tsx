@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Phone, User, MessageCircle, ShieldCheck, CheckCircle, DollarSign, Home, Building2, Briefcase, ExternalLink, Ban, Check } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, User, MessageCircle, ShieldCheck, CheckCircle, DollarSign, Home, Building2, Briefcase, ExternalLink, Ban, Check, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppLayout from "@/components/layout/AppLayout";
@@ -90,8 +90,15 @@ const DetalheVaga = () => {
               </Button>
             )}
             {isOpen && applied && (
-              <Button size="lg" className="gap-2 text-base bg-emerald-500 hover:bg-emerald-500 text-white cursor-default">
-                <Check className="w-5 h-5" /> Aplicado
+              <Button
+                size="lg"
+                className="gap-2 text-base bg-emerald-500 text-white hover:bg-destructive transition-colors group"
+                onClick={() => setApplied(false)}
+              >
+                <Check className="w-5 h-5 group-hover:hidden" />
+                <X className="w-5 h-5 hidden group-hover:block" />
+                <span className="group-hover:hidden">Aplicado</span>
+                <span className="hidden group-hover:inline">Cancelar Aplicação</span>
               </Button>
             )}
             {isOpen && !applied && !isCompatible && (
@@ -179,9 +186,14 @@ const DetalheVaga = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-primary shrink-0" />
-              <p className="text-sm font-semibold">{vaga.client}</p>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden border-2 border-primary/20">
+                <User className="w-7 h-7 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{vaga.client}</p>
+                <p className="text-xs text-muted-foreground">{vaga.type === "casa" ? "Pessoa Física" : "Empresa"}</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Phone className="w-5 h-5 text-primary shrink-0" />

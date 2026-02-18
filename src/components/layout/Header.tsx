@@ -18,6 +18,7 @@ const loggedInPaths = [
   "/vaga",
   "/confirmar-servico",
   "/perfil-contratante",
+  "/avaliacao",
 ];
 
 const Header = () => {

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, AlertCircle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,9 +16,9 @@ const mockRecebidas = [
 ];
 
 const mockFeitas = [
-  { id: 1, restaurant: "Restaurante Sabor & Arte", date: "31 Dez 2025", rating: 4, comment: "Boa estrutura, equipe organizada. Apenas o estacionamento era difícil." },
-  { id: 2, restaurant: "Buffet Estrela", date: "20 Dez 2025", rating: 5, comment: "Excelente local para trabalhar, muito bem organizado!" },
-  { id: 3, restaurant: "Bar do João", date: "10 Dez 2025", rating: 3, comment: "Ambiente ok, mas a cozinha poderia ser mais limpa." },
+  { id: 4, restaurant: "Restaurante Sabor & Arte", date: "31 Dez 2025", rating: 4, comment: "Boa estrutura, equipe organizada." },
+  { id: 5, restaurant: "Buffet Estrela", date: "20 Dez 2025", rating: 5, comment: "Excelente local para trabalhar!" },
+  { id: 6, restaurant: "Bar do João", date: "10 Dez 2025", rating: 3, comment: "Ambiente ok, mas a cozinha poderia ser mais limpa." },
 ];
 
 const renderStars = (rating: number) => (
@@ -29,6 +30,8 @@ const renderStars = (rating: number) => (
 );
 
 const Avaliacoes = () => {
+  const navigate = useNavigate();
+
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 space-y-6">
@@ -37,7 +40,6 @@ const Avaliacoes = () => {
           <p className="text-muted-foreground text-sm mt-1">Veja e gerencie seus feedbacks</p>
         </div>
 
-        {/* Serviços pendentes de avaliação */}
         {mockPendentes.length > 0 && (
           <Card className="border-warning/30 bg-warning-light/20">
             <CardHeader className="pb-3">
@@ -61,9 +63,7 @@ const Avaliacoes = () => {
           </Card>
         )}
 
-        {/* Duas colunas: Recebidas e Feitas */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Recebidas */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -72,7 +72,11 @@ const Avaliacoes = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {mockRecebidas.map(av => (
-                <div key={av.id} className="p-3 rounded-xl bg-muted/50 space-y-1.5">
+                <div
+                  key={av.id}
+                  className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
+                  onClick={() => navigate(`/avaliacao/${av.id}`)}
+                >
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold">{av.client}</p>
                     {renderStars(av.rating)}
@@ -84,7 +88,6 @@ const Avaliacoes = () => {
             </CardContent>
           </Card>
 
-          {/* Feitas */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -93,7 +96,11 @@ const Avaliacoes = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {mockFeitas.map(av => (
-                <div key={av.id} className="p-3 rounded-xl bg-muted/50 space-y-1.5">
+                <div
+                  key={av.id}
+                  className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
+                  onClick={() => navigate(`/avaliacao/${av.id}`)}
+                >
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold">{av.restaurant}</p>
                     {renderStars(av.rating)}
