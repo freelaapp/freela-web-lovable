@@ -106,7 +106,7 @@ const bannerSlides = [
 {
   image: bannerCorporativo,
   headline: "eventos Corporativos e grandes operações",
-  cta: { label: "Quero contratar agora", link: "/criar-evento", icon: Briefcase }
+  cta: { label: "Quero contratar agora", link: "/cadastro", icon: Briefcase }
 }];
 
 
