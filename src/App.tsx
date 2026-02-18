@@ -40,6 +40,7 @@ import Ajuda from "./pages/Ajuda";
 import AjudaContratante from "./pages/AjudaContratante";
 import Carteira from "./pages/Carteira";
 import DetalheEventoContratante from "./pages/DetalheEventoContratante";
+import PerfilContratante from "./pages/PerfilContratante";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/ajuda-contratante" element={<AjudaContratante />} />
             <Route path="/carteira" element={<Carteira />} />
             <Route path="/evento/:eventoId" element={<DetalheEventoContratante />} />
+            <Route path="/perfil-contratante/:clientId" element={<PerfilContratante />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
