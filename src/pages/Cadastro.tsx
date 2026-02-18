@@ -98,7 +98,7 @@ const Cadastro = () => {
       </button>
 
       {/* Left Side - Visual */}
-      <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12 sticky top-0 h-screen">
         <div className="max-w-lg">
           <h2 className="text-3xl font-display font-bold text-secondary mb-4">
             Junte-se à maior comunidade de freelancers do Brasil

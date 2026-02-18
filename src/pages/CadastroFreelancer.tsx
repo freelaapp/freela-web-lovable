@@ -134,7 +134,7 @@ const CadastroFreelancer = () => {
       </button>
 
       {/* Left Side - Visual */}
-      <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12 sticky top-0 h-screen">
         <div className="max-w-lg">
           <Briefcase className="w-16 h-16 text-secondary mb-6" />
           <h2 className="text-3xl font-display font-bold text-secondary mb-4">Trabalhe com liberdade</h2>
