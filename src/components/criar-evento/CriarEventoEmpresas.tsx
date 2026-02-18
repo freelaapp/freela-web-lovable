@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,10 +28,9 @@ const PRICE_PER_HOUR = 20;
 const MIN_HOURS = 6;
 
 const CriarEventoEmpresas = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const freelancerExclusivo = searchParams.get("para");
   const { toast } = useToast();
+
 
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [dataEvento, setDataEvento] = useState("");
@@ -120,32 +119,10 @@ const CriarEventoEmpresas = () => {
           <Building2 className="w-3.5 h-3.5" />
           <span>Freela para Empresas</span>
         </div>
-        {freelancerExclusivo ? (
-          <>
-            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 mb-3 flex items-start gap-2">
-              <Users className="w-4 h-4 text-primary mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-foreground">
-                  Proposta exclusiva para{" "}
-                  <span className="text-primary font-bold">{freelancerExclusivo}</span>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Este evento será enviado diretamente para o freelancer selecionado.
-                </p>
-              </div>
-            </div>
-            <h1 className="text-xl font-display font-bold mb-1">
-              Criar evento para {freelancerExclusivo}
-            </h1>
-          </>
-        ) : (
-          <>
-            <h1 className="text-xl font-display font-bold mb-1">Nova contratação</h1>
-            <p className="text-sm text-muted-foreground">
-              Monte seu evento selecionando os serviços que precisa
-            </p>
-          </>
-        )}
+        <h1 className="text-xl font-display font-bold mb-1">Nova contratação</h1>
+        <p className="text-sm text-muted-foreground">
+          Monte seu evento selecionando os serviços que precisa
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
