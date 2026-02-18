@@ -1,9 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Settings, CreditCard, Bell, HelpCircle, LogOut, ChevronRight, Star, Shield } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
-import { useAuth } from "@/contexts/AuthContext";
 
 const menuItems = [
   { icon: User, label: "Meus Dados", href: "#", description: "Editar perfil e informações" },
@@ -14,14 +13,6 @@ const menuItems = [
 ];
 
 const Perfil = () => {
-  const { user, logout, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 space-y-6">

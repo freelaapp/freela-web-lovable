@@ -3,10 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, Info } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +15,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { toast } = useToast();
-  const { login } = useAuth();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -44,23 +42,14 @@ const Login = () => {
 
     setIsLoading(true);
     
+    // Simulating API call
     setTimeout(() => {
-      const result = login(email, password);
       setIsLoading(false);
-      if (result.success && result.user) {
-        toast({
-          title: "Login realizado!",
-          description: `Bem-vindo de volta, ${result.user.name}!`,
-        });
-        navigate(result.user.role === "freelancer" ? "/dashboard-freelancer" : "/dashboard-contratante");
-      } else {
-        toast({
-          title: "Erro no login",
-          description: result.error,
-          variant: "destructive",
-        });
-      }
-    }, 1000);
+      toast({
+        title: "Login realizado!",
+        description: "Bem-vindo de volta à Freela.",
+      });
+    }, 1500);
   };
 
   return (
@@ -163,20 +152,8 @@ const Login = () => {
             </Button>
           </form>
 
-          {/* Test Accounts Info */}
-          <div className="mt-6 p-4 rounded-xl bg-muted/60 border border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <Info className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold">Contas de Teste</span>
-            </div>
-            <div className="space-y-1.5 text-xs text-muted-foreground">
-              <p><span className="font-medium text-foreground">Freelancer:</span> freelancer@teste.com / 123456</p>
-              <p><span className="font-medium text-foreground">Contratante:</span> empresa@teste.com / 123456</p>
-            </div>
-          </div>
-
           {/* Register Link */}
-          <p className="mt-6 text-center text-muted-foreground">
+          <p className="mt-8 text-center text-muted-foreground">
             Não tem uma conta?{" "}
             <Link to="/cadastro" className="text-primary font-semibold hover:underline">
               Cadastre-se grátis
