@@ -248,6 +248,7 @@ const CadastroContratante = () => {
                       captionLayout="dropdown-buttons"
                       fromYear={1940}
                       toYear={new Date().getFullYear()}
+                      locale={ptBR}
                     />
                   </PopoverContent>
                 </Popover>
