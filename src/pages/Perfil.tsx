@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase } from "lucide-react";
+import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
@@ -30,6 +30,11 @@ const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padSt
 type Horarios = Record<string, { de: string; ate: string }>;
 
 const Perfil = () => {
+  const navigate = useNavigate();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [diasAtivos, setDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex"]);
   const [horarios, setHorarios] = useState<Horarios>({
     seg: { de: "08:00", ate: "20:00" },
@@ -48,6 +53,24 @@ const Perfil = () => {
   const [servicosDialog, setServicosDialog] = useState(false);
   const [servicosSelecionados, setServicosSelecionados] = useState<string[]>(["garcom", "barman", "churrasqueiro"]);
   const [tempServicos, setTempServicos] = useState<string[]>([]);
+
+  // Mídia
+  const [hasVideo, setHasVideo] = useState(false);
+  const [fotos, setFotos] = useState<string[]>([]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setAvatarUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleAddPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/") && fotos.length < 3) {
+      setFotos((prev) => [...prev, URL.createObjectURL(file)]);
+    }
+  };
 
   const toggleDia = (key: string) => {
     setDiasAtivos((prev) =>
@@ -99,9 +122,20 @@ const Perfil = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start gap-5">
-              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold shrink-0">
-                CS
-              </div>
+              <button
+                onClick={() => avatarInputRef.current?.click()}
+                className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold shrink-0 group overflow-hidden"
+              >
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span>CS</span>
+                )}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                  <Camera className="w-5 h-5 text-white" />
+                </div>
+              </button>
+              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-center gap-1.5">
                   <h2 className="text-lg font-display font-bold">Carlos Silva</h2>
@@ -124,6 +158,56 @@ const Perfil = () => {
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Mídia - Vídeo + Fotos */}
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <h3 className="text-base font-display font-bold flex items-center gap-2">
+              <Video className="w-5 h-5 text-primary" /> Mídia
+            </h3>
+            <div className="grid grid-cols-4 gap-3">
+              {/* Vídeo */}
+              <button
+                onClick={() => navigate(hasVideo ? "#" : "/video-apresentacao")}
+                className="aspect-square rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:bg-primary/10 transition-colors relative overflow-hidden"
+              >
+                {hasVideo ? (
+                  <>
+                    <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                      <Video className="w-8 h-8 text-primary" />
+                    </div>
+                    <span className="absolute bottom-1 text-[10px] font-medium text-primary">Vídeo</span>
+                  </>
+                ) : (
+                  <>
+                    <Video className="w-6 h-6 text-primary/60" />
+                    <span className="text-[10px] text-primary/60 font-medium">+ Vídeo</span>
+                  </>
+                )}
+              </button>
+
+              {/* Fotos existentes */}
+              {fotos.map((foto, i) => (
+                <div key={i} className="aspect-square rounded-xl overflow-hidden border border-border">
+                  <img src={foto} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
+
+              {/* Slots vazios para fotos (até 3) */}
+              {Array.from({ length: 3 - fotos.length }).map((_, i) => (
+                <button
+                  key={`empty-${i}`}
+                  onClick={() => photoInputRef.current?.click()}
+                  className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/30 flex flex-col items-center justify-center gap-1 hover:bg-muted/50 transition-colors"
+                >
+                  <ImagePlus className="w-5 h-5 text-muted-foreground/40" />
+                  <span className="text-[10px] text-muted-foreground/40">Foto</span>
+                </button>
+              ))}
+            </div>
+            <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handleAddPhoto} />
           </CardContent>
         </Card>
 
