@@ -10,12 +10,12 @@ const EscolherPerfil = () => {
       <button
         onClick={() => navigate(-1)}
         className="absolute top-6 left-6 z-20 p-2 rounded-full bg-card shadow-md border border-border hover:bg-muted transition-colors"
-        aria-label="Voltar"
-      >
+        aria-label="Voltar">
+
         <ArrowLeft className="w-5 h-5 text-foreground" />
       </button>
       <Link to="/" className="mb-10">
-        <img src={logoFreela} alt="Freela Serviços" className="h-14" />
+        <img alt="Freela Serviços" className="h-14" src="/lovable-uploads/e0273d4b-5303-4824-8b4e-0982e57cc2a9.png" />
       </Link>
 
       <h1 className="text-3xl md:text-4xl font-display font-bold text-secondary mb-3 text-center">
@@ -29,8 +29,8 @@ const EscolherPerfil = () => {
         {/* Contratante */}
         <Link
           to="/cadastro-contratante"
-          className="group bg-card rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-border"
-        >
+          className="group bg-card rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-border">
+
           <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
             <Building2 className="w-8 h-8 text-primary" />
           </div>
@@ -48,8 +48,8 @@ const EscolherPerfil = () => {
         {/* Freelancer */}
         <Link
           to="/cadastro-freelancer"
-          className="group bg-card rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-border"
-        >
+          className="group bg-card rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-border">
+
           <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
             <Briefcase className="w-8 h-8 text-primary" />
           </div>
@@ -64,8 +64,8 @@ const EscolherPerfil = () => {
           </span>
         </Link>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default EscolherPerfil;
