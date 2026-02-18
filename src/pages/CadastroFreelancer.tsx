@@ -242,6 +242,10 @@ const CadastroFreelancer = () => {
                       fromYear={1940}
                       toYear={new Date().getFullYear()}
                       locale={ptBR}
+                      labels={{
+                        labelMonthDropdown: () => "Mês",
+                        labelYearDropdown: () => "Ano",
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
