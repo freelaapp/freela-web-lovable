@@ -29,14 +29,14 @@ const EmpresasLandingPage = () => {
         <div className="container mx-auto container-padding relative z-10">
           <div className="max-w-4xl mx-auto pt-28 pb-16">
             <div className="flex justify-center mb-8">
-              <img
-                src={logoFreela}
-                alt="Freela Serviços"
-                className="h-16 md:h-24 w-auto drop-shadow-lg animate-blink" />
+              
+
+
+
 
             </div>
 
-            <h1 className="text-secondary mb-6 hero-text-shadow text-center text-5xl">
+            <h1 className="text-secondary text-center mb-6 hero-text-shadow">
               Seu funcionário{" "}
               <span className="relative inline-block">
                 faltou hoje?
@@ -46,7 +46,7 @@ const EmpresasLandingPage = () => {
               </span>
             </h1>
 
-            <p className="text-xl text-secondary/80 text-center max-w-3xl mx-auto mb-8 leading-relaxed md:text-xl">
+            <p className="text-xl md:text-2xl text-secondary/80 text-center max-w-3xl mx-auto mb-8 leading-relaxed">
               O Freela te ajuda a resolver, de forma <strong>rápida, prática e sem custo extra</strong> para você — dono de bar, restaurante, buffet ou empresa de eventos.
             </p>
 
@@ -87,7 +87,7 @@ const EmpresasLandingPage = () => {
       </section>
 
       {/* ========== BLOCO DE DOR ========== */}
-      <section className="section-padding bg-secondary py-[60px]">
+      <section className="section-padding bg-secondary">
         <div className="container mx-auto container-padding">
           <div className="max-w-3xl mx-auto text-center">
             <span className="inline-flex items-center gap-2 bg-destructive/20 text-destructive px-4 py-2 rounded-full mb-8">
@@ -125,7 +125,7 @@ const EmpresasLandingPage = () => {
       </section>
 
       {/* ========== COMPARATIVO ========== */}
-      <section className="section-padding bg-background py-[60px]">
+      <section className="section-padding bg-background">
         <div className="container mx-auto container-padding">
           <div className="text-center mb-16">
             <span className="badge-primary mb-6 inline-block">⚖ Comparativo direto</span>
@@ -207,7 +207,7 @@ const EmpresasLandingPage = () => {
       </section>
 
       {/* ========== QUEBRA DE OBJEÇÃO FINANCEIRA ========== */}
-      <section className="section-padding bg-background py-[60px]">
+      <section className="section-padding bg-background">
         <div className="container mx-auto container-padding">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
@@ -259,7 +259,7 @@ const EmpresasLandingPage = () => {
 
       {/* ========== CTA FINAL ========== */}
       <section className="section-padding hero-gradient relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 py-[60px]">
+        <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 right-20 w-40 h-40 bg-secondary rounded-full blur-2xl" />
           <div className="absolute bottom-10 left-20 w-60 h-60 bg-secondary rounded-full blur-3xl" />
         </div>
