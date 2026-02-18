@@ -17,6 +17,7 @@ const loggedInPaths = [
   "/criar-evento",
   "/aceitar-job",
   "/vaga",
+  "/evento",
   "/confirmar-servico",
   "/perfil-contratante",
   "/avaliacao",
@@ -24,6 +25,9 @@ const loggedInPaths = [
   "/configuracoes",
   "/ajuda",
   "/carteira",
+  "/meus-dados-contratante",
+  "/configuracoes-contratante",
+  "/ajuda-contratante",
 ];
 
 const Header = () => {

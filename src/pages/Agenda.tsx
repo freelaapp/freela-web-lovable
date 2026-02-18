@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, History, Star, DollarSign, Users, CalendarPlus, Briefcase } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, History, Star, DollarSign, Users, CalendarPlus, Briefcase, UserCheck, UserX, Shield, Eye } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useUserRole } from "@/hooks/useUserRole";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 // Freelancer mocks
 const mockVagasFreelancer = [
@@ -15,12 +18,17 @@ const mockVagasFreelancer = [
   { id: 5, title: "Garçom - Festa de Empresa", client: "Corp ABC", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "19:00 - 02:00", location: "São Paulo, SP", status: "executado", value: "R$ 550" },
 ];
 
-// Contratante mocks
+// Contratante mocks with candidatos
 const mockEventosContratante = [
-  { id: 1, title: "Aniversário 30 anos", client: "3 freelancers", date: "22 Fev 2026", dateObj: new Date(2026, 1, 22), time: "14:00 - 22:00", location: "São Paulo, SP", status: "pendente", value: "R$ 1.950" },
-  { id: 2, title: "Confraternização empresa", client: "5 freelancers", date: "15 Mar 2026", dateObj: new Date(2026, 2, 15), time: "18:00 - 00:00", location: "Campinas, SP", status: "pendente", value: "R$ 3.500" },
-  { id: 3, title: "Churrasco de Réveillon", client: "2 freelancers", date: "31 Dez 2025", dateObj: new Date(2025, 11, 31), time: "20:00 - 04:00", location: "São Paulo, SP", status: "finalizado", value: "R$ 2.000" },
-  { id: 4, title: "Happy Hour Corporativo", client: "1 freelancer", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "17:00 - 22:00", location: "Jundiaí, SP", status: "finalizado", value: "R$ 600" },
+  { id: 1, title: "Aniversário 30 anos", client: "3 freelancers", date: "22 Fev 2026", dateObj: new Date(2026, 1, 22), time: "14:00 - 22:00", location: "São Paulo, SP", status: "pendente", value: "R$ 1.950", candidatos: [
+    { id: "f1", name: "Carlos Silva", avatar: "CS", role: "Churrasqueiro", rating: 4.9, verified: true, status: "pendente" as string },
+    { id: "f2", name: "Juliana Alves", avatar: "JA", role: "Bartender", rating: 4.7, verified: true, status: "pendente" as string },
+  ]},
+  { id: 2, title: "Confraternização empresa", client: "5 freelancers", date: "15 Mar 2026", dateObj: new Date(2026, 2, 15), time: "18:00 - 00:00", location: "Campinas, SP", status: "pendente", value: "R$ 3.500", candidatos: [
+    { id: "f3", name: "Pedro Costa", avatar: "PC", role: "Garçom", rating: 4.5, verified: false, status: "aceito" as string },
+  ]},
+  { id: 3, title: "Churrasco de Réveillon", client: "2 freelancers", date: "31 Dez 2025", dateObj: new Date(2025, 11, 31), time: "20:00 - 04:00", location: "São Paulo, SP", status: "finalizado", value: "R$ 2.000", candidatos: [] },
+  { id: 4, title: "Happy Hour Corporativo", client: "1 freelancer", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "17:00 - 22:00", location: "Jundiaí, SP", status: "finalizado", value: "R$ 600", candidatos: [] },
 ];
 
 const mockHistoricoFreelancer = [
@@ -34,10 +42,13 @@ const mockHistoricoFreelancer = [
 const Agenda = () => {
   const navigate = useNavigate();
   const role = useUserRole();
+  const { toast } = useToast();
   const isContratante = role === "contratante";
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [eventos, setEventos] = useState(mockEventosContratante);
+  const [expandedEvento, setExpandedEvento] = useState<number | null>(null);
 
-  const items = isContratante ? mockEventosContratante : mockVagasFreelancer;
+  const items = isContratante ? eventos : mockVagasFreelancer;
 
   const pendentes = items.filter(v => v.status === "aceita" || v.status === "pendente");
   const finalizados = items.filter(v => v.status === "executado" || v.status === "finalizado");
@@ -57,7 +68,23 @@ const Agenda = () => {
   const totalGanhoHistorico = "R$ 6.350";
   const mediaAvaliacao = "4.9";
 
-  const ItemCard = ({ item }: { item: typeof items[0] }) => {
+  const handleAceitar = (eventoId: number, freelancerId: string) => {
+    setEventos(prev => prev.map(e => e.id === eventoId ? {
+      ...e,
+      candidatos: e.candidatos.map(c => c.id === freelancerId ? { ...c, status: "aceito" } : c)
+    } : e));
+    toast({ title: "Freelancer aceito!", description: "O freelancer será notificado." });
+  };
+
+  const handleRecusar = (eventoId: number, freelancerId: string) => {
+    setEventos(prev => prev.map(e => e.id === eventoId ? {
+      ...e,
+      candidatos: e.candidatos.map(c => c.id === freelancerId ? { ...c, status: "recusado" } : c)
+    } : e));
+    toast({ title: "Candidatura recusada" });
+  };
+
+  const FreelancerItemCard = ({ item }: { item: typeof items[0] }) => {
     const isFinalizado = item.status === "executado" || item.status === "finalizado";
     return (
       <div
@@ -65,7 +92,7 @@ const Agenda = () => {
         onClick={() => navigate(`/vaga/${item.id}`)}
       >
         <div className={`w-10 h-10 rounded-xl ${isFinalizado ? "bg-green-100 dark:bg-green-900/30" : "bg-primary-light"} flex items-center justify-center shrink-0`}>
-          {isFinalizado ? <CheckCircle className="w-5 h-5 text-green-600" /> : isContratante ? <CalendarPlus className="w-5 h-5 text-primary" /> : <CalendarIcon className="w-5 h-5 text-primary" />}
+          {isFinalizado ? <CheckCircle className="w-5 h-5 text-green-600" /> : <CalendarIcon className="w-5 h-5 text-primary" />}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold truncate">{item.title}</p>
@@ -80,6 +107,92 @@ const Agenda = () => {
             {item.status}
           </span>
         </div>
+      </div>
+    );
+  };
+
+  const ContratanteItemCard = ({ item }: { item: typeof eventos[0] }) => {
+    const isFinalizado = item.status === "finalizado";
+    const pendingCount = item.candidatos.filter(c => c.status === "pendente").length;
+    const isExpanded = expandedEvento === item.id;
+
+    return (
+      <div className="rounded-xl border border-border overflow-hidden">
+        <div
+          className="flex items-center gap-4 p-3 bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+          onClick={() => navigate(`/evento/${item.id}`)}
+        >
+          <div className={`w-10 h-10 rounded-xl ${isFinalizado ? "bg-green-100 dark:bg-green-900/30" : "bg-primary-light"} flex items-center justify-center shrink-0`}>
+            {isFinalizado ? <CheckCircle className="w-5 h-5 text-green-600" /> : <CalendarPlus className="w-5 h-5 text-primary" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold truncate">{item.title}</p>
+            <p className="text-xs text-muted-foreground">{item.client} • {item.date}</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+              <Clock className="w-3 h-3" /> {item.time} • <MapPin className="w-3 h-3" /> {item.location}
+            </p>
+          </div>
+          <div className="text-right shrink-0 flex flex-col items-end gap-1">
+            <p className={`text-sm font-bold ${isFinalizado ? "text-green-600" : "text-primary"}`}>{item.value}</p>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${isFinalizado ? "bg-green-100 text-green-700" : "bg-primary-light text-primary"}`}>
+              {item.status}
+            </span>
+          </div>
+        </div>
+
+        {/* Candidatos inline */}
+        {!isFinalizado && item.candidatos.length > 0 && (
+          <div className="border-t border-border">
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpandedEvento(isExpanded ? null : item.id); }}
+              className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-primary hover:bg-muted/30 transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5" />
+                {item.candidatos.length} candidato(s)
+                {pendingCount > 0 && <span className="bg-warning-light text-warning px-1.5 py-0.5 rounded-full text-[10px]">{pendingCount} pendente(s)</span>}
+              </span>
+              <span>{isExpanded ? "▲" : "▼"}</span>
+            </button>
+            {isExpanded && (
+              <div className="px-3 pb-3 space-y-2 animate-fade-in">
+                {item.candidatos.map((c) => (
+                  <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg bg-background">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0">
+                      {c.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-semibold truncate">{c.name}</p>
+                        {c.verified && <Shield className="w-3 h-3 text-primary fill-primary/20" />}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{c.role} • <Star className="w-2.5 h-2.5 inline fill-primary text-primary" /> {c.rating}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {c.status === "pendente" ? (
+                        <>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-success hover:bg-success/10" onClick={(e) => { e.stopPropagation(); handleAceitar(item.id, c.id); }}>
+                            <UserCheck className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); handleRecusar(item.id, c.id); }}>
+                            <UserX className="w-3.5 h-3.5" />
+                          </Button>
+                        </>
+                      ) : (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                          c.status === "aceito" ? "bg-success-light text-success" : "bg-destructive/10 text-destructive"
+                        }`}>{c.status}</span>
+                      )}
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); navigate(`/freelancer/${c.id}`); }}>
+                        <Eye className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -150,7 +263,11 @@ const Agenda = () => {
             </CardHeader>
             <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
               {listaItens.length > 0 ? (
-                listaItens.map(item => <ItemCard key={item.id} item={item} />)
+                isContratante ? (
+                  (listaItens as typeof eventos).map(item => <ContratanteItemCard key={item.id} item={item} />)
+                ) : (
+                  listaItens.map(item => <FreelancerItemCard key={item.id} item={item} />)
+                )
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-6">
                   {isContratante ? "Nenhum evento nessa data" : "Nenhuma vaga nessa data"}
