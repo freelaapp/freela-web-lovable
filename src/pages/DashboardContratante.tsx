@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarPlus, Users, Clock, ChevronRight, Star, DollarSign, AlertCircle, Calendar, MapPin, Briefcase } from "lucide-react";
+import { CalendarPlus, Users, Clock, ChevronRight, Star, DollarSign, AlertCircle, Calendar, MapPin, Briefcase, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 
@@ -39,11 +39,21 @@ const DashboardContratante = () => {
             <h1 className="text-2xl font-display font-bold">Olá, Freela & Breja! 👋</h1>
             <p className="text-muted-foreground text-sm mt-1">Gerencie seus eventos e freelancers</p>
           </div>
-          <Button asChild size="xl" className="gap-2">
-            <Link to="/criar-evento">
-              <CalendarPlus className="w-5 h-5" /> Criar Evento
+          <div className="flex items-center gap-2">
+            <Link
+              to="/mensagens"
+              className="p-2.5 rounded-xl bg-primary-light text-primary hover:bg-primary hover:text-primary-foreground transition-colors relative"
+              title="Mensagens"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
             </Link>
-          </Button>
+            <Button asChild size="xl" className="gap-2">
+              <Link to="/criar-evento">
+                <CalendarPlus className="w-5 h-5" /> Criar Evento
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
