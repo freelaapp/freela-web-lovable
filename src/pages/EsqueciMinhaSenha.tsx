@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 
 const EsqueciMinhaSenha = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -45,7 +46,16 @@ const EsqueciMinhaSenha = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center container-padding">
+    <div className="min-h-screen bg-background flex items-center justify-center container-padding relative">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 z-20 p-2 rounded-full bg-card shadow-md border border-border hover:bg-muted transition-colors"
+        aria-label="Voltar"
+      >
+        <ArrowLeft className="w-5 h-5 text-foreground" />
+      </button>
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link to="/" className="inline-block mb-8">
