@@ -416,7 +416,7 @@ const CadastroContratante = () => {
       </div>
 
       {/* Right Side - Informativo */}
-      <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12 sticky top-0 h-screen">
         <div className="max-w-lg">
           {modo === "casa" ? (
             <>
