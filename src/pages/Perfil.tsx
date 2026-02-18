@@ -2,7 +2,8 @@ import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus } from "lucide-react";
+import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility } from "lucide-react";
+import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
@@ -156,19 +157,29 @@ const Perfil = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start gap-5">
-              <button
-                onClick={() => avatarInputRef.current?.click()}
-                className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold shrink-0 group overflow-hidden"
-              >
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <span>{isContratante ? "FB" : "CS"}</span>
+              <div className="relative shrink-0">
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold group overflow-hidden"
+                >
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{isContratante ? "FB" : "CS"}</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                    <Camera className="w-5 h-5 text-white" />
+                  </div>
+                </button>
+                {!isContratante && (
+                  <img
+                    src={pcdIcon}
+                    alt="PCD"
+                    className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background"
+                    title="Pessoa com Deficiência"
+                  />
                 )}
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                  <Camera className="w-5 h-5 text-white" />
-                </div>
-              </button>
+              </div>
               <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-center gap-1.5">
@@ -197,8 +208,8 @@ const Perfil = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CreditCard className="w-4 h-4 shrink-0" />
-                    <span>Pix • •••• 5678</span>
+                    <MapPin className="w-4 h-4 shrink-0" />
+                    <span>São Paulo, SP</span>
                   </div>
                 )}
               </div>

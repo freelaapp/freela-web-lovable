@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Wallet, TrendingUp, TrendingDown, Clock, Edit2, Check, X, DollarSign } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
@@ -57,10 +57,6 @@ const Carteira = () => {
   const role = useUserRole();
   const isContratante = role === "contratante";
 
-  // Freelancer Pix
-  const [editandoPix, setEditandoPix] = useState(false);
-  const [chavePix, setChavePix] = useState("carlos.silva@email.com");
-  const [tempPix, setTempPix] = useState("");
   const [filtroInicio, setFiltroInicio] = useState("");
   const [filtroFim, setFiltroFim] = useState("");
 
@@ -71,17 +67,6 @@ const Carteira = () => {
   // Contratante values
   const totalGastoContratante = 4600;
   const valorALiberarContratante = 1950;
-
-  const startEditPix = () => {
-    setTempPix(chavePix);
-    setEditandoPix(true);
-  };
-
-  const savePix = () => {
-    setChavePix(tempPix);
-    setEditandoPix(false);
-    toast({ title: "Pix atualizado", description: "Sua chave Pix foi alterada com sucesso." });
-  };
 
   const ganhosMock = isContratante ? gastosContratanteMock : ganhosFreelancerMock;
   const historicoMock = isContratante ? historicoContratanteMock : historicoFreelancerMock;
@@ -163,46 +148,6 @@ const Carteira = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Pix - only freelancer */}
-        {!isContratante && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Wallet className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="text-sm font-medium">Chave Pix</p>
-                    {editandoPix ? (
-                      <Input
-                        value={tempPix}
-                        onChange={(e) => setTempPix(e.target.value)}
-                        className="mt-1 h-8 text-sm"
-                        autoFocus
-                      />
-                    ) : (
-                      <p className="text-xs text-muted-foreground">{chavePix}</p>
-                    )}
-                  </div>
-                </div>
-                {editandoPix ? (
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditandoPix(false)}>
-                      <X className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={savePix}>
-                      <Check className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={startEditPix}>
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Histórico */}
         <Card>
