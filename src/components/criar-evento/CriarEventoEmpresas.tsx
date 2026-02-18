@@ -9,7 +9,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Calendar, MapPin, Users, ArrowRight, ChevronDown, Building2, Info } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowRight, ChevronDown, Building2, Info, FileText, AlertCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { servicosPF } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
 import ServicoCard, { getServiceIcon, calcHours } from "./ServicoCard";
@@ -33,6 +34,7 @@ const CriarEventoEmpresas = () => {
 
 
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
+  const [descricaoVaga, setDescricaoVaga] = useState("");
   const [dataEvento, setDataEvento] = useState("");
   const [noEstabelecimento, setNoEstabelecimento] = useState(true);
   const [endereco, setEndereco] = useState({
@@ -306,10 +308,29 @@ const CriarEventoEmpresas = () => {
           )}
         </div>
 
+        {/* ========== STEP 5: Descrição da Vaga ========== */}
+        <div className="bg-card border border-border rounded-xl p-4 space-y-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <FileText className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Descrição da vaga</h2>
+              <p className="text-xs text-muted-foreground">Descreva detalhes importantes para os freelancers</p>
+            </div>
+          </div>
+          <Textarea
+            placeholder="Ex: Preciso de garçons com experiência em buffet para evento corporativo de 200 pessoas..."
+            value={descricaoVaga}
+            onChange={(e) => setDescricaoVaga(e.target.value)}
+            className="min-h-[100px] rounded-lg text-sm"
+          />
+        </div>
+
         {/* ========== RESUMO + SUBMIT ========== */}
         {selectedServices.length > 0 && valorTotal > 0 && (
           <div className="bg-secondary text-secondary-foreground rounded-xl p-4 space-y-2">
-            <h3 className="text-[10px] font-medium uppercase tracking-wide opacity-70">Resumo do evento</h3>
+            <h3 className="text-[10px] font-medium uppercase tracking-wide opacity-70">Resumo da vaga</h3>
             <div className="flex items-end justify-between">
               <div className="space-y-0.5">
                 <p className="text-xs opacity-80">
@@ -331,6 +352,17 @@ const CriarEventoEmpresas = () => {
             </div>
           </div>
         )}
+
+        {/* Informativo de contratação */}
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Contratação</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400/80">
+              Você pode criar vagas 1 hora antes do início à 3 meses antes do início.
+            </p>
+          </div>
+        </div>
 
         <Button
           type="submit"
