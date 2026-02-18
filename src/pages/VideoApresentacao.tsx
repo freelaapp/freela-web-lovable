@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Video, Clock, ArrowRight, Upload } from "lucide-react";
+import { Video, Clock, ArrowRight, ArrowLeft, Upload } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,7 +33,15 @@ const VideoApresentacao = () => {
   };
 
   return (
-    <div className="min-h-screen hero-gradient flex flex-col items-center justify-center container-padding py-12">
+    <div className="min-h-screen hero-gradient flex flex-col items-center justify-center container-padding py-12 relative">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 z-20 p-2 rounded-full bg-card shadow-md border border-border hover:bg-muted transition-colors"
+        aria-label="Voltar"
+      >
+        <ArrowLeft className="w-5 h-5 text-foreground" />
+      </button>
       <img src={logoFreela} alt="Freela Serviços" className="h-14 mb-10" />
 
       <div className="bg-card rounded-2xl shadow-lg p-8 md:p-12 max-w-lg w-full text-center border border-border">

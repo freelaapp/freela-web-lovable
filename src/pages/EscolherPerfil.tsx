@@ -1,10 +1,19 @@
-import { Link } from "react-router-dom";
-import { Building2, Briefcase, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Building2, Briefcase, ArrowRight, ArrowLeft } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 
 const EscolherPerfil = () => {
+  const navigate = useNavigate();
   return (
-    <div className="min-h-screen hero-gradient flex flex-col items-center justify-center container-padding py-12">
+    <div className="min-h-screen hero-gradient flex flex-col items-center justify-center container-padding py-12 relative">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 z-20 p-2 rounded-full bg-card shadow-md border border-border hover:bg-muted transition-colors"
+        aria-label="Voltar"
+      >
+        <ArrowLeft className="w-5 h-5 text-foreground" />
+      </button>
       <Link to="/" className="mb-10">
         <img src={logoFreela} alt="Freela Serviços" className="h-14" />
       </Link>
