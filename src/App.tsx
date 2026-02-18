@@ -33,9 +33,13 @@ import CadastroContratante from "./pages/CadastroContratante";
 import CadastroFreelancer from "./pages/CadastroFreelancer";
 import VideoApresentacao from "./pages/VideoApresentacao";
 import MeusDados from "./pages/MeusDados";
+import MeusDadosContratante from "./pages/MeusDadosContratante";
 import Configuracoes from "./pages/Configuracoes";
+import ConfiguracoesContratante from "./pages/ConfiguracoesContratante";
 import Ajuda from "./pages/Ajuda";
+import AjudaContratante from "./pages/AjudaContratante";
 import Carteira from "./pages/Carteira";
+import DetalheEventoContratante from "./pages/DetalheEventoContratante";
 
 const queryClient = new QueryClient();
 
@@ -75,9 +79,13 @@ const App = () => (
             <Route path="/cadastro-freelancer" element={<CadastroFreelancer />} />
             <Route path="/video-apresentacao" element={<VideoApresentacao />} />
             <Route path="/meus-dados" element={<MeusDados />} />
+            <Route path="/meus-dados-contratante" element={<MeusDadosContratante />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
+            <Route path="/configuracoes-contratante" element={<ConfiguracoesContratante />} />
             <Route path="/ajuda" element={<Ajuda />} />
+            <Route path="/ajuda-contratante" element={<AjudaContratante />} />
             <Route path="/carteira" element={<Carteira />} />
+            <Route path="/evento/:eventoId" element={<DetalheEventoContratante />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -17,11 +17,11 @@ const freelancerMenuItems = [
 ];
 
 const contratanteMenuItems = [
-  { icon: User, label: "Meus Dados", href: "/meus-dados", description: "Editar perfil e informações" },
+  { icon: Building2, label: "Perfil do Restaurante", href: "/meus-dados-contratante", description: "Dados do estabelecimento" },
   { icon: CreditCard, label: "Carteira", href: "/carteira", description: "Gastos e histórico de pagamentos" },
   { icon: CalendarPlus, label: "Criar Evento", href: "/criar-evento", description: "Contratar freelancers" },
-  { icon: Settings, label: "Configurações", href: "/configuracoes", description: "Privacidade, notificações e conta" },
-  { icon: HelpCircle, label: "Ajuda", href: "/ajuda", description: "Dúvidas e suporte" },
+  { icon: Settings, label: "Configurações", href: "/configuracoes-contratante", description: "Privacidade, notificações e conta" },
+  { icon: HelpCircle, label: "Ajuda", href: "/ajuda-contratante", description: "Dúvidas e suporte" },
 ];
 
 const diasSemana = [
@@ -206,14 +206,12 @@ const Perfil = () => {
           </CardContent>
         </Card>
 
-        {/* Switch Role */}
-        <Button variant="outline" className="w-full gap-2" onClick={switchRole}>
-          {isContratante ? (
-            <><Briefcase className="w-4 h-4" /> Ir para Painel Freelancer</>
-          ) : (
-            <><Building2 className="w-4 h-4" /> Ir para Painel Contratante</>
-          )}
-        </Button>
+        {/* Switch Role - only show for freelancer */}
+        {!isContratante && (
+          <Button variant="outline" className="w-full gap-2" onClick={switchRole}>
+            <Building2 className="w-4 h-4" /> Ir para Painel Contratante
+          </Button>
+        )}
 
         {/* Contratante: Fotos do Estabelecimento */}
         {isContratante && (

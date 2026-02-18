@@ -105,7 +105,7 @@ const DashboardContratante = () => {
               <div
                 key={event.id}
                 className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                onClick={() => navigate(`/vaga/${event.id}`)}
+                onClick={() => navigate(`/evento/${event.id}`)}
               >
                 <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
                   <Calendar className="w-5 h-5 text-primary" />
@@ -147,7 +147,7 @@ const DashboardContratante = () => {
               <div
                 key={event.id}
                 className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                onClick={() => navigate(`/vaga/${event.id}`)}
+                onClick={() => navigate(`/evento/${event.id}`)}
               >
                 <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
                   <CalendarPlus className="w-5 h-5 text-primary" />
