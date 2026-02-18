@@ -12,8 +12,8 @@ import {
   TrendingUp,
   Star,
   Clock,
-  BadgeCheck,
-} from "lucide-react";
+  BadgeCheck } from
+"lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 
 const EmpresasLandingPage = () => {
@@ -32,11 +32,11 @@ const EmpresasLandingPage = () => {
               <img
                 src={logoFreela}
                 alt="Freela Serviços"
-                className="h-16 md:h-24 w-auto drop-shadow-lg animate-blink"
-              />
+                className="h-16 md:h-24 w-auto drop-shadow-lg animate-blink" />
+
             </div>
 
-            <h1 className="text-secondary text-center mb-6 hero-text-shadow">
+            <h1 className="text-secondary mb-6 hero-text-shadow text-center text-5xl">
               Seu funcionário{" "}
               <span className="relative inline-block">
                 faltou hoje?
@@ -46,7 +46,7 @@ const EmpresasLandingPage = () => {
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-secondary/80 text-center max-w-3xl mx-auto mb-8 leading-relaxed">
+            <p className="text-xl text-secondary/80 text-center max-w-3xl mx-auto mb-8 leading-relaxed md:text-xl">
               O Freela te ajuda a resolver, de forma <strong>rápida, prática e sem custo extra</strong> para você — dono de bar, restaurante, buffet ou empresa de eventos.
             </p>
 
@@ -58,16 +58,16 @@ const EmpresasLandingPage = () => {
             {/* 4 Bullets de impacto */}
             <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-12">
               {[
-                "Veja avaliações antes de contratar",
-                "Histórico de trabalhos anteriores",
-                "Registro organizado da contratação",
-                "Alternativa rápida em caso de imprevisto",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-3 bg-secondary/10 rounded-xl px-5 py-4">
+              "Veja avaliações antes de contratar",
+              "Histórico de trabalhos anteriores",
+              "Registro organizado da contratação",
+              "Alternativa rápida em caso de imprevisto"].
+              map((item) =>
+              <div key={item} className="flex items-center gap-3 bg-secondary/10 rounded-xl px-5 py-4">
                   <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
                   <span className="text-secondary font-medium">{item}</span>
                 </div>
-              ))}
+              )}
             </div>
 
             {/* CTAs */}
@@ -87,7 +87,7 @@ const EmpresasLandingPage = () => {
       </section>
 
       {/* ========== BLOCO DE DOR ========== */}
-      <section className="section-padding bg-secondary">
+      <section className="section-padding bg-secondary py-[60px]">
         <div className="container mx-auto container-padding">
           <div className="max-w-3xl mx-auto text-center">
             <span className="inline-flex items-center gap-2 bg-destructive/20 text-destructive px-4 py-2 rounded-full mb-8">
@@ -101,17 +101,17 @@ const EmpresasLandingPage = () => {
 
             <div className="space-y-5 text-left max-w-xl mx-auto mb-12">
               {[
-                "Profissional confirma e não aparece",
-                "Atendimento cai e o cliente reclama",
-                "Funcionário temporário gera problema trabalhista",
-                "Você precisa resolver tudo de última hora",
-                "Fica refém de indicação informal",
-              ].map((pain) => (
-                <div key={pain} className="flex items-start gap-4 bg-secondary-foreground/5 rounded-xl p-5">
+              "Profissional confirma e não aparece",
+              "Atendimento cai e o cliente reclama",
+              "Funcionário temporário gera problema trabalhista",
+              "Você precisa resolver tudo de última hora",
+              "Fica refém de indicação informal"].
+              map((pain) =>
+              <div key={pain} className="flex items-start gap-4 bg-secondary-foreground/5 rounded-xl p-5">
                   <XCircle className="w-6 h-6 text-destructive flex-shrink-0 mt-0.5" />
                   <span className="text-secondary-foreground text-lg">{pain}</span>
                 </div>
-              ))}
+              )}
             </div>
 
             <div className="bg-primary/20 rounded-2xl p-8 border border-primary/30">
@@ -125,7 +125,7 @@ const EmpresasLandingPage = () => {
       </section>
 
       {/* ========== COMPARATIVO ========== */}
-      <section className="section-padding bg-background">
+      <section className="section-padding bg-background py-[60px]">
         <div className="container mx-auto container-padding">
           <div className="text-center mb-16">
             <span className="badge-primary mb-6 inline-block">⚖ Comparativo direto</span>
@@ -143,17 +143,17 @@ const EmpresasLandingPage = () => {
               </h4>
               <div className="space-y-4">
                 {[
-                  "Sem avaliação",
-                  "Sem histórico",
-                  "Sem registro",
-                  "Sem suporte",
-                  "Alto risco operacional",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-3">
+                "Sem avaliação",
+                "Sem histórico",
+                "Sem registro",
+                "Sem suporte",
+                "Alto risco operacional"].
+                map((item) =>
+                <div key={item} className="flex items-center gap-3">
                     <XCircle className="w-5 h-5 text-destructive flex-shrink-0" />
                     <span className="text-muted-foreground">{item}</span>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -168,17 +168,17 @@ const EmpresasLandingPage = () => {
               </h4>
               <div className="space-y-4">
                 {[
-                  "Profissionais cadastrados na plataforma",
-                  "Avaliações reais",
-                  "Processo organizado",
-                  "Mais previsibilidade",
-                  "Foco exclusivo em bares e restaurantes",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-3">
+                "Profissionais cadastrados na plataforma",
+                "Avaliações reais",
+                "Processo organizado",
+                "Mais previsibilidade",
+                "Foco exclusivo em bares e restaurantes"].
+                map((item) =>
+                <div key={item} className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-card-foreground font-medium">{item}</span>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -190,24 +190,24 @@ const EmpresasLandingPage = () => {
         <div className="container mx-auto container-padding">
           <div className="grid sm:grid-cols-3 gap-8 max-w-3xl mx-auto text-center">
             {[
-              { icon: Users, value: "170 mil+", label: "Profissionais cadastrados" },
-              { icon: Star, value: "Especializada", label: "No setor de hospitalidade" },
-              { icon: TrendingUp, value: "Crescendo", label: "Em todo o Brasil" },
-            ].map((stat) => (
-              <div key={stat.label} className="flex flex-col items-center gap-3">
+            { icon: Users, value: "170 mil+", label: "Profissionais cadastrados" },
+            { icon: Star, value: "Especializada", label: "No setor de hospitalidade" },
+            { icon: TrendingUp, value: "Crescendo", label: "Em todo o Brasil" }].
+            map((stat) =>
+            <div key={stat.label} className="flex flex-col items-center gap-3">
                 <div className="p-3 bg-primary-light rounded-xl">
                   <stat.icon className="w-7 h-7 text-primary" />
                 </div>
                 <p className="font-display font-bold text-2xl text-foreground">{stat.value}</p>
                 <p className="text-muted-foreground">{stat.label}</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
 
       {/* ========== QUEBRA DE OBJEÇÃO FINANCEIRA ========== */}
-      <section className="section-padding bg-background">
+      <section className="section-padding bg-background py-[60px]">
         <div className="container mx-auto container-padding">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
@@ -224,15 +224,15 @@ const EmpresasLandingPage = () => {
               <h4 className="text-foreground mb-6 text-center">O que sai caro de verdade é:</h4>
               <div className="space-y-4 max-w-lg mx-auto">
                 {[
-                  "Perder cliente por mau atendimento",
-                  "Ter problema trabalhista",
-                  "Ficar sem equipe em dia de pico",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-3">
+                "Perder cliente por mau atendimento",
+                "Ter problema trabalhista",
+                "Ficar sem equipe em dia de pico"].
+                map((item) =>
+                <div key={item} className="flex items-center gap-3">
                     <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
                     <span className="text-foreground text-lg">{item}</span>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -259,7 +259,7 @@ const EmpresasLandingPage = () => {
 
       {/* ========== CTA FINAL ========== */}
       <section className="section-padding hero-gradient relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-10 py-[60px]">
           <div className="absolute top-10 right-20 w-40 h-40 bg-secondary rounded-full blur-2xl" />
           <div className="absolute bottom-10 left-20 w-60 h-60 bg-secondary rounded-full blur-3xl" />
         </div>
@@ -308,8 +308,8 @@ const EmpresasLandingPage = () => {
           </div>
         </div>
       </section>
-    </div>
-  );
+    </div>);
+
 };
 
 export default EmpresasLandingPage;
