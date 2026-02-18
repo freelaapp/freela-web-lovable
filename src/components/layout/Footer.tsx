@@ -7,34 +7,34 @@ const Footer = () => {
 
   const footerLinks = {
     plataforma: [
-      { href: "/", label: "Sobre o Freela" },
-      { href: "/#como-funciona", label: "Como Funciona" },
-      { href: "/inicio?modo=empresas", label: "Freela para Empresas" },
-      { href: "/inicio?modo=casa", label: "Freela em Casa" },
-    ],
+    { href: "/", label: "Sobre o Freela" },
+    { href: "/#como-funciona", label: "Como Funciona" },
+    { href: "/inicio?modo=empresas", label: "Freela para Empresas" },
+    { href: "/inicio?modo=casa", label: "Freela em Casa" }],
+
     suporte: [
-      { href: "/contato", label: "Contato" },
-      { href: "/termos", label: "Termos de Uso" },
-      { href: "/privacidade", label: "Política de Privacidade" },
-    ],
+    { href: "/contato", label: "Contato" },
+    { href: "/termos", label: "Termos de Uso" },
+    { href: "/privacidade", label: "Política de Privacidade" }],
+
     acesso: [
-      { href: "/login", label: "Entrar" },
-      { href: "/cadastro", label: "Cadastre-se" },
-      { href: "/freelancers", label: "Ver Profissionais" },
-      { href: "/criar-evento", label: "Criar Evento" },
-    ],
+    { href: "/login", label: "Entrar" },
+    { href: "/cadastro", label: "Cadastre-se" },
+    { href: "/freelancers", label: "Ver Profissionais" },
+    { href: "/criar-evento", label: "Criar Evento" }]
+
   };
 
   const socialLinks = [
-    { href: "https://facebook.com", icon: Facebook, label: "Facebook" },
-    { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
-    { href: "https://linkedin.com", icon: Linkedin, label: "LinkedIn" },
-    { href: "https://twitter.com", icon: Twitter, label: "Twitter" },
-  ];
+  { href: "https://facebook.com", icon: Facebook, label: "Facebook" },
+  { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
+  { href: "https://linkedin.com", icon: Linkedin, label: "LinkedIn" },
+  { href: "https://twitter.com", icon: Twitter, label: "Twitter" }];
+
 
   return (
     <footer className="bg-secondary text-secondary-foreground">
-      <div className="container mx-auto container-padding section-padding">
+      <div className="container mx-auto container-padding section-padding pt-[10px] pb-[10px] py-[33px]">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand Column */}
           <div className="lg:col-span-2">
@@ -63,33 +63,33 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold text-lg mb-4">Plataforma</h4>
             <ul className="space-y-3">
-              {footerLinks.plataforma.map((link) => (
-                <li key={link.href + link.label}>
+              {footerLinks.plataforma.map((link) =>
+              <li key={link.href + link.label}>
                   <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
                 </li>
-              ))}
+              )}
             </ul>
           </div>
 
           <div>
             <h4 className="font-display font-semibold text-lg mb-4">Suporte</h4>
             <ul className="space-y-3">
-              {footerLinks.suporte.map((link) => (
-                <li key={link.href}>
+              {footerLinks.suporte.map((link) =>
+              <li key={link.href}>
                   <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
                 </li>
-              ))}
+              )}
             </ul>
           </div>
 
           <div>
             <h4 className="font-display font-semibold text-lg mb-4">Acesso</h4>
             <ul className="space-y-3">
-              {footerLinks.acesso.map((link) => (
-                <li key={link.href}>
+              {footerLinks.acesso.map((link) =>
+              <li key={link.href}>
                   <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
                 </li>
-              ))}
+              )}
             </ul>
           </div>
         </div>
@@ -99,23 +99,23 @@ const Footer = () => {
             © {currentYear} Freela Serviços. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-4">
-            {socialLinks.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-full bg-secondary-foreground/10 text-secondary-foreground/70 hover:bg-primary hover:text-primary-foreground transition-all"
-                aria-label={social.label}
-              >
+            {socialLinks.map((social) =>
+            <a
+              key={social.label}
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full bg-secondary-foreground/10 text-secondary-foreground/70 hover:bg-primary hover:text-primary-foreground transition-all"
+              aria-label={social.label}>
+
                 <social.icon size={18} />
               </a>
-            ))}
+            )}
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>);
+
 };
 
 export default Footer;
