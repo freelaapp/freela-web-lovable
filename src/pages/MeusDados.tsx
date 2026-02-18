@@ -20,7 +20,6 @@ const MeusDados = () => {
   const [cpf] = useState("123.456.789-00");
   const [dataNascimento, setDataNascimento] = useState("1995-03-15");
   const [endereco, setEndereco] = useState("Rua das Flores, 123 - São Paulo, SP");
-  const [chavePix, setChavePix] = useState("carlos.silva@email.com");
 
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [codigoEnviado, setCodigoEnviado] = useState(false);
@@ -85,11 +84,6 @@ const MeusDados = () => {
               <Label>Endereço</Label>
               <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} />
             </div>
-            <div className="space-y-2">
-              <Label>Chave Pix</Label>
-              <Input value={chavePix} onChange={(e) => setChavePix(e.target.value)} />
-            </div>
-
             <Button onClick={handleSave} className="w-full">Salvar Alterações</Button>
           </CardContent>
         </Card>

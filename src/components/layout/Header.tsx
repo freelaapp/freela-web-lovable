@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, LayoutDashboard, Calendar, History, Star, Map } from "lucide-react";
+import { Menu, X, Home, LayoutDashboard, Calendar, History, Star, Map, User, Wallet } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
 
@@ -21,6 +21,8 @@ const loggedInPaths = [
   "/avaliacao",
   "/meus-dados",
   "/configuracoes",
+  "/ajuda",
+  "/carteira",
 ];
 
 const Header = () => {
@@ -132,9 +134,22 @@ const Header = () => {
           {/* Desktop Right Side */}
           <div className="hidden lg:flex items-center gap-3">
             {isLoggedIn ? (
-              <Button variant="outline" asChild>
-                <Link to="/perfil">Meu Perfil</Link>
-              </Button>
+              <>
+                <Link
+                  to="/carteira"
+                  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                  title="Carteira"
+                >
+                  <Wallet className="w-5 h-5" />
+                </Link>
+                <Link
+                  to="/perfil"
+                  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                  title="Meu Perfil"
+                >
+                  <User className="w-5 h-5" />
+                </Link>
+              </>
             ) : (
               <>
                 <Button variant="ghost" asChild>
