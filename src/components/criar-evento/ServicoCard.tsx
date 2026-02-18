@@ -69,90 +69,90 @@ const ServicoCard = ({
   const valor = pricePerHour * effectiveHours * quantidade;
 
   return (
-    <div className="group relative bg-card border border-border rounded-2xl p-5 transition-all hover:shadow-md hover:border-primary/30 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="group relative bg-card border border-border rounded-xl p-3.5 transition-all hover:shadow-md hover:border-primary/30 animate-in fade-in slide-in-from-bottom-2 duration-300">
       {/* Remove button */}
       <button
         type="button"
         onClick={onRemove}
-        className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors text-lg leading-none"
+        className="absolute top-2.5 right-2.5 text-muted-foreground hover:text-destructive transition-colors text-sm leading-none"
         aria-label="Remover serviço"
       >
         ✕
       </button>
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <span className="text-3xl">{icon}</span>
-        <h3 className="font-semibold text-foreground text-lg">{label}</h3>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xl">{icon}</span>
+        <h3 className="font-semibold text-foreground text-sm">{label}</h3>
       </div>
 
       {/* Controls grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         {/* Quantidade */}
-        <div className="space-y-1.5">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pessoas</span>
-          <div className="flex items-center gap-2">
+        <div className="space-y-1">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Pessoas</span>
+          <div className="flex items-center gap-1.5">
             <Button
               type="button"
               variant="outline"
               size="icon"
-              className="h-9 w-9 rounded-xl"
+              className="h-7 w-7 rounded-lg"
               onClick={() => onQuantidadeChange(Math.max(1, quantidade - 1))}
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3 h-3" />
             </Button>
-            <span className="text-xl font-bold text-foreground w-8 text-center">{quantidade}</span>
+            <span className="text-base font-bold text-foreground w-6 text-center">{quantidade}</span>
             <Button
               type="button"
               variant="outline"
               size="icon"
-              className="h-9 w-9 rounded-xl"
+              className="h-7 w-7 rounded-lg"
               onClick={() => onQuantidadeChange(quantidade + 1)}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3 h-3" />
             </Button>
           </div>
         </div>
 
         {/* Horário */}
-        <div className="space-y-1.5">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-            <Clock className="w-3 h-3" /> Horário
+        <div className="space-y-1">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+            <Clock className="w-2.5 h-2.5" /> Horário
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <Input
               type="time"
               value={horaInicio}
               onChange={(e) => onHoraInicioChange(e.target.value)}
-              className="h-9 text-sm px-2 rounded-xl"
+              className="h-7 text-xs px-1.5 rounded-lg"
             />
-            <span className="text-muted-foreground text-sm">às</span>
+            <span className="text-muted-foreground text-[10px]">às</span>
             <Input
               type="time"
               value={horaFim}
               onChange={(e) => onHoraFimChange(e.target.value)}
-              className="h-9 text-sm px-2 rounded-xl"
+              className="h-7 text-xs px-1.5 rounded-lg"
             />
           </div>
         </div>
       </div>
 
       {/* Footer - cálculo */}
-      <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
+      <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between">
+        <div className="text-xs text-muted-foreground">
           {hours > 0 ? (
             <>
               {hours < minHours && (
-                <span className="text-amber-600 text-xs">mín. {minHours}h • </span>
+                <span className="text-amber-600 text-[10px]">mín. {minHours}h • </span>
               )}
               {effectiveHours}h × {quantidade} pessoa{quantidade > 1 ? "s" : ""}
             </>
           ) : (
-            <span className="text-xs">Selecione o horário</span>
+            <span className="text-[10px]">Selecione o horário</span>
           )}
         </div>
         {hours > 0 && (
-          <span className="text-lg font-bold text-primary">
+          <span className="text-sm font-bold text-primary">
             R$ {valor.toFixed(2).replace(".", ",")}
           </span>
         )}

@@ -1,10 +1,9 @@
 import { useState, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -30,6 +29,7 @@ const MIN_HOURS = 6;
 
 const CriarEventoEmpresas = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const freelancerExclusivo = searchParams.get("para");
   const { toast } = useToast();
 
@@ -100,63 +100,69 @@ const CriarEventoEmpresas = () => {
     setTimeout(() => {
       setIsLoading(false);
       toast({
-        title: "Evento criado com sucesso!",
-        description: "Você receberá notificações quando freelancers aceitarem.",
+        title: "✅ Contratação criada com sucesso!",
+        description: "Freelancers já podem se candidatar.",
+        className: "bg-green-600 text-white border-green-700",
+        duration: 3000,
       });
-    }, 1500);
+      // Redirect to event detail page after toast
+      setTimeout(() => {
+        navigate("/evento/1");
+      }, 800);
+    }, 1200);
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <Building2 className="w-4 h-4" />
+      <div className="mb-6">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+          <Building2 className="w-3.5 h-3.5" />
           <span>Freela para Empresas</span>
         </div>
         {freelancerExclusivo ? (
           <>
-            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-4 flex items-start gap-3">
-              <Users className="w-5 h-5 text-primary mt-0.5" />
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 mb-3 flex items-start gap-2">
+              <Users className="w-4 h-4 text-primary mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-xs font-medium text-foreground">
                   Proposta exclusiva para{" "}
                   <span className="text-primary font-bold">{freelancerExclusivo}</span>
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Este evento será enviado diretamente para o freelancer selecionado.
                 </p>
               </div>
             </div>
-            <h1 className="text-3xl font-display font-bold mb-2">
+            <h1 className="text-xl font-display font-bold mb-1">
               Criar evento para {freelancerExclusivo}
             </h1>
           </>
         ) : (
           <>
-            <h1 className="text-3xl font-display font-bold mb-2">Nova contratação</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl font-display font-bold mb-1">Nova contratação</h1>
+            <p className="text-sm text-muted-foreground">
               Monte seu evento selecionando os serviços que precisa
             </p>
           </>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* ========== STEP 1: Serviços ========== */}
         <Collapsible open={servicesOpen} onOpenChange={setServicesOpen}>
           <CollapsibleTrigger asChild>
             <button
               type="button"
-              className="w-full flex items-center justify-between bg-card border border-border rounded-2xl p-5 hover:border-primary/30 transition-colors"
+              className="w-full flex items-center justify-between bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-primary" />
                 </div>
                 <div className="text-left">
-                  <h2 className="font-semibold text-foreground">Serviços necessários</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <h2 className="text-sm font-semibold text-foreground">Serviços necessários</h2>
+                  <p className="text-xs text-muted-foreground">
                     {selectedServices.length > 0
                       ? `${selectedServices.length} selecionado${selectedServices.length > 1 ? "s" : ""}`
                       : "Selecione os profissionais"}
@@ -164,12 +170,12 @@ const CriarEventoEmpresas = () => {
                 </div>
               </div>
               <ChevronDown
-                className={`w-5 h-5 text-muted-foreground transition-transform ${servicesOpen ? "rotate-180" : ""}`}
+                className={`w-4 h-4 text-muted-foreground transition-transform ${servicesOpen ? "rotate-180" : ""}`}
               />
             </button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-3">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <CollapsibleContent className="mt-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
               {servicosPF.map((servico) => {
                 const isSelected = selectedServices.some((s) => s.id === servico.id);
                 return (
@@ -177,14 +183,14 @@ const CriarEventoEmpresas = () => {
                     key={servico.id}
                     type="button"
                     onClick={() => toggleService(servico)}
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border-2 transition-all text-left text-sm ${
+                    className={`flex items-center gap-2 p-2.5 rounded-lg border transition-all text-left text-xs ${
                       isSelected
                         ? "border-primary bg-primary/5 shadow-sm"
                         : "border-border hover:border-primary/20 bg-card"
                     }`}
                   >
-                    <span className="text-xl">{getServiceIcon(servico.id)}</span>
-                    <span className={`font-medium ${isSelected ? "text-primary" : "text-foreground"}`}>
+                    <span className="text-base">{getServiceIcon(servico.id)}</span>
+                    <span className={`font-medium leading-tight ${isSelected ? "text-primary" : "text-foreground"}`}>
                       {servico.label}
                     </span>
                   </button>
@@ -196,14 +202,14 @@ const CriarEventoEmpresas = () => {
 
         {/* ========== STEP 2: Cards dos serviços selecionados ========== */}
         {selectedServices.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
                 {selectedServices.length}
               </span>
               Configure cada serviço
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {selectedServices.map((service) => (
                 <ServicoCard
                   key={service.id}
@@ -225,32 +231,32 @@ const CriarEventoEmpresas = () => {
         )}
 
         {/* ========== STEP 3: Data ========== */}
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-primary" />
+        <div className="bg-card border border-border rounded-xl p-4 space-y-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-primary" />
             </div>
-            <h2 className="font-semibold text-foreground">Data do evento</h2>
+            <h2 className="text-sm font-semibold text-foreground">Data do evento</h2>
           </div>
           <Input
             type="date"
             value={dataEvento}
             onChange={(e) => setDataEvento(e.target.value)}
-            className="h-12 rounded-xl max-w-xs"
+            className="h-10 rounded-lg max-w-xs text-sm"
             required
           />
         </div>
 
         {/* ========== STEP 4: Local ========== */}
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-primary" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h2 className="font-semibold text-foreground">Local do evento</h2>
-                <p className="text-sm text-muted-foreground">No seu estabelecimento?</p>
+                <h2 className="text-sm font-semibold text-foreground">Local do evento</h2>
+                <p className="text-xs text-muted-foreground">No seu estabelecimento?</p>
               </div>
             </div>
             <Switch
@@ -260,60 +266,60 @@ const CriarEventoEmpresas = () => {
           </div>
 
           {!noEstabelecimento && (
-            <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="bg-muted/50 rounded-xl p-3 flex items-start gap-2">
-                <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <p className="text-sm text-muted-foreground">
+            <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="bg-muted/50 rounded-lg p-2.5 flex items-start gap-2">
+                <Info className="w-3.5 h-3.5 text-muted-foreground mt-0.5" />
+                <p className="text-xs text-muted-foreground">
                   Informe o endereço onde os profissionais deverão comparecer.
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="sm:col-span-2 space-y-1.5">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Logradouro</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Logradouro</Label>
                   <Input
                     placeholder="Rua, Avenida..."
                     value={endereco.logradouro}
                     onChange={(e) => setEndereco({ ...endereco, logradouro: e.target.value })}
-                    className="h-11 rounded-xl"
+                    className="h-9 rounded-lg text-sm"
                     required={!noEstabelecimento}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Número</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Número</Label>
                   <Input
                     placeholder="123"
                     value={endereco.numero}
                     onChange={(e) => setEndereco({ ...endereco, numero: e.target.value })}
-                    className="h-11 rounded-xl"
+                    className="h-9 rounded-lg text-sm"
                     required={!noEstabelecimento}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">CEP</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">CEP</Label>
                   <Input
                     placeholder="00000-000"
                     value={endereco.cep}
                     onChange={(e) => setEndereco({ ...endereco, cep: e.target.value })}
-                    className="h-11 rounded-xl"
+                    className="h-9 rounded-lg text-sm"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Cidade</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Cidade</Label>
                   <Input
                     placeholder="São Paulo"
                     value={endereco.cidade}
                     onChange={(e) => setEndereco({ ...endereco, cidade: e.target.value })}
-                    className="h-11 rounded-xl"
+                    className="h-9 rounded-lg text-sm"
                     required={!noEstabelecimento}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Estado</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Estado</Label>
                   <Input
                     placeholder="SP"
                     value={endereco.estado}
                     onChange={(e) => setEndereco({ ...endereco, estado: e.target.value })}
-                    className="h-11 rounded-xl"
+                    className="h-9 rounded-lg text-sm"
                     maxLength={2}
                     required={!noEstabelecimento}
                   />
@@ -325,23 +331,23 @@ const CriarEventoEmpresas = () => {
 
         {/* ========== RESUMO + SUBMIT ========== */}
         {selectedServices.length > 0 && valorTotal > 0 && (
-          <div className="bg-secondary text-secondary-foreground rounded-2xl p-6 space-y-3">
-            <h3 className="text-sm font-medium uppercase tracking-wide opacity-70">Resumo do evento</h3>
+          <div className="bg-secondary text-secondary-foreground rounded-xl p-4 space-y-2">
+            <h3 className="text-[10px] font-medium uppercase tracking-wide opacity-70">Resumo do evento</h3>
             <div className="flex items-end justify-between">
-              <div className="space-y-1">
-                <p className="text-sm opacity-80">
+              <div className="space-y-0.5">
+                <p className="text-xs opacity-80">
                   {selectedServices.length} serviço{selectedServices.length > 1 ? "s" : ""} •{" "}
                   {totalProfissionais} profissiona{totalProfissionais > 1 ? "is" : "l"}
                 </p>
                 {dataEvento && (
-                  <p className="text-sm opacity-80">
+                  <p className="text-xs opacity-80">
                     📅 {new Date(dataEvento + "T12:00:00").toLocaleDateString("pt-BR")}
                   </p>
                 )}
               </div>
               <div className="text-right">
-                <p className="text-xs opacity-60">Valor total estimado</p>
-                <p className="text-3xl font-display font-bold">
+                <p className="text-[10px] opacity-60">Valor total estimado</p>
+                <p className="text-2xl font-display font-bold">
                   R$ {valorTotal.toFixed(2).replace(".", ",")}
                 </p>
               </div>
@@ -352,13 +358,13 @@ const CriarEventoEmpresas = () => {
         <Button
           type="submit"
           size="lg"
-          className="w-full h-14 text-base rounded-2xl"
+          className="w-full h-12 text-sm rounded-xl"
           disabled={isLoading || selectedServices.length === 0}
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              Criando evento...
+              Criando...
             </span>
           ) : (
             <span className="flex items-center gap-2">
