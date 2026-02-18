@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, ChevronRight } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, History, Star, DollarSign } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 
@@ -14,6 +13,14 @@ const mockVagas = [
   { id: 5, title: "Garçom - Festa de Empresa", client: "Corp ABC", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "19:00 - 02:00", location: "São Paulo, SP", status: "executado", value: "R$ 550" },
 ];
 
+const mockHistorico = [
+  { id: 101, title: "Churrasco - Réveillon", client: "Pedro Costa", date: "31 Dez 2025", location: "São Paulo, SP", value: "R$ 2.000", rating: 5.0 },
+  { id: 102, title: "Bartender - Formatura", client: "Faculdade ABC", date: "20 Dez 2025", location: "Santo André, SP", value: "R$ 1.500", rating: 4.8 },
+  { id: 103, title: "Garçom - Casamento", client: "João e Maria", date: "10 Dez 2025", location: "Campinas, SP", value: "R$ 900", rating: 4.9 },
+  { id: 104, title: "Churrasco - Aniversário", client: "Carla Lima", date: "28 Nov 2025", location: "Guarulhos, SP", value: "R$ 750", rating: 5.0 },
+  { id: 105, title: "Bartender - Evento Corporativo", client: "StartupX", date: "15 Nov 2025", location: "São Paulo, SP", value: "R$ 1.200", rating: 4.7 },
+];
+
 const Agenda = () => {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -21,20 +28,20 @@ const Agenda = () => {
   const vagasAceitas = mockVagas.filter(v => v.status === "aceita");
   const vagasExecutadas = mockVagas.filter(v => v.status === "executado");
 
-  // Dates with jobs
   const aceitaDates = mockVagas.filter(v => v.status === "aceita").map(v => v.dateObj);
   const executadoDates = mockVagas.filter(v => v.status === "executado").map(v => v.dateObj);
 
-  // Filter vagas by selected date
   const vagasFiltradas = selectedDate
     ? mockVagas.filter(v => v.dateObj.toDateString() === selectedDate.toDateString())
     : null;
 
-  // Vagas to show in the list
   const vagasLista = vagasFiltradas ?? mockVagas;
   const listaTitle = selectedDate
     ? `Vagas em ${selectedDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}`
     : "Todas as Vagas";
+
+  const totalGanhoHistorico = "R$ 6.350";
+  const mediaAvaliacao = "4.9";
 
   const VagaCard = ({ vaga }: { vaga: typeof mockVagas[0] }) => {
     const isExecutado = vaga.status === "executado";
@@ -95,14 +102,14 @@ const Agenda = () => {
 
         {/* Two-column layout: Calendar + List */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Calendar */}
+          {/* Calendar - full width */}
           <Card>
-            <CardContent className="p-4 flex justify-center">
+            <CardContent className="p-4">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                className="pointer-events-auto"
+                className="pointer-events-auto w-full [&_table]:w-full [&_th]:w-full [&_td]:w-full [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
                 modifiers={{
                   aceita: aceitaDates,
                   executado: executadoDates,
@@ -138,6 +145,68 @@ const Agenda = () => {
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-6">Nenhuma vaga nessa data</p>
               )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Histórico Section */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-display font-bold flex items-center gap-2">
+            <History className="w-5 h-5 text-primary" /> Histórico
+          </h2>
+
+          <div className="grid grid-cols-3 gap-3">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
+                  <History className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-xl font-bold font-display">{mockHistorico.length}</p>
+                <p className="text-xs text-muted-foreground">Concluídos</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                </div>
+                <p className="text-xl font-bold font-display">{totalGanhoHistorico}</p>
+                <p className="text-xs text-muted-foreground">Total Ganho</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
+                  <Star className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-xl font-bold font-display">{mediaAvaliacao}</p>
+                <p className="text-xs text-muted-foreground">Avaliação</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              {mockHistorico.map((item) => (
+                <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                    <CalendarIcon className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.client} • {item.date}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3 h-3" /> {item.location}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-green-600">{item.value}</p>
+                    <span className="flex items-center justify-end gap-0.5 text-[10px] text-primary font-medium mt-0.5">
+                      <Star className="w-3 h-3 fill-primary" /> {item.rating}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </div>
