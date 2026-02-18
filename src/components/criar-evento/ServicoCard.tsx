@@ -49,6 +49,12 @@ const calcHours = (inicio: string, fim: string): number => {
   return diff / 60;
 };
 
+const formatHours = (hours: number): string => {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return m > 0 ? `${h}:${String(m).padStart(2, "0")}h` : `${h}h`;
+};
+
 export { calcHours };
 
 const ServicoCard = ({
@@ -115,23 +121,25 @@ const ServicoCard = ({
         </div>
 
         {/* Horário */}
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
             <Clock className="w-2.5 h-2.5" /> Horário
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 min-w-0">
             <Input
               type="time"
+              step="300"
               value={horaInicio}
               onChange={(e) => onHoraInicioChange(e.target.value)}
-              className="h-7 text-xs px-1.5 rounded-lg"
+              className="h-7 text-[11px] px-1 rounded-lg min-w-0 flex-1"
             />
-            <span className="text-muted-foreground text-[10px]">às</span>
+            <span className="text-muted-foreground text-[10px] shrink-0">às</span>
             <Input
               type="time"
+              step="300"
               value={horaFim}
               onChange={(e) => onHoraFimChange(e.target.value)}
-              className="h-7 text-xs px-1.5 rounded-lg"
+              className="h-7 text-[11px] px-1 rounded-lg min-w-0 flex-1"
             />
           </div>
         </div>
@@ -145,7 +153,7 @@ const ServicoCard = ({
               {hours < minHours && (
                 <span className="text-amber-600 text-[10px]">mín. {minHours}h • </span>
               )}
-              {effectiveHours}h × {quantidade} pessoa{quantidade > 1 ? "s" : ""}
+              {formatHours(effectiveHours)} × {quantidade} pessoa{quantidade > 1 ? "s" : ""}
             </>
           ) : (
             <span className="text-[10px]">Selecione o horário</span>
