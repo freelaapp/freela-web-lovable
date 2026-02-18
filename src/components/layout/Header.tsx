@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, LayoutDashboard, Calendar, Star, Map, User, Wallet } from "lucide-react";
+import { Menu, X, Home, LayoutDashboard, Calendar, Star, Map, User, Wallet, CalendarPlus } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -148,6 +148,13 @@ const Header = () => {
           <div className="hidden lg:flex items-center gap-3">
             {isLoggedIn ? (
               <>
+                {role === "contratante" && (
+                  <Button asChild size="sm" className="gap-1.5">
+                    <Link to="/criar-evento">
+                      <CalendarPlus className="w-4 h-4" /> Criar Evento
+                    </Link>
+                  </Button>
+                )}
                 <Link
                   to="/carteira"
                   className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
@@ -207,6 +214,13 @@ const Header = () => {
                     </Link>
                   ))}
                   <div className="flex flex-col gap-2 mt-4 px-4">
+                    {role === "contratante" && (
+                      <Button asChild className="w-full gap-2">
+                        <Link to="/criar-evento" onClick={() => setIsMenuOpen(false)}>
+                          <CalendarPlus className="w-4 h-4" /> Criar Evento
+                        </Link>
+                      </Button>
+                    )}
                     <Button variant="outline" asChild className="w-full">
                       <Link to="/" onClick={() => setIsMenuOpen(false)}>
                         <Home className="w-4 h-4 mr-2" /> Voltar para Home
