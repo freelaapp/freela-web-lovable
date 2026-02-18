@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Settings, CreditCard, Bell, HelpCircle, LogOut, ChevronRight, Star, Shield } from "lucide-react";
+import { User, Settings, CreditCard, Bell, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Building2 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 
 const menuItems = [
@@ -16,23 +16,38 @@ const Perfil = () => {
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 space-y-6">
-        {/* Profile Card */}
+        {/* Profile Card - horizontal */}
         <Card>
-          <CardContent className="p-6 flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold mb-3">
-              AS
+          <CardContent className="p-6">
+            <div className="flex items-start gap-5">
+              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold shrink-0">
+                AS
+              </div>
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-lg font-display font-bold">Ana Souza</h2>
+                  <Shield className="w-4 h-4 text-primary fill-primary/20" />
+                </div>
+                <div className="flex items-center gap-1 text-sm text-primary font-medium">
+                  <Star className="w-4 h-4 fill-primary" /> 4.8
+                  <span className="text-muted-foreground font-normal ml-1">•</span>
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium ml-1">
+                    <Building2 className="w-3 h-3" /> Contratante
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Mail className="w-4 h-4 shrink-0" />
+                  <span className="truncate">ana.souza@email.com</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CreditCard className="w-4 h-4 shrink-0" />
+                  <span>Pix • •••• 1234</span>
+                </div>
+                <Button variant="outline" size="sm" className="mt-1">
+                  Editar Perfil
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-lg font-display font-bold">Ana Souza</h2>
-              <Shield className="w-4 h-4 text-primary fill-primary/20" />
-            </div>
-            <p className="text-sm text-muted-foreground mt-0.5">ana.souza@email.com</p>
-            <div className="flex items-center gap-1 mt-2 text-sm text-primary font-medium">
-              <Star className="w-4 h-4 fill-primary" /> 4.8 • Contratante
-            </div>
-            <Button variant="outline" size="sm" className="mt-4">
-              Editar Perfil
-            </Button>
           </CardContent>
         </Card>
 
