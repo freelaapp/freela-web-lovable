@@ -6,6 +6,10 @@ export type UserRole = "freelancer" | "contratante";
 const contratantePaths = [
   "/dashboard-contratante",
   "/criar-evento",
+  "/evento",
+  "/meus-dados-contratante",
+  "/configuracoes-contratante",
+  "/ajuda-contratante",
 ];
 
 const freelancerPaths = [
