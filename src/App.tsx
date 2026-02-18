@@ -15,6 +15,8 @@ import Freelancers from "./pages/Freelancers";
 import AceitarJob from "./pages/AceitarJob";
 import PerfilFreelancer from "./pages/PerfilFreelancer";
 import DashboardFreelancer from "./pages/DashboardFreelancer";
+import Agenda from "./pages/Agenda";
+import Historico from "./pages/Historico";
 import DashboardContratante from "./pages/DashboardContratante";
 import Mensagens from "./pages/Mensagens";
 import Perfil from "./pages/Perfil";
@@ -49,6 +51,8 @@ const App = () => (
             <Route path="/dashboard-freelancer" element={<DashboardFreelancer />} />
             <Route path="/dashboard-contratante" element={<DashboardContratante />} />
             <Route path="/mensagens" element={<Mensagens />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/historico" element={<Historico />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
