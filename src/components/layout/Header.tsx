@@ -44,7 +44,7 @@ const Header = () => {
             <img
               src={logoFreela}
               alt="Freela Serviços"
-              className="h-10 md:h-12 w-auto object-fill" />
+              className="h-[52px] md:h-[62px] w-auto object-fill" />
 
           </Link>
 
