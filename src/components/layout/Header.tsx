@@ -15,6 +15,9 @@ const loggedInPaths = [
   "/mapa-vagas",
   "/criar-evento",
   "/aceitar-job",
+  "/vaga",
+  "/confirmar-servico",
+  "/perfil-contratante",
 ];
 
 const Header = () => {
