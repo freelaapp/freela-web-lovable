@@ -22,21 +22,21 @@ const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center hero-gradient overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-10 py-[22px]">
         <div className="absolute top-20 left-10 w-72 h-72 bg-secondary rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary rounded-full blur-3xl" />
       </div>
 
-      <div className="container mx-auto container-padding relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center pt-24 pb-16">
+      <div className="container mx-auto container-padding relative z-10 py-0">
+        <div className="grid lg:grid-cols-2 gap-12 items-center pt-24 pb-16 py-0">
           {/* Content */}
           <div className="text-center lg:text-left animate-slide-up">
             {/* Logo destacada com animação */}
             <div className="mb-8 flex justify-center lg:justify-start">
-              
-
-
-
+              <img
+                src={logoFreela}
+                alt="Freela Serviços"
+                className="h-20 md:h-28 lg:h-32 w-auto drop-shadow-lg animate-blink hover:scale-105 transition-transform cursor-pointer" />
 
             </div>
             
@@ -48,7 +48,7 @@ const HeroSection = () => {
               }
             </span>
             
-            <h1 className="text-secondary mb-6 hero-text-shadow">
+            <h1 className="text-secondary mb-6 hero-text-shadow text-5xl">
               {isFreelaCasa ?
               <>
                   Contrate um profissional para{" "}
@@ -72,7 +72,7 @@ const HeroSection = () => {
               }
             </h1>
             
-            <p className="text-lg md:text-xl text-secondary/80 mb-8 max-w-xl mx-auto lg:mx-0">
+            <p className="text-lg text-secondary/80 mb-8 max-w-xl mx-auto lg:mx-0 md:text-lg">
               {isFreelaCasa ?
               "Churrasqueiro, barman, músico, DJ, garçom e mais. Profissionais qualificados para festas, confraternizações e eventos em sua casa. Simples e sem negociação." :
               "Garçons, bartenders, cozinheiros e mais para bares, restaurantes, buffets e hotéis. Valor pré-fixado, sem negociação e profissionais avaliados."}

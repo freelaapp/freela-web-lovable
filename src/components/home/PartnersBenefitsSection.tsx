@@ -8,8 +8,8 @@ import {
   TrendingUp,
   BadgePercent,
   BookOpen,
-  Award,
-} from "lucide-react";
+  Award } from
+"lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useMode } from "@/contexts/ModeContext";
@@ -18,7 +18,7 @@ const PartnersBenefitsSection = () => {
   const { isFreelaCasa } = useMode();
 
   return (
-    <section className="section-padding bg-background">
+    <section className="section-padding bg-background py-[60px]">
       <div className="container mx-auto container-padding">
         {/* Section Header */}
         <div className="text-center max-w-4xl mx-auto mb-16">
@@ -51,9 +51,9 @@ const PartnersBenefitsSection = () => {
                   </h3>
 
                   <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                    {isFreelaCasa
-                      ? "Ao se cadastrar no Freela e aderir à Assinatura Verde do Grupo Prospera, você ganha desconto na sua conta de energia. Quanto mais usar o Freela, maiores seus descontos."
-                      : "Cadastre seu estabelecimento no Freela e adira à Assinatura Verde do Grupo Prospera. Ganhe 10% de desconto na conta de energia e acumule pontos que viram desconto nas contratações de freelancers."}
+                    {isFreelaCasa ?
+                    "Ao se cadastrar no Freela e aderir à Assinatura Verde do Grupo Prospera, você ganha desconto na sua conta de energia. Quanto mais usar o Freela, maiores seus descontos." :
+                    "Cadastre seu estabelecimento no Freela e adira à Assinatura Verde do Grupo Prospera. Ganhe 10% de desconto na conta de energia e acumule pontos que viram desconto nas contratações de freelancers."}
                   </p>
 
                   {/* Benefits Grid */}
@@ -85,9 +85,9 @@ const PartnersBenefitsSection = () => {
                       <div>
                         <p className="font-semibold text-foreground text-sm">Pontos Freela</p>
                         <p className="text-xs text-muted-foreground">
-                          {isFreelaCasa
-                            ? "Acumule pontos e ganhe descontos em serviços"
-                            : "Desconto nas contratações de freelancers"}
+                          {isFreelaCasa ?
+                          "Acumule pontos e ganhe descontos em serviços" :
+                          "Desconto nas contratações de freelancers"}
                         </p>
                       </div>
                     </div>
@@ -131,8 +131,8 @@ const PartnersBenefitsSection = () => {
         </div>
 
         {/* ========== CURSOS E CAPACITAÇÃO (Apenas para Empresas) ========== */}
-        {!isFreelaCasa && (
-          <div>
+        {!isFreelaCasa &&
+        <div>
             <div className="text-center mb-12">
               <span className="badge-primary mb-6 inline-block text-base px-5 py-2">
                 📚 Capacitação profissional
@@ -250,10 +250,10 @@ const PartnersBenefitsSection = () => {
               </div>
             </div>
           </div>
-        )}
+        }
       </div>
-    </section>
-  );
+    </section>);
+
 };
 
 export default PartnersBenefitsSection;
