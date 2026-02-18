@@ -16,6 +16,8 @@ import AceitarJob from "./pages/AceitarJob";
 import PerfilFreelancer from "./pages/PerfilFreelancer";
 import DashboardFreelancer from "./pages/DashboardFreelancer";
 import Agenda from "./pages/Agenda";
+import DetalheVaga from "./pages/DetalheVaga";
+import ConfirmarServico from "./pages/ConfirmarServico";
 import Historico from "./pages/Historico";
 import DashboardContratante from "./pages/DashboardContratante";
 import Mensagens from "./pages/Mensagens";
@@ -52,6 +54,8 @@ const App = () => (
             <Route path="/dashboard-contratante" element={<DashboardContratante />} />
             <Route path="/mensagens" element={<Mensagens />} />
             <Route path="/agenda" element={<Agenda />} />
+            <Route path="/vaga/:vagaId" element={<DetalheVaga />} />
+            <Route path="/confirmar-servico/:vagaId" element={<ConfirmarServico />} />
             <Route path="/historico" element={<Historico />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/termos" element={<TermosDeUso />} />
