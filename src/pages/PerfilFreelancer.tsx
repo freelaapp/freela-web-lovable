@@ -1,8 +1,12 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, MapPin, Calendar, MessageCircle, Shield, Clock, ChevronLeft, Heart, Share2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Star, MapPin, MessageCircle, Shield, Clock, ChevronLeft, Heart, Share2, Send, Calendar, Briefcase } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
+import { useState } from "react";
 
 const freelancerData = {
   id: "1",
@@ -34,16 +38,29 @@ const freelancerData = {
 
 const PerfilFreelancer = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [showPropostaDialog, setShowPropostaDialog] = useState(false);
+  const [proposta, setProposta] = useState({ data: "", horario: "", horas: "", valor: "", descricao: "" });
+  const [propostaEnviada, setPropostaEnviada] = useState(false);
+
+  const handleEnviarProposta = () => {
+    setPropostaEnviada(true);
+    setTimeout(() => {
+      setPropostaEnviada(false);
+      setShowPropostaDialog(false);
+      setProposta({ data: "", horario: "", horas: "", valor: "", descricao: "" });
+    }, 2000);
+  };
 
   return (
     <AppLayout showHeader={false} showFooter={false}>
       {/* Mobile Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="flex items-center justify-between h-14 px-4">
-          <Link to="/freelancers" className="p-2 -ml-2 text-foreground">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-foreground">
             <ChevronLeft className="w-5 h-5" />
-          </Link>
-          <h1 className="text-sm font-semibold font-display">Perfil</h1>
+          </button>
+          <h1 className="text-sm font-semibold font-display">Perfil do Freelancer</h1>
           <div className="flex gap-1">
             <button className="p-2 text-muted-foreground hover:text-foreground">
               <Heart className="w-5 h-5" />
@@ -107,7 +124,7 @@ const PerfilFreelancer = () => {
           </CardContent>
         </Card>
 
-        {/* Skills */}
+        {/* Skills / Especialidades */}
         <Card>
           <CardContent className="p-5">
             <h3 className="font-display font-semibold text-base mb-3">Especialidades</h3>
@@ -138,10 +155,10 @@ const PerfilFreelancer = () => {
           </CardContent>
         </Card>
 
-        {/* Testimonials */}
+        {/* Avaliações Recentes */}
         <Card>
           <CardContent className="p-5">
-            <h3 className="font-display font-semibold text-base mb-3">Avaliações</h3>
+            <h3 className="font-display font-semibold text-base mb-3">Avaliações Recentes</h3>
             <div className="space-y-4">
               {freelancerData.testimonials.map((t, i) => (
                 <div key={i} className="border-b border-border last:border-0 pb-4 last:pb-0">
@@ -161,7 +178,7 @@ const PerfilFreelancer = () => {
         </Card>
       </div>
 
-      {/* Fixed Bottom CTA */}
+      {/* Fixed Bottom CTA - Contractor View */}
       <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border p-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
           <div>
@@ -169,15 +186,77 @@ const PerfilFreelancer = () => {
             <p className="text-lg font-bold font-display text-primary">R$ 480</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="lg" className="gap-2">
+            <Button variant="outline" size="lg" className="gap-2" onClick={() => navigate("/mensagens")}>
               <MessageCircle className="w-4 h-4" /> Mensagem
             </Button>
-            <Button size="lg" className="gap-2">
-              Contratar
+            <Button size="lg" className="gap-2" onClick={() => setShowPropostaDialog(true)}>
+              <Send className="w-4 h-4" /> Proposta Exclusiva
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Dialog Proposta Exclusiva */}
+      <Dialog open={showPropostaDialog} onOpenChange={setShowPropostaDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5 text-primary" /> Proposta Exclusiva
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">Envie uma proposta direta para {freelancerData.name}</p>
+          </DialogHeader>
+
+          {propostaEnviada ? (
+            <div className="flex flex-col items-center gap-4 py-8">
+              <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center">
+                <Send className="w-8 h-8 text-success" />
+              </div>
+              <p className="text-lg font-bold font-display text-success">Proposta Enviada!</p>
+              <p className="text-sm text-muted-foreground text-center">O freelancer será notificado e poderá aceitar ou negociar.</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-4 py-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1 text-xs"><Calendar className="w-3 h-3" /> Data</Label>
+                    <Input type="date" value={proposta.data} onChange={(e) => setProposta(p => ({ ...p, data: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1 text-xs"><Clock className="w-3 h-3" /> Horário</Label>
+                    <Input type="time" value={proposta.horario} onChange={(e) => setProposta(p => ({ ...p, horario: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1 text-xs"><Clock className="w-3 h-3" /> Horas</Label>
+                    <Input type="number" min="1" placeholder="6" value={proposta.horas} onChange={(e) => setProposta(p => ({ ...p, horas: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1 text-xs"><Briefcase className="w-3 h-3" /> Valor (R$)</Label>
+                    <Input type="text" placeholder="R$ 500" value={proposta.valor} onChange={(e) => setProposta(p => ({ ...p, valor: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Descrição do serviço</Label>
+                  <textarea
+                    placeholder="Descreva o que precisa..."
+                    value={proposta.descricao}
+                    onChange={(e) => setProposta(p => ({ ...p, descricao: e.target.value }))}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+              </div>
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => setShowPropostaDialog(false)}>Cancelar</Button>
+                <Button onClick={handleEnviarProposta} className="gap-2">
+                  <Send className="w-4 h-4" /> Enviar Proposta
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

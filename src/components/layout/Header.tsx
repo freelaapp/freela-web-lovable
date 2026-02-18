@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, LayoutDashboard, Calendar, History, Star, Map, User, Wallet } from "lucide-react";
+import { Menu, X, Home, LayoutDashboard, Calendar, Star, Map, User, Wallet } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const loggedInPaths = [
   "/dashboard-freelancer",
@@ -29,6 +30,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const role = useUserRole();
 
   const isLoggedIn = useMemo(() => {
     return loggedInPaths.some(p => location.pathname.startsWith(p));
@@ -42,12 +44,20 @@ const Header = () => {
     { href: "/#duvidas", label: "Dúvidas" },
   ];
 
-  const loggedInNavLinks = [
+  const freelancerNavLinks = [
     { href: "/dashboard-freelancer", label: "Dashboard", icon: LayoutDashboard },
     { href: "/agenda", label: "Agenda", icon: Calendar },
     { href: "/mapa-vagas", label: "Mapa de Vagas", icon: Map },
     { href: "/avaliacoes", label: "Avaliações", icon: Star },
   ];
+
+  const contratanteNavLinks = [
+    { href: "/dashboard-contratante", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/agenda", label: "Agenda", icon: Calendar },
+    { href: "/avaliacoes", label: "Avaliações", icon: Star },
+  ];
+
+  const loggedInNavLinks = role === "contratante" ? contratanteNavLinks : freelancerNavLinks;
 
   const isActive = (path: string) => location.pathname === path;
 
