@@ -16,10 +16,10 @@ const MeusDadosContratante = () => {
   const fachadaRef = useRef<HTMLInputElement>(null);
   const internoRef = useRef<HTMLInputElement>(null);
 
-  const [nomeEstabelecimento, setNomeEstabelecimento] = useState("Restaurante Sabor & Arte");
+  const [nomeEstabelecimento, setNomeEstabelecimento] = useState("Freela & Breja");
   const [cnpj] = useState("12.345.678/0001-90");
-  const [ramo, setRamo] = useState("Restaurante");
-  const [email, setEmail] = useState("contato@saborearte.com.br");
+  const [ramo, setRamo] = useState("Bar e Restaurante");
+  const [email, setEmail] = useState("contato@freelaebreja.com.br");
   const [telefone, setTelefone] = useState("(11) 3333-4444");
   const [responsavel, setResponsavel] = useState("Ana Oliveira");
   const [endereco, setEndereco] = useState("Rua das Flores, 123 - Centro, São Paulo, SP");

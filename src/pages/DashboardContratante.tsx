@@ -36,7 +36,7 @@ const DashboardContratante = () => {
         {/* Greeting */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold">Olá, Ana! 👋</h1>
+            <h1 className="text-2xl font-display font-bold">Olá, Freela & Breja! 👋</h1>
             <p className="text-muted-foreground text-sm mt-1">Gerencie seus eventos e freelancers</p>
           </div>
           <Button asChild size="xl" className="gap-2">

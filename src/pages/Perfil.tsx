@@ -163,7 +163,7 @@ const Perfil = () => {
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span>{isContratante ? "AO" : "CS"}</span>
+                  <span>{isContratante ? "FB" : "CS"}</span>
                 )}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                   <Camera className="w-5 h-5 text-white" />
@@ -172,7 +172,7 @@ const Perfil = () => {
               <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-lg font-display font-bold">{isContratante ? "Ana Oliveira" : "Carlos Silva"}</h2>
+                  <h2 className="text-lg font-display font-bold">{isContratante ? "Freela & Breja" : "Carlos Silva"}</h2>
                   <Shield className="w-4 h-4 text-primary fill-primary/20" />
                 </div>
                 <div className="flex items-center gap-1 text-sm text-primary font-medium">
@@ -180,7 +180,7 @@ const Perfil = () => {
                   <span className="text-muted-foreground font-normal ml-1">•</span>
                   <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium ml-1">
                     {isContratante ? (
-                      <><Building2 className="w-3 h-3" /> Contratante</>
+                      <><Building2 className="w-3 h-3" /> Bar e Restaurante</>
                     ) : (
                       <><Briefcase className="w-3 h-3" /> Freelancer</>
                     )}
@@ -188,7 +188,7 @@ const Perfil = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Mail className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{isContratante ? "ana.oliveira@email.com" : "carlos.silva@email.com"}</span>
+                  <span className="truncate">{isContratante ? "contato@freelaebreja.com.br" : "carlos.silva@email.com"}</span>
                 </div>
                 {isContratante ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
