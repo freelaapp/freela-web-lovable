@@ -8,12 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, MapPin, Users, Briefcase, ArrowRight, Calculator, Home, Info } from "lucide-react";
 import { useMode } from "@/contexts/ModeContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { servicosPF, calcularValorTotal } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
 import CriarEventoEmpresas from "@/components/criar-evento/CriarEventoEmpresas";
 
 const CriarEvento = () => {
   const { isFreelaCasa, mode } = useMode();
+  const userRole = useUserRole();
+  const isEmpresasMode = !isFreelaCasa || userRole === "contratante";
   const [searchParams] = useSearchParams();
   const freelancerExclusivo = searchParams.get("para");
   const { toast } = useToast();
@@ -73,7 +76,7 @@ const CriarEvento = () => {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto container-padding">
           {/* Empresas mode: new dynamic layout */}
-          {!isFreelaCasa ? (
+          {isEmpresasMode ? (
             <CriarEventoEmpresas />
           ) : (
             <div className="max-w-2xl mx-auto">
