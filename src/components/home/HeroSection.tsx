@@ -7,17 +7,17 @@ import logoFreela from "@/assets/logo-freela.png";
 const HeroSection = () => {
   const { isFreelaCasa } = useMode();
 
-  const stats = isFreelaCasa
-    ? [
-        { icon: Users, value: "15.000+", label: "Profissionais" },
-        { icon: Home, value: "50.000+", label: "Eventos realizados" },
-        { icon: Star, value: "4.9", label: "Avaliação média" },
-      ]
-    : [
-        { icon: Users, value: "15.000+", label: "Freelancers cadastrados" },
-        { icon: Briefcase, value: "8.000+", label: "Estabelecimentos" },
-        { icon: Star, value: "4.9", label: "Avaliação média" },
-      ];
+  const stats = isFreelaCasa ?
+  [
+  { icon: Users, value: "15.000+", label: "Profissionais" },
+  { icon: Home, value: "50.000+", label: "Eventos realizados" },
+  { icon: Star, value: "4.9", label: "Avaliação média" }] :
+
+  [
+  { icon: Users, value: "15.000+", label: "Freelancers cadastrados" },
+  { icon: Briefcase, value: "8.000+", label: "Estabelecimentos" },
+  { icon: Star, value: "4.9", label: "Avaliação média" }];
+
 
   return (
     <section className="relative min-h-screen flex items-center hero-gradient overflow-hidden">
@@ -33,49 +33,49 @@ const HeroSection = () => {
           <div className="text-center lg:text-left animate-slide-up">
             {/* Logo destacada com animação */}
             <div className="mb-8 flex justify-center lg:justify-start">
-              <img 
-                src={logoFreela} 
-                alt="Freela Serviços" 
-                className="h-20 md:h-28 lg:h-32 w-auto drop-shadow-lg animate-blink hover:scale-105 transition-transform cursor-pointer"
-              />
+              
+
+
+
+
             </div>
             
             <span className="inline-block bg-secondary/10 text-secondary px-4 py-2 rounded-full text-sm font-medium mb-6">
-              {isFreelaCasa ? (
-                <>🏠 Freela em Casa - Eventos particulares</>
-              ) : (
-                <>🏢 Freelancers para bares, restaurantes e eventos</>
-              )}
+              {isFreelaCasa ?
+              <>🏠 Freela em Casa - Eventos particulares</> :
+
+              <>🏢 Freelancers para bares, restaurantes e eventos</>
+              }
             </span>
             
             <h1 className="text-secondary mb-6 hero-text-shadow">
-              {isFreelaCasa ? (
-                <>
+              {isFreelaCasa ?
+              <>
                   Contrate um profissional para{" "}
                   <span className="relative">
                     seu evento
                     <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
-                      <path d="M2 8C50 2 150 2 198 8" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+                      <path d="M2 8C50 2 150 2 198 8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
                     </svg>
                   </span>
-                </>
-              ) : (
-                <>
+                </> :
+
+              <>
                   Freelancers prontos para o seu{" "}
                   <span className="relative">
                     estabelecimento
                     <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
-                      <path d="M2 8C50 2 150 2 198 8" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
+                      <path d="M2 8C50 2 150 2 198 8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
                     </svg>
                   </span>
                 </>
-              )}
+              }
             </h1>
             
             <p className="text-lg md:text-xl text-secondary/80 mb-8 max-w-xl mx-auto lg:mx-0">
-              {isFreelaCasa
-                ? "Churrasqueiro, barman, músico, DJ, garçom e mais. Profissionais qualificados para festas, confraternizações e eventos em sua casa. Simples e sem negociação."
-                : "Garçons, bartenders, cozinheiros e mais para bares, restaurantes, buffets e hotéis. Valor pré-fixado, sem negociação e profissionais avaliados."}
+              {isFreelaCasa ?
+              "Churrasqueiro, barman, músico, DJ, garçom e mais. Profissionais qualificados para festas, confraternizações e eventos em sua casa. Simples e sem negociação." :
+              "Garçons, bartenders, cozinheiros e mais para bares, restaurantes, buffets e hotéis. Valor pré-fixado, sem negociação e profissionais avaliados."}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
@@ -94,8 +94,8 @@ const HeroSection = () => {
 
             {/* Stats */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-8">
-              {stats.map((stat) => (
-                <div key={stat.label} className="flex items-center gap-3">
+              {stats.map((stat) =>
+              <div key={stat.label} className="flex items-center gap-3">
                   <div className="p-2 bg-secondary/10 rounded-lg">
                     <stat.icon className="w-5 h-5 text-secondary" />
                   </div>
@@ -104,7 +104,7 @@ const HeroSection = () => {
                     <p className="text-sm text-secondary/70">{stat.label}</p>
                   </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -131,22 +131,22 @@ const HeroSection = () => {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {isFreelaCasa
-                    ? "\"Churrasco incrível! Carlos cuidou de tudo e os convidados amaram. Super recomendo!\""
-                    : "\"Profissional pontual e atencioso. Atendeu meu restaurante num sábado lotado e deu conta de tudo.\""}
+                  {isFreelaCasa ?
+                  "\"Churrasco incrível! Carlos cuidou de tudo e os convidados amaram. Super recomendo!\"" :
+                  "\"Profissional pontual e atencioso. Atendeu meu restaurante num sábado lotado e deu conta de tudo.\""}
                 </p>
                 <div className="flex gap-2">
-                  {isFreelaCasa ? (
-                    <>
+                  {isFreelaCasa ?
+                  <>
                       <span className="px-3 py-1 bg-primary-light rounded-full text-xs font-medium text-primary">
                         Churrasco
                       </span>
                       <span className="px-3 py-1 bg-primary-light rounded-full text-xs font-medium text-primary">
                         Eventos
                       </span>
-                    </>
-                  ) : (
-                    <>
+                    </> :
+
+                  <>
                       <span className="px-3 py-1 bg-primary-light rounded-full text-xs font-medium text-primary">
                         Garçom
                       </span>
@@ -154,7 +154,7 @@ const HeroSection = () => {
                         Restaurantes
                       </span>
                     </>
-                  )}
+                  }
                 </div>
               </div>
 
@@ -182,8 +182,8 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 };
 
 export default HeroSection;
