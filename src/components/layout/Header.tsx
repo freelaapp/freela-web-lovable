@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, LayoutDashboard, Calendar, History, Star } from "lucide-react";
+import { Menu, X, Home, LayoutDashboard, Calendar, History, Star, Map } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
 
@@ -12,6 +12,7 @@ const loggedInPaths = [
   "/agenda",
   "/historico",
   "/avaliacoes",
+  "/mapa-vagas",
   "/criar-evento",
   "/aceitar-job",
 ];
@@ -36,6 +37,7 @@ const Header = () => {
   const loggedInNavLinks = [
     { href: "/dashboard-freelancer", label: "Dashboard", icon: LayoutDashboard },
     { href: "/agenda", label: "Agenda", icon: Calendar },
+    { href: "/mapa-vagas", label: "Mapa de Vagas", icon: Map },
     { href: "/historico", label: "Histórico", icon: History },
     { href: "/avaliacoes", label: "Avaliações", icon: Star },
   ];
