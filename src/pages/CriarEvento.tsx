@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 
 const CriarEvento = () => {
   const { isFreelaCasa, mode } = useMode();
+  const [searchParams] = useSearchParams();
+  const freelancerExclusivo = searchParams.get("para");
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -79,16 +81,40 @@ const CriarEvento = () => {
                 <Home className="w-4 h-4" />
                 <span>{isFreelaCasa ? "Freela em Casa" : "Freela para Empresas"}</span>
               </div>
-              <h1 className="text-3xl font-display font-bold mb-2">
-                {isFreelaCasa 
-                  ? "Contrate um profissional para seu evento" 
-                  : "Criar nova contratação"}
-              </h1>
-              <p className="text-muted-foreground">
-                {isFreelaCasa
-                  ? "Preencha os dados do seu evento particular"
-                  : "Configure os detalhes da contratação corporativa"}
-              </p>
+              {freelancerExclusivo ? (
+                <>
+                  <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-4 flex items-start gap-3">
+                    <Users className="w-5 h-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Proposta exclusiva para <span className="text-primary font-bold">{freelancerExclusivo}</span>
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Este evento será enviado diretamente para o freelancer selecionado.
+                      </p>
+                    </div>
+                  </div>
+                  <h1 className="text-3xl font-display font-bold mb-2">
+                    Criar evento para {freelancerExclusivo}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Preencha os dados do evento. O freelancer receberá a proposta diretamente.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-3xl font-display font-bold mb-2">
+                    {isFreelaCasa 
+                      ? "Contrate um profissional para seu evento" 
+                      : "Criar nova contratação"}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    {isFreelaCasa
+                      ? "Preencha os dados do seu evento particular"
+                      : "Configure os detalhes da contratação corporativa"}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Info Box for PF */}

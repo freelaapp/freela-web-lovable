@@ -249,9 +249,8 @@ const DetalheEventoContratante = () => {
                     <MessageCircle className="w-4 h-4" /> Mensagem
                   </Button>
                   <Button className="flex-1 gap-2" onClick={() => {
-                    setPropostaFreelancer(selectedFreelancer);
                     setSelectedFreelancer(null);
-                    setShowPropostaDialog(true);
+                    navigate(`/criar-evento?para=${encodeURIComponent(selectedFreelancer.name)}`);
                   }}>
                     <Send className="w-4 h-4" /> Proposta Exclusiva
                   </Button>
@@ -277,48 +276,6 @@ const DetalheEventoContratante = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Proposta Exclusiva */}
-      <Dialog open={showPropostaDialog} onOpenChange={setShowPropostaDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5 text-primary" /> Proposta Exclusiva
-            </DialogTitle>
-            {propostaFreelancer && <p className="text-sm text-muted-foreground">Para {propostaFreelancer.name}</p>}
-          </DialogHeader>
-          {propostaEnviada ? (
-            <div className="flex flex-col items-center gap-4 py-8">
-              <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center">
-                <Send className="w-8 h-8 text-success" />
-              </div>
-              <p className="text-lg font-bold font-display text-success">Proposta Enviada!</p>
-              <p className="text-sm text-muted-foreground text-center">O freelancer será notificado.</p>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-4 py-2">
-                <div className="space-y-1.5">
-                  <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor (R$)</Label>
-                  <Input type="text" placeholder="R$ 500" value={proposta.valor} onChange={(e) => setProposta(p => ({ ...p, valor: e.target.value }))} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Descrição / Observações</Label>
-                  <textarea
-                    placeholder="Detalhes adicionais sobre o serviço..."
-                    value={proposta.descricao}
-                    onChange={(e) => setProposta(p => ({ ...p, descricao: e.target.value }))}
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-              </div>
-              <DialogFooter className="gap-2">
-                <Button variant="outline" onClick={() => setShowPropostaDialog(false)}>Cancelar</Button>
-                <Button onClick={handleEnviarProposta} className="gap-2"><Send className="w-4 h-4" /> Enviar</Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 };
