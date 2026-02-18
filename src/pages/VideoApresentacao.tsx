@@ -50,9 +50,32 @@ const VideoApresentacao = () => {
         </div>
 
         <h1 className="text-2xl md:text-3xl font-display font-bold mb-3">Vídeo de Apresentação</h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground mb-6">
           Grave um curto vídeo de apresentação. Isso aumentará suas chances de ser chamado para uma vaga.
         </p>
+
+        {/* Roteiro / Dicas */}
+        <div className="bg-muted/60 rounded-xl p-5 mb-8 text-left space-y-4 border border-border">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            📋 O que incluir no vídeo:
+          </h2>
+          <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
+            <li>Seu <strong className="text-foreground">nome</strong></li>
+            <li>Sua <strong className="text-foreground">idade</strong></li>
+            <li><strong className="text-foreground">Cidade e estado</strong> onde atua</li>
+            <li>Quais são suas <strong className="text-foreground">especialidades</strong></li>
+            <li>Qual serviço você <strong className="text-foreground">mais gosta</strong> de fazer</li>
+          </ul>
+
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 pt-2">
+            🎬 Exemplo de roteiro:
+          </h2>
+          <p className="text-sm text-muted-foreground italic leading-relaxed">
+            "Olá, meu nome é <strong className="text-foreground">Ana</strong>, tenho <strong className="text-foreground">28 anos</strong> e moro em <strong className="text-foreground">São Paulo, SP</strong>. 
+            Trabalho como <strong className="text-foreground">bartender e garçonete</strong> há 5 anos em eventos corporativos, casamentos e festas. 
+            O que eu mais gosto de fazer é <strong className="text-foreground">drinks autorais</strong> — adoro surpreender os convidados com sabores criativos!"
+          </p>
+        </div>
 
         {video ? (
           <div className="space-y-4 mb-8">
