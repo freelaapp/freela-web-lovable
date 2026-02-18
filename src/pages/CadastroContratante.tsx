@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowRight, ArrowLeft, CalendarIcon, Upload, X, Home, Building2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, CalendarIcon, Upload, X, Home, Building2, UserCheck } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -58,6 +58,8 @@ const CadastroContratante = () => {
   const [fotoFachada, setFotoFachada] = useState<File | null>(null);
   const [fotoAmbiente, setFotoAmbiente] = useState<File | null>(null);
   const [fotosExtras, setFotosExtras] = useState<File[]>([]);
+  const [responsavelNome, setResponsavelNome] = useState("");
+  const [responsavelTelefone, setResponsavelTelefone] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const previewFachada = useMemo(() => fotoFachada ? URL.createObjectURL(fotoFachada) : null, [fotoFachada]);
@@ -92,6 +94,8 @@ const CadastroContratante = () => {
       if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = "Nome do estabelecimento é obrigatório";
       if (!fotoFachada) e.fotoFachada = "Foto da fachada é obrigatória";
       if (!fotoAmbiente) e.fotoAmbiente = "Foto do ambiente interno é obrigatória";
+      if (!responsavelNome.trim()) e.responsavelNome = "Nome do responsável é obrigatório";
+      if (!responsavelTelefone.replace(/\D/g, "") || responsavelTelefone.replace(/\D/g, "").length < 10) e.responsavelTelefone = "Telefone inválido";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -400,6 +404,42 @@ const CadastroContratante = () => {
                 </div>
               </div>
             </div>
+
+            {/* Responsável pela Operação - apenas empresas */}
+            {modo === "empresa" && (
+              <div className="border-t border-border pt-6 space-y-4">
+                <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
+                  <UserCheck className="w-5 h-5 text-primary" />
+                  Responsável pela Operação
+                </h3>
+                <div className="space-y-2">
+                  <Label>Nome e Sobrenome</Label>
+                  <Input
+                    placeholder="Nome completo do responsável"
+                    value={responsavelNome}
+                    onChange={(e) => setResponsavelNome(e.target.value)}
+                    className={`h-12 ${errors.responsavelNome ? "border-destructive" : ""}`}
+                  />
+                  {errors.responsavelNome && <p className="text-sm text-destructive">{errors.responsavelNome}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label>DDD + Telefone</Label>
+                  <Input
+                    placeholder="(00) 00000-0000"
+                    value={responsavelTelefone}
+                    onChange={(e) => {
+                      const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                      let formatted = d;
+                      if (d.length > 2) formatted = `(${d.slice(0, 2)}) ${d.slice(2)}`;
+                      if (d.length > 7) formatted = `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+                      setResponsavelTelefone(formatted);
+                    }}
+                    className={`h-12 ${errors.responsavelTelefone ? "border-destructive" : ""}`}
+                  />
+                  {errors.responsavelTelefone && <p className="text-sm text-destructive">{errors.responsavelTelefone}</p>}
+                </div>
+              </div>
+            )}
 
             <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
               {isLoading ? (
