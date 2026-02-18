@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, LayoutDashboard, Calendar, History } from "lucide-react";
+import { Menu, X, Home, LayoutDashboard, Calendar, History, Star } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
 
@@ -11,6 +11,7 @@ const loggedInPaths = [
   "/mensagens",
   "/agenda",
   "/historico",
+  "/avaliacoes",
   "/criar-evento",
   "/aceitar-job",
 ];
@@ -36,6 +37,7 @@ const Header = () => {
     { href: "/dashboard-freelancer", label: "Dashboard", icon: LayoutDashboard },
     { href: "/agenda", label: "Agenda", icon: Calendar },
     { href: "/historico", label: "Histórico", icon: History },
+    { href: "/avaliacoes", label: "Avaliações", icon: Star },
   ];
 
   const isActive = (path: string) => location.pathname === path;
