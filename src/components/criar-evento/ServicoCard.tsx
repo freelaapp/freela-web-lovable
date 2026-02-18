@@ -1,3 +1,4 @@
+import { useState, useRef } from "react";
 import { Minus, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +46,7 @@ const calcHours = (inicio: string, fim: string): number => {
   const [h1, m1] = inicio.split(":").map(Number);
   const [h2, m2] = fim.split(":").map(Number);
   let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-  if (diff <= 0) diff += 24 * 60; // crosses midnight
+  if (diff <= 0) diff += 24 * 60;
   return diff / 60;
 };
 
@@ -73,9 +74,18 @@ const ServicoCard = ({
   const hours = calcHours(horaInicio, horaFim);
   const effectiveHours = Math.max(hours, minHours);
   const valor = pricePerHour * effectiveHours * quantidade;
+  const isBelowMin = hours > 0 && hours < minHours;
+
+  const inicioRef = useRef<HTMLInputElement>(null);
+  const fimRef = useRef<HTMLInputElement>(null);
+
+  const openPicker = (ref: React.RefObject<HTMLInputElement>) => {
+    ref.current?.showPicker?.();
+    ref.current?.focus();
+  };
 
   return (
-    <div className="group relative bg-card border border-border rounded-xl p-3.5 transition-all hover:shadow-md hover:border-primary/30 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className={`group relative bg-card border rounded-xl p-3.5 transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300 ${isBelowMin ? "border-destructive/50" : "border-border hover:border-primary/30"}`}>
       {/* Remove button */}
       <button
         type="button"
@@ -126,33 +136,57 @@ const ServicoCard = ({
             <Clock className="w-2.5 h-2.5" /> Horário
           </span>
           <div className="flex items-center gap-1 min-w-0">
-            <Input
-              type="time"
-              step="300"
-              value={horaInicio}
-              onChange={(e) => onHoraInicioChange(e.target.value)}
-              className="h-7 text-[11px] px-1 rounded-lg min-w-0 flex-1"
-            />
+            <div className="relative flex-1 min-w-0">
+              <Input
+                ref={inicioRef}
+                type="time"
+                step="300"
+                value={horaInicio}
+                onChange={(e) => onHoraInicioChange(e.target.value)}
+                className="h-7 text-[11px] px-1 pr-6 rounded-lg min-w-0 w-full"
+              />
+              <button
+                type="button"
+                onClick={() => openPicker(inicioRef)}
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Clock className="w-3 h-3" />
+              </button>
+            </div>
             <span className="text-muted-foreground text-[10px] shrink-0">às</span>
-            <Input
-              type="time"
-              step="300"
-              value={horaFim}
-              onChange={(e) => onHoraFimChange(e.target.value)}
-              className="h-7 text-[11px] px-1 rounded-lg min-w-0 flex-1"
-            />
+            <div className="relative flex-1 min-w-0">
+              <Input
+                ref={fimRef}
+                type="time"
+                step="300"
+                value={horaFim}
+                onChange={(e) => onHoraFimChange(e.target.value)}
+                className="h-7 text-[11px] px-1 pr-6 rounded-lg min-w-0 w-full"
+              />
+              <button
+                type="button"
+                onClick={() => openPicker(fimRef)}
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Clock className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Min hours warning */}
+      {isBelowMin && (
+        <p className="mt-2 text-[11px] text-destructive font-medium">
+          *O mínimo de horas permitido é {minHours}h
+        </p>
+      )}
 
       {/* Footer - cálculo */}
       <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between">
         <div className="text-xs text-muted-foreground">
           {hours > 0 ? (
             <>
-              {hours < minHours && (
-                <span className="text-amber-600 text-[10px]">mín. {minHours}h • </span>
-              )}
               {formatHours(effectiveHours)} × {quantidade} pessoa{quantidade > 1 ? "s" : ""}
             </>
           ) : (
