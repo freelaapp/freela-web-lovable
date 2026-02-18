@@ -20,6 +20,7 @@ import DetalheVaga from "./pages/DetalheVaga";
 import ConfirmarServico from "./pages/ConfirmarServico";
 import Historico from "./pages/Historico";
 import Avaliacoes from "./pages/Avaliacoes";
+import MapaVagas from "./pages/MapaVagas";
 import DashboardContratante from "./pages/DashboardContratante";
 import Mensagens from "./pages/Mensagens";
 import Perfil from "./pages/Perfil";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/confirmar-servico/:vagaId" element={<ConfirmarServico />} />
             <Route path="/historico" element={<Historico />} />
             <Route path="/avaliacoes" element={<Avaliacoes />} />
+            <Route path="/mapa-vagas" element={<MapaVagas />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />

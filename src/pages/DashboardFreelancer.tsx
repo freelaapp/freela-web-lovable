@@ -94,18 +94,18 @@ const DashboardFreelancer = () => {
             </CardContent>
           </Card>
 
-          {/* Vagas Disponíveis na Região */}
+          {/* Vagas Disponíveis */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-primary" /> Vagas na Região
+                  <MapPin className="w-5 h-5 text-primary" /> Vagas Disponíveis
                 </CardTitle>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium">até 30km</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium">Para seu perfil</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {mockVagasRegiao.map((vaga) => (
+              {mockVagasRegiao.slice(0, 3).map((vaga) => (
                 <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold truncate">{vaga.title}</p>
@@ -119,6 +119,9 @@ const DashboardFreelancer = () => {
                   <p className="text-xs text-muted-foreground">{vaga.location} • {vaga.date}</p>
                 </div>
               ))}
+              <Button variant="outline" className="w-full text-xs gap-2 mt-2" onClick={() => navigate("/mapa-vagas")}>
+                <MapPin className="w-4 h-4" /> Ver todas no mapa
+              </Button>
             </CardContent>
           </Card>
         </div>
