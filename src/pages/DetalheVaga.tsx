@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Phone, User, MessageCircle, ShieldCheck, CheckCircle, DollarSign, Home, Building2, Briefcase, ExternalLink } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, User, MessageCircle, ShieldCheck, CheckCircle, DollarSign, Home, Building2, Briefcase, ExternalLink, Ban, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppLayout from "@/components/layout/AppLayout";
 
 type VagaType = "casa" | "empresas";
@@ -30,6 +32,8 @@ const timelineSteps = [
 const DetalheVaga = () => {
   const { vagaId } = useParams();
   const navigate = useNavigate();
+  const [applied, setApplied] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const vaga = allVagas.find(v => v.id === Number(vagaId));
 
   if (!vaga) {
@@ -44,6 +48,15 @@ const DetalheVaga = () => {
   }
 
   const canConfirm = vaga.status === "aceita" && !vaga.timeline.inicio;
+  const userRole = "Bartender";
+  const isCompatible = vaga.role === userRole;
+  const isOpen = vaga.status === "aberta";
+
+  const handleApply = () => {
+    setApplied(true);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 2500);
+  };
 
   return (
     <AppLayout showFooter={false}>
@@ -53,22 +66,44 @@ const DetalheVaga = () => {
           <button onClick={() => navigate(-1)} className="text-sm text-primary flex items-center gap-1 mb-2 hover:underline">
             ← Voltar
           </button>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-display font-bold">{vaga.title}</h1>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="cursor-default">
-                  {vaga.type === "casa" ? (
-                    <Home className="w-5 h-5 text-primary" />
-                  ) : (
-                    <Building2 className="w-5 h-5 text-accent" />
-                  )}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                {vaga.type === "casa" ? "Freela em Casa" : "Freela para Empresas"}
-              </TooltipContent>
-            </Tooltip>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-display font-bold">{vaga.title}</h1>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-default">
+                    {vaga.type === "casa" ? (
+                      <Home className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Building2 className="w-5 h-5 text-accent" />
+                    )}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {vaga.type === "casa" ? "Freela em Casa" : "Freela para Empresas"}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            {isOpen && !applied && isCompatible && (
+              <Button size="lg" className="gap-2 text-base" onClick={handleApply}>
+                <CheckCircle className="w-5 h-5" /> Se Aplicar
+              </Button>
+            )}
+            {isOpen && applied && (
+              <Button size="lg" className="gap-2 text-base bg-emerald-500 hover:bg-emerald-500 text-white cursor-default">
+                <Check className="w-5 h-5" /> Aplicado
+              </Button>
+            )}
+            {isOpen && !applied && !isCompatible && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="lg" className="gap-2 text-base" disabled variant="secondary">
+                    <Ban className="w-5 h-5" /> Se Aplicar
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Vaga incompatível com seu perfil</TooltipContent>
+              </Tooltip>
+            )}
           </div>
           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
             vaga.status === "aceita" ? "bg-primary-light text-primary" :
@@ -138,7 +173,7 @@ const DetalheVaga = () => {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Contratante</CardTitle>
-              <Button variant="ghost" size="sm" className="text-primary text-xs gap-1" onClick={() => navigate(`/perfil-contratante/${vaga.clientId}`)}>
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate(`/perfil-contratante/${vaga.clientId}`)}>
                 Ver perfil <ExternalLink className="w-3 h-3" />
               </Button>
             </div>
@@ -199,6 +234,18 @@ const DetalheVaga = () => {
             </div>
           </CardContent>
         </Card>
+        {/* Popup de sucesso */}
+        <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+          <DialogContent className="max-w-sm text-center border-emerald-500 bg-emerald-50">
+            <div className="flex flex-col items-center gap-4 py-6">
+              <div className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center">
+                <Check className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-emerald-700">Aplicação Concluída</h2>
+              <p className="text-sm text-emerald-600">Sua candidatura foi enviada com sucesso!</p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
