@@ -148,7 +148,7 @@ const DetalheEventoContratante = () => {
                       <p className="text-sm font-semibold truncate">{candidato.name}</p>
                       {candidato.verified && <Shield className="w-3.5 h-3.5 text-primary fill-primary/20" />}
                     </div>
-                    <p className="text-xs text-muted-foreground">{candidato.role} • {candidato.price}</p>
+                    <p className="text-xs text-muted-foreground">{candidato.role}</p>
                     <div className="flex items-center gap-1 mt-0.5">
                       <Star className="w-3 h-3 fill-primary text-primary" />
                       <span className="text-xs font-medium">{candidato.rating}</span>
@@ -230,11 +230,6 @@ const DetalheEventoContratante = () => {
                   <p className="text-sm text-muted-foreground">{selectedFreelancer.bio}</p>
                 </div>
 
-                {/* Preço */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-success-light/30">
-                  <span className="text-sm font-medium">Valor sugerido</span>
-                  <span className="text-lg font-bold text-success">{selectedFreelancer.price}</span>
-                </div>
 
                 {/* Placeholder fotos/vídeo */}
                 <div>
