@@ -20,7 +20,7 @@ const freelancerMenuItems = [
 const contratanteMenuItems = [
   { icon: Building2, label: "Perfil do Restaurante", href: "/meus-dados-contratante", description: "Dados do estabelecimento" },
   { icon: CreditCard, label: "Carteira", href: "/carteira", description: "Gastos e histórico de pagamentos" },
-  { icon: CalendarPlus, label: "Criar Evento", href: "/criar-evento", description: "Contratar freelancers" },
+  { icon: CalendarPlus, label: "Criar Vaga", href: "/criar-evento", description: "Contratar freelancers" },
   { icon: Settings, label: "Configurações", href: "/configuracoes-contratante", description: "Privacidade, notificações e conta" },
   { icon: HelpCircle, label: "Ajuda", href: "/ajuda-contratante", description: "Dúvidas e suporte" },
 ];
@@ -351,7 +351,7 @@ const Perfil = () => {
               </div>
               <Button variant="outline" className="w-full" onClick={openServicos}>
                 <Briefcase className="w-4 h-4 mr-2" />
-                Serviços Prestados ({servicosSelecionados.length})
+                Vagas Desejadas ({servicosSelecionados.length})
               </Button>
             </CardContent>
           </Card>
@@ -416,7 +416,7 @@ const Perfil = () => {
       <Dialog open={servicosDialog} onOpenChange={setServicosDialog}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Serviços Prestados</DialogTitle>
+            <DialogTitle>Vagas Desejadas</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 py-2">
             {servicosPF.map((servico) => (

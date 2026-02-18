@@ -20,8 +20,8 @@ const Footer = () => {
     acesso: [
     { href: "/login", label: "Entrar" },
     { href: "/cadastro", label: "Cadastre-se" },
-    { href: "/freelancers", label: "Ver Profissionais" },
-    { href: "/criar-evento", label: "Criar Evento" }],
+    { href: "/freelancers", label: "Ver Freelancers" },
+    { href: "/criar-evento", label: "Criar Vaga" }],
 
     testes: [
     { href: "/dashboard-freelancer", label: "Dashboard Freelancer" },

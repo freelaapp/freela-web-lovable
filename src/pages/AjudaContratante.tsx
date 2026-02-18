@@ -7,8 +7,8 @@ import AppLayout from "@/components/layout/AppLayout";
 
 const faqs = [
   {
-    pergunta: "Como criar um evento?",
-    resposta: "Acesse o Dashboard e clique em 'Criar Evento'. Preencha os detalhes como data, horário, tipo de serviço e quantidade de freelancers necessários. O evento será publicado e freelancers poderão se candidatar.",
+    pergunta: "Como criar uma vaga?",
+    resposta: "Acesse o Dashboard e clique em 'Criar Vaga'. Preencha os detalhes como data, horário, tipo de serviço e quantidade de freelancers necessários. A vaga será publicada e freelancers poderão se candidatar.",
   },
   {
     pergunta: "Como funciona o pagamento?",

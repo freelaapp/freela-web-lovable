@@ -92,7 +92,7 @@ const MapaVagas = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-display font-bold flex items-center gap-2">
-              <MapPin className="w-6 h-6 text-primary" /> Mapa de Vagas
+              <MapPin className="w-6 h-6 text-primary" /> Vagas
             </h1>
             <p className="text-muted-foreground text-sm mt-1">
               {filteredVagas.length} vagas em Jundiaí e região • até {radius}km
