@@ -10,9 +10,9 @@ import { servicosPF } from "@/lib/services";
 
 const menuItems = [
   { icon: User, label: "Meus Dados", href: "/meus-dados", description: "Editar perfil e informações" },
-  { icon: CreditCard, label: "Pagamentos", href: "#", description: "Cartões e histórico" },
+  { icon: CreditCard, label: "Carteira", href: "/carteira", description: "Saldo, ganhos e histórico" },
   { icon: Settings, label: "Configurações", href: "/configuracoes", description: "Privacidade, notificações e conta" },
-  { icon: HelpCircle, label: "Ajuda", href: "#", description: "Central de suporte" },
+  { icon: HelpCircle, label: "Ajuda", href: "/ajuda", description: "Dúvidas e suporte" },
 ];
 
 const diasSemana = [
