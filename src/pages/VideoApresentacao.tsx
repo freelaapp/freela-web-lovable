@@ -38,11 +38,11 @@ const VideoApresentacao = () => {
       <button
         onClick={() => navigate(-1)}
         className="absolute top-6 left-6 z-20 p-2 rounded-full bg-card shadow-md border border-border hover:bg-muted transition-colors"
-        aria-label="Voltar"
-      >
+        aria-label="Voltar">
+
         <ArrowLeft className="w-5 h-5 text-foreground" />
       </button>
-      <img src={logoFreela} alt="Freela Serviços" className="h-14 mb-10" />
+      <img alt="Freela Serviços" className="h-14 mb-10" src="/lovable-uploads/8e9ea4aa-b6c7-49f5-9a45-b521e7f13075.png" />
 
       <div className="bg-card rounded-2xl shadow-lg p-8 md:p-12 max-w-lg w-full text-center border border-border">
         <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
@@ -77,34 +77,34 @@ const VideoApresentacao = () => {
           </p>
         </div>
 
-        {video ? (
-          <div className="space-y-4 mb-8">
+        {video ?
+        <div className="space-y-4 mb-8">
             <div className="bg-muted rounded-lg p-4 flex items-center gap-3">
               <Video className="w-5 h-5 text-primary shrink-0" />
               <span className="text-sm text-foreground truncate">{video.name}</span>
               <button
-                type="button"
-                onClick={() => setVideo(null)}
-                className="ml-auto text-muted-foreground hover:text-destructive text-sm"
-              >
+              type="button"
+              onClick={() => setVideo(null)}
+              className="ml-auto text-muted-foreground hover:text-destructive text-sm">
+
                 Remover
               </button>
             </div>
             <Button onClick={handleEnviar} className="w-full h-12" size="lg" disabled={isUploading}>
-              {isUploading ? (
-                <span className="flex items-center gap-2">
+              {isUploading ?
+            <span className="flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                   Enviando...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
+                </span> :
+
+            <span className="flex items-center gap-2">
                   Enviar vídeo <ArrowRight className="w-4 h-4" />
                 </span>
-              )}
+            }
             </Button>
-          </div>
-        ) : (
-          <div className="space-y-4 mb-8">
+          </div> :
+
+        <div className="space-y-4 mb-8">
             <label className="block">
               <Button variant="outline" className="w-full h-14 border-2 border-dashed" asChild>
                 <span className="flex items-center gap-2 cursor-pointer">
@@ -113,26 +113,26 @@ const VideoApresentacao = () => {
                 </span>
               </Button>
               <input
-                type="file"
-                accept="video/*"
-                className="hidden"
-                onChange={handleVideoChange}
-              />
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={handleVideoChange} />
+
             </label>
           </div>
-        )}
+        }
 
         <button
           type="button"
           onClick={handlePular}
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
-        >
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm">
+
           <Clock className="w-4 h-4" />
           Talvez depois
         </button>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default VideoApresentacao;
