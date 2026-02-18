@@ -21,7 +21,15 @@ const Footer = () => {
     { href: "/login", label: "Entrar" },
     { href: "/cadastro", label: "Cadastre-se" },
     { href: "/freelancers", label: "Ver Profissionais" },
-    { href: "/criar-evento", label: "Criar Evento" }]
+    { href: "/criar-evento", label: "Criar Evento" }],
+
+    testes: [
+    { href: "/dashboard-freelancer", label: "Dashboard Freelancer" },
+    { href: "/dashboard-contratante", label: "Dashboard Contratante" },
+    { href: "/agenda", label: "Agenda" },
+    { href: "/historico", label: "Histórico" },
+    { href: "/perfil", label: "Perfil" },
+    { href: "/mensagens", label: "Mensagens" }]
 
   };
 
@@ -35,7 +43,7 @@ const Footer = () => {
   return (
     <footer className="bg-secondary text-secondary-foreground">
       <div className="container mx-auto container-padding section-padding pt-[10px] pb-[10px] py-[20px]">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12">
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link to="/" className="inline-block mb-6">
@@ -86,6 +94,17 @@ const Footer = () => {
             <h4 className="font-display font-semibold text-lg mb-4">Acesso</h4>
             <ul className="space-y-3">
               {footerLinks.acesso.map((link) =>
+              <li key={link.href}>
+                  <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-display font-semibold text-lg mb-4">Telas de Teste</h4>
+            <ul className="space-y-3">
+              {footerLinks.testes.map((link) =>
               <li key={link.href}>
                   <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
                 </li>
