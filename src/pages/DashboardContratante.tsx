@@ -50,7 +50,7 @@ const DashboardContratante = () => {
             </Link>
             <Button asChild size="xl" className="gap-2">
               <Link to="/criar-evento">
-                <CalendarPlus className="w-5 h-5" /> Criar Evento
+                <CalendarPlus className="w-5 h-5" /> Criar Vaga
               </Link>
             </Button>
           </div>
