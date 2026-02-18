@@ -39,9 +39,9 @@ const DashboardContratante = () => {
             <h1 className="text-2xl font-display font-bold">Olá, Ana! 👋</h1>
             <p className="text-muted-foreground text-sm mt-1">Gerencie seus eventos e freelancers</p>
           </div>
-          <Button asChild className="gap-2">
+          <Button asChild size="xl" className="gap-2">
             <Link to="/criar-evento">
-              <CalendarPlus className="w-4 h-4" /> Criar Evento
+              <CalendarPlus className="w-5 h-5" /> Criar Evento
             </Link>
           </Button>
         </div>

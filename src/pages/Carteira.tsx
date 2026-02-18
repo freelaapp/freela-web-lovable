@@ -2,13 +2,15 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Wallet, TrendingUp, Clock, Edit2, Check, X } from "lucide-react";
+import { ArrowLeft, Wallet, TrendingUp, TrendingDown, Clock, Edit2, Check, X, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useUserRole } from "@/hooks/useUserRole";
 
-const ganhosMock = [
+// Freelancer mocks
+const ganhosFreelancerMock = [
   { dia: "01/02", valor: 150 },
   { dia: "03/02", valor: 200 },
   { dia: "06/02", valor: 0 },
@@ -20,28 +22,55 @@ const ganhosMock = [
   { dia: "18/02", valor: 300 },
 ];
 
-const historicoMock = [
-  { contratante: "Bar do João", dia: "18/02/2026", valor: 300 },
-  { contratante: "Restaurante Sabor", dia: "14/02/2026", valor: 400 },
-  { contratante: "Buffet Festa Linda", dia: "12/02/2026", valor: 250 },
-  { contratante: "Casa de Eventos Sol", dia: "10/02/2026", valor: 180 },
-  { contratante: "Churrascaria Fogo", dia: "08/02/2026", valor: 320 },
-  { contratante: "Pub Night Club", dia: "03/02/2026", valor: 200 },
-  { contratante: "Restaurante Bella", dia: "01/02/2026", valor: 150 },
+const historicoFreelancerMock = [
+  { nome: "Bar do João", dia: "18/02/2026", valor: 300 },
+  { nome: "Restaurante Sabor", dia: "14/02/2026", valor: 400 },
+  { nome: "Buffet Festa Linda", dia: "12/02/2026", valor: 250 },
+  { nome: "Casa de Eventos Sol", dia: "10/02/2026", valor: 180 },
+  { nome: "Churrascaria Fogo", dia: "08/02/2026", valor: 320 },
+  { nome: "Pub Night Club", dia: "03/02/2026", valor: 200 },
+  { nome: "Restaurante Bella", dia: "01/02/2026", valor: 150 },
+];
+
+// Contratante mocks
+const gastosContratanteMock = [
+  { dia: "01/02", valor: 650 },
+  { dia: "05/02", valor: 0 },
+  { dia: "08/02", valor: 1200 },
+  { dia: "12/02", valor: 800 },
+  { dia: "15/02", valor: 0 },
+  { dia: "18/02", valor: 1950 },
+];
+
+const historicoContratanteMock = [
+  { nome: "Carlos Silva - Churrasqueiro", dia: "18/02/2026", valor: 650 },
+  { nome: "Juliana Alves - Bartender", dia: "18/02/2026", valor: 600 },
+  { nome: "Pedro Lima - Garçom", dia: "18/02/2026", valor: 700 },
+  { nome: "Carlos Silva - Churrasqueiro", dia: "12/02/2026", valor: 800 },
+  { nome: "Bartender Equipe - 2 profissionais", dia: "08/02/2026", valor: 1200 },
+  { nome: "Garçom - Festa", dia: "01/02/2026", valor: 650 },
 ];
 
 const Carteira = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const role = useUserRole();
+  const isContratante = role === "contratante";
 
+  // Freelancer Pix
   const [editandoPix, setEditandoPix] = useState(false);
   const [chavePix, setChavePix] = useState("carlos.silva@email.com");
   const [tempPix, setTempPix] = useState("");
   const [filtroInicio, setFiltroInicio] = useState("");
   const [filtroFim, setFiltroFim] = useState("");
 
-  const saldoALiberar = 480;
-  const totalPago = 1800;
+  // Freelancer values
+  const saldoALiberarFreelancer = 480;
+  const totalPagoFreelancer = 1800;
+
+  // Contratante values
+  const totalGastoContratante = 4600;
+  const valorALiberarContratante = 1950;
 
   const startEditPix = () => {
     setTempPix(chavePix);
@@ -53,6 +82,9 @@ const Carteira = () => {
     setEditandoPix(false);
     toast({ title: "Pix atualizado", description: "Sua chave Pix foi alterada com sucesso." });
   };
+
+  const ganhosMock = isContratante ? gastosContratanteMock : ganhosFreelancerMock;
+  const historicoMock = isContratante ? historicoContratanteMock : historicoFreelancerMock;
 
   return (
     <AppLayout showFooter={false}>
@@ -70,14 +102,22 @@ const Carteira = () => {
             <CardContent className="p-4 text-center">
               <Clock className="w-5 h-5 text-secondary mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">A liberar</p>
-              <p className="text-xl font-bold text-secondary">R$ {saldoALiberar.toFixed(2)}</p>
+              <p className="text-xl font-bold text-secondary">
+                R$ {(isContratante ? valorALiberarContratante : saldoALiberarFreelancer).toFixed(2)}
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <TrendingUp className="w-5 h-5 text-primary mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">Total recebido</p>
-              <p className="text-xl font-bold text-primary">R$ {totalPago.toFixed(2)}</p>
+              {isContratante ? (
+                <TrendingDown className="w-5 h-5 text-destructive mx-auto mb-1" />
+              ) : (
+                <TrendingUp className="w-5 h-5 text-primary mx-auto mb-1" />
+              )}
+              <p className="text-xs text-muted-foreground">{isContratante ? "Total gasto" : "Total recebido"}</p>
+              <p className={`text-xl font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
+                R$ {(isContratante ? totalGastoContratante : totalPagoFreelancer).toFixed(2)}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -86,7 +126,11 @@ const Carteira = () => {
         <Card>
           <CardContent className="p-4 space-y-3">
             <h3 className="text-sm font-display font-bold flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-primary" /> Ganhos por dia
+              {isContratante ? (
+                <><TrendingDown className="w-4 h-4 text-destructive" /> Gastos por dia</>
+              ) : (
+                <><TrendingUp className="w-4 h-4 text-primary" /> Ganhos por dia</>
+              )}
             </h3>
             <div className="flex gap-2">
               <Input type="date" value={filtroInicio} onChange={(e) => setFiltroInicio(e.target.value)} placeholder="De" className="text-xs" />
@@ -105,65 +149,77 @@ const Carteira = () => {
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    formatter={(value: number) => [`R$ ${value.toFixed(2)}`, "Ganho"]}
+                    formatter={(value: number) => [`R$ ${value.toFixed(2)}`, isContratante ? "Gasto" : "Ganho"]}
                   />
-                  <Line type="monotone" dataKey="valor" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
+                  <Line
+                    type="monotone"
+                    dataKey="valor"
+                    stroke={isContratante ? "hsl(var(--destructive))" : "hsl(var(--primary))"}
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: isContratante ? "hsl(var(--destructive))" : "hsl(var(--primary))" }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        {/* Pix */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Wallet className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Chave Pix</p>
-                  {editandoPix ? (
-                    <Input
-                      value={tempPix}
-                      onChange={(e) => setTempPix(e.target.value)}
-                      className="mt-1 h-8 text-sm"
-                      autoFocus
-                    />
-                  ) : (
-                    <p className="text-xs text-muted-foreground">{chavePix}</p>
-                  )}
+        {/* Pix - only freelancer */}
+        {!isContratante && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Wallet className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium">Chave Pix</p>
+                    {editandoPix ? (
+                      <Input
+                        value={tempPix}
+                        onChange={(e) => setTempPix(e.target.value)}
+                        className="mt-1 h-8 text-sm"
+                        autoFocus
+                      />
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{chavePix}</p>
+                    )}
+                  </div>
                 </div>
+                {editandoPix ? (
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditandoPix(false)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={savePix}>
+                      <Check className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={startEditPix}>
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
-              {editandoPix ? (
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditandoPix(false)}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={savePix}>
-                    <Check className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={startEditPix}>
-                  <Edit2 className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Histórico */}
         <Card>
           <CardContent className="p-4 space-y-3">
-            <h3 className="text-sm font-display font-bold">Histórico de Pagamentos</h3>
+            <h3 className="text-sm font-display font-bold">
+              {isContratante ? "Histórico de Pagamentos" : "Histórico de Pagamentos"}
+            </h3>
             <div className="space-y-2">
               {historicoMock.map((item, i) => (
                 <div key={i} className="flex items-center justify-between py-2 border-b last:border-b-0">
                   <div>
-                    <p className="text-sm font-medium">{item.contratante}</p>
+                    <p className="text-sm font-medium">{item.nome}</p>
                     <p className="text-xs text-muted-foreground">{item.dia}</p>
                   </div>
-                  <p className="text-sm font-bold text-primary">R$ {item.valor.toFixed(2)}</p>
+                  <p className={`text-sm font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
+                    {isContratante ? "- " : ""}R$ {item.valor.toFixed(2)}
+                  </p>
                 </div>
               ))}
             </div>
