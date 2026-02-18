@@ -12,6 +12,11 @@ const allVagas = [
   // Histórico
   { id: 101, title: "Churrasco - Réveillon", client: "Pedro Costa", phone: "(11) 95555-7890", address: "Praia Grande, Av. Beira Mar, 100 - SP", date: "31 Dez 2025", time: "20:00 - 04:00", location: "São Paulo, SP", status: "concluida", value: "R$ 2.000", timeline: { aceite: true, inicio: true, fim: true, pagamento: true } },
   { id: 102, title: "Bartender - Formatura", client: "Faculdade ABC", phone: "(11) 94444-1234", address: "Centro de Convenções, Rua Universitária, 50 - Santo André, SP", date: "20 Dez 2025", time: "19:00 - 03:00", location: "Santo André, SP", status: "concluida", value: "R$ 1.500", timeline: { aceite: true, inicio: true, fim: true, pagamento: true } },
+  // Vagas disponíveis na região
+  { id: 201, title: "Aniversário 50 anos", client: "Roberto Lima", phone: "(11) 93333-5678", address: "Rua dos Lírios, 45 - Vila Mariana, SP", date: "25 Fev 2026", time: "18:00 - 00:00", location: "Vila Mariana, SP", status: "aberta", value: "R$ 120", timeline: { aceite: false, inicio: false, fim: false, pagamento: false } },
+  { id: 202, title: "Happy Hour Corporativo", client: "StartUp Inc", phone: "(11) 92222-9012", address: "Rua Oscar Freire, 300 - Pinheiros, SP", date: "27 Fev 2026", time: "17:00 - 22:00", location: "Pinheiros, SP", status: "aberta", value: "R$ 100", timeline: { aceite: false, inicio: false, fim: false, pagamento: false } },
+  { id: 203, title: "Casamento - Buffet", client: "Juliana Mendes", phone: "(11) 91111-3456", address: "Espaço Garden, Av. Moema, 800 - Moema, SP", date: "01 Mar 2026", time: "14:00 - 22:00", location: "Moema, SP", status: "aberta", value: "R$ 200", timeline: { aceite: false, inicio: false, fim: false, pagamento: false } },
+  { id: 204, title: "Evento Beneficente", client: "ONG Esperança", phone: "(11) 90000-7890", address: "Centro Comunitário, Rua Itaim, 150 - Itaim Bibi, SP", date: "05 Mar 2026", time: "10:00 - 16:00", location: "Itaim Bibi, SP", status: "aberta", value: "R$ 120", timeline: { aceite: false, inicio: false, fim: false, pagamento: false } },
 ];
 
 const timelineSteps = [
@@ -51,6 +56,7 @@ const DetalheVaga = () => {
           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
             vaga.status === "aceita" ? "bg-primary-light text-primary" :
             vaga.status === "preenchida" ? "bg-success-light text-success" :
+            vaga.status === "aberta" ? "bg-warning-light text-warning" :
             "bg-muted text-muted-foreground"
           }`}>
             {vaga.status === "concluida" ? "concluída" : vaga.status}
