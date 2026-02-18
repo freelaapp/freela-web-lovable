@@ -7,7 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowRight, ArrowLeft, CalendarIcon, Briefcase, CheckCircle, Camera, X, User } from "lucide-react";
+import { ArrowRight, ArrowLeft, CalendarIcon, Briefcase, CheckCircle, Camera, X, User, Phone, Heart } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,24 @@ const areasAtuacao = [
   { id: "cumim", label: "Cumim" },
 ];
 
+const tiposDeficiencia = [
+  { id: "auditiva", label: "Deficiência Auditiva" },
+  { id: "visual", label: "Deficiência Visual" },
+  { id: "intelectual", label: "Deficiência Intelectual" },
+  { id: "mental", label: "Deficiência Mental/Psicossocial" },
+];
+
+const grausParentesco = [
+  "Pais", "Irmãos(ãs)", "Cônjuge", "Tios(as) e Avós(ôs)", "Amigos(as)",
+];
+
+const maskPhone = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+};
+
 const maskCPF = (v: string) => {
   const d = v.replace(/\D/g, "").slice(0, 11);
   return d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
@@ -54,6 +73,12 @@ const CadastroFreelancer = () => {
   const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState<Date>();
   const [sexo, setSexo] = useState("");
+  const [isPCD, setIsPCD] = useState(false);
+  const [deficienciasSelecionadas, setDeficienciasSelecionadas] = useState<string[]>([]);
+  const [cep, setCep] = useState("");
+  const [contatoEmergNome, setContatoEmergNome] = useState("");
+  const [contatoEmergParentesco, setContatoEmergParentesco] = useState("");
+  const [contatoEmergTelefone, setContatoEmergTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
@@ -269,6 +294,55 @@ const CadastroFreelancer = () => {
                 {errors.sexo && <p className="text-sm text-destructive">{errors.sexo}</p>}
               </div>
 
+              {/* PCD */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">Possui alguma Necessidade Especial? (PCD)</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">{isPCD ? "Sim" : "Não"}</span>
+                    <Switch checked={isPCD} onCheckedChange={setIsPCD} />
+                  </div>
+                </div>
+                {isPCD && (
+                  <div className="space-y-2 pl-1">
+                    <Label className="text-sm text-muted-foreground">Tipo de deficiência</Label>
+                    <div className="space-y-2">
+                      {tiposDeficiencia.map((tipo) => (
+                        <div key={tipo.id} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`pcd-${tipo.id}`}
+                            checked={deficienciasSelecionadas.includes(tipo.id)}
+                            onCheckedChange={(checked) => {
+                              setDeficienciasSelecionadas((prev) =>
+                                checked ? [...prev, tipo.id] : prev.filter((d) => d !== tipo.id)
+                              );
+                            }}
+                          />
+                          <Label htmlFor={`pcd-${tipo.id}`} className="text-sm font-normal cursor-pointer">
+                            {tipo.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* CEP */}
+              <div className="space-y-2">
+                <Label>CEP</Label>
+                <Input
+                  placeholder="00000-000"
+                  value={cep}
+                  onChange={(e) => {
+                    const d = e.target.value.replace(/\D/g, "").slice(0, 8);
+                    setCep(d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d);
+                  }}
+                  className={`h-12 ${errors.cep ? "border-destructive" : ""}`}
+                />
+                {errors.cep && <p className="text-sm text-destructive">{errors.cep}</p>}
+              </div>
+
               {/* Endereço */}
               <div className="space-y-2">
                 <Label>Endereço</Label>
@@ -367,7 +441,51 @@ const CadastroFreelancer = () => {
               )}
             </div>
 
-            {/* Termos */}
+            {/* ===== Seção 3 - Contato de Emergência ===== */}
+            <div className="border-t border-border pt-6 space-y-4">
+              <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
+                <Phone className="w-5 h-5 text-primary" />
+                Contato de Emergência
+              </h3>
+
+              <div className="space-y-2">
+                <Label>Nome</Label>
+                <Input
+                  placeholder="Nome do contato"
+                  value={contatoEmergNome}
+                  onChange={(e) => setContatoEmergNome(e.target.value)}
+                  className={`h-12 ${errors.contatoEmergNome ? "border-destructive" : ""}`}
+                />
+                {errors.contatoEmergNome && <p className="text-sm text-destructive">{errors.contatoEmergNome}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Grau de Parentesco</Label>
+                <Select value={contatoEmergParentesco} onValueChange={setContatoEmergParentesco}>
+                  <SelectTrigger className={`h-12 ${errors.contatoEmergParentesco ? "border-destructive" : ""}`}>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grausParentesco.map((g) => (
+                      <SelectItem key={g} value={g}>{g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.contatoEmergParentesco && <p className="text-sm text-destructive">{errors.contatoEmergParentesco}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>DDD + Número</Label>
+                <Input
+                  placeholder="(00) 00000-0000"
+                  value={contatoEmergTelefone}
+                  onChange={(e) => setContatoEmergTelefone(maskPhone(e.target.value))}
+                  className={`h-12 ${errors.contatoEmergTelefone ? "border-destructive" : ""}`}
+                />
+                {errors.contatoEmergTelefone && <p className="text-sm text-destructive">{errors.contatoEmergTelefone}</p>}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <div className="flex items-start gap-2">
                 <Checkbox id="terms" checked={acceptTerms} onCheckedChange={(c) => setAcceptTerms(c as boolean)} className="mt-0.5" />
