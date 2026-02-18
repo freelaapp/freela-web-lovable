@@ -103,12 +103,18 @@ const CadastroFreelancer = () => {
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12">
         <div className="max-w-lg">
           <Briefcase className="w-16 h-16 text-secondary mb-6" />
-          <h2 className="text-3xl font-display font-bold text-secondary mb-4">Cadastro Freelancer</h2>
+          <h2 className="text-3xl font-display font-bold text-secondary mb-4">Trabalhe com liberdade</h2>
           <p className="text-secondary/80 text-lg mb-8">
-            Faça parte da maior rede de profissionais para eventos e estabelecimentos do Brasil.
+            Cadastre-se e receba oportunidades de trabalho em eventos, bares, restaurantes e festas na sua região.
           </p>
           <ul className="space-y-3">
-            {["Receba propostas na sua região", "Pagamento garantido", "Flexibilidade de horários", "Suporte dedicado"].map((item) => (
+            {[
+              "Vagas compatíveis com seu perfil automaticamente",
+              "Você escolhe quando e onde trabalhar",
+              "Pagamento garantido após o serviço",
+              "Avaliações que valorizam seu trabalho",
+              "Suporte dedicado ao freelancer",
+            ].map((item) => (
               <li key={item} className="flex items-center gap-3 text-secondary/90">
                 <CheckCircle className="w-5 h-5 text-secondary" />
                 <span>{item}</span>

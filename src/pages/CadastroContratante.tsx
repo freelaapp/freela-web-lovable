@@ -41,6 +41,7 @@ const CadastroContratante = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [modo, setModo] = useState<"casa" | "empresa">("casa");
+  const [cnpj, setCnpj] = useState("");
   const [tipoDoc, setTipoDoc] = useState<"cpf" | "cnpj">("cpf");
   const [documento, setDocumento] = useState("");
   const [nomeOuRazao, setNomeOuRazao] = useState("");
@@ -67,13 +68,18 @@ const CadastroContratante = () => {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!documento.replace(/\D/g, "")) e.documento = "Documento é obrigatório";
-    else if (tipoDoc === "cpf" && documento.replace(/\D/g, "").length !== 11) e.documento = "CPF inválido";
-    else if (tipoDoc === "cnpj" && documento.replace(/\D/g, "").length !== 14) e.documento = "CNPJ inválido";
-    if (!nomeOuRazao.trim()) e.nomeOuRazao = tipoDoc === "cnpj" ? "Razão Social é obrigatória" : "Nome Completo é obrigatório";
-    if (isCasaCPF) {
-      if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
-      else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
+    if (modo === "empresa") {
+      if (!cnpj.replace(/\D/g, "") || cnpj.replace(/\D/g, "").length !== 14) e.cnpj = "CNPJ inválido";
+      if (!nomeOuRazao.trim()) e.nomeOuRazao = "Razão Social é obrigatória";
+    } else {
+      if (!documento.replace(/\D/g, "")) e.documento = "Documento é obrigatório";
+      else if (tipoDoc === "cpf" && documento.replace(/\D/g, "").length !== 11) e.documento = "CPF inválido";
+      else if (tipoDoc === "cnpj" && documento.replace(/\D/g, "").length !== 14) e.documento = "CNPJ inválido";
+      if (!nomeOuRazao.trim()) e.nomeOuRazao = tipoDoc === "cnpj" ? "Razão Social é obrigatória" : "Nome Completo é obrigatório";
+      if (isCasaCPF) {
+        if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
+        else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
+      }
     }
     if (!cep.replace(/\D/g, "")) e.cep = "CEP é obrigatório";
     if (!rua.trim()) e.rua = "Rua é obrigatória";
@@ -142,41 +148,71 @@ const CadastroContratante = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Tipo de Documento */}
-            <div className="space-y-2">
-              <Label>Tipo de Documento</Label>
-              <Select value={tipoDoc} onValueChange={(v) => { setTipoDoc(v as "cpf" | "cnpj"); setDocumento(""); setNomeOuRazao(""); }}>
-                <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cpf">CPF</SelectItem>
-                  <SelectItem value="cnpj">CNPJ</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {modo === "empresa" ? (
+              <>
+                {/* CNPJ - Empresas */}
+                <div className="space-y-2">
+                  <Label>CNPJ</Label>
+                  <Input
+                    placeholder="00.000.000/0000-00"
+                    value={cnpj}
+                    onChange={(e) => setCnpj(maskCNPJ(e.target.value))}
+                    className={`h-12 ${errors.cnpj ? "border-destructive" : ""}`}
+                  />
+                  {errors.cnpj && <p className="text-sm text-destructive">{errors.cnpj}</p>}
+                </div>
 
-            {/* Documento */}
-            <div className="space-y-2">
-              <Label>{tipoDoc === "cpf" ? "CPF" : "CNPJ"}</Label>
-              <Input
-                placeholder={tipoDoc === "cpf" ? "000.000.000-00" : "00.000.000/0000-00"}
-                value={documento}
-                onChange={(e) => setDocumento(tipoDoc === "cpf" ? maskCPF(e.target.value) : maskCNPJ(e.target.value))}
-                className={`h-12 ${errors.documento ? "border-destructive" : ""}`}
-              />
-              {errors.documento && <p className="text-sm text-destructive">{errors.documento}</p>}
-            </div>
+                {/* Razão Social */}
+                <div className="space-y-2">
+                  <Label>Razão Social</Label>
+                  <Input
+                    placeholder="Razão Social da empresa"
+                    value={nomeOuRazao}
+                    onChange={(e) => setNomeOuRazao(e.target.value)}
+                    className={`h-12 ${errors.nomeOuRazao ? "border-destructive" : ""}`}
+                  />
+                  {errors.nomeOuRazao && <p className="text-sm text-destructive">{errors.nomeOuRazao}</p>}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Tipo de Documento - Casa */}
+                <div className="space-y-2">
+                  <Label>Tipo de Documento</Label>
+                  <Select value={tipoDoc} onValueChange={(v) => { setTipoDoc(v as "cpf" | "cnpj"); setDocumento(""); setNomeOuRazao(""); }}>
+                    <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cpf">CPF</SelectItem>
+                      <SelectItem value="cnpj">CNPJ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Nome / Razão Social */}
-            <div className="space-y-2">
-              <Label>{tipoDoc === "cnpj" ? "Razão Social" : "Nome Completo"}</Label>
-              <Input
-                placeholder={tipoDoc === "cnpj" ? "Razão Social da empresa" : "Seu nome completo"}
-                value={nomeOuRazao}
-                onChange={(e) => setNomeOuRazao(e.target.value)}
-                className={`h-12 ${errors.nomeOuRazao ? "border-destructive" : ""}`}
-              />
-              {errors.nomeOuRazao && <p className="text-sm text-destructive">{errors.nomeOuRazao}</p>}
-            </div>
+                {/* Documento */}
+                <div className="space-y-2">
+                  <Label>{tipoDoc === "cpf" ? "CPF" : "CNPJ"}</Label>
+                  <Input
+                    placeholder={tipoDoc === "cpf" ? "000.000.000-00" : "00.000.000/0000-00"}
+                    value={documento}
+                    onChange={(e) => setDocumento(tipoDoc === "cpf" ? maskCPF(e.target.value) : maskCNPJ(e.target.value))}
+                    className={`h-12 ${errors.documento ? "border-destructive" : ""}`}
+                  />
+                  {errors.documento && <p className="text-sm text-destructive">{errors.documento}</p>}
+                </div>
+
+                {/* Nome / Razão Social */}
+                <div className="space-y-2">
+                  <Label>{tipoDoc === "cnpj" ? "Razão Social" : "Nome Completo"}</Label>
+                  <Input
+                    placeholder={tipoDoc === "cnpj" ? "Razão Social da empresa" : "Seu nome completo"}
+                    value={nomeOuRazao}
+                    onChange={(e) => setNomeOuRazao(e.target.value)}
+                    className={`h-12 ${errors.nomeOuRazao ? "border-destructive" : ""}`}
+                  />
+                  {errors.nomeOuRazao && <p className="text-sm text-destructive">{errors.nomeOuRazao}</p>}
+                </div>
+              </>
+            )}
 
             {/* Data de Nascimento - Apenas Casa + CPF */}
             {isCasaCPF && (
@@ -367,24 +403,38 @@ const CadastroContratante = () => {
 
       {/* Right Side - Informativo */}
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12">
-        <div className="max-w-lg text-center">
+        <div className="max-w-lg">
           {modo === "casa" ? (
             <>
-              <Home className="w-16 h-16 text-secondary mx-auto mb-6" />
+              <Home className="w-16 h-16 text-secondary mb-6" />
               <h2 className="text-3xl font-display font-bold text-secondary mb-4">Freela em Casa</h2>
-              <p className="text-secondary/80 text-lg">
+              <p className="text-secondary/80 text-lg mb-8">
                 Contrate profissionais qualificados para suas festas, churrascos e eventos residenciais.
-                Bartenders, cozinheiros, garçons e muito mais, direto na sua casa.
               </p>
+              <ul className="space-y-3">
+                {["Bartenders, garçons e cozinheiros à disposição", "Ideal para festas, aniversários e churrascos", "Profissionais avaliados e verificados", "Contratação rápida e sem burocracia"].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-secondary/90">
+                    <ArrowRight className="w-4 h-4 text-secondary flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </>
           ) : (
             <>
-              <Building2 className="w-16 h-16 text-secondary mx-auto mb-6" />
+              <Building2 className="w-16 h-16 text-secondary mb-6" />
               <h2 className="text-3xl font-display font-bold text-secondary mb-4">Freela para Empresas</h2>
-              <p className="text-secondary/80 text-lg">
-                Encontre freelancers para seu bar, restaurante, hotel ou casa de eventos.
+              <p className="text-secondary/80 text-lg mb-8">
                 Reforce sua equipe com profissionais experientes sob demanda.
               </p>
+              <ul className="space-y-3">
+                {["Bares, restaurantes, hotéis e casas de eventos", "Freelancers prontos para cobrir demandas extras", "Gestão simplificada de contratações", "Sem vínculo — contrate quando precisar"].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-secondary/90">
+                    <ArrowRight className="w-4 h-4 text-secondary flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </>
           )}
         </div>
