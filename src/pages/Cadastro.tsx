@@ -91,15 +91,18 @@ const Cadastro = () => {
       {/* Left Side - Visual */}
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12">
         <div className="max-w-lg">
-          <h2 className="text-3xl font-display font-bold text-secondary mb-6">
+          <h2 className="text-3xl font-display font-bold text-secondary mb-4">
             Junte-se à maior comunidade de freelancers do Brasil
           </h2>
+          <p className="text-secondary/80 text-lg mb-8">
+            Crie sua conta e comece a conectar-se com profissionais e oportunidades na sua região.
+          </p>
           <ul className="space-y-4">
             {[
-              "Acesso a milhares de projetos",
+              "Cadastro rápido e 100% gratuito",
+              "Contrate ou trabalhe com flexibilidade",
               "Pagamento seguro e garantido",
-              "Suporte especializado 24/7",
-              "Sem taxas para se cadastrar",
+              "Suporte dedicado para você",
             ].map((item) => (
               <li key={item} className="flex items-center gap-3 text-secondary/90">
                 <CheckCircle className="w-5 h-5 text-secondary" />
