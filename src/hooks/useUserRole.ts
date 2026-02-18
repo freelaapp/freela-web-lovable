@@ -23,3 +23,7 @@ export const useUserRole = (): UserRole => {
     return "freelancer";
   }, [location.pathname]);
 };
+
+export const setUserRole = (role: UserRole) => {
+  localStorage.setItem("userRole", role);
+};
