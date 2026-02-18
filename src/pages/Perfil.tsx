@@ -2,15 +2,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Settings, CreditCard, Bell, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Building2, Clock, Briefcase } from "lucide-react";
+import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
+import { servicosPF } from "@/lib/services";
 
 const menuItems = [
-  { icon: User, label: "Meus Dados", href: "#", description: "Editar perfil e informações" },
+  { icon: User, label: "Meus Dados", href: "/meus-dados", description: "Editar perfil e informações" },
   { icon: CreditCard, label: "Pagamentos", href: "#", description: "Cartões e histórico" },
-  { icon: Bell, label: "Notificações", href: "#", description: "Preferências de alerta" },
-  { icon: Settings, label: "Configurações", href: "#", description: "Privacidade e conta" },
+  { icon: Settings, label: "Configurações", href: "/configuracoes", description: "Privacidade, notificações e conta" },
   { icon: HelpCircle, label: "Ajuda", href: "#", description: "Central de suporte" },
 ];
 
@@ -31,17 +32,22 @@ type Horarios = Record<string, { de: string; ate: string }>;
 const Perfil = () => {
   const [diasAtivos, setDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex"]);
   const [horarios, setHorarios] = useState<Horarios>({
-    seg: { de: "08:00", ate: "18:00" },
-    ter: { de: "08:00", ate: "18:00" },
-    qua: { de: "08:00", ate: "18:00" },
-    qui: { de: "08:00", ate: "18:00" },
-    sex: { de: "08:00", ate: "18:00" },
+    seg: { de: "08:00", ate: "20:00" },
+    ter: { de: "08:00", ate: "20:00" },
+    qua: { de: "08:00", ate: "20:00" },
+    qui: { de: "08:00", ate: "20:00" },
+    sex: { de: "08:00", ate: "20:00" },
     sab: { de: "10:00", ate: "16:00" },
     dom: { de: "10:00", ate: "14:00" },
   });
   const [horarioDialog, setHorarioDialog] = useState<string | null>(null);
   const [tempDe, setTempDe] = useState("");
   const [tempAte, setTempAte] = useState("");
+
+  // Serviços prestados
+  const [servicosDialog, setServicosDialog] = useState(false);
+  const [servicosSelecionados, setServicosSelecionados] = useState<string[]>(["garcom", "barman", "churrasqueiro"]);
+  const [tempServicos, setTempServicos] = useState<string[]>([]);
 
   const toggleDia = (key: string) => {
     setDiasAtivos((prev) =>
@@ -60,6 +66,28 @@ const Perfil = () => {
       setHorarios((prev) => ({ ...prev, [horarioDialog]: { de: tempDe, ate: tempAte } }));
       setHorarioDialog(null);
     }
+  };
+
+  const openServicos = () => {
+    setTempServicos([...servicosSelecionados]);
+    setServicosDialog(true);
+  };
+
+  const toggleServico = (id: string) => {
+    setTempServicos((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  };
+
+  const saveServicos = () => {
+    setServicosSelecionados(tempServicos);
+    setServicosDialog(false);
+  };
+
+  const formatHorario = (key: string) => {
+    const h = horarios[key];
+    if (!h) return "--";
+    return `${h.de.replace(":00", "h")}-${h.ate.replace(":00", "h")}`;
   };
 
   const diaLabel = diasSemana.find((d) => d.key === horarioDialog)?.label || "";
@@ -94,14 +122,6 @@ const Perfil = () => {
                   <CreditCard className="w-4 h-4 shrink-0" />
                   <span>Pix • •••• 5678</span>
                 </div>
-                <div className="flex items-center gap-3 mt-2">
-                  <Button variant="outline" size="sm">Editar Perfil</Button>
-                  <Button size="sm" className="bg-secondary text-secondary-foreground hover:bg-secondary/90" asChild>
-                    <Link to="/dashboard-contratante">
-                      <Building2 className="w-4 h-4 mr-1" /> Área Contratante
-                    </Link>
-                  </Button>
-                </div>
               </div>
             </div>
           </CardContent>
@@ -114,42 +134,43 @@ const Perfil = () => {
               <Clock className="w-5 h-5 text-primary" /> Disponibilidade e Serviço
             </h3>
 
-            {/* Dias da semana */}
-            <div className="flex flex-wrap gap-2">
+            {/* Dias da semana - grid equidistante */}
+            <div className="grid grid-cols-7 gap-2">
               {diasSemana.map((dia) => {
                 const ativo = diasAtivos.includes(dia.key);
                 return (
-                  <button
-                    key={dia.key}
-                    onClick={() => toggleDia(dia.key)}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all border-2 ${
-                      ativo
-                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                        : "bg-muted/50 text-muted-foreground border-transparent hover:border-primary/30"
-                    }`}
-                  >
-                    {dia.label}
-                  </button>
+                  <div key={dia.key} className="flex flex-col items-center gap-1">
+                    <button
+                      onClick={() => toggleDia(dia.key)}
+                      className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
+                        ativo
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                          : "bg-muted/50 text-muted-foreground border-transparent hover:border-primary/30"
+                      }`}
+                    >
+                      <span className="text-sm font-bold">{dia.label}</span>
+                      {ativo && (
+                        <span className="text-[10px] mt-0.5 opacity-90">{formatHorario(dia.key)}</span>
+                      )}
+                    </button>
+                    {ativo && (
+                      <button
+                        onClick={() => openHorario(dia.key)}
+                        className="w-8 h-8 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                      >
+                        <Clock className="w-4 h-4 text-primary" />
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
 
-            {/* Horários por dia ativo */}
-            <div className="space-y-2">
-              {diasSemana
-                .filter((dia) => diasAtivos.includes(dia.key))
-                .map((dia) => (
-                  <div key={dia.key} className="flex items-center justify-between bg-muted/30 rounded-xl px-4 py-2.5">
-                    <span className="text-sm font-medium w-10">{dia.label}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {horarios[dia.key]?.de || "--:--"} até {horarios[dia.key]?.ate || "--:--"}
-                    </span>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openHorario(dia.key)}>
-                      <Clock className="w-4 h-4 text-primary" />
-                    </Button>
-                  </div>
-                ))}
-            </div>
+            {/* Botão Serviços Prestados */}
+            <Button variant="outline" className="w-full" onClick={openServicos}>
+              <Briefcase className="w-4 h-4 mr-2" />
+              Serviços Prestados ({servicosSelecionados.length})
+            </Button>
           </CardContent>
         </Card>
 
@@ -216,6 +237,37 @@ const Perfil = () => {
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setHorarioDialog(null)}>Cancelar</Button>
             <Button onClick={saveHorario}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Serviços Prestados */}
+      <Dialog open={servicosDialog} onOpenChange={setServicosDialog}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Serviços Prestados</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {servicosPF.map((servico) => (
+              <label
+                key={servico.id}
+                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
+                  tempServicos.includes(servico.id)
+                    ? "bg-primary/10 border border-primary/30"
+                    : "bg-muted/30 border border-transparent hover:bg-muted/50"
+                }`}
+              >
+                <Checkbox
+                  checked={tempServicos.includes(servico.id)}
+                  onCheckedChange={() => toggleServico(servico.id)}
+                />
+                <span className="text-sm font-medium">{servico.label}</span>
+              </label>
+            ))}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setServicosDialog(false)}>Cancelar</Button>
+            <Button onClick={saveServicos} className="bg-primary hover:bg-primary-hover text-primary-foreground">Confirmar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
