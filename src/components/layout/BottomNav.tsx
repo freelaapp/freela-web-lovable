@@ -1,15 +1,26 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, MessageCircle, User } from "lucide-react";
+import { Home, Search, MessageCircle, User, Calendar, Star } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const BottomNav = () => {
   const location = useLocation();
+  const role = useUserRole();
 
-  const tabs = [
+  const freelancerTabs = [
     { href: "/", icon: Home, label: "Início" },
     { href: "/freelancers", icon: Search, label: "Buscar" },
     { href: "/mensagens", icon: MessageCircle, label: "Mensagens" },
     { href: "/perfil", icon: User, label: "Perfil" },
   ];
+
+  const contratanteTabs = [
+    { href: "/dashboard-contratante", icon: Home, label: "Início" },
+    { href: "/freelancers", icon: Search, label: "Freelancers" },
+    { href: "/mensagens", icon: MessageCircle, label: "Mensagens" },
+    { href: "/perfil", icon: User, label: "Perfil" },
+  ];
+
+  const tabs = role === "contratante" ? contratanteTabs : freelancerTabs;
 
   const isActive = (path: string) => location.pathname === path;
 
