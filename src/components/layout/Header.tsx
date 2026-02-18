@@ -46,7 +46,6 @@ const Header = () => {
     { href: "/dashboard-freelancer", label: "Dashboard", icon: LayoutDashboard },
     { href: "/agenda", label: "Agenda", icon: Calendar },
     { href: "/mapa-vagas", label: "Mapa de Vagas", icon: Map },
-    { href: "/historico", label: "Histórico", icon: History },
     { href: "/avaliacoes", label: "Avaliações", icon: Star },
   ];
 
