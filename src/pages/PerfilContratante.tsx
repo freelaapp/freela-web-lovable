@@ -218,17 +218,6 @@ const PerfilContratante = () => {
           </CardContent>
         </Card>
 
-        {/* Contato */}
-        <Card>
-          <CardContent className="p-5">
-            <h3 className="font-display font-semibold text-base mb-3">Contato</h3>
-            <div className="flex items-center gap-3">
-              <Phone className="w-5 h-5 text-primary shrink-0" />
-              <p className="text-sm">{data.phone}</p>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Fotos do Estabelecimento (PJ only) */}
         {data.type === "pj" && data.photos.length > 0 && (
           <Card>
@@ -285,14 +274,6 @@ const PerfilContratante = () => {
         )}
       </div>
 
-      {/* Fixed Bottom CTA */}
-      <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border p-4">
-        <div className="max-w-3xl mx-auto flex justify-center gap-3">
-          <Button variant="outline" size="lg" className="gap-2 flex-1 max-w-xs" onClick={() => navigate("/mensagens")}>
-            <MessageCircle className="w-4 h-4" /> Enviar Mensagem
-          </Button>
-        </div>
-      </div>
     </AppLayout>
   );
 };

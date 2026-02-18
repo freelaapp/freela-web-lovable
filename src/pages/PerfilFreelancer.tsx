@@ -174,14 +174,9 @@ const PerfilFreelancer = () => {
             <p className="text-xs text-muted-foreground">A partir de</p>
             <p className="text-lg font-bold font-display text-primary">R$ 480</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="lg" className="gap-2" onClick={() => navigate("/mensagens")}>
-              <MessageCircle className="w-4 h-4" /> Mensagem
-            </Button>
-            <Button size="lg" className="gap-2" onClick={() => navigate("/criar-evento")}>
-              <Send className="w-4 h-4" /> Contratar
-            </Button>
-          </div>
+          <Button size="lg" className="gap-2" onClick={() => navigate("/criar-evento")}>
+            <Send className="w-4 h-4" /> Contratar
+          </Button>
         </div>
       </div>
 
