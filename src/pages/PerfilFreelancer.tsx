@@ -189,7 +189,7 @@ const PerfilFreelancer = () => {
             <Button variant="outline" size="lg" className="gap-2" onClick={() => navigate("/mensagens")}>
               <MessageCircle className="w-4 h-4" /> Mensagem
             </Button>
-            <Button size="lg" className="gap-2" onClick={() => setShowPropostaDialog(true)}>
+            <Button size="lg" className="gap-2" onClick={() => navigate(`/criar-evento?para=${encodeURIComponent(freelancerData.name)}`)}>
               <Send className="w-4 h-4" /> Proposta Exclusiva
             </Button>
           </div>
