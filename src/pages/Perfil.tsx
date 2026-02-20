@@ -86,6 +86,16 @@ const Perfil = () => {
   const [fotoFachada, setFotoFachada] = useState<string | null>(null);
   const [fotoInterno, setFotoInterno] = useState<string | null>(null);
 
+  // Bio editing
+  const [editingBio, setEditingBio] = useState(false);
+  const [bio, setBio] = useState("Churrasqueiro profissional com mais de 10 anos de experiência em eventos. Especializado em cortes nobres, churrasco argentino e brasileiro. Atendo festas de 10 a 200 pessoas com todo equipamento necessário.");
+  const [tempBio, setTempBio] = useState("");
+
+  // CNH
+  const [cnhCategories, setCnhCategories] = useState<string[]>(["B"]);
+  const [editingCnh, setEditingCnh] = useState(false);
+  const [tempCnh, setTempCnh] = useState<string[]>([]);
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
@@ -279,10 +289,34 @@ const Perfil = () => {
         {!isContratante &&
         <Card>
             <CardContent className="p-5">
-              <p className="text-xs font-semibold mb-1.5">Sobre mim</p>
-              <p className="text-sm text-muted-foreground">
-                Churrasqueiro profissional com mais de 10 anos de experiência em eventos. Especializado em cortes nobres, churrasco argentino e brasileiro. Atendo festas de 10 a 200 pessoas com todo equipamento necessário.
-              </p>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-semibold">Sobre mim</p>
+                {!contractorView && !editingBio &&
+                  <button onClick={() => { setTempBio(bio); setEditingBio(true); }} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                    <Pencil className="w-3 h-3 text-primary" />
+                  </button>
+                }
+              </div>
+              {!editingBio ? (
+                <p className="text-sm text-muted-foreground">{bio}</p>
+              ) : (
+                <div className="space-y-2">
+                  <textarea
+                    value={tempBio}
+                    onChange={(e) => setTempBio(e.target.value)}
+                    className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background resize-none min-h-[80px]"
+                    rows={3}
+                  />
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setEditingBio(false)}>
+                      <X className="w-3.5 h-3.5 mr-1" /> Cancelar
+                    </Button>
+                    <Button size="sm" className="flex-1 text-xs" onClick={() => { setBio(tempBio); setEditingBio(false); }}>
+                      <Check className="w-3.5 h-3.5 mr-1" /> Salvar
+                    </Button>
+                  </div>
+                </div>
+              )}
               <div className="border-t border-border mt-3 pt-3 space-y-2">
                 <div className="flex items-center gap-3">
                   <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
@@ -290,7 +324,45 @@ const Perfil = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <Car className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Transporte próprio: Sim</span>
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-xs text-muted-foreground">CNH:</span>
+                    {!editingCnh ? (
+                      <div className="flex items-center gap-1.5">
+                        {cnhCategories.length > 0 ? (
+                          cnhCategories.map((cat) => (
+                            <span key={cat} className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">{cat}</span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Não informado</span>
+                        )}
+                        {!contractorView && (
+                          <button onClick={() => { setTempCnh([...cnhCategories]); setEditingCnh(true); }} className="w-5 h-5 rounded-full bg-muted flex items-center justify-center ml-1">
+                            <Pencil className="w-2.5 h-2.5 text-primary" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        {["A", "B", "AB"].map((cat) => (
+                          <button
+                            key={cat}
+                            onClick={() => setTempCnh((prev) => prev.includes(cat) ? prev.filter((c) => c !== cat) : [cat])}
+                            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
+                              tempCnh.includes(cat) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                        <button onClick={() => { setCnhCategories([...tempCnh]); setEditingCnh(false); }} className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-1">
+                          <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                        </button>
+                        <button onClick={() => setEditingCnh(false)} className="w-5 h-5 rounded-full bg-muted flex items-center justify-center">
+                          <X className="w-2.5 h-2.5 text-muted-foreground" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>
