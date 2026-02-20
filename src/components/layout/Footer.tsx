@@ -23,11 +23,6 @@ const Footer = () => {
     { href: "/freelancers", label: "Ver Freelancers" },
     { href: "/criar-evento", label: "Criar Vaga" }],
 
-    testes: [
-    { href: "/dashboard-freelancer", label: "Dashboard Freelancer" },
-    { href: "/dashboard-contratante", label: "Dashboard Contratante" },
-    { href: "/tela-pix", label: "Tela Pix" }]
-
   };
 
   const socialLinks = [
@@ -99,14 +94,6 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-display font-semibold text-lg mb-4">Telas de Teste</h4>
-            <ul className="space-y-3">
-              {footerLinks.testes.map((link) =>
-              <li key={link.href}>
-                  <Link to={link.href} className="text-secondary-foreground/70 hover:text-primary transition-colors">{link.label}</Link>
-                </li>
-              )}
-            </ul>
           </div>
         </div>
 
