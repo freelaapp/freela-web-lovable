@@ -640,7 +640,7 @@ const PartnersCards = () =>
 
           <p className="text-muted-foreground mb-6 leading-relaxed">
             Ao se cadastrar no Freela e aderir à <span className="font-semibold text-foreground">Assinatura Verde</span> do Grupo Prospera, você garante{" "}
-            <span className="text-emerald-600 font-bold">10% de desconto na sua conta de energia</span>.
+            <span className="text-emerald-600 font-bold">15% de desconto na sua conta de energia</span>.
           </p>
 
           <div className="bg-emerald-600 rounded-xl p-5 mb-6 text-center">
