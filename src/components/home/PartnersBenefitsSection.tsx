@@ -103,10 +103,12 @@ const PartnersBenefitsSection = () => {
                     </div>
                   </div>
 
-                  <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white group">
-                    Quero aderir ao Prospera
-                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  <a href="https://www.meuprospera.com.br/proposta/" target="_blank" rel="noopener noreferrer">
+                    <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white group">
+                      Cadastrar agora
+                      <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </a>
                 </div>
 
                 {/* Right - Visual Highlight */}
