@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility } from "lucide-react";
+import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Eye, Car, Pencil, Play, Image as ImageIconLucide, X, Check } from "lucide-react";
 import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -43,6 +43,7 @@ const Perfil = () => {
   const navigate = useNavigate();
   const role = useUserRole();
   const isContratante = role === "contratante";
+  const [contractorView, setContractorView] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fachadaInputRef = useRef<HTMLInputElement>(null);
@@ -153,6 +154,23 @@ const Perfil = () => {
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 space-y-6">
+        {/* Contractor View Toggle - freelancer only */}
+        {!isContratante && (
+          <div className="flex justify-end">
+            <button
+              onClick={() => setContractorView(!contractorView)}
+              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                contractorView
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Visão Contratante
+            </button>
+          </div>
+        )}
+
         {/* Profile Card */}
         <Card>
           <CardContent className="p-6">
@@ -217,8 +235,30 @@ const Perfil = () => {
           </CardContent>
         </Card>
 
-        {/* Switch Role - only show for freelancer */}
+        {/* Sobre mim - freelancer only */}
         {!isContratante && (
+          <Card>
+            <CardContent className="p-5">
+              <p className="text-xs font-semibold mb-1.5">Sobre mim</p>
+              <p className="text-sm text-muted-foreground">
+                Churrasqueiro profissional com mais de 10 anos de experiência em eventos. Especializado em cortes nobres, churrasco argentino e brasileiro. Atendo festas de 10 a 200 pessoas com todo equipamento necessário.
+              </p>
+              <div className="border-t border-border mt-3 pt-3 space-y-2">
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">São Paulo, SP</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Car className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Transporte próprio: Sim</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Switch Role - only show for freelancer, hide in contractor view */}
+        {!isContratante && !contractorView && (
           <Button variant="outline" className="w-full gap-2" onClick={switchRole}>
             <Building2 className="w-4 h-4" /> Ir para Painel Contratante
           </Button>
@@ -357,32 +397,36 @@ const Perfil = () => {
           </Card>
         )}
 
-        {/* Menu */}
-        <Card>
-          <CardContent className="p-2">
-            {menuItems.map((item, i) => (
-              <Link
-                key={i}
-                to={item.href}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
-                  <item.icon className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold">{item.label}</p>
-                  <p className="text-xs text-muted-foreground">{item.description}</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
+        {/* Menu - hidden in contractor view */}
+        {!contractorView && (
+          <Card>
+            <CardContent className="p-2">
+              {menuItems.map((item, i) => (
+                <Link
+                  key={i}
+                  to={item.href}
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
+                    <item.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold">{item.label}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Logout */}
-        <Button variant="ghost" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 gap-2">
-          <LogOut className="w-4 h-4" /> Sair da conta
-        </Button>
+        {/* Logout - hidden in contractor view */}
+        {!contractorView && (
+          <Button variant="ghost" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 gap-2">
+            <LogOut className="w-4 h-4" /> Sair da conta
+          </Button>
+        )}
       </div>
 
       {/* Dialog de horário */}
