@@ -390,52 +390,6 @@ const Perfil = () => {
           </Card>
         )}
 
-        {/* Freelancer: Mídia */}
-        {!isContratante && (
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-base font-display font-bold flex items-center gap-2">
-                <Video className="w-5 h-5 text-primary" /> Mídia
-              </h3>
-              <div className="grid grid-cols-4 gap-3">
-                <button
-                  onClick={() => navigate(hasVideo ? "#" : "/video-apresentacao")}
-                  className="aspect-square rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:bg-primary/10 transition-colors relative overflow-hidden"
-                >
-                  {hasVideo ? (
-                    <>
-                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                        <Video className="w-8 h-8 text-primary" />
-                      </div>
-                      <span className="absolute bottom-1 text-[10px] font-medium text-primary">Vídeo</span>
-                    </>
-                  ) : (
-                    <>
-                      <Video className="w-6 h-6 text-primary/60" />
-                      <span className="text-[10px] text-primary/60 font-medium">+ Vídeo</span>
-                    </>
-                  )}
-                </button>
-                {fotos.map((foto, i) => (
-                  <div key={i} className="aspect-square rounded-xl overflow-hidden border border-border">
-                    <img src={foto} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
-                  </div>
-                ))}
-                {Array.from({ length: 3 - fotos.length }).map((_, i) => (
-                  <button
-                    key={`empty-${i}`}
-                    onClick={() => photoInputRef.current?.click()}
-                    className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/30 flex flex-col items-center justify-center gap-1 hover:bg-muted/50 transition-colors"
-                  >
-                    <ImagePlus className="w-5 h-5 text-muted-foreground/40" />
-                    <span className="text-[10px] text-muted-foreground/40">Foto</span>
-                  </button>
-                ))}
-              </div>
-              <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handleAddPhoto} />
-            </CardContent>
-          </Card>
-        )}
 
         {/* Freelancer: Disponibilidade */}
         {!isContratante && (
@@ -515,10 +469,53 @@ const Perfil = () => {
                   </div>
                 </div>
               )}
-              <Button variant="outline" className="w-full" onClick={openServicos}>
-                <Briefcase className="w-4 h-4 mr-2" />
-                Vagas Desejadas ({servicosSelecionados.length})
-              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Freelancer: Mídia */}
+        {!isContratante && (
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <h3 className="text-base font-display font-bold flex items-center gap-2">
+                <Video className="w-5 h-5 text-primary" /> Mídia
+              </h3>
+              <div className="grid grid-cols-4 gap-3">
+                <button
+                  onClick={() => navigate(hasVideo ? "#" : "/video-apresentacao")}
+                  className="aspect-square rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:bg-primary/10 transition-colors relative overflow-hidden"
+                >
+                  {hasVideo ? (
+                    <>
+                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                        <Video className="w-8 h-8 text-primary" />
+                      </div>
+                      <span className="absolute bottom-1 text-[10px] font-medium text-primary">Vídeo</span>
+                    </>
+                  ) : (
+                    <>
+                      <Video className="w-6 h-6 text-primary/60" />
+                      <span className="text-[10px] text-primary/60 font-medium">+ Vídeo</span>
+                    </>
+                  )}
+                </button>
+                {fotos.map((foto, i) => (
+                  <div key={i} className="aspect-square rounded-xl overflow-hidden border border-border">
+                    <img src={foto} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                {Array.from({ length: 3 - fotos.length }).map((_, i) => (
+                  <button
+                    key={`empty-${i}`}
+                    onClick={() => photoInputRef.current?.click()}
+                    className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/30 flex flex-col items-center justify-center gap-1 hover:bg-muted/50 transition-colors"
+                  >
+                    <ImagePlus className="w-5 h-5 text-muted-foreground/40" />
+                    <span className="text-[10px] text-muted-foreground/40">Foto</span>
+                  </button>
+                ))}
+              </div>
+              <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handleAddPhoto} />
             </CardContent>
           </Card>
         )}
