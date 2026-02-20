@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import logoFreela from "@/assets/logo-freela-red.svg";
-import { Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
+import { Mail, Phone, Facebook, Instagram, Linkedin } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -26,10 +26,9 @@ const Footer = () => {
   };
 
   const socialLinks = [
-  { href: "https://facebook.com", icon: Facebook, label: "Facebook" },
-  { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
-  { href: "https://linkedin.com", icon: Linkedin, label: "LinkedIn" },
-  { href: "https://twitter.com", icon: Twitter, label: "Twitter" }];
+  { href: "https://www.facebook.com/profile.php?id=61573385341423&locale=pt_BR", icon: Facebook, label: "Facebook" },
+  { href: "https://www.instagram.com/freelaservicos/", icon: Instagram, label: "Instagram" },
+  { href: "https://www.linkedin.com/company/freela-serviços/", icon: Linkedin, label: "LinkedIn" }];
 
 
   return (
@@ -45,18 +44,14 @@ const Footer = () => {
               Conectamos você a profissionais qualificados para eventos e estabelecimentos em todo o Brasil.
             </p>
             <div className="space-y-3">
-              <a href="mailto:contato@freela.com.br" className="flex items-center gap-3 text-secondary-foreground/70 hover:text-primary transition-colors">
+              <a href="mailto:contato@freelaservicos.com.br" className="flex items-center gap-3 text-secondary-foreground/70 hover:text-primary transition-colors">
                 <Mail size={18} />
-                <span>contato@freela.com.br</span>
+                <span>contato@freelaservicos.com.br</span>
               </a>
-              <a href="tel:+5511999999999" className="flex items-center gap-3 text-secondary-foreground/70 hover:text-primary transition-colors">
+              <a href="tel:+5511948735114" className="flex items-center gap-3 text-secondary-foreground/70 hover:text-primary transition-colors">
                 <Phone size={18} />
-                <span>(11) 99999-9999</span>
+                <span>+55 11 94873-5114</span>
               </a>
-              <div className="flex items-center gap-3 text-secondary-foreground/70">
-                <MapPin size={18} />
-                <span>São Paulo, SP - Brasil</span>
-              </div>
             </div>
           </div>
 
