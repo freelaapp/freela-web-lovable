@@ -64,10 +64,19 @@ const Perfil = () => {
   const [tempDe, setTempDe] = useState("");
   const [tempAte, setTempAte] = useState("");
 
-  // Serviços prestados (freelancer only)
-  const [servicosDialog, setServicosDialog] = useState(false);
+  // Serviços inline editing
+  const [editingServices, setEditingServices] = useState(false);
   const [servicosSelecionados, setServicosSelecionados] = useState<string[]>(["garcom", "barman", "churrasqueiro"]);
   const [tempServicos, setTempServicos] = useState<string[]>([]);
+  const savedServices = servicosSelecionados;
+
+  // Availability editing
+  const [editingAvailability, setEditingAvailability] = useState(false);
+  const [savedDiasAtivos, setSavedDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex"]);
+  const [savedHorarios, setSavedHorarios] = useState<Horarios>({...horarios});
+
+  // Dialog serviços (legacy)
+  const [servicosDialog, setServicosDialog] = useState(false);
 
   // Mídia freelancer
   const [hasVideo, setHasVideo] = useState(false);
@@ -134,6 +143,37 @@ const Perfil = () => {
   const saveServicos = () => {
     setServicosSelecionados(tempServicos);
     setServicosDialog(false);
+  };
+
+  // Services inline edit helpers
+  const startEditingServices = () => {
+    setTempServicos([...servicosSelecionados]);
+    setEditingServices(true);
+  };
+  const cancelEditingServices = () => {
+    setTempServicos([...servicosSelecionados]);
+    setEditingServices(false);
+  };
+  const saveEditingServices = () => {
+    setServicosSelecionados([...tempServicos]);
+    setEditingServices(false);
+  };
+
+  // Availability edit helpers
+  const startEditingAvailability = () => {
+    setSavedDiasAtivos([...diasAtivos]);
+    setSavedHorarios({...horarios});
+    setEditingAvailability(true);
+  };
+  const cancelEditingAvailability = () => {
+    setDiasAtivos([...savedDiasAtivos]);
+    setHorarios({...savedHorarios});
+    setEditingAvailability(false);
+  };
+  const saveEditingAvailability = () => {
+    setSavedDiasAtivos([...diasAtivos]);
+    setSavedHorarios({...horarios});
+    setEditingAvailability(false);
   };
 
   const formatHorario = (key: string) => {
@@ -257,11 +297,56 @@ const Perfil = () => {
           </Card>
         )}
 
-        {/* Switch Role - only show for freelancer, hide in contractor view */}
-        {!isContratante && !contractorView && (
-          <Button variant="outline" className="w-full gap-2" onClick={switchRole}>
-            <Building2 className="w-4 h-4" /> Ir para Painel Contratante
-          </Button>
+        {/* Serviços - freelancer only */}
+        {!isContratante && (
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold">Serviços</p>
+                {!contractorView && !editingServices && (
+                  <button onClick={startEditingServices} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                    <Pencil className="w-3 h-3 text-primary" />
+                  </button>
+                )}
+              </div>
+              {!editingServices ? (
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  {savedServices.map((s) => (
+                    <span key={s} className="shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground">
+                      {servicosPF.find((sv) => sv.id === s)?.label || s}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {servicosPF.map((servico) => {
+                      const selected = tempServicos.includes(servico.id);
+                      return (
+                        <button
+                          key={servico.id}
+                          onClick={() => toggleServico(servico.id)}
+                          className={`shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                            selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {servico.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={cancelEditingServices}>
+                      <X className="w-3.5 h-3.5 mr-1" /> Cancelar
+                    </Button>
+                    <Button size="sm" className="flex-1 text-xs" onClick={saveEditingServices}>
+                      <Check className="w-3.5 h-3.5 mr-1" /> Salvar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* Contratante: Fotos do Estabelecimento */}
@@ -356,39 +441,80 @@ const Perfil = () => {
         {!isContratante && (
           <Card>
             <CardContent className="p-6 space-y-4">
-              <h3 className="text-base font-display font-bold flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" /> Disponibilidade e Serviço
-              </h3>
-              <div className="grid grid-cols-7 gap-2">
-                {diasSemana.map((dia) => {
-                  const ativo = diasAtivos.includes(dia.key);
-                  return (
-                    <div key={dia.key} className="flex flex-col items-center gap-1">
-                      <button
-                        onClick={() => toggleDia(dia.key)}
-                        className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
-                          ativo
-                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                            : "bg-muted/50 text-muted-foreground border-transparent hover:border-primary/30"
-                        }`}
-                      >
-                        <span className="text-sm font-bold">{dia.label}</span>
-                        {ativo && (
-                          <span className="text-[10px] mt-0.5 opacity-90">{formatHorario(dia.key)}</span>
-                        )}
-                      </button>
-                      {ativo && (
-                        <button
-                          onClick={() => openHorario(dia.key)}
-                          className="w-8 h-8 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
-                        >
-                          <Clock className="w-4 h-4 text-primary" />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-display font-bold flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-primary" /> Disponibilidade de horário
+                </h3>
+                {!contractorView && !editingAvailability && (
+                  <button onClick={startEditingAvailability} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                    <Pencil className="w-3 h-3 text-primary" />
+                  </button>
+                )}
               </div>
+              {!editingAvailability ? (
+                <div className="grid grid-cols-7 gap-2">
+                  {diasSemana.map((dia) => {
+                    const ativo = diasAtivos.includes(dia.key);
+                    return (
+                      <div key={dia.key} className="flex flex-col items-center gap-0.5">
+                        <span
+                          className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-bold ${
+                            ativo
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted/50 text-muted-foreground"
+                          }`}
+                        >
+                          {dia.label}
+                          {ativo && (
+                            <span className="text-[10px] mt-0.5 opacity-90">{formatHorario(dia.key)}</span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-7 gap-2">
+                    {diasSemana.map((dia) => {
+                      const ativo = diasAtivos.includes(dia.key);
+                      return (
+                        <div key={dia.key} className="flex flex-col items-center gap-1">
+                          <button
+                            onClick={() => toggleDia(dia.key)}
+                            className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
+                              ativo
+                                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                                : "bg-muted/50 text-muted-foreground border-transparent hover:border-primary/30"
+                            }`}
+                          >
+                            <span className="text-sm font-bold">{dia.label}</span>
+                            {ativo && (
+                              <span className="text-[10px] mt-0.5 opacity-90">{formatHorario(dia.key)}</span>
+                            )}
+                          </button>
+                          {ativo && (
+                            <button
+                              onClick={() => openHorario(dia.key)}
+                              className="w-8 h-8 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                            >
+                              <Clock className="w-4 h-4 text-primary" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={cancelEditingAvailability}>
+                      <X className="w-3.5 h-3.5 mr-1" /> Cancelar
+                    </Button>
+                    <Button size="sm" className="flex-1 text-xs" onClick={saveEditingAvailability}>
+                      <Check className="w-3.5 h-3.5 mr-1" /> Salvar
+                    </Button>
+                  </div>
+                </div>
+              )}
               <Button variant="outline" className="w-full" onClick={openServicos}>
                 <Briefcase className="w-4 h-4 mr-2" />
                 Vagas Desejadas ({servicosSelecionados.length})
