@@ -343,7 +343,7 @@ const Perfil = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5">
-                        {["A", "B", "AB"].map((cat) => (
+                        {["A", "B", "AB", "N/A"].map((cat) => (
                           <button
                             key={cat}
                             onClick={() => setTempCnh((prev) => prev.includes(cat) ? prev.filter((c) => c !== cat) : [cat])}
