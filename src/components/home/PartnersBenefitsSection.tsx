@@ -171,11 +171,13 @@ const PartnersBenefitsSection = () => {
                     <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">Gestão</span>
                     <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">Tendências</span>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full group/btn">
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Ver cursos
-                    <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
-                  </Button>
+                  <a href="https://baressp.com.br/cursos-online/" target="_blank" rel="noopener noreferrer" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full group/btn">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Ver cursos
+                      <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </a>
                 </div>
               </div>
 
@@ -202,11 +204,13 @@ const PartnersBenefitsSection = () => {
                     <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded-full">Certificação</span>
                     <span className="text-xs bg-blue-500/10 text-blue-700 px-2 py-1 rounded-full">Premium</span>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full group/btn">
-                    <GraduationCap className="w-4 h-4 mr-2" />
-                    Ver cursos
-                    <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
-                  </Button>
+                  <a href="https://www.diageobaracademy.com/pt-br/home/learning-for-life" target="_blank" rel="noopener noreferrer" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full group/btn">
+                      <GraduationCap className="w-4 h-4 mr-2" />
+                      Ver cursos
+                      <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </a>
                 </div>
               </div>
 
@@ -233,11 +237,13 @@ const PartnersBenefitsSection = () => {
                     <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Finanças</span>
                     <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Marketing</span>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full group/btn">
-                    <GraduationCap className="w-4 h-4 mr-2" />
-                    Ver cursos
-                    <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
-                  </Button>
+                  <a href="https://sebrae.com.br/sites/PortalSebrae" target="_blank" rel="noopener noreferrer" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full group/btn">
+                      <GraduationCap className="w-4 h-4 mr-2" />
+                      Ver cursos
+                      <ArrowRight className="w-3 h-3 ml-auto group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </a>
                 </div>
               </div>
             </div>
