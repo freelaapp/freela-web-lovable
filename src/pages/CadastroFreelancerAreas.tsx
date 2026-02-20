@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowRight, ArrowLeft, Briefcase, Clock, X, CheckCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,29 +29,37 @@ const areasAtuacao = [
 ];
 
 const diasSemana = [
-  { id: "seg", label: "Segunda" },
-  { id: "ter", label: "Terça" },
-  { id: "qua", label: "Quarta" },
-  { id: "qui", label: "Quinta" },
-  { id: "sex", label: "Sexta" },
-  { id: "sab", label: "Sábado" },
-  { id: "dom", label: "Domingo" },
+  { key: "seg", label: "Seg" },
+  { key: "ter", label: "Ter" },
+  { key: "qua", label: "Qua" },
+  { key: "qui", label: "Qui" },
+  { key: "sex", label: "Sex" },
+  { key: "sab", label: "Sáb" },
+  { key: "dom", label: "Dom" },
 ];
 
-const periodos = [
-  { id: "manha", label: "Manhã", horario: "06h - 12h" },
-  { id: "tarde", label: "Tarde", horario: "12h - 18h" },
-  { id: "noite", label: "Noite", horario: "18h - 00h" },
-  { id: "madrugada", label: "Madrugada", horario: "00h - 06h" },
-];
+const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+
+type Horarios = Record<string, { de: string; ate: string }>;
 
 const CadastroFreelancerAreas = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
-  const [diasSelecionados, setDiasSelecionados] = useState<string[]>([]);
-  const [periodosSelecionados, setPeriodosSelecionados] = useState<string[]>([]);
+  const [diasAtivos, setDiasAtivos] = useState<string[]>([]);
+  const [horarios, setHorarios] = useState<Horarios>({
+    seg: { de: "08:00", ate: "18:00" },
+    ter: { de: "08:00", ate: "18:00" },
+    qua: { de: "08:00", ate: "18:00" },
+    qui: { de: "08:00", ate: "18:00" },
+    sex: { de: "08:00", ate: "18:00" },
+    sab: { de: "10:00", ate: "16:00" },
+    dom: { de: "10:00", ate: "14:00" },
+  });
+  const [horarioDialog, setHorarioDialog] = useState<string | null>(null);
+  const [tempDe, setTempDe] = useState("");
+  const [tempAte, setTempAte] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const toggleArea = (id: string) => {
@@ -61,23 +68,37 @@ const CadastroFreelancerAreas = () => {
     );
   };
 
-  const toggleDia = (id: string) => {
-    setDiasSelecionados((prev) =>
-      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
+  const toggleDia = (key: string) => {
+    setDiasAtivos((prev) =>
+      prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key]
     );
   };
 
-  const togglePeriodo = (id: string) => {
-    setPeriodosSelecionados((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    );
+  const openHorario = (key: string) => {
+    setTempDe(horarios[key]?.de || "08:00");
+    setTempAte(horarios[key]?.ate || "18:00");
+    setHorarioDialog(key);
   };
+
+  const saveHorario = () => {
+    if (horarioDialog) {
+      setHorarios((prev) => ({ ...prev, [horarioDialog]: { de: tempDe, ate: tempAte } }));
+      setHorarioDialog(null);
+    }
+  };
+
+  const formatHorario = (key: string) => {
+    const h = horarios[key];
+    if (!h) return "--";
+    return `${h.de.replace(":00", "h")}-${h.ate.replace(":00", "h")}`;
+  };
+
+  const diaLabel = diasSemana.find((d) => d.key === horarioDialog)?.label || "";
 
   const validate = () => {
     const e: Record<string, string> = {};
     if (areasSelecionadas.length === 0) e.areas = "Selecione pelo menos uma área de atuação";
-    if (diasSelecionados.length === 0) e.dias = "Selecione pelo menos um dia disponível";
-    if (periodosSelecionados.length === 0) e.periodos = "Selecione pelo menos um período";
+    if (diasAtivos.length === 0) e.dias = "Selecione pelo menos um dia disponível";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -196,7 +217,7 @@ const CadastroFreelancerAreas = () => {
               )}
             </div>
 
-            {/* Disponibilidade de Horários */}
+            {/* Disponibilidade - Quadradinhos com relógio */}
             <div className="border-t border-border pt-6 space-y-4">
               <div>
                 <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
@@ -204,64 +225,43 @@ const CadastroFreelancerAreas = () => {
                   Horários Disponíveis
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Defina os dias e períodos em que você está disponível para trabalhar.
+                  Clique nos dias para ativar e use o relógio para definir o horário.
                 </p>
               </div>
 
-              {/* Dias */}
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Dias da semana</Label>
-                <div className="flex flex-wrap gap-2">
-                  {diasSemana.map((dia) => {
-                    const isSelected = diasSelecionados.includes(dia.id);
-                    return (
+              <div className="grid grid-cols-7 gap-2">
+                {diasSemana.map((dia) => {
+                  const ativo = diasAtivos.includes(dia.key);
+                  return (
+                    <div key={dia.key} className="flex flex-col items-center gap-1">
                       <button
-                        key={dia.id}
                         type="button"
-                        onClick={() => toggleDia(dia.id)}
-                        className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all border ${
-                          isSelected
+                        onClick={() => toggleDia(dia.key)}
+                        className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
+                          ativo
                             ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                            : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                            : "bg-muted/50 text-muted-foreground border-transparent hover:border-primary/30"
                         }`}
                       >
-                        {dia.label}
+                        <span className="text-sm font-bold">{dia.label}</span>
+                        {ativo && (
+                          <span className="text-[10px] mt-0.5 opacity-90">{formatHorario(dia.key)}</span>
+                        )}
                       </button>
-                    );
-                  })}
-                </div>
-                {errors.dias && <p className="text-sm text-destructive">{errors.dias}</p>}
+                      {ativo && (
+                        <button
+                          type="button"
+                          onClick={() => openHorario(dia.key)}
+                          className="w-8 h-8 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                        >
+                          <Clock className="w-4 h-4 text-primary" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Períodos */}
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Períodos</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {periodos.map((periodo) => {
-                    const isSelected = periodosSelecionados.includes(periodo.id);
-                    return (
-                      <button
-                        key={periodo.id}
-                        type="button"
-                        onClick={() => togglePeriodo(periodo.id)}
-                        className={`p-4 rounded-xl text-left transition-all border ${
-                          isSelected
-                            ? "bg-primary/10 border-primary shadow-sm"
-                            : "bg-background border-border hover:border-primary/50"
-                        }`}
-                      >
-                        <span className={`text-sm font-semibold ${isSelected ? "text-primary" : "text-foreground"}`}>
-                          {periodo.label}
-                        </span>
-                        <span className={`block text-xs mt-0.5 ${isSelected ? "text-primary/70" : "text-muted-foreground"}`}>
-                          {periodo.horario}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {errors.periodos && <p className="text-sm text-destructive">{errors.periodos}</p>}
-              </div>
+              {errors.dias && <p className="text-sm text-destructive">{errors.dias}</p>}
             </div>
 
             <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
@@ -279,6 +279,33 @@ const CadastroFreelancerAreas = () => {
           </form>
         </div>
       </div>
+
+      {/* Dialog de horário */}
+      <Dialog open={!!horarioDialog} onOpenChange={(open) => !open && setHorarioDialog(null)}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Horário — {diaLabel}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">De</label>
+              <select value={tempDe} onChange={(e) => setTempDe(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
+                {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Até</label>
+              <select value={tempAte} onChange={(e) => setTempAte(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
+                {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setHorarioDialog(null)}>Cancelar</Button>
+            <Button onClick={saveHorario}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
