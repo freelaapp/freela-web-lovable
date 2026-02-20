@@ -32,6 +32,8 @@ import EscolherPerfil from "./pages/EscolherPerfil";
 import CadastroContratante from "./pages/CadastroContratante";
 import CadastroFreelancer from "./pages/CadastroFreelancer";
 import VideoApresentacao from "./pages/VideoApresentacao";
+import ConfirmarEmail from "./pages/ConfirmarEmail";
+import CadastroFreelancerAreas from "./pages/CadastroFreelancerAreas";
 import MeusDados from "./pages/MeusDados";
 import MeusDadosContratante from "./pages/MeusDadosContratante";
 import Configuracoes from "./pages/Configuracoes";
@@ -79,6 +81,8 @@ const App = () => (
             <Route path="/escolher-perfil" element={<EscolherPerfil />} />
             <Route path="/cadastro-contratante" element={<CadastroContratante />} />
             <Route path="/cadastro-freelancer" element={<CadastroFreelancer />} />
+            <Route path="/confirmar-email" element={<ConfirmarEmail />} />
+            <Route path="/cadastro-freelancer-areas" element={<CadastroFreelancerAreas />} />
             <Route path="/video-apresentacao" element={<VideoApresentacao />} />
             <Route path="/meus-dados" element={<MeusDados />} />
             <Route path="/meus-dados-contratante" element={<MeusDadosContratante />} />
