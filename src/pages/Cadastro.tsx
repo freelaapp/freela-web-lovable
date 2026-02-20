@@ -75,7 +75,7 @@ const Cadastro = () => {
         title: "Conta criada com sucesso!",
         description: "Verifique seu email para confirmar o cadastro.",
       });
-      navigate("/escolher-perfil");
+      navigate("/confirmar-email");
     }, 1500);
   };
 

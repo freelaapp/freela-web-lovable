@@ -24,12 +24,12 @@ const VideoApresentacao = () => {
     setTimeout(() => {
       setIsUploading(false);
       toast({ title: "Vídeo enviado!", description: "Seu perfil ficou ainda mais completo." });
-      navigate("/dashboard-freelancer");
+      navigate("/cadastro-freelancer-areas");
     }, 2000);
   };
 
   const handlePular = () => {
-    navigate("/dashboard-freelancer");
+    navigate("/cadastro-freelancer-areas");
   };
 
   return (

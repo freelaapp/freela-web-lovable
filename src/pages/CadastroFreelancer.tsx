@@ -82,17 +82,10 @@ const CadastroFreelancer = () => {
   const [endereco, setEndereco] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
-  const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const previewFoto = useMemo(() => fotoPerfil ? URL.createObjectURL(fotoPerfil) : null, [fotoPerfil]);
-
-  const toggleArea = (id: string) => {
-    setAreasSelecionadas((prev) =>
-      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
-    );
-  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -105,7 +98,6 @@ const CadastroFreelancer = () => {
     if (!endereco.trim()) e.endereco = "Endereço é obrigatório";
     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
     if (!estado) e.estado = "Estado é obrigatório";
-    if (areasSelecionadas.length === 0) e.areas = "Selecione pelo menos uma área de atuação";
     if (!acceptTerms) e.terms = "Você deve aceitar os termos";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -165,6 +157,9 @@ const CadastroFreelancer = () => {
             <img src={logoFreela} alt="Freela Serviços" className="h-12" />
           </Link>
 
+          <div className="mb-2">
+            <p className="text-sm text-primary font-semibold">Etapa 2 de 3</p>
+          </div>
           <h1 className="text-3xl font-display font-bold mb-2">Cadastro Freelancer</h1>
           <p className="text-muted-foreground mb-8">Complete seus dados para começar a trabalhar</p>
 
@@ -384,64 +379,7 @@ const CadastroFreelancer = () => {
               </div>
             </div>
 
-            {/* ===== Seção 2 - Áreas de Atuação ===== */}
-            <div className="border-t border-border pt-6 space-y-4">
-              <div>
-                <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
-                  <Briefcase className="w-5 h-5 text-primary" />
-                  Áreas de Atuação
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Selecione todas as áreas em que você atua. Isso ajudará a encontrar vagas compatíveis na sua região.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {areasAtuacao.map((area) => {
-                  const isSelected = areasSelecionadas.includes(area.id);
-                  return (
-                    <button
-                      key={area.id}
-                      type="button"
-                      onClick={() => toggleArea(area.id)}
-                      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all border ${
-                        isSelected
-                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                          : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-                      }`}
-                    >
-                      {area.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {errors.areas && <p className="text-sm text-destructive">{errors.areas}</p>}
-
-              {/* Tags selecionadas preview */}
-              {areasSelecionadas.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-xs text-muted-foreground mb-2">Suas tags de perfil:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {areasSelecionadas.map((id) => {
-                      const area = areasAtuacao.find((a) => a.id === id);
-                      return (
-                        <span
-                          key={id}
-                          className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full border border-primary/20"
-                        >
-                          {area?.label}
-                          <button type="button" onClick={() => toggleArea(id)} className="hover:text-destructive">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* ===== Seção 3 - Contato de Emergência ===== */}
+            {/* ===== Seção 2 - Contato de Emergência ===== */}
             <div className="border-t border-border pt-6 space-y-4">
               <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
                 <Phone className="w-5 h-5 text-primary" />
