@@ -644,7 +644,7 @@ const PartnersCards = () =>
           </p>
 
           <div className="bg-emerald-600 rounded-xl p-5 mb-6 text-center">
-            <p className="text-white text-3xl font-display font-extrabold mb-1">10% OFF</p>
+            <p className="text-white text-3xl font-display font-extrabold mb-1">15% OFF</p>
             <p className="text-emerald-100 text-sm">na conta de energia elétrica</p>
           </div>
 
