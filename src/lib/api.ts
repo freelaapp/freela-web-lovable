@@ -1,7 +1,7 @@
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 // Trocar para "mobile" quando necessário
-const ORIGIN_TYPE = "Web";
+const ORIGIN_TYPE = "web";
 
 interface RegisterPayload {
   name: string;
