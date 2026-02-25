@@ -59,7 +59,8 @@ export async function generateEmailConfirmationCode(email: string): Promise<void
     }
   );
 
-  if (!response.ok) {
+  if (response.status !== 200) {
     throw new Error("Não foi possível enviar o código de confirmação. Verifique o e-mail e tente novamente.");
   }
 }
+
