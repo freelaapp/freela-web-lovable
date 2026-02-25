@@ -74,7 +74,12 @@ const Cadastro = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    console.log("[Cadastro] handleSubmit chamado");
+    if (!validateForm()) {
+      console.log("[Cadastro] Validação falhou:", errors);
+      return;
+    }
+    console.log("[Cadastro] Validação OK, enviando código...");
 
     // Persistir dados para uso posterior em /users/register
     const pendingData = {
