@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle, Phone } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
-import { registerUser } from "@/lib/api";
+import { generateEmailConfirmationCode } from "@/lib/api";
 
 const Cadastro = () => {
   const navigate = useNavigate();
@@ -76,33 +76,34 @@ const Cadastro = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    // Persistir dados para uso posterior em /users/register
+    const pendingData = {
+      name: formData.nome,
+      email: formData.email,
+      phoneNumber: formData.celular.replace(/\D/g, ""),
+      password: formData.password,
+      status: "active",
+      createdAt: new Date().toISOString(),
+    };
+    localStorage.setItem("pendingRegisterData", JSON.stringify(pendingData));
+
     setIsLoading(true);
     try {
-      const response = await registerUser({
-        name: formData.nome,
-        email: formData.email,
-        phoneNumber: formData.celular.replace(/\D/g, ""),
-        password: formData.password,
-        status: "active",
-        createdAt: new Date().toISOString(),
-      });
-
-      // Persistir accessToken
-      localStorage.setItem("authToken", JSON.stringify(response.data));
+      await generateEmailConfirmationCode(formData.email);
 
       toast({
-        title: "Conta criada com sucesso!",
-        description: "Verifique seu email para confirmar o cadastro.",
+        title: "Código enviado!",
+        description: "Verifique seu email para o código de confirmação.",
       });
       navigate("/confirmar-email");
     } catch (error: any) {
       const message =
         error instanceof TypeError
           ? "Falha de conexão. Verifique sua internet e tente novamente."
-          : error.message || "Não foi possível criar sua conta. Tente novamente.";
+          : error.message || "Não foi possível enviar o código. Tente novamente.";
 
       toast({
-        title: "Erro ao criar conta",
+        title: "Erro ao enviar código",
         description: message,
         variant: "destructive",
       });
@@ -305,7 +306,7 @@ const Cadastro = () => {
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Criando conta...
+                  Enviando código…
                 </span>
               ) : (
                 <span className="flex items-center gap-2">

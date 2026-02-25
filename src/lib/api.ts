@@ -21,7 +21,7 @@ interface RegisterResponse {
 export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
   const response = await fetch(`${API_BASE_URL}/users/register`, {
     method: "POST",
-    credentials: "include", // para receber o refreshToken via cookie
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       "Origin-type": ORIGIN_TYPE,
@@ -46,4 +46,20 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
   console.log("[register] status:", response.status, "message:", body.message);
 
   return body as RegisterResponse;
+}
+
+export async function generateEmailConfirmationCode(email: string): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/users/generate-email-confirmation-code?email=${encodeURIComponent(email)}`,
+    {
+      method: "GET",
+      headers: {
+        "Origin-type": ORIGIN_TYPE,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Não foi possível enviar o código de confirmação. Verifique o e-mail e tente novamente.");
+  }
 }
