@@ -1,7 +1,7 @@
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 // Trocar para "mobile" quando necessário
-const ORIGIN_TYPE = "web";
+const ORIGIN_TYPE = "https://freelaservicosapp.com.br";
 
 interface RegisterPayload {
   name: string;
@@ -56,11 +56,10 @@ export async function generateEmailConfirmationCode(email: string): Promise<void
       headers: {
         "Origin-type": ORIGIN_TYPE,
       },
-    }
+    },
   );
 
   if (response.status !== 200) {
     throw new Error("Não foi possível enviar o código de confirmação. Verifique o e-mail e tente novamente.");
   }
 }
-
