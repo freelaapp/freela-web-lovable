@@ -297,7 +297,7 @@ const HowItWorks = () => {
               )}
             </div>
             <Button size="lg" className="w-full mt-8" asChild>
-              <Link to="/criar-evento">
+              <Link to="/cadastro">
                 Contratar Agora
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
@@ -946,7 +946,7 @@ const FreelancersNearYou = () =>
             Milhares de profissionais qualificados espalhados por todo o Brasil, prontos para trabalhar na sua região. Encontre garçons, bartenders, cozinheiros e muito mais.
           </p>
           <Button size="xl" asChild className="group">
-            <Link to="/freelancers">
+            <Link to="/cadastro">
               <MapPin className="w-5 h-5" />
               Ver freelancers disponíveis
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
