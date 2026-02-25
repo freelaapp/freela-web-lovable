@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle, Phone } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
+import { registerUser } from "@/lib/api";
 
 const Cadastro = () => {
   const navigate = useNavigate();
@@ -76,14 +77,38 @@ const Cadastro = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await registerUser({
+        name: formData.nome,
+        email: formData.email,
+        phoneNumber: formData.celular.replace(/\D/g, ""),
+        password: formData.password,
+        status: "active",
+        createdAt: new Date().toISOString(),
+      });
+
+      // Persistir accessToken
+      localStorage.setItem("authToken", JSON.stringify(response.data));
+
       toast({
         title: "Conta criada com sucesso!",
         description: "Verifique seu email para confirmar o cadastro.",
       });
       navigate("/confirmar-email");
-    }, 1500);
+    } catch (error: any) {
+      const message =
+        error instanceof TypeError
+          ? "Falha de conexão. Verifique sua internet e tente novamente."
+          : error.message || "Não foi possível criar sua conta. Tente novamente.";
+
+      toast({
+        title: "Erro ao criar conta",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatCelular = (value: string) => {
