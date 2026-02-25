@@ -79,7 +79,7 @@ const EmpresasLandingPage = () => {
                 </Link>
               </Button>
               <Button variant="hero-outline" size="xl" asChild>
-                <Link to="/freelancers">Buscar profissional disponível</Link>
+                <Link to="/cadastro">Buscar profissional disponível</Link>
               </Button>
             </div>
           </div>
@@ -283,7 +283,7 @@ const EmpresasLandingPage = () => {
                 </Link>
               </Button>
               <Button variant="hero-outline" size="xl" asChild>
-                <Link to="/freelancers">Buscar profissional disponível</Link>
+                <Link to="/cadastro">Buscar profissional disponível</Link>
               </Button>
             </div>
 

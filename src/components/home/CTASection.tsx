@@ -44,13 +44,13 @@ const CTASection = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="hero" size="xl" asChild className="group">
-              <Link to={isFreelaCasa ? "/criar-evento" : "/cadastro"}>
+              <Link to="/cadastro">
                 {isFreelaCasa ? "Contratar agora" : "Cadastrar meu estabelecimento"}
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
             <Button variant="hero-outline" size="xl" asChild>
-              <Link to={isFreelaCasa ? "/freelancers" : "/freelancers"}>
+              <Link to="/cadastro">
                 {isFreelaCasa ? "Ver profissionais" : "Ver freelancers disponíveis"}
               </Link>
             </Button>
