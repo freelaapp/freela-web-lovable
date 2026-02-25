@@ -652,10 +652,12 @@ const PartnersCards = () =>
             E quanto mais você usa o Freela, <span className="font-semibold text-foreground">mais desconto pode ter na conta de energia</span>. Seus pontos acumulados se convertem em economia real.
           </p>
 
-          <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white mt-auto group w-full">
-            Quero cadastrar agora!
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <a href="https://www.meuprospera.com.br/proposta/" target="_blank" rel="noopener noreferrer" className="w-full mt-auto">
+            <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white group w-full">
+              Quero cadastrar agora!
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </a>
         </div>
 
         {/* Card Capacitação */}
@@ -675,9 +677,9 @@ const PartnersCards = () =>
 
           <div className="space-y-4 mb-8 flex-1">
             {[
-          { emoji: "🍺", name: "Bares SP", desc: "Coquetelaria, gestão de bares e tendências do mercado." },
-          { emoji: "🥃", name: "Diageo Bar Academy", desc: "Certificação internacional em mixologia e atendimento premium." },
-          { emoji: "📊", name: "Sebrae", desc: "Gestão financeira, marketing e formalização para empresários." }].
+          { emoji: "🍺", name: "Bares SP", desc: "Coquetelaria, gestão de bares e tendências do mercado.", link: "https://baressp.com.br/cursos-online/" },
+          { emoji: "🥃", name: "Diageo Bar Academy", desc: "Certificação internacional em mixologia e atendimento premium.", link: "https://www.diageobaracademy.com/pt-br/home/learning-for-life" },
+          { emoji: "📊", name: "Sebrae", desc: "Gestão financeira, marketing e formalização para empresários.", link: "https://sebrae.com.br/sites/PortalSebrae" }].
           map((partner) =>
           <div key={partner.name} className="flex items-start gap-4 bg-card rounded-xl p-4 border border-border group hover:border-blue-500/30 transition-colors">
                 <span className="text-2xl flex-shrink-0">{partner.emoji}</span>
@@ -685,10 +687,12 @@ const PartnersCards = () =>
                   <h5 className="font-bold text-foreground text-sm mb-1">{partner.name}</h5>
                   <p className="text-xs text-muted-foreground leading-relaxed">{partner.desc}</p>
                 </div>
-                <Button variant="ghost" size="sm" className="flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10 text-xs">
-                  Saber mais
-                  <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
+                <a href={partner.link} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" size="sm" className="flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10 text-xs">
+                    Saber mais
+                    <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </a>
               </div>
           )}
           </div>
