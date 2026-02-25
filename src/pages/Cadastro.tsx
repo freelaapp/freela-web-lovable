@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle, Phone } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,6 +13,7 @@ const Cadastro = () => {
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
+    celular: "",
     password: "",
     confirmPassword: "",
   });
@@ -44,6 +45,12 @@ const Cadastro = () => {
       newErrors.email = "Email é obrigatório";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Digite um email válido";
+    }
+
+    if (!formData.celular) {
+      newErrors.celular = "Celular é obrigatório";
+    } else if (formData.celular.replace(/\D/g, "").length < 11) {
+      newErrors.celular = "Digite um celular válido com DDD";
     }
 
     if (!formData.password) {
@@ -79,7 +86,17 @@ const Cadastro = () => {
     }, 1500);
   };
 
+  const formatCelular = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+
   const handleChange = (field: string, value: string) => {
+    if (field === "celular") {
+      value = formatCelular(value);
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -165,6 +182,22 @@ const Cadastro = () => {
                 />
               </div>
               {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="celular">Celular</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  id="celular"
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  value={formData.celular}
+                  onChange={(e) => handleChange("celular", e.target.value)}
+                  className={`pl-10 h-12 ${errors.celular ? "border-destructive" : ""}`}
+                />
+              </div>
+              {errors.celular && <p className="text-sm text-destructive">{errors.celular}</p>}
             </div>
 
             <div className="space-y-2">
