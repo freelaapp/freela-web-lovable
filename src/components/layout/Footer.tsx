@@ -20,8 +20,7 @@ const Footer = () => {
     acesso: [
     { href: "/login", label: "Entrar" },
     { href: "/cadastro", label: "Cadastre-se" },
-    { href: "/freelancers", label: "Ver Freelancers" },
-    { href: "/criar-evento", label: "Criar Vaga" }],
+    { href: "/freelancers", label: "Ver Freelancers" }],
 
   };
 

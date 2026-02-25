@@ -164,7 +164,7 @@ const HowItWorksSection = () => {
             </div>
             <div className="mt-8">
               <Button size="lg" asChild className="w-full sm:w-auto">
-                <Link to={isFreelaCasa ? "/criar-evento" : "/cadastro?tipo=cliente"}>
+                <Link to="/cadastro">
                   {isFreelaCasa ? "Contratar agora" : "Cadastrar estabelecimento"}
                 </Link>
               </Button>

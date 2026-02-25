@@ -62,7 +62,7 @@ const CategoriesSection = () => {
           {categories.map((category) =>
           <Link
             key={category.name}
-            to={isFreelaCasa ? `/criar-evento` : `/freelancers`}
+            to="/cadastro"
             className="group card-elevated p-6 card-hover text-center">
 
               <div className={`w-14 h-14 rounded-xl ${category.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
@@ -81,7 +81,7 @@ const CategoriesSection = () => {
         {/* View All Link */}
         <div className="text-center">
           <Link
-            to={isFreelaCasa ? "/freelancers" : "/freelancers"}
+            to="/cadastro"
             className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
 
             {isFreelaCasa ? "Ver todos os profissionais" : "Ver todos os segmentos"}
