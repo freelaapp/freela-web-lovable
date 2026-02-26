@@ -96,8 +96,7 @@ const Cadastro = () => {
     try {
       await generateEmailConfirmationCode(formData.email);
 
-      // Redirecionamento direto sem toast
-      navigate("/escolher-perfil");
+      navigate("/confirmar-email");
     } catch (error: any) {
       const message =
         error instanceof TypeError
