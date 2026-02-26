@@ -73,7 +73,7 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
       "Content-Type": "application/json",
       "Origin-type": ORIGIN_TYPE,
     },
-    body: JSON.stringify({ email, code }),
+    body: JSON.stringify({ code, email, createdAt: new Date().toISOString() }),
   });
 
   if (response.status !== 200) {
