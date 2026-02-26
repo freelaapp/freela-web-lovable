@@ -10,8 +10,8 @@ interface LoginPayload {
 
 interface LoginResponse {
   success: boolean;
-  message: string;
-  data: string; // accessToken
+  data: [string, string]; // [accessToken, refreshToken] or similar
+  status: number;
 }
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
@@ -39,8 +39,8 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
     throw new Error(body?.message || "Não foi possível fazer login. Tente novamente.");
   }
 
-  if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || "Resposta inesperada do servidor.");
+  if (!body?.success || !Array.isArray(body?.data)) {
+    throw new Error("Não foi possível fazer login. Tente novamente.");
   }
 
   return body as LoginResponse;
