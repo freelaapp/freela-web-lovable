@@ -45,8 +45,7 @@ const Login = () => {
 
     try {
       const result = await loginUser({ email, password });
-      const [accessToken] = result.data;
-      localStorage.setItem("authToken", JSON.stringify(accessToken));
+      localStorage.setItem("authToken", JSON.stringify(result.data));
       toast({
         title: "Login realizado!",
         description: "Bem-vindo de volta à Freela.",
