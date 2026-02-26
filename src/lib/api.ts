@@ -15,20 +15,28 @@ interface LoginResponse {
 }
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE_URL}/login`, {
+  const response = await fetch(`${API_BASE_URL}/users/login`, {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
       "Origin-type": ORIGIN_TYPE,
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, date: new Date().toISOString() }),
   });
 
   const body = await response.json().catch(() => null);
 
+  if (response.status === 401) {
+    throw new Error("Credenciais incorretas.");
+  }
+
+  if (response.status === 429) {
+    throw new Error("Muitas tentativas. Tente novamente mais tarde.");
+  }
+
   if (!response.ok) {
-    throw new Error(body?.message || "E-mail ou senha inválidos. Tente novamente.");
+    throw new Error(body?.message || "Não foi possível fazer login. Tente novamente.");
   }
 
   if (!body?.success || !body?.data || typeof body.data !== "string") {
