@@ -100,7 +100,7 @@ const Cadastro = () => {
         title: "Código enviado!",
         description: "Verifique seu email para o código de confirmação.",
       });
-      navigate("/confirmar-email");
+      navigate("/obrigado-freelancer");
     } catch (error: any) {
       const message =
         error instanceof TypeError
