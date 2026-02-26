@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,6 +76,36 @@ const CadastroContratante = () => {
   const [responsavelNome, setResponsavelNome] = useState("");
   const [responsavelTelefone, setResponsavelTelefone] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cepLoading, setCepLoading] = useState(false);
+
+  const buscarCep = useCallback(async (cepValue: string) => {
+    const digits = cepValue.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setRua(data.logradouro || "");
+        setBairro(data.bairro || "");
+        setCidade(data.localidade || "");
+        setEstado(data.uf || "");
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setCepLoading(false);
+    }
+  }, []);
+
+  const handleCepChange = (value: string) => {
+    const masked = maskCEP(value);
+    setCep(masked);
+    const digits = value.replace(/\D/g, "");
+    if (digits.length === 8) {
+      buscarCep(digits);
+    }
+  };
 
   const previewFachada = useMemo(() => fotoFachada ? URL.createObjectURL(fotoFachada) : null, [fotoFachada]);
   const previewAmbiente = useMemo(() => fotoAmbiente ? URL.createObjectURL(fotoAmbiente) : null, [fotoAmbiente]);
@@ -409,7 +439,8 @@ const CadastroContratante = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>CEP</Label>
-                  <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(maskCEP(e.target.value))} className={`h-12 ${errors.cep ? "border-destructive" : ""}`} />
+                  <Input placeholder="00000-000" value={cep} onChange={(e) => handleCepChange(e.target.value)} className={`h-12 ${errors.cep ? "border-destructive" : ""}`} />
+                  {cepLoading && <p className="text-xs text-muted-foreground">Buscando CEP...</p>}
                   {errors.cep && <p className="text-xs text-destructive">{errors.cep}</p>}
                 </div>
                 <div className="space-y-2">
