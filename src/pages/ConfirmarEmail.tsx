@@ -73,16 +73,16 @@ const ConfirmarEmail = () => {
       return;
     }
 
-    // Ler dados pendentes
+    // 2) Ler dados pendentes ANTES de chamar a API
     const pendingRaw = localStorage.getItem("pendingRegisterData");
     if (!pendingRaw) {
-      setError("Dados de cadastro não encontrados. Volte para a tela de cadastro.");
+      setError("Dados de cadastro não encontrados. Volte para /cadastro.");
       return;
     }
 
     const pendingData = JSON.parse(pendingRaw);
     if (!pendingData.email || !pendingData.name || !pendingData.password) {
-      setError("Dados de cadastro não encontrados. Volte para a tela de cadastro.");
+      setError("Dados de cadastro não encontrados. Volte para /cadastro.");
       return;
     }
 
@@ -90,7 +90,7 @@ const ConfirmarEmail = () => {
     setError("");
 
     try {
-      // 2) Confirmar email
+      // 3) Confirmar email
       setLoadingMessage("Validando código…");
       await confirmEmail(pendingData.email, fullCode);
 
