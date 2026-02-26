@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowRight, ArrowLeft, CalendarIcon, Upload, X, Home, Building2, UserCheck } from "lucide-react";
+import { ArrowRight, ArrowLeft, CalendarIcon, Upload, X, Home, Building2, UserCheck, Phone } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -36,11 +36,26 @@ const maskCEP = (v: string) => {
   return d.replace(/(\d{5})(\d)/, "$1-$2");
 };
 
+const formatPhone = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const getInitialPhone = () => {
+  try {
+    const data = JSON.parse(localStorage.getItem("pendingRegisterData") || "{}");
+    return data.phoneNumber ? formatPhone(data.phoneNumber) : "";
+  } catch { return ""; }
+};
+
 const CadastroContratante = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [modo, setModo] = useState<"casa" | "empresa">("casa");
+  const [telefone, setTelefone] = useState(getInitialPhone);
   const [cnpj, setCnpj] = useState("");
   const [tipoDoc, setTipoDoc] = useState<"cpf" | "cnpj">("cpf");
   const [documento, setDocumento] = useState("");
@@ -89,6 +104,7 @@ const CadastroContratante = () => {
     if (!bairro.trim()) e.bairro = "Bairro é obrigatório";
     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
     if (!estado) e.estado = "Estado é obrigatório";
+    if (!telefone.replace(/\D/g, "") || telefone.replace(/\D/g, "").length < 10) e.telefone = "Celular inválido";
     if (modo === "empresa") {
       if (!ramo) e.ramo = "Ramo é obrigatório";
       if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = "Nome do estabelecimento é obrigatório";
@@ -405,7 +421,20 @@ const CadastroContratante = () => {
               </div>
             </div>
 
-            {/* Responsável pela Operação - apenas empresas */}
+            {/* Telefone */}
+            <div className="space-y-2">
+              <Label>Celular</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  placeholder="(11) 99999-9999"
+                  value={telefone}
+                  onChange={(e) => setTelefone(formatPhone(e.target.value))}
+                  className={`pl-10 h-12 ${errors.telefone ? "border-destructive" : ""}`}
+                />
+              </div>
+              {errors.telefone && <p className="text-sm text-destructive">{errors.telefone}</p>}
+            </div>
             {modo === "empresa" && (
               <div className="border-t border-border pt-6 space-y-4">
                 <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
