@@ -240,6 +240,21 @@ const CadastroContratante = () => {
                   />
                   {errors.nomeOuRazao && <p className="text-sm text-destructive">{errors.nomeOuRazao}</p>}
                 </div>
+
+                {/* Celular */}
+                <div className="space-y-2">
+                  <Label>Celular</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      placeholder="(11) 99999-9999"
+                      value={telefone}
+                      onChange={(e) => setTelefone(formatPhone(e.target.value))}
+                      className={`pl-10 h-12 ${errors.telefone ? "border-destructive" : ""}`}
+                    />
+                  </div>
+                  {errors.telefone && <p className="text-sm text-destructive">{errors.telefone}</p>}
+                </div>
               </>
             )}
 
@@ -302,6 +317,21 @@ const CadastroContratante = () => {
                     className={`h-12 ${errors.nomeEstabelecimento ? "border-destructive" : ""}`}
                   />
                   {errors.nomeEstabelecimento && <p className="text-sm text-destructive">{errors.nomeEstabelecimento}</p>}
+                </div>
+
+                {/* Celular */}
+                <div className="space-y-2">
+                  <Label>Celular</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      placeholder="(11) 99999-9999"
+                      value={telefone}
+                      onChange={(e) => setTelefone(formatPhone(e.target.value))}
+                      className={`pl-10 h-12 ${errors.telefone ? "border-destructive" : ""}`}
+                    />
+                  </div>
+                  {errors.telefone && <p className="text-sm text-destructive">{errors.telefone}</p>}
                 </div>
 
                 {/* Uploads */}
@@ -421,20 +451,8 @@ const CadastroContratante = () => {
               </div>
             </div>
 
-            {/* Telefone */}
-            <div className="space-y-2">
-              <Label>Celular</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="(11) 99999-9999"
-                  value={telefone}
-                  onChange={(e) => setTelefone(formatPhone(e.target.value))}
-                  className={`pl-10 h-12 ${errors.telefone ? "border-destructive" : ""}`}
-                />
-              </div>
-              {errors.telefone && <p className="text-sm text-destructive">{errors.telefone}</p>}
-            </div>
+
+
             {modo === "empresa" && (
               <div className="border-t border-border pt-6 space-y-4">
                 <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
