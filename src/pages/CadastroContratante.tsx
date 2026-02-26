@@ -71,7 +71,7 @@ const CadastroContratante = () => {
   const [ramo, setRamo] = useState("");
   const [nomeEstabelecimento, setNomeEstabelecimento] = useState("");
   const [fotoFachada, setFotoFachada] = useState<File | null>(null);
-  const [fotoAmbiente, setFotoAmbiente] = useState<File | null>(null);
+  const [cnpjLoading, setCnpjLoading] = useState(false);
   const [fotosExtras, setFotosExtras] = useState<File[]>([]);
   const [responsavelNome, setResponsavelNome] = useState("");
   const [responsavelTelefone, setResponsavelTelefone] = useState("");
@@ -108,7 +108,7 @@ const CadastroContratante = () => {
   };
 
   const previewFachada = useMemo(() => fotoFachada ? URL.createObjectURL(fotoFachada) : null, [fotoFachada]);
-  const previewAmbiente = useMemo(() => fotoAmbiente ? URL.createObjectURL(fotoAmbiente) : null, [fotoAmbiente]);
+  
   const previewExtras = useMemo(() => fotosExtras.map((f) => URL.createObjectURL(f)), [fotosExtras]);
 
   const isCasaCPF = modo === "casa" && tipoDoc === "cpf";
@@ -139,7 +139,6 @@ const CadastroContratante = () => {
       if (!ramo) e.ramo = "Ramo é obrigatório";
       if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = "Nome do estabelecimento é obrigatório";
       if (!fotoFachada) e.fotoFachada = "Foto da fachada é obrigatória";
-      if (!fotoAmbiente) e.fotoAmbiente = "Foto do ambiente interno é obrigatória";
       if (!responsavelNome.trim()) e.responsavelNome = "Nome do responsável é obrigatório";
       if (!responsavelTelefone.replace(/\D/g, "") || responsavelTelefone.replace(/\D/g, "").length < 10) e.responsavelTelefone = "Telefone inválido";
     }
@@ -215,9 +214,30 @@ const CadastroContratante = () => {
                   <Input
                     placeholder="00.000.000/0000-00"
                     value={cnpj}
-                    onChange={(e) => setCnpj(maskCNPJ(e.target.value))}
+                    onChange={(e) => {
+                      const masked = maskCNPJ(e.target.value);
+                      setCnpj(masked);
+                      const digits = masked.replace(/\D/g, "");
+                      if (digits.length === 14) {
+                        setCnpjLoading(true);
+                        setErrors((prev) => { const { cnpj: _, ...rest } = prev; return rest; });
+                        fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
+                          .then((res) => {
+                            if (!res.ok) throw new Error();
+                            return res.json();
+                          })
+                          .then((data) => {
+                            if (data.razao_social) setNomeOuRazao(data.razao_social);
+                          })
+                          .catch(() => {
+                            setErrors((prev) => ({ ...prev, cnpj: "CNPJ inválido" }));
+                          })
+                          .finally(() => setCnpjLoading(false));
+                      }
+                    }}
                     className={`h-12 ${errors.cnpj ? "border-destructive" : ""}`}
                   />
+                  {cnpjLoading && <p className="text-xs text-muted-foreground">Validando CNPJ...</p>}
                   {errors.cnpj && <p className="text-sm text-destructive">{errors.cnpj}</p>}
                 </div>
 
@@ -388,25 +408,6 @@ const CadastroContratante = () => {
                       {errors.fotoFachada && <p className="text-xs text-destructive">{errors.fotoFachada}</p>}
                     </div>
 
-                    {/* Ambiente */}
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Ambiente interno (obrigatório)</p>
-                      {previewAmbiente ? (
-                        <div className="relative rounded-lg overflow-hidden aspect-video">
-                          <img src={previewAmbiente} alt="Ambiente" className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => setFotoAmbiente(null)} className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ) : (
-                        <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-video cursor-pointer hover:border-primary transition-colors ${errors.fotoAmbiente ? "border-destructive" : "border-border"}`}>
-                          <Upload className="w-6 h-6 text-muted-foreground mb-1" />
-                          <span className="text-xs text-muted-foreground">Clique para enviar</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={handleFileChange(setFotoAmbiente)} />
-                        </label>
-                      )}
-                      {errors.fotoAmbiente && <p className="text-xs text-destructive">{errors.fotoAmbiente}</p>}
-                    </div>
                   </div>
 
                   {/* Fotos extras */}
