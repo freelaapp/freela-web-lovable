@@ -96,10 +96,7 @@ const Cadastro = () => {
     try {
       await generateEmailConfirmationCode(formData.email);
 
-      toast({
-        title: "Código enviado!",
-        description: "Verifique seu email para o código de confirmação.",
-      });
+      // Redirecionamento direto sem toast
       navigate("/escolher-perfil");
     } catch (error: any) {
       const message =
