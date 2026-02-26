@@ -3,6 +3,41 @@ const API_BASE_URL = "https://api.freelaservicos.com.br";
 // Trocar para "mobile" quando necessário
 const ORIGIN_TYPE = "Web";
 
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  data: string; // accessToken
+}
+
+export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
+  const response = await fetch(`${API_BASE_URL}/login`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "Origin-type": ORIGIN_TYPE,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "E-mail ou senha inválidos. Tente novamente.");
+  }
+
+  if (!body?.success || !body?.data || typeof body.data !== "string") {
+    throw new Error(body?.message || "Resposta inesperada do servidor.");
+  }
+
+  return body as LoginResponse;
+}
+
 interface RegisterPayload {
   name: string;
   email: string;
