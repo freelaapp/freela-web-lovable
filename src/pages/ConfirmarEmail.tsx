@@ -2,15 +2,17 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Mail, RotateCcw } from "lucide-react";
-import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
+import { confirmEmail, registerUser, generateEmailConfirmationCode } from "@/lib/api";
 
 const ConfirmarEmail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [isResending, setIsResending] = useState(false);
+  const [error, setError] = useState("");
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (index: number, value: string) => {
@@ -18,6 +20,7 @@ const ConfirmarEmail = () => {
     const newCode = [...code];
     newCode[index] = value.slice(-1);
     setCode(newCode);
+    setError("");
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
@@ -37,31 +40,79 @@ const ConfirmarEmail = () => {
       newCode[i] = char;
     });
     setCode(newCode);
+    setError("");
     const nextIndex = Math.min(pasted.length, 5);
     inputsRef.current[nextIndex]?.focus();
   };
 
-  const handleResend = () => {
-    setIsResending(true);
-    setTimeout(() => {
-      setIsResending(false);
-      toast({ title: "Código reenviado!", description: "Verifique sua caixa de entrada." });
-    }, 1500);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const fullCode = code.join("");
-    if (fullCode.length < 6) {
-      toast({ title: "Código incompleto", description: "Digite os 6 dígitos do código.", variant: "destructive" });
+  const handleResend = async () => {
+    const pending = localStorage.getItem("pendingRegisterData");
+    if (!pending) {
+      toast({ title: "Erro", description: "Dados de cadastro não encontrados. Volte para a tela de cadastro.", variant: "destructive" });
       return;
     }
+    const { email } = JSON.parse(pending);
+    setIsResending(true);
+    try {
+      await generateEmailConfirmationCode(email);
+      toast({ title: "Código reenviado!", description: "Verifique sua caixa de entrada." });
+    } catch {
+      toast({ title: "Erro", description: "Não foi possível reenviar o código.", variant: "destructive" });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const fullCode = code.join("");
+
+    // 1) Validação local
+    if (fullCode.length < 6 || !/^\d{6}$/.test(fullCode)) {
+      setError("Digite o código de 6 dígitos");
+      return;
+    }
+
+    // Ler dados pendentes
+    const pendingRaw = localStorage.getItem("pendingRegisterData");
+    if (!pendingRaw) {
+      setError("Dados de cadastro não encontrados. Volte para a tela de cadastro.");
+      return;
+    }
+
+    const pendingData = JSON.parse(pendingRaw);
+    if (!pendingData.email || !pendingData.name || !pendingData.password) {
+      setError("Dados de cadastro não encontrados. Volte para a tela de cadastro.");
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({ title: "Email confirmado!", description: "Agora escolha seu perfil." });
+    setError("");
+
+    try {
+      // 2) Confirmar email
+      setLoadingMessage("Validando código…");
+      await confirmEmail(pendingData.email, fullCode);
+
+      // 3) Registrar usuário
+      setLoadingMessage("Finalizando cadastro…");
+      const result = await registerUser(pendingData);
+
+      // 4) Sucesso
+      localStorage.setItem("authToken", JSON.stringify(result.data));
+      localStorage.removeItem("pendingRegisterData");
+
       navigate("/escolher-perfil");
-    }, 1500);
+    } catch (err: any) {
+      const message =
+        err instanceof TypeError
+          ? "Falha de conexão. Verifique sua internet e tente novamente."
+          : err.message || "Não foi possível concluir seu cadastro. Tente novamente.";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage("");
+    }
   };
 
   return (
@@ -86,7 +137,7 @@ const ConfirmarEmail = () => {
           Enviamos um código de 6 dígitos para o seu email. Digite-o abaixo para continuar.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex justify-center gap-3">
             {code.map((digit, index) => (
               <input
@@ -100,15 +151,20 @@ const ConfirmarEmail = () => {
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={index === 0 ? handlePaste : undefined}
                 className="w-12 h-14 text-center text-xl font-bold rounded-xl border-2 border-border bg-background text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                disabled={isLoading}
               />
             ))}
           </div>
+
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
 
           <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
             {isLoading ? (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                Verificando...
+                {loadingMessage}
               </span>
             ) : (
               <span className="flex items-center gap-2">
@@ -121,7 +177,7 @@ const ConfirmarEmail = () => {
         <button
           type="button"
           onClick={handleResend}
-          disabled={isResending}
+          disabled={isResending || isLoading}
           className="mt-6 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
         >
           <RotateCcw className={`w-4 h-4 ${isResending ? "animate-spin" : ""}`} />

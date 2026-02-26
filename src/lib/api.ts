@@ -64,3 +64,19 @@ export async function generateEmailConfirmationCode(email: string): Promise<void
     throw new Error("Não foi possível enviar o código de confirmação. Verifique o e-mail e tente novamente.");
   }
 }
+
+export async function confirmEmail(email: string, code: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/users/confirm-email`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "Origin-type": ORIGIN_TYPE,
+    },
+    body: JSON.stringify({ email, code }),
+  });
+
+  if (response.status !== 200) {
+    throw new Error("Código inválido ou expirado. Tente novamente.");
+  }
+}
