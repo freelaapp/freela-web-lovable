@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
+import { loginUser } from "@/lib/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -41,15 +42,28 @@ const Login = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    
-    // Simulating API call
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const result = await loginUser({ email, password });
+      localStorage.setItem("authToken", JSON.stringify(result.data));
       toast({
         title: "Login realizado!",
         description: "Bem-vindo de volta à Freela.",
       });
-    }, 1500);
+      navigate("/home");
+    } catch (err: any) {
+      const message =
+        err instanceof TypeError
+          ? "Falha de conexão. Verifique sua internet e tente novamente."
+          : err.message || "E-mail ou senha inválidos. Tente novamente.";
+      toast({
+        title: "Erro no login",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
