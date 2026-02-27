@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,7 +83,38 @@ const CadastroFreelancer = () => {
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [bairro, setBairro] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const buscarCep = useCallback(async (cepValue: string) => {
+    const digits = cepValue.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setEndereco(data.logradouro || "");
+        setBairro(data.bairro || "");
+        setCidade(data.localidade || "");
+        setEstado(data.uf || "");
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setCepLoading(false);
+    }
+  }, []);
+
+  const handleCepChange = (value: string) => {
+    const d = value.replace(/\D/g, "").slice(0, 8);
+    const masked = d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+    setCep(masked);
+    if (d.length === 8) {
+      buscarCep(d);
+    }
+  };
 
   const previewFoto = useMemo(() => fotoPerfil ? URL.createObjectURL(fotoPerfil) : null, [fotoPerfil]);
 
@@ -329,12 +360,10 @@ const CadastroFreelancer = () => {
                 <Input
                   placeholder="00000-000"
                   value={cep}
-                  onChange={(e) => {
-                    const d = e.target.value.replace(/\D/g, "").slice(0, 8);
-                    setCep(d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d);
-                  }}
+                  onChange={(e) => handleCepChange(e.target.value)}
                   className={`h-12 ${errors.cep ? "border-destructive" : ""}`}
                 />
+                {cepLoading && <p className="text-xs text-muted-foreground">Buscando endereço...</p>}
                 {errors.cep && <p className="text-sm text-destructive">{errors.cep}</p>}
               </div>
 
