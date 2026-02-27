@@ -84,6 +84,8 @@ const CadastroFreelancer = () => {
   const [estado, setEstado] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [bairro, setBairro] = useState("");
+  const [numero, setNumero] = useState("");
+  const [complemento, setComplemento] = useState("");
   const [cepLoading, setCepLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -367,16 +369,49 @@ const CadastroFreelancer = () => {
                 {errors.cep && <p className="text-sm text-destructive">{errors.cep}</p>}
               </div>
 
-              {/* Endereço */}
+              {/* Rua */}
               <div className="space-y-2">
-                <Label>Endereço</Label>
+                <Label>Rua</Label>
                 <Input
-                  placeholder="Rua, número, complemento"
+                  placeholder="Nome da rua"
                   value={endereco}
                   onChange={(e) => setEndereco(e.target.value)}
                   className={`h-12 ${errors.endereco ? "border-destructive" : ""}`}
                 />
                 {errors.endereco && <p className="text-sm text-destructive">{errors.endereco}</p>}
+              </div>
+
+              {/* Número + Complemento */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Número</Label>
+                  <Input
+                    placeholder="Nº"
+                    value={numero}
+                    onChange={(e) => setNumero(e.target.value)}
+                    className="h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Complemento</Label>
+                  <Input
+                    placeholder="Apto, bloco..."
+                    value={complemento}
+                    onChange={(e) => setComplemento(e.target.value)}
+                    className="h-12"
+                  />
+                </div>
+              </div>
+
+              {/* Bairro */}
+              <div className="space-y-2">
+                <Label>Bairro</Label>
+                <Input
+                  placeholder="Bairro"
+                  value={bairro}
+                  onChange={(e) => setBairro(e.target.value)}
+                  className="h-12"
+                />
               </div>
 
               {/* Cidade + Estado */}
