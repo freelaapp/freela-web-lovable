@@ -50,7 +50,7 @@ const Login = () => {
         title: "Login realizado!",
         description: "Bem-vindo de volta à Freela.",
       });
-      navigate("/home");
+      navigate("/obrigado-freelancer");
     } catch (err: any) {
       const message =
         err instanceof TypeError
