@@ -94,7 +94,7 @@ const Cadastro = () => {
 
     setIsLoading(true);
     try {
-      await generateEmailConfirmationCode(formData.email);
+      await registerUser(pendingData);
 
       navigate("/confirmar-email");
     } catch (error: any) {
@@ -254,7 +254,9 @@ const Cadastro = () => {
                       key={req.label}
                       className={`flex items-center gap-2 text-xs ${req.valid ? "text-success" : "text-muted-foreground"}`}
                     >
-                      <CheckCircle className={`w-3.5 h-3.5 ${req.valid ? "text-success" : "text-muted-foreground/50"}`} />
+                      <CheckCircle
+                        className={`w-3.5 h-3.5 ${req.valid ? "text-success" : "text-muted-foreground/50"}`}
+                      />
                       {req.label}
                     </div>
                   ))}
@@ -295,9 +297,13 @@ const Cadastro = () => {
                 />
                 <Label htmlFor="terms" className="text-sm text-muted-foreground font-normal cursor-pointer">
                   Li e aceito os{" "}
-                  <Link to="/termos" className="text-primary hover:underline">Termos de Uso</Link>{" "}
+                  <Link to="/termos" className="text-primary hover:underline">
+                    Termos de Uso
+                  </Link>{" "}
                   e a{" "}
-                  <Link to="/privacidade" className="text-primary hover:underline">Política de Privacidade</Link>
+                  <Link to="/privacidade" className="text-primary hover:underline">
+                    Política de Privacidade
+                  </Link>
                 </Label>
               </div>
               {errors.terms && <p className="text-sm text-destructive">{errors.terms}</p>}
@@ -320,7 +326,9 @@ const Cadastro = () => {
 
           <p className="mt-6 text-center text-muted-foreground">
             Já possui cadastro?{" "}
-            <Link to="/login" className="text-primary font-semibold hover:underline">Clique aqui!</Link>
+            <Link to="/login" className="text-primary font-semibold hover:underline">
+              Clique aqui!
+            </Link>
           </p>
         </div>
       </div>
