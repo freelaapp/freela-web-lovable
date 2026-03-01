@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Mail, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { confirmEmail, registerUser, generateEmailConfirmationCode } from "@/lib/api";
+import { onAuthSuccess } from "@/lib/auth";
 
 const ConfirmarEmail = () => {
   const navigate = useNavigate();
@@ -99,7 +100,7 @@ const ConfirmarEmail = () => {
       const result = await registerUser(pendingData);
 
       // 4) Sucesso
-      localStorage.setItem("authToken", JSON.stringify(result.data));
+      onAuthSuccess(result.data);
       localStorage.removeItem("pendingRegisterData");
 
       navigate("/obrigado-freelancer");
