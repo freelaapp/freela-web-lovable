@@ -7,6 +7,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 import { loginUser } from "@/lib/api";
+import { onAuthSuccess } from "@/lib/auth";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const Login = () => {
 
     try {
       const result = await loginUser({ email, password });
-      localStorage.setItem("authToken", JSON.stringify(result.data));
+      onAuthSuccess(result.data);
       toast({
         title: "Login realizado!",
         description: "Bem-vindo de volta à Freela.",
