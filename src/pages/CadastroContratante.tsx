@@ -180,6 +180,7 @@ const CadastroContratante = () => {
       const tokenRaw = localStorage.getItem("authToken");
       if (!tokenRaw) throw new Error("Sessão expirada. Faça login novamente.");
       const token = JSON.parse(tokenRaw);
+      console.log("[CadastroContratante] token enviado no header Authorization:", token);
       const authUser = getAuthUser();
       if (!authUser?.id) throw new Error("Sessão expirada. Faça login novamente.");
 
