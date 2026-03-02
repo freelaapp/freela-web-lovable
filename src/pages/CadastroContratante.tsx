@@ -298,6 +298,8 @@ const CadastroContratante = () => {
       }
 
       fd.append("feedbackStars", "0");
+      fd.append("latitude", "0");
+      fd.append("longitude", "0");
 
       const response = await fetch(`${API_BASE_URL}/contractors/`, {
         method: "POST",
