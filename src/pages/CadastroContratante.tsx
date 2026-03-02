@@ -297,6 +297,8 @@ const CadastroContratante = () => {
         }
       }
 
+      fd.append("feedbackStars", "0");
+
       const response = await fetch(`${API_BASE_URL}/contractors/`, {
         method: "POST",
         credentials: "include",
