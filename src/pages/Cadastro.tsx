@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle, Phone } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
-import { registerUser } from "@/lib/api";
+import { generateEmailConfirmationCode } from "@/lib/api";
 
 const Cadastro = () => {
   const navigate = useNavigate();
@@ -94,7 +94,7 @@ const Cadastro = () => {
 
     setIsLoading(true);
     try {
-      await registerUser(pendingData);
+      await generateEmailConfirmationCode(formData.email);
 
       navigate("/confirmar-email");
     } catch (error: any) {
