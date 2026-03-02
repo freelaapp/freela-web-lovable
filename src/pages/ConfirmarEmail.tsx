@@ -103,7 +103,7 @@ const ConfirmarEmail = () => {
       onAuthSuccess(result.data);
       localStorage.removeItem("pendingRegisterData");
 
-      navigate("/obrigado-freelancer");
+      navigate("/escolher-perfil");
     } catch (err: any) {
       const message =
         err instanceof TypeError
