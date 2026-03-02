@@ -1,6 +1,9 @@
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
+/** Single-flight guard for concurrent refresh calls */
+let refreshPromise: Promise<boolean> | null = null;
+
 /** Decode a JWT payload without external libraries */
 function decodeJwt(token: string): { id: string; exp: number; [key: string]: unknown } {
   const base64Url = token.split(".")[1];
@@ -32,29 +35,37 @@ export function onAuthSuccess(newAuthToken: string): void {
 }
 
 /** Attempt to refresh the auth token using the httpOnly refresh cookie */
-export async function refreshAuthToken(): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/users/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "Origin-type": ORIGIN_TYPE,
-      },
-      body: JSON.stringify({}),
-    });
+export function refreshAuthToken(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
 
-    const body = await response.json().catch(() => null);
+  refreshPromise = (async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Origin-type": ORIGIN_TYPE,
+        },
+        body: JSON.stringify({}),
+      });
 
-    if (response.ok && body?.success && typeof body.data === "string") {
-      onAuthSuccess(body.data);
-      return true;
+      const body = await response.json().catch(() => null);
+
+      if (response.ok && body?.success && typeof body.data === "string") {
+        onAuthSuccess(body.data);
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
     }
+  })().finally(() => {
+    refreshPromise = null;
+  });
 
-    return false;
-  } catch {
-    return false;
-  }
+  return refreshPromise;
 }
 
 /** Clear all auth data from localStorage */
@@ -88,7 +99,26 @@ export async function initializeAuth(): Promise<boolean> {
     return true;
   }
 
-  // Token still valid
+  // Token still valid — ensure authUser exists
+  try {
+    const existing = localStorage.getItem("authUser");
+    const parsed = existing ? JSON.parse(existing) : null;
+    if (!parsed?.id) {
+      const token = JSON.parse(tokenRaw);
+      const decoded = decodeJwt(token);
+      localStorage.setItem("authUser", JSON.stringify({ id: decoded.id }));
+    }
+  } catch {
+    try {
+      const token = JSON.parse(tokenRaw);
+      const decoded = decodeJwt(token);
+      localStorage.setItem("authUser", JSON.stringify({ id: decoded.id }));
+    } catch {
+      logout();
+      return false;
+    }
+  }
+
   return true;
 }
 
