@@ -71,6 +71,7 @@ const CadastroContratante = () => {
   const [ramo, setRamo] = useState("");
   const [nomeEstabelecimento, setNomeEstabelecimento] = useState("");
   const [fotoFachada, setFotoFachada] = useState<File | null>(null);
+  const [fotoInterno, setFotoInterno] = useState<File | null>(null);
   const [cnpjLoading, setCnpjLoading] = useState(false);
   const [fotosExtras, setFotosExtras] = useState<File[]>([]);
   const [responsavelNome, setResponsavelNome] = useState("");
@@ -108,6 +109,7 @@ const CadastroContratante = () => {
   };
 
   const previewFachada = useMemo(() => fotoFachada ? URL.createObjectURL(fotoFachada) : null, [fotoFachada]);
+  const previewInterno = useMemo(() => fotoInterno ? URL.createObjectURL(fotoInterno) : null, [fotoInterno]);
   
   const previewExtras = useMemo(() => fotosExtras.map((f) => URL.createObjectURL(f)), [fotosExtras]);
 
@@ -406,6 +408,25 @@ const CadastroContratante = () => {
                         </label>
                       )}
                       {errors.fotoFachada && <p className="text-xs text-destructive">{errors.fotoFachada}</p>}
+                    </div>
+
+                    {/* Ambiente Interno */}
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">Ambiente Interno</p>
+                      {previewInterno ? (
+                        <div className="relative rounded-lg overflow-hidden aspect-video">
+                          <img src={previewInterno} alt="Ambiente Interno" className="w-full h-full object-cover" />
+                          <button type="button" onClick={() => setFotoInterno(null)} className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-video cursor-pointer hover:border-primary transition-colors border-border">
+                          <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                          <span className="text-xs text-muted-foreground">Clique para enviar</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={handleFileChange(setFotoInterno)} />
+                        </label>
+                      )}
                     </div>
 
                   </div>
