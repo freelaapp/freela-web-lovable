@@ -281,17 +281,19 @@ const CadastroContratante = () => {
                   {errors.documento && <p className="text-sm text-destructive">{errors.documento}</p>}
                 </div>
 
-                {/* Nome / Razão Social */}
-                <div className="space-y-2">
-                  <Label>{tipoDoc === "cnpj" ? "Razão Social" : "Nome Completo"}</Label>
-                  <Input
-                    placeholder={tipoDoc === "cnpj" ? "Razão Social da empresa" : "Seu nome completo"}
-                    value={nomeOuRazao}
-                    onChange={(e) => setNomeOuRazao(e.target.value)}
-                    className={`h-12 ${errors.nomeOuRazao ? "border-destructive" : ""}`}
-                  />
-                  {errors.nomeOuRazao && <p className="text-sm text-destructive">{errors.nomeOuRazao}</p>}
-                </div>
+                {/* Razão Social - apenas quando CNPJ */}
+                {tipoDoc === "cnpj" && (
+                  <div className="space-y-2">
+                    <Label>Razão Social</Label>
+                    <Input
+                      placeholder="Razão Social da empresa"
+                      value={nomeOuRazao}
+                      onChange={(e) => setNomeOuRazao(e.target.value)}
+                      className={`h-12 ${errors.nomeOuRazao ? "border-destructive" : ""}`}
+                    />
+                    {errors.nomeOuRazao && <p className="text-sm text-destructive">{errors.nomeOuRazao}</p>}
+                  </div>
+                )}
 
                 {/* Celular */}
                 <div className="space-y-2">
