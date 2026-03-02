@@ -6,12 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowRight, ArrowLeft, CalendarIcon, Upload, X, Home, Building2, UserCheck, Phone } from "lucide-react";
+import { ArrowRight, ArrowLeft, CalendarIcon, Upload, X, Home, Building2, UserCheck, Phone, Loader2 } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
+import { getAuthUser } from "@/lib/auth";
+
+const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 const ramosEstabelecimento = [
   "Bar", "Restaurante", "Hotel", "Buffet", "Casa de Eventos", "Pub", "Balada", "Clube", "Resort", "Outro",
@@ -91,6 +94,13 @@ const CadastroContratante = () => {
         setBairro(data.bairro || "");
         setCidade(data.localidade || "");
         setEstado(data.uf || "");
+        // Persist ViaCEP extra fields for API submission
+        localStorage.setItem("viacepData", JSON.stringify({
+          ibge: data.ibge || "",
+          gia: data.gia || "",
+          ddd: data.ddd || "",
+          siafi: data.siafi || "",
+        }));
       }
     } catch {
       // silently fail
@@ -124,7 +134,7 @@ const CadastroContratante = () => {
       if (!documento.replace(/\D/g, "")) e.documento = "Documento é obrigatório";
       else if (tipoDoc === "cpf" && documento.replace(/\D/g, "").length !== 11) e.documento = "CPF inválido";
       else if (tipoDoc === "cnpj" && documento.replace(/\D/g, "").length !== 14) e.documento = "CNPJ inválido";
-      if (!nomeOuRazao.trim()) e.nomeOuRazao = tipoDoc === "cnpj" ? "Razão Social é obrigatória" : "Nome Completo é obrigatório";
+      if (tipoDoc === "cnpj" && !nomeOuRazao.trim()) e.nomeOuRazao = "Razão Social é obrigatória";
       if (isCasaCPF) {
         if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
         else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
@@ -137,6 +147,17 @@ const CadastroContratante = () => {
     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
     if (!estado) e.estado = "Estado é obrigatório";
     if (!telefone.replace(/\D/g, "") || telefone.replace(/\D/g, "").length < 10) e.telefone = "Celular inválido";
+
+    // Validate viacepData
+    try {
+      const viacep = JSON.parse(localStorage.getItem("viacepData") || "{}");
+      if (!viacep.ibge || !viacep.gia || !viacep.ddd || !viacep.siafi) {
+        e.cep = "CEP inválido — preencha um CEP válido para buscar os dados";
+      }
+    } catch {
+      e.cep = "CEP inválido — preencha um CEP válido para buscar os dados";
+    }
+
     if (modo === "empresa") {
       if (!ramo) e.ramo = "Ramo é obrigatório";
       if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = "Nome do estabelecimento é obrigatório";
@@ -148,15 +169,100 @@ const CadastroContratante = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      // Get auth data
+      const tokenRaw = localStorage.getItem("authToken");
+      if (!tokenRaw) throw new Error("Sessão expirada. Faça login novamente.");
+      const token = JSON.parse(tokenRaw);
+      const authUser = getAuthUser();
+      if (!authUser?.id) throw new Error("Sessão expirada. Faça login novamente.");
+
+      // Get viacep data
+      const viacep = JSON.parse(localStorage.getItem("viacepData") || "{}");
+
+      const fd = new FormData();
+
+      // Common defaults
+      fd.append("createdAt", new Date().toISOString());
+      fd.append("userId", authUser.id);
+      fd.append("vacancies", "[]");
+      fd.append("numberFixedEmployees", "0");
+      fd.append("numberWeeklyHires", "0");
+      fd.append("providerSpeakAnotherLanguage", "false");
+
+      // ViaCEP fields
+      fd.append("ibge", viacep.ibge || "");
+      fd.append("gia", viacep.gia || "");
+      fd.append("ddd", viacep.ddd || "");
+      fd.append("siafi", viacep.siafi || "");
+
+      // Address fields
+      fd.append("cep", cep.replace(/\D/g, ""));
+      fd.append("street", rua);
+      fd.append("complement", complemento);
+      fd.append("neighborhood", bairro);
+      fd.append("number", numero);
+      fd.append("city", cidade);
+      fd.append("uf", estado);
+
+      const phoneDigits = telefone.replace(/\D/g, "");
+      fd.append("phoneNumber", phoneDigits);
+      fd.append("landiline", phoneDigits);
+
+      if (modo === "empresa") {
+        // Freela para Empresas
+        fd.append("cnpj", cnpj.replace(/\D/g, ""));
+        fd.append("corporateReason", nomeOuRazao);
+        fd.append("companySegment", ramo);
+        fd.append("companyName", nomeEstabelecimento);
+        fd.append("nameOperationResponsible", responsavelNome);
+        fd.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
+        if (fotoFachada) fd.append("establishmentFacadeImage", fotoFachada);
+        if (fotoInterno) fd.append("establishmentInteriorImage", fotoInterno);
+      } else {
+        // Freela em Casa
+        if (tipoDoc === "cpf") {
+          fd.append("cpf", documento.replace(/\D/g, ""));
+          if (dataNascimento) fd.append("birthdate", dataNascimento.toISOString());
+        } else {
+          fd.append("cnpj", documento.replace(/\D/g, ""));
+          fd.append("corporateReason", nomeOuRazao);
+        }
+      }
+
+      const response = await fetch(`${API_BASE_URL}/contractors/`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Origin-type": "Web",
+          "Authorization": token,
+        },
+        body: fd,
+      });
+
+      const body = await response.json().catch(() => null);
+
+      if (response.status !== 200) {
+        throw new Error(body?.message || "Não foi possível completar o cadastro. Tente novamente.");
+      }
+
+      // Cleanup
+      localStorage.removeItem("viacepData");
+
       toast({ title: "Cadastro realizado!", description: "Bem-vindo à Freela." });
       navigate("/dashboard-contratante");
-    }, 1500);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro inesperado. Tente novamente.";
+      toast({ title: "Erro no cadastro", description: message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFileChange = (setter: (f: File | null) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -546,8 +652,8 @@ const CadastroContratante = () => {
             <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Cadastrando...
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {modo === "empresa" ? "Cadastrando empresa…" : "Cadastrando…"}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">Cadastrar-se <ArrowRight className="w-4 h-4" /></span>
