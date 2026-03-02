@@ -6,7 +6,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowRight, ArrowLeft, CalendarIcon, Upload, X, Home, Building2, UserCheck, Phone, Loader2 } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowLeft,
+  CalendarIcon,
+  Upload,
+  X,
+  Home,
+  Building2,
+  UserCheck,
+  Phone,
+  Loader2,
+} from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -17,21 +28,63 @@ import { getAuthUser } from "@/lib/auth";
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 const ramosEstabelecimento = [
-  "Bar", "Restaurante", "Hotel", "Buffet", "Casa de Eventos", "Pub", "Balada", "Clube", "Resort", "Outro",
+  "Bar",
+  "Restaurante",
+  "Hotel",
+  "Buffet",
+  "Casa de Eventos",
+  "Pub",
+  "Balada",
+  "Clube",
+  "Resort",
+  "Outro",
 ];
 
 const estadosBR = [
-  "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
 ];
 
 const maskCPF = (v: string) => {
   const d = v.replace(/\D/g, "").slice(0, 11);
-  return d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  return d
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 };
 
 const maskCNPJ = (v: string) => {
   const d = v.replace(/\D/g, "").slice(0, 14);
-  return d.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
 };
 
 const maskCEP = (v: string) => {
@@ -50,7 +103,9 @@ const getInitialPhone = () => {
   try {
     const data = JSON.parse(localStorage.getItem("pendingRegisterData") || "{}");
     return data.phoneNumber ? formatPhone(data.phoneNumber) : "";
-  } catch { return ""; }
+  } catch {
+    return "";
+  }
 };
 
 const CadastroContratante = () => {
@@ -95,12 +150,15 @@ const CadastroContratante = () => {
         setCidade(data.localidade || "");
         setEstado(data.uf || "");
         // Persist ViaCEP extra fields for API submission
-        localStorage.setItem("viacepData", JSON.stringify({
-          ibge: data.ibge || "",
-          gia: data.gia || "",
-          ddd: data.ddd || "",
-          siafi: data.siafi || "",
-        }));
+        localStorage.setItem(
+          "viacepData",
+          JSON.stringify({
+            ibge: data.ibge || "",
+            gia: data.gia || "",
+            ddd: data.ddd || "",
+            siafi: data.siafi || "",
+          }),
+        );
       }
     } catch {
       // silently fail
@@ -118,9 +176,9 @@ const CadastroContratante = () => {
     }
   };
 
-  const previewFachada = useMemo(() => fotoFachada ? URL.createObjectURL(fotoFachada) : null, [fotoFachada]);
-  const previewInterno = useMemo(() => fotoInterno ? URL.createObjectURL(fotoInterno) : null, [fotoInterno]);
-  
+  const previewFachada = useMemo(() => (fotoFachada ? URL.createObjectURL(fotoFachada) : null), [fotoFachada]);
+  const previewInterno = useMemo(() => (fotoInterno ? URL.createObjectURL(fotoInterno) : null), [fotoInterno]);
+
   const previewExtras = useMemo(() => fotosExtras.map((f) => URL.createObjectURL(f)), [fotosExtras]);
 
   const isCasaCPF = modo === "casa" && tipoDoc === "cpf";
@@ -137,7 +195,8 @@ const CadastroContratante = () => {
       if (tipoDoc === "cnpj" && !nomeOuRazao.trim()) e.nomeOuRazao = "Razão Social é obrigatória";
       if (isCasaCPF) {
         if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
-        else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
+        else if (differenceInYears(new Date(), dataNascimento) < 18)
+          e.dataNascimento = "Você deve ter pelo menos 18 anos";
       }
     }
     if (!cep.replace(/\D/g, "")) e.cep = "CEP é obrigatório";
@@ -163,7 +222,8 @@ const CadastroContratante = () => {
       if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = "Nome do estabelecimento é obrigatório";
       if (!fotoFachada) e.fotoFachada = "Foto da fachada é obrigatória";
       if (!responsavelNome.trim()) e.responsavelNome = "Nome do responsável é obrigatório";
-      if (!responsavelTelefone.replace(/\D/g, "") || responsavelTelefone.replace(/\D/g, "").length < 10) e.responsavelTelefone = "Telefone inválido";
+      if (!responsavelTelefone.replace(/\D/g, "") || responsavelTelefone.replace(/\D/g, "").length < 10)
+        e.responsavelTelefone = "Telefone inválido";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -242,7 +302,7 @@ const CadastroContratante = () => {
         credentials: "include",
         headers: {
           "Origin-type": "Web",
-          "Authorization": token,
+          Authorization: `Bearer ${token}`,
         },
         body: fd,
       });
@@ -298,7 +358,9 @@ const CadastroContratante = () => {
               type="button"
               onClick={() => setModo("casa")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-md text-sm font-medium transition-all ${
-                modo === "casa" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                modo === "casa"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Home className="w-4 h-4" /> Freela em Casa
@@ -307,7 +369,9 @@ const CadastroContratante = () => {
               type="button"
               onClick={() => setModo("empresa")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-md text-sm font-medium transition-all ${
-                modo === "empresa" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                modo === "empresa"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Building2 className="w-4 h-4" /> Freela para Empresas
@@ -329,7 +393,10 @@ const CadastroContratante = () => {
                       const digits = masked.replace(/\D/g, "");
                       if (digits.length === 14) {
                         setCnpjLoading(true);
-                        setErrors((prev) => { const { cnpj: _, ...rest } = prev; return rest; });
+                        setErrors((prev) => {
+                          const { cnpj: _, ...rest } = prev;
+                          return rest;
+                        });
                         fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
                           .then((res) => {
                             if (!res.ok) throw new Error();
@@ -367,8 +434,17 @@ const CadastroContratante = () => {
                 {/* Tipo de Documento - Casa */}
                 <div className="space-y-2">
                   <Label>Tipo de Documento</Label>
-                  <Select value={tipoDoc} onValueChange={(v) => { setTipoDoc(v as "cpf" | "cnpj"); setDocumento(""); setNomeOuRazao(""); }}>
-                    <SelectTrigger className="h-12"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={tipoDoc}
+                    onValueChange={(v) => {
+                      setTipoDoc(v as "cpf" | "cnpj");
+                      setDocumento("");
+                      setNomeOuRazao("");
+                    }}
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="cpf">CPF</SelectItem>
                       <SelectItem value="cnpj">CNPJ</SelectItem>
@@ -382,7 +458,9 @@ const CadastroContratante = () => {
                   <Input
                     placeholder={tipoDoc === "cpf" ? "000.000.000-00" : "00.000.000/0000-00"}
                     value={documento}
-                    onChange={(e) => setDocumento(tipoDoc === "cpf" ? maskCPF(e.target.value) : maskCNPJ(e.target.value))}
+                    onChange={(e) =>
+                      setDocumento(tipoDoc === "cpf" ? maskCPF(e.target.value) : maskCNPJ(e.target.value))
+                    }
                     className={`h-12 ${errors.documento ? "border-destructive" : ""}`}
                   />
                   {errors.documento && <p className="text-sm text-destructive">{errors.documento}</p>}
@@ -427,7 +505,11 @@ const CadastroContratante = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn("w-full h-12 justify-start text-left font-normal", !dataNascimento && "text-muted-foreground", errors.dataNascimento && "border-destructive")}
+                      className={cn(
+                        "w-full h-12 justify-start text-left font-normal",
+                        !dataNascimento && "text-muted-foreground",
+                        errors.dataNascimento && "border-destructive",
+                      )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dataNascimento ? format(dataNascimento, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
@@ -462,9 +544,15 @@ const CadastroContratante = () => {
                 <div className="space-y-2">
                   <Label>Ramo do Estabelecimento</Label>
                   <Select value={ramo} onValueChange={setRamo}>
-                    <SelectTrigger className={`h-12 ${errors.ramo ? "border-destructive" : ""}`}><SelectValue placeholder="Selecione o ramo" /></SelectTrigger>
+                    <SelectTrigger className={`h-12 ${errors.ramo ? "border-destructive" : ""}`}>
+                      <SelectValue placeholder="Selecione o ramo" />
+                    </SelectTrigger>
                     <SelectContent>
-                      {ramosEstabelecimento.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                      {ramosEstabelecimento.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {errors.ramo && <p className="text-sm text-destructive">{errors.ramo}</p>}
@@ -477,7 +565,9 @@ const CadastroContratante = () => {
                     onChange={(e) => setNomeEstabelecimento(e.target.value)}
                     className={`h-12 ${errors.nomeEstabelecimento ? "border-destructive" : ""}`}
                   />
-                  {errors.nomeEstabelecimento && <p className="text-sm text-destructive">{errors.nomeEstabelecimento}</p>}
+                  {errors.nomeEstabelecimento && (
+                    <p className="text-sm text-destructive">{errors.nomeEstabelecimento}</p>
+                  )}
                 </div>
 
                 {/* Celular */}
@@ -505,15 +595,26 @@ const CadastroContratante = () => {
                       {previewFachada ? (
                         <div className="relative rounded-lg overflow-hidden aspect-video">
                           <img src={previewFachada} alt="Fachada" className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => setFotoFachada(null)} className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
+                          <button
+                            type="button"
+                            onClick={() => setFotoFachada(null)}
+                            className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                          >
                             <X className="w-3 h-3" />
                           </button>
                         </div>
                       ) : (
-                        <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-video cursor-pointer hover:border-primary transition-colors ${errors.fotoFachada ? "border-destructive" : "border-border"}`}>
+                        <label
+                          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-video cursor-pointer hover:border-primary transition-colors ${errors.fotoFachada ? "border-destructive" : "border-border"}`}
+                        >
                           <Upload className="w-6 h-6 text-muted-foreground mb-1" />
                           <span className="text-xs text-muted-foreground">Clique para enviar</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={handleFileChange(setFotoFachada)} />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFileChange(setFotoFachada)}
+                          />
                         </label>
                       )}
                       {errors.fotoFachada && <p className="text-xs text-destructive">{errors.fotoFachada}</p>}
@@ -525,7 +626,11 @@ const CadastroContratante = () => {
                       {previewInterno ? (
                         <div className="relative rounded-lg overflow-hidden aspect-video">
                           <img src={previewInterno} alt="Ambiente Interno" className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => setFotoInterno(null)} className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1">
+                          <button
+                            type="button"
+                            onClick={() => setFotoInterno(null)}
+                            className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                          >
                             <X className="w-3 h-3" />
                           </button>
                         </div>
@@ -533,11 +638,15 @@ const CadastroContratante = () => {
                         <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-video cursor-pointer hover:border-primary transition-colors border-border">
                           <Upload className="w-6 h-6 text-muted-foreground mb-1" />
                           <span className="text-xs text-muted-foreground">Clique para enviar</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={handleFileChange(setFotoInterno)} />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFileChange(setFotoInterno)}
+                          />
                         </label>
                       )}
                     </div>
-
                   </div>
 
                   {/* Fotos extras */}
@@ -546,7 +655,11 @@ const CadastroContratante = () => {
                       {previewExtras.map((src, i) => (
                         <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden">
                           <img src={src} alt={`Extra ${i + 1}`} className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => setFotosExtras((prev) => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5">
+                          <button
+                            type="button"
+                            onClick={() => setFotosExtras((prev) => prev.filter((_, idx) => idx !== i))}
+                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                          >
                             <X className="w-2.5 h-2.5" />
                           </button>
                         </div>
@@ -555,10 +668,16 @@ const CadastroContratante = () => {
                   )}
                   <label className="inline-flex items-center gap-2 text-sm text-primary cursor-pointer hover:underline">
                     <Upload className="w-4 h-4" /> Adicionar mais fotos
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
-                      const files = Array.from(e.target.files || []).filter((f) => f.type.startsWith("image/"));
-                      setFotosExtras((prev) => [...prev, ...files]);
-                    }} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []).filter((f) => f.type.startsWith("image/"));
+                        setFotosExtras((prev) => [...prev, ...files]);
+                      }}
+                    />
                   </label>
                 </div>
               </>
@@ -570,50 +689,86 @@ const CadastroContratante = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>CEP</Label>
-                  <Input placeholder="00000-000" value={cep} onChange={(e) => handleCepChange(e.target.value)} className={`h-12 ${errors.cep ? "border-destructive" : ""}`} />
+                  <Input
+                    placeholder="00000-000"
+                    value={cep}
+                    onChange={(e) => handleCepChange(e.target.value)}
+                    className={`h-12 ${errors.cep ? "border-destructive" : ""}`}
+                  />
                   {cepLoading && <p className="text-xs text-muted-foreground">Buscando CEP...</p>}
                   {errors.cep && <p className="text-xs text-destructive">{errors.cep}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Estado</Label>
                   <Select value={estado} onValueChange={setEstado}>
-                    <SelectTrigger className={`h-12 ${errors.estado ? "border-destructive" : ""}`}><SelectValue placeholder="UF" /></SelectTrigger>
-                    <SelectContent>{estadosBR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}</SelectContent>
+                    <SelectTrigger className={`h-12 ${errors.estado ? "border-destructive" : ""}`}>
+                      <SelectValue placeholder="UF" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {estadosBR.map((uf) => (
+                        <SelectItem key={uf} value={uf}>
+                          {uf}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                   {errors.estado && <p className="text-xs text-destructive">{errors.estado}</p>}
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Rua</Label>
-                <Input placeholder="Nome da rua" value={rua} onChange={(e) => setRua(e.target.value)} className={`h-12 ${errors.rua ? "border-destructive" : ""}`} />
+                <Input
+                  placeholder="Nome da rua"
+                  value={rua}
+                  onChange={(e) => setRua(e.target.value)}
+                  className={`h-12 ${errors.rua ? "border-destructive" : ""}`}
+                />
                 {errors.rua && <p className="text-xs text-destructive">{errors.rua}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Número</Label>
-                  <Input placeholder="Nº" value={numero} onChange={(e) => setNumero(e.target.value)} className={`h-12 ${errors.numero ? "border-destructive" : ""}`} />
+                  <Input
+                    placeholder="Nº"
+                    value={numero}
+                    onChange={(e) => setNumero(e.target.value)}
+                    className={`h-12 ${errors.numero ? "border-destructive" : ""}`}
+                  />
                   {errors.numero && <p className="text-xs text-destructive">{errors.numero}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Complemento</Label>
-                  <Input placeholder="Apto, Bloco..." value={complemento} onChange={(e) => setComplemento(e.target.value)} className="h-12" />
+                  <Input
+                    placeholder="Apto, Bloco..."
+                    value={complemento}
+                    onChange={(e) => setComplemento(e.target.value)}
+                    className="h-12"
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Bairro</Label>
-                  <Input placeholder="Bairro" value={bairro} onChange={(e) => setBairro(e.target.value)} className={`h-12 ${errors.bairro ? "border-destructive" : ""}`} />
+                  <Input
+                    placeholder="Bairro"
+                    value={bairro}
+                    onChange={(e) => setBairro(e.target.value)}
+                    className={`h-12 ${errors.bairro ? "border-destructive" : ""}`}
+                  />
                   {errors.bairro && <p className="text-xs text-destructive">{errors.bairro}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Cidade</Label>
-                  <Input placeholder="Cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} className={`h-12 ${errors.cidade ? "border-destructive" : ""}`} />
+                  <Input
+                    placeholder="Cidade"
+                    value={cidade}
+                    onChange={(e) => setCidade(e.target.value)}
+                    className={`h-12 ${errors.cidade ? "border-destructive" : ""}`}
+                  />
                   {errors.cidade && <p className="text-xs text-destructive">{errors.cidade}</p>}
                 </div>
               </div>
             </div>
-
-
 
             {modo === "empresa" && (
               <div className="border-t border-border pt-6 space-y-4">
@@ -645,7 +800,9 @@ const CadastroContratante = () => {
                     }}
                     className={`h-12 ${errors.responsavelTelefone ? "border-destructive" : ""}`}
                   />
-                  {errors.responsavelTelefone && <p className="text-sm text-destructive">{errors.responsavelTelefone}</p>}
+                  {errors.responsavelTelefone && (
+                    <p className="text-sm text-destructive">{errors.responsavelTelefone}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -657,7 +814,9 @@ const CadastroContratante = () => {
                   {modo === "empresa" ? "Cadastrando empresa…" : "Cadastrando…"}
                 </span>
               ) : (
-                <span className="flex items-center gap-2">Cadastrar-se <ArrowRight className="w-4 h-4" /></span>
+                <span className="flex items-center gap-2">
+                  Cadastrar-se <ArrowRight className="w-4 h-4" />
+                </span>
               )}
             </Button>
           </form>
@@ -675,7 +834,12 @@ const CadastroContratante = () => {
                 Contrate profissionais qualificados para suas festas, churrascos e eventos residenciais.
               </p>
               <ul className="space-y-3">
-                {["Bartenders, garçons e cozinheiros à disposição", "Ideal para festas, aniversários e churrascos", "Profissionais avaliados e verificados", "Contratação rápida e sem burocracia"].map((item) => (
+                {[
+                  "Bartenders, garçons e cozinheiros à disposição",
+                  "Ideal para festas, aniversários e churrascos",
+                  "Profissionais avaliados e verificados",
+                  "Contratação rápida e sem burocracia",
+                ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-secondary/90">
                     <ArrowRight className="w-4 h-4 text-secondary flex-shrink-0" />
                     <span>{item}</span>
@@ -691,7 +855,12 @@ const CadastroContratante = () => {
                 Reforce sua equipe com profissionais experientes sob demanda.
               </p>
               <ul className="space-y-3">
-                {["Bares, restaurantes, hotéis e casas de eventos", "Freelancers prontos para cobrir demandas extras", "Gestão simplificada de contratações", "Sem vínculo — contrate quando precisar"].map((item) => (
+                {[
+                  "Bares, restaurantes, hotéis e casas de eventos",
+                  "Freelancers prontos para cobrir demandas extras",
+                  "Gestão simplificada de contratações",
+                  "Sem vínculo — contrate quando precisar",
+                ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-secondary/90">
                     <ArrowRight className="w-4 h-4 text-secondary flex-shrink-0" />
                     <span>{item}</span>
