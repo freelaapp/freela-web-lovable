@@ -285,8 +285,16 @@ const CadastroContratante = () => {
         fd.append("companyName", nomeEstabelecimento);
         fd.append("nameOperationResponsible", responsavelNome);
         fd.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
-        if (fotoFachada) fd.append("establishmentFacadeImage", fotoFachada);
-        if (fotoInterno) fd.append("establishmentInteriorImage", fotoInterno);
+        if (fotoFachada) {
+          const facadeBuffer = await fotoFachada.arrayBuffer();
+          const facadeBlob = new Blob([facadeBuffer], { type: fotoFachada.type });
+          fd.append("establishmentFacadeImage", facadeBlob, fotoFachada.name);
+        }
+        if (fotoInterno) {
+          const interiorBuffer = await fotoInterno.arrayBuffer();
+          const interiorBlob = new Blob([interiorBuffer], { type: fotoInterno.type });
+          fd.append("establishmentInteriorImage", interiorBlob, fotoInterno.name);
+        }
       } else {
         // Freela em Casa
         if (tipoDoc === "cpf") {
