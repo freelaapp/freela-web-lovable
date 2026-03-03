@@ -307,7 +307,7 @@ const CadastroContratante = () => {
 
       const body = await response.json().catch(() => null);
 
-      if (response.status !== 200) {
+      if (response.status !== 200 && response.status !== 201) {
         throw new Error(body?.message || "Não foi possível completar o cadastro. Tente novamente.");
       }
 
