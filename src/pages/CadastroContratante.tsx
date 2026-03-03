@@ -251,7 +251,7 @@ const CadastroContratante = () => {
 
       // Common defaults
       fd.append("createdAt", new Date().toISOString());
-      //fd.append("userId", authUser.id);
+      fd.append("userId", authUser.id);
       fd.append("vacancies", "[]");
       fd.append("numberFixedEmployees", "0");
       fd.append("numberWeeklyHires", "0");
