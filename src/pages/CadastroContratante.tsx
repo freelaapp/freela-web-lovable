@@ -301,7 +301,6 @@ const CadastroContratante = () => {
         headers: {
           "Origin-type": "Web",
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
         },
         body: fd,
       });
