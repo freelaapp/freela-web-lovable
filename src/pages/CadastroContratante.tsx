@@ -265,8 +265,6 @@ const CadastroContratante = () => {
       fd.append("uf", estado);
 
       const phoneDigits = telefone.replace(/\D/g, "");
-      fd.append("phoneNumber", phoneDigits);
-      fd.append("landiline", phoneDigits);
 
       if (modo === "empresa") {
         // Freela para Empresas
