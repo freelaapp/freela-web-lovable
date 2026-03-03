@@ -249,15 +249,6 @@ const CadastroContratante = () => {
 
       const fd = new FormData();
 
-      // Common defaults
-      fd.append("createdAt", new Date().toISOString());
-      fd.append("userId", authUser.id);
-      fd.append("vacancies", "[]");
-      fd.append("numberFixedEmployees", "0");
-      fd.append("numberWeeklyHires", "0");
-      fd.append("providerSpeakAnotherLanguage", "false");
-      fd.append("feedbackStars", "0");
-
       // ViaCEP fields
       fd.append("ibge", viacep.ibge || "");
       fd.append("gia", viacep.gia || "");
