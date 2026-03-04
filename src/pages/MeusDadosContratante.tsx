@@ -278,20 +278,26 @@ const MeusDadosContratante = () => {
         const d = body?.data ?? body;
 
         // Fotos (Buffer → base64 data URL)
-        if (d.establishmentFacadeImage) {
-          setFotoFachada(
-            typeof d.establishmentFacadeImage === "string"
-              ? d.establishmentFacadeImage
-              : `data:image/jpeg;base64,${d.establishmentFacadeImage}`
-          );
-        }
-        if (d.establishmentInteriorImage) {
-          setFotoInterno(
-            typeof d.establishmentInteriorImage === "string"
-              ? d.establishmentInteriorImage
-              : `data:image/jpeg;base64,${d.establishmentInteriorImage}`
-          );
-        }
+        const bufferToDataUrl = (img: any): string | null => {
+          if (!img) return null;
+          if (typeof img === "string") return img;
+          // Handle { type: "Buffer", data: [bytes...] }
+          if (img.type === "Buffer" && Array.isArray(img.data)) {
+            const bytes = new Uint8Array(img.data);
+            let binary = "";
+            for (let i = 0; i < bytes.length; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            return `data:image/jpeg;base64,${btoa(binary)}`;
+          }
+          return null;
+        };
+
+        const facadeUrl = bufferToDataUrl(d.establishmentFacadeImage);
+        if (facadeUrl) setFotoFachada(facadeUrl);
+
+        const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
+        if (interiorUrl) setFotoInterno(interiorUrl);
 
         // Shared fields
         if (d.cnpj) setCnpj(d.cnpj);
