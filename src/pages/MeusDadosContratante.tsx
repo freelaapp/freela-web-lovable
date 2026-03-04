@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Trash2, AlertTriangle, Building2, ImagePlus, MapPin, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const estadosBR = [
+  "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
+  "PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
+];
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNavigate } from "react-router-dom";
@@ -97,7 +103,16 @@ const AddressFields = ({
         </div>
         <div className="space-y-2">
           <Label>Estado</Label>
-          <Input value={estado} onChange={(e) => onEstadoChange(e.target.value)} />
+          <Select value={estado} onValueChange={onEstadoChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="UF" />
+            </SelectTrigger>
+            <SelectContent>
+              {estadosBR.map((uf) => (
+                <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </CardContent>
