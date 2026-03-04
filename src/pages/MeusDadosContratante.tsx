@@ -27,12 +27,10 @@ const formatPhone = (value: string) => {
 type ContractorType = "empresas" | "casa_cnpj" | "casa_cpf";
 
 function detectContractorType(): ContractorType {
-  // Try to detect from stored registration/contractor data
   try {
     const stored = localStorage.getItem("contractorType");
     if (stored === "empresas" || stored === "casa_cnpj" || stored === "casa_cpf") return stored;
   } catch {}
-  // Fallback: check pendingRegisterData or default
   return "empresas";
 }
 
@@ -203,6 +201,18 @@ const DeleteAccountCard = ({ onOpen }: { onOpen: () => void }) => (
   </Card>
 );
 
+// ── Snapshot type for change detection ───────────────────────
+interface FieldSnapshot {
+  cep: string; rua: string; complemento: string; bairro: string;
+  numero: string; cidade: string; estado: string;
+  cnpj: string; razaoSocial: string;
+  ramo: string; nomeEstabelecimento: string;
+  responsavel: string; responsavelTelefone: string;
+  cpf: string; dataNascimento: string;
+}
+
+const makeSnapshot = (s: FieldSnapshot) => JSON.stringify(s);
+
 // ── Main Component ───────────────────────────────────────────
 const MeusDadosContratante = () => {
   const navigate = useNavigate();
@@ -212,6 +222,7 @@ const MeusDadosContratante = () => {
 
   const [type, setType] = useState<ContractorType>(detectContractorType);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   // Common fields
   const [email] = useState("contato@freelaebreja.com.br");
@@ -223,6 +234,11 @@ const MeusDadosContratante = () => {
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [cepLoading, setCepLoading] = useState(false);
+
+  // ViaCEP metadata
+  const [viacepMeta, setViacepMeta] = useState<{ ibge: string; gia: string; ddd: string; siafi: string }>({
+    ibge: "", gia: "", ddd: "", siafi: "",
+  });
 
   // Empresas & Casa CNPJ shared
   const [cnpj, setCnpj] = useState("");
@@ -236,11 +252,28 @@ const MeusDadosContratante = () => {
   const [fotoFachada, setFotoFachada] = useState<string | null>(null);
   const [fotoInterno, setFotoInterno] = useState<string | null>(null);
 
+  // File objects for upload
+  const [fachadaFile, setFachadaFile] = useState<File | null>(null);
+  const [internoFile, setInternoFile] = useState<File | null>(null);
+
   // Casa CPF only
   const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
 
   const [deleteDialog, setDeleteDialog] = useState(false);
+
+  // Change detection: snapshot of original values
+  const [originalSnapshot, setOriginalSnapshot] = useState("");
+  const [originalFotoFachada, setOriginalFotoFachada] = useState<string | null>(null);
+  const [originalFotoInterno, setOriginalFotoInterno] = useState<string | null>(null);
+
+  const getCurrentSnapshot = useCallback((): string => {
+    return makeSnapshot({
+      cep, rua, complemento, bairro, numero, cidade, estado,
+      cnpj, razaoSocial, ramo, nomeEstabelecimento,
+      responsavel, responsavelTelefone, cpf, dataNascimento,
+    });
+  }, [cep, rua, complemento, bairro, numero, cidade, estado, cnpj, razaoSocial, ramo, nomeEstabelecimento, responsavel, responsavelTelefone, cpf, dataNascimento]);
 
   // ── Fetch contractor profile from API ──────────────────────
   useEffect(() => {
@@ -278,22 +311,21 @@ const MeusDadosContratante = () => {
         const d = body?.data ?? body;
 
         // Detect contractor type from API data
+        let detectedType: ContractorType = "empresas";
         if (d.cpf && !d.cnpj) {
-          setType("casa_cpf");
-          localStorage.setItem("contractorType", "casa_cpf");
+          detectedType = "casa_cpf";
         } else if (d.cnpj && !d.establishmentFacadeImage && !d.companyName) {
-          setType("casa_cnpj");
-          localStorage.setItem("contractorType", "casa_cnpj");
+          detectedType = "casa_cnpj";
         } else if (d.cnpj) {
-          setType("empresas");
-          localStorage.setItem("contractorType", "empresas");
+          detectedType = "empresas";
         }
+        setType(detectedType);
+        localStorage.setItem("contractorType", detectedType);
 
         // Fotos (Buffer → base64 data URL)
         const bufferToDataUrl = (img: any): string | null => {
           if (!img) return null;
           if (typeof img === "string") return img;
-          // Handle { type: "Buffer", data: [bytes...] }
           if (img.type === "Buffer" && Array.isArray(img.data)) {
             const bytes = new Uint8Array(img.data);
             let binary = "";
@@ -306,33 +338,59 @@ const MeusDadosContratante = () => {
         };
 
         const facadeUrl = bufferToDataUrl(d.establishmentFacadeImage);
-        if (facadeUrl) setFotoFachada(facadeUrl);
+        if (facadeUrl) { setFotoFachada(facadeUrl); setOriginalFotoFachada(facadeUrl); }
 
         const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
-        if (interiorUrl) setFotoInterno(interiorUrl);
+        if (interiorUrl) { setFotoInterno(interiorUrl); setOriginalFotoInterno(interiorUrl); }
 
-        // Shared fields
-        if (d.cnpj) setCnpj(d.cnpj);
-        if (d.corporateReason) setRazaoSocial(d.corporateReason);
+        // Collect values for snapshot
+        const snapValues: FieldSnapshot = {
+          cep: d.cep ? maskCEP(d.cep) : "",
+          rua: d.street || "",
+          complemento: d.complement || "",
+          bairro: d.neighborhood || "",
+          numero: d.number || "",
+          cidade: d.city || "",
+          estado: d.uf || "",
+          cnpj: d.cnpj || "",
+          razaoSocial: d.corporateReason || "",
+          ramo: d.companySegment || "",
+          nomeEstabelecimento: d.companyName || "",
+          responsavel: d.nameOperationResponsible || "",
+          responsavelTelefone: d.phoneOperationResponsible ? formatPhone(d.phoneOperationResponsible) : "",
+          cpf: d.cpf || "",
+          dataNascimento: d.birthdate || d.birthDate || "",
+        };
 
-        // Empresas fields
-        if (d.companySegment) setRamo(d.companySegment);
-        if (d.companyName) setNomeEstabelecimento(d.companyName);
-        if (d.nameOperationResponsible) setResponsavel(d.nameOperationResponsible);
-        if (d.phoneOperationResponsible) setResponsavelTelefone(formatPhone(d.phoneOperationResponsible));
+        // Set all fields
+        setCnpj(snapValues.cnpj);
+        setRazaoSocial(snapValues.razaoSocial);
+        setRamo(snapValues.ramo);
+        setNomeEstabelecimento(snapValues.nomeEstabelecimento);
+        setResponsavel(snapValues.responsavel);
+        setResponsavelTelefone(snapValues.responsavelTelefone);
+        setCpf(snapValues.cpf);
+        setDataNascimento(snapValues.dataNascimento);
+        setCep(snapValues.cep);
+        setRua(snapValues.rua);
+        setNumero(snapValues.numero);
+        setComplemento(snapValues.complemento);
+        setBairro(snapValues.bairro);
+        setCidade(snapValues.cidade);
+        setEstado(snapValues.estado);
 
-        // Casa CPF fields
-        if (d.cpf) setCpf(d.cpf);
-        if (d.birthdate || d.birthDate) setDataNascimento(d.birthdate || d.birthDate);
+        // Store ViaCEP meta from API if available
+        if (d.ibge || d.gia || d.ddd || d.siafi) {
+          setViacepMeta({
+            ibge: d.ibge || "",
+            gia: d.gia || "",
+            ddd: d.ddd || "",
+            siafi: d.siafi || "",
+          });
+        }
 
-        // Address
-        if (d.cep) setCep(maskCEP(d.cep));
-        if (d.street) setRua(d.street);
-        if (d.number) setNumero(d.number);
-        if (d.complement) setComplemento(d.complement);
-        if (d.neighborhood) setBairro(d.neighborhood);
-        if (d.city) setCidade(d.city);
-        if (d.uf) setEstado(d.uf);
+        // Save original snapshot for change detection
+        setOriginalSnapshot(makeSnapshot(snapValues));
       } catch (err) {
         console.error("[MeusDados] Error fetching profile:", err);
       } finally {
@@ -355,6 +413,12 @@ const MeusDadosContratante = () => {
         setBairro(data.bairro || "");
         setCidade(data.localidade || "");
         setEstado(data.uf || "");
+        setViacepMeta({
+          ibge: data.ibge || "",
+          gia: data.gia || "",
+          ddd: data.ddd || "",
+          siafi: data.siafi || "",
+        });
       }
     } catch { /* silently fail */ }
     finally { setCepLoading(false); }
@@ -367,24 +431,109 @@ const MeusDadosContratante = () => {
     if (digits.length === 8) buscarCep(digits);
   };
 
-  const handleSave = () => {
-    toast({ title: "Dados atualizados", description: "As informações foram salvas com sucesso." });
+  // ── Save handler ───────────────────────────────────────────
+  const handleSave = async () => {
+    // Check for changes
+    const currentSnap = getCurrentSnapshot();
+    const hasFieldChanges = currentSnap !== originalSnapshot;
+    const hasFachadaChange = fachadaFile !== null;
+    const hasInternoChange = internoFile !== null;
+
+    if (!hasFieldChanges && !hasFachadaChange && !hasInternoChange) {
+      toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const tokenRaw = localStorage.getItem("authToken");
+      if (!tokenRaw) {
+        toast({ title: "Erro", description: "Token de autenticação não encontrado.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      const token = JSON.parse(tokenRaw);
+
+      const formData = new FormData();
+      const cepDigits = cep.replace(/\D/g, "");
+
+      // Common address fields
+      formData.append("cep", cepDigits);
+      formData.append("street", rua);
+      formData.append("complement", complemento);
+      formData.append("neighborhood", bairro);
+      formData.append("number", numero);
+      formData.append("city", cidade);
+      formData.append("uf", estado);
+      formData.append("ibge", viacepMeta.ibge);
+      formData.append("gia", viacepMeta.gia);
+      formData.append("ddd", viacepMeta.ddd);
+      formData.append("siafi", viacepMeta.siafi);
+
+      if (type === "casa_cpf") {
+        formData.append("cpf", cpf);
+        formData.append("birthdate", dataNascimento);
+      } else if (type === "casa_cnpj") {
+        formData.append("cnpj", cnpj);
+        formData.append("corporateReason", razaoSocial);
+      } else if (type === "empresas") {
+        formData.append("cnpj", cnpj);
+        formData.append("corporateReason", razaoSocial);
+        formData.append("companySegment", ramo);
+        formData.append("companyName", nomeEstabelecimento);
+        formData.append("nameOperationResponsible", responsavel);
+        formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
+        if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
+        if (internoFile) formData.append("establishmentInteriorImage", internoFile);
+      }
+
+      const res = await fetch("https://api.freelaservicos.com.br/contractors/", {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Origin-type": "web",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (res.ok || res.status === 200 || res.status === 201) {
+        toast({ title: "Dados atualizados", description: "As informações foram salvas com sucesso." });
+        // Update snapshot to current values
+        setOriginalSnapshot(currentSnap);
+        if (fachadaFile) { setOriginalFotoFachada(fotoFachada); setFachadaFile(null); }
+        if (internoFile) { setOriginalFotoInterno(fotoInterno); setInternoFile(null); }
+      } else {
+        const errBody = await res.text();
+        console.error("[MeusDados] Save failed:", res.status, errBody);
+        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("[MeusDados] Save error:", err);
+      toast({ title: "Erro ao salvar", description: "Ocorreu um erro inesperado. Tente novamente.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleFachadaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) setFotoFachada(URL.createObjectURL(file));
+    if (file && file.type.startsWith("image/")) {
+      setFotoFachada(URL.createObjectURL(file));
+      setFachadaFile(file);
+    }
   };
 
   const handleInternoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) setFotoInterno(URL.createObjectURL(file));
+    if (file && file.type.startsWith("image/")) {
+      setFotoInterno(URL.createObjectURL(file));
+      setInternoFile(file);
+    }
   };
 
   const pageTitle = type === "empresas"
     ? "Perfil do Estabelecimento"
-    : type === "casa_cnpj"
-    ? "Meus Dados"
     : "Meus Dados";
 
   return (
@@ -518,7 +667,9 @@ const MeusDadosContratante = () => {
         />
 
         {/* Save */}
-        <Button onClick={handleSave} className="w-full">Salvar Alterações</Button>
+        <Button onClick={handleSave} className="w-full" disabled={saving}>
+          {saving ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Salvando...</> : "Salvar Alterações"}
+        </Button>
 
         {/* Delete */}
         <DeleteAccountCard onOpen={() => setDeleteDialog(true)} />
