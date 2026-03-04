@@ -211,6 +211,7 @@ const MeusDadosContratante = () => {
   const internoRef = useRef<HTMLInputElement>(null);
 
   const [type] = useState<ContractorType>(detectContractorType);
+  const [loading, setLoading] = useState(true);
 
   // Common fields
   const [email] = useState("contato@freelaebreja.com.br");
@@ -224,22 +225,105 @@ const MeusDadosContratante = () => {
   const [cepLoading, setCepLoading] = useState(false);
 
   // Empresas & Casa CNPJ shared
-  const [cnpj] = useState("12.345.678/0001-90");
-  const [razaoSocial] = useState("Freela e Breja LTDA");
+  const [cnpj, setCnpj] = useState("");
+  const [razaoSocial, setRazaoSocial] = useState("");
 
   // Empresas only
-  const [ramo, setRamo] = useState("Bar e Restaurante");
-  const [nomeEstabelecimento, setNomeEstabelecimento] = useState("Freela & Breja");
-  const [responsavel, setResponsavel] = useState("Ana Oliveira");
-  const [responsavelTelefone, setResponsavelTelefone] = useState("(11) 98888-7777");
+  const [ramo, setRamo] = useState("");
+  const [nomeEstabelecimento, setNomeEstabelecimento] = useState("");
+  const [responsavel, setResponsavel] = useState("");
+  const [responsavelTelefone, setResponsavelTelefone] = useState("");
   const [fotoFachada, setFotoFachada] = useState<string | null>(null);
   const [fotoInterno, setFotoInterno] = useState<string | null>(null);
 
   // Casa CPF only
-  const [cpf] = useState("123.456.789-00");
-  const [dataNascimento] = useState("15/03/1990");
+  const [cpf, setCpf] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
 
   const [deleteDialog, setDeleteDialog] = useState(false);
+
+  // ── Fetch contractor profile from API ──────────────────────
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const authUserRaw = localStorage.getItem("authUser");
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!authUserRaw || !tokenRaw) {
+          setLoading(false);
+          return;
+        }
+        const userId = JSON.parse(authUserRaw)?.id;
+        const token = JSON.parse(tokenRaw);
+        if (!userId || !token) {
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(`https://api.freelaservicos.com.br/contractors/${userId}`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Origin-type": "Web",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          console.error("[MeusDados] Fetch failed:", res.status);
+          setLoading(false);
+          return;
+        }
+
+        const body = await res.json();
+        const d = body?.data ?? body;
+
+        // Fotos (Buffer → base64 data URL)
+        if (d.establishmentFacadeImage) {
+          setFotoFachada(
+            typeof d.establishmentFacadeImage === "string"
+              ? d.establishmentFacadeImage
+              : `data:image/jpeg;base64,${d.establishmentFacadeImage}`
+          );
+        }
+        if (d.establishmentInteriorImage) {
+          setFotoInterno(
+            typeof d.establishmentInteriorImage === "string"
+              ? d.establishmentInteriorImage
+              : `data:image/jpeg;base64,${d.establishmentInteriorImage}`
+          );
+        }
+
+        // Shared fields
+        if (d.cnpj) setCnpj(d.cnpj);
+        if (d.corporateReason) setRazaoSocial(d.corporateReason);
+
+        // Empresas fields
+        if (d.companySegment) setRamo(d.companySegment);
+        if (d.companyName) setNomeEstabelecimento(d.companyName);
+        if (d.nameOperationResponsible) setResponsavel(d.nameOperationResponsible);
+        if (d.phoneOperationResponsible) setResponsavelTelefone(formatPhone(d.phoneOperationResponsible));
+
+        // Casa CPF fields
+        if (d.cpf) setCpf(d.cpf);
+        if (d.birthDate) setDataNascimento(d.birthDate);
+
+        // Address
+        if (d.cep) setCep(maskCEP(d.cep));
+        if (d.street) setRua(d.street);
+        if (d.number) setNumero(d.number);
+        if (d.complement) setComplemento(d.complement);
+        if (d.neighborhood) setBairro(d.neighborhood);
+        if (d.city) setCidade(d.city);
+        if (d.uf) setEstado(d.uf);
+      } catch (err) {
+        console.error("[MeusDados] Error fetching profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   // ViaCEP
   const buscarCep = useCallback(async (digits: string) => {
@@ -296,7 +380,12 @@ const MeusDadosContratante = () => {
           <h1 className="text-xl font-display font-bold">{pageTitle}</h1>
         </div>
 
-        {/* ═══ EMPRESAS ═══ */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+        <>
         {type === "empresas" && (
           <>
             {/* Fotos */}
@@ -415,6 +504,8 @@ const MeusDadosContratante = () => {
 
         {/* Delete */}
         <DeleteAccountCard onOpen={() => setDeleteDialog(true)} />
+        </>
+        )}
       </div>
 
       <DeleteAccountDialog email={email} open={deleteDialog} onOpenChange={setDeleteDialog} />
