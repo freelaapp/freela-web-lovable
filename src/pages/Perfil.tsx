@@ -18,7 +18,7 @@ const freelancerMenuItems = [
 
 
 const contratanteMenuItems = [
-{ icon: Building2, label: "Perfil do Restaurante", href: "/meus-dados-contratante", description: "Dados do estabelecimento" },
+{ icon: Building2, label: "Meus Dados", href: "/meus-dados-contratante", description: "Dados do estabelecimento" },
 { icon: CreditCard, label: "Carteira", href: "/carteira", description: "Gastos e histórico de pagamentos" },
 { icon: CalendarPlus, label: "Criar Vaga", href: "/criar-evento", description: "Contratar freelancers" },
 { icon: Settings, label: "Configurações", href: "/configuracoes-contratante", description: "Privacidade, notificações e conta" },
