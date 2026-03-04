@@ -454,29 +454,28 @@ const MeusDadosContratante = () => {
       }
       const token = JSON.parse(tokenRaw);
 
-      const formData = new FormData();
       const cepDigits = cep.replace(/\D/g, "");
+      const addressFields = {
+        cep: cepDigits,
+        street: rua,
+        complement: complemento,
+        neighborhood: bairro,
+        number: numero,
+        city: cidade,
+        uf: estado,
+        ibge: viacepMeta.ibge,
+        gia: viacepMeta.gia,
+        ddd: viacepMeta.ddd,
+        siafi: viacepMeta.siafi,
+      };
 
-      // Common address fields
-      formData.append("cep", cepDigits);
-      formData.append("street", rua);
-      formData.append("complement", complemento);
-      formData.append("neighborhood", bairro);
-      formData.append("number", numero);
-      formData.append("city", cidade);
-      formData.append("uf", estado);
-      formData.append("ibge", viacepMeta.ibge);
-      formData.append("gia", viacepMeta.gia);
-      formData.append("ddd", viacepMeta.ddd);
-      formData.append("siafi", viacepMeta.siafi);
+      let body: FormData | string;
+      let contentType: string | undefined;
 
-      if (type === "casa_cpf") {
-        formData.append("cpf", cpf);
-        formData.append("birthdate", dataNascimento);
-      } else if (type === "casa_cnpj") {
-        formData.append("cnpj", cnpj);
-        formData.append("corporateReason", razaoSocial);
-      } else if (type === "empresas") {
+      if (type === "empresas") {
+        // Empresas has image uploads → multipart/form-data
+        const formData = new FormData();
+        Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
         formData.append("cnpj", cnpj);
         formData.append("corporateReason", razaoSocial);
         formData.append("companySegment", ramo);
@@ -485,16 +484,34 @@ const MeusDadosContratante = () => {
         formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
         if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
         if (internoFile) formData.append("establishmentInteriorImage", internoFile);
+        body = formData;
+        // Let browser set Content-Type with boundary for multipart
+        contentType = undefined;
+      } else {
+        // casa_cpf / casa_cnpj → JSON
+        const jsonBody: Record<string, string> = { ...addressFields };
+        if (type === "casa_cpf") {
+          jsonBody.cpf = cpf;
+          jsonBody.birthdate = dataNascimento;
+        } else if (type === "casa_cnpj") {
+          jsonBody.cnpj = cnpj;
+          jsonBody.corporateReason = razaoSocial;
+        }
+        body = JSON.stringify(jsonBody);
+        contentType = "application/json";
       }
+
+      const headers: Record<string, string> = {
+        "Origin-type": "web",
+        "Authorization": `Bearer ${token}`,
+      };
+      if (contentType) headers["Content-Type"] = contentType;
 
       const res = await fetch("https://api.freelaservicos.com.br/contractors/", {
         method: "PUT",
         credentials: "include",
-        headers: {
-          "Origin-type": "web",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: formData,
+        headers,
+        body,
       });
 
       if (res.ok || res.status === 200 || res.status === 201) {
