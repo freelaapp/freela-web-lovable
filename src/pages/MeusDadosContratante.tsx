@@ -262,18 +262,14 @@ const MeusDadosContratante = () => {
 
   const [deleteDialog, setDeleteDialog] = useState(false);
 
-  // Change detection: snapshot of original values
-  const [originalSnapshot, setOriginalSnapshot] = useState("");
+  // Change detection: store original field values individually
+  const [originalValues, setOriginalValues] = useState<FieldSnapshot>({
+    cep: "", rua: "", complemento: "", bairro: "", numero: "", cidade: "", estado: "",
+    cnpj: "", razaoSocial: "", ramo: "", nomeEstabelecimento: "",
+    responsavel: "", responsavelTelefone: "", cpf: "", dataNascimento: "",
+  });
   const [originalFotoFachada, setOriginalFotoFachada] = useState<string | null>(null);
   const [originalFotoInterno, setOriginalFotoInterno] = useState<string | null>(null);
-
-  const getCurrentSnapshot = useCallback((): string => {
-    return makeSnapshot({
-      cep, rua, complemento, bairro, numero, cidade, estado,
-      cnpj, razaoSocial, ramo, nomeEstabelecimento,
-      responsavel, responsavelTelefone, cpf, dataNascimento,
-    });
-  }, [cep, rua, complemento, bairro, numero, cidade, estado, cnpj, razaoSocial, ramo, nomeEstabelecimento, responsavel, responsavelTelefone, cpf, dataNascimento]);
 
   // ── Fetch contractor profile from API ──────────────────────
   useEffect(() => {
@@ -389,8 +385,8 @@ const MeusDadosContratante = () => {
           });
         }
 
-        // Save original snapshot for change detection
-        setOriginalSnapshot(makeSnapshot(snapValues));
+        // Save original values for change detection
+        setOriginalValues(snapValues);
       } catch (err) {
         console.error("[MeusDados] Error fetching profile:", err);
       } finally {
@@ -433,11 +429,24 @@ const MeusDadosContratante = () => {
 
   // ── Save handler ───────────────────────────────────────────
   const handleSave = async () => {
-    // Check for changes
-    const currentSnap = getCurrentSnapshot();
-    const hasFieldChanges = currentSnap !== originalSnapshot;
+    // Build current values map
+    const currentValues: FieldSnapshot = {
+      cep, rua, complemento, bairro, numero, cidade, estado,
+      cnpj, razaoSocial, ramo, nomeEstabelecimento,
+      responsavel, responsavelTelefone, cpf, dataNascimento,
+    };
+
+    // Detect which fields changed
+    const changedFields: Partial<FieldSnapshot> = {};
+    for (const key of Object.keys(currentValues) as (keyof FieldSnapshot)[]) {
+      if (currentValues[key] !== originalValues[key]) {
+        changedFields[key] = currentValues[key];
+      }
+    }
+
     const hasFachadaChange = fachadaFile !== null;
     const hasInternoChange = internoFile !== null;
+    const hasFieldChanges = Object.keys(changedFields).length > 0;
 
     if (!hasFieldChanges && !hasFachadaChange && !hasInternoChange) {
       toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
@@ -454,40 +463,49 @@ const MeusDadosContratante = () => {
       }
       const token = JSON.parse(tokenRaw);
 
-      const cepDigits = cep.replace(/\D/g, "");
-      const addressFields = {
-        cep: cepDigits,
-        street: rua,
-        complement: complemento,
-        neighborhood: bairro,
-        number: numero,
-        city: cidade,
-        uf: estado,
-        ibge: viacepMeta.ibge,
-        gia: viacepMeta.gia,
-        ddd: viacepMeta.ddd,
-        siafi: viacepMeta.siafi,
+      const formData = new FormData();
+
+      // Map local field names → API field names
+      const fieldToApiKey: Record<keyof FieldSnapshot, string> = {
+        cep: "cep", rua: "street", complemento: "complement", bairro: "neighborhood",
+        numero: "number", cidade: "city", estado: "uf",
+        cnpj: "cnpj", razaoSocial: "corporateReason",
+        ramo: "companySegment", nomeEstabelecimento: "companyName",
+        responsavel: "nameOperationResponsible", responsavelTelefone: "phoneOperationResponsible",
+        cpf: "cpf", dataNascimento: "birthdate",
       };
 
-      const formData = new FormData();
-      Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
+      // Only append address-related viacep meta if any address field changed
+      const addressKeys: (keyof FieldSnapshot)[] = ["cep", "rua", "complemento", "bairro", "numero", "cidade", "estado"];
+      const hasAddressChange = addressKeys.some((k) => k in changedFields);
 
-      if (type === "casa_cpf") {
-        formData.append("cpf", cpf);
-        formData.append("birthdate", dataNascimento);
-      } else if (type === "casa_cnpj") {
-        formData.append("cnpj", cnpj);
-        formData.append("corporateReason", razaoSocial);
-      } else if (type === "empresas") {
-        formData.append("cnpj", cnpj);
-        formData.append("corporateReason", razaoSocial);
-        formData.append("companySegment", ramo);
-        formData.append("companyName", nomeEstabelecimento);
-        formData.append("nameOperationResponsible", responsavel);
-        formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
-        if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
-        if (internoFile) formData.append("establishmentInteriorImage", internoFile);
+      for (const [field, value] of Object.entries(changedFields)) {
+        const apiKey = fieldToApiKey[field as keyof FieldSnapshot];
+        if (apiKey === "phoneOperationResponsible") {
+          formData.append(apiKey, (value as string).replace(/\D/g, ""));
+        } else {
+          formData.append(apiKey, value as string);
+        }
       }
+
+      // If any address field changed, also send viacep metadata
+      if (hasAddressChange) {
+        if (!("cep" in changedFields)) formData.append("cep", cep.replace(/\D/g, ""));
+        if (!("rua" in changedFields)) formData.append("street", rua);
+        if (!("complemento" in changedFields)) formData.append("complement", complemento);
+        if (!("bairro" in changedFields)) formData.append("neighborhood", bairro);
+        if (!("numero" in changedFields)) formData.append("number", numero);
+        if (!("cidade" in changedFields)) formData.append("city", cidade);
+        if (!("estado" in changedFields)) formData.append("uf", estado);
+        formData.append("ibge", viacepMeta.ibge);
+        formData.append("gia", viacepMeta.gia);
+        formData.append("ddd", viacepMeta.ddd);
+        formData.append("siafi", viacepMeta.siafi);
+      }
+
+      // Images (empresas only)
+      if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
+      if (internoFile) formData.append("establishmentInteriorImage", internoFile);
 
       const res = await fetch("https://api.freelaservicos.com.br/contractors/", {
         method: "PUT",
@@ -501,8 +519,7 @@ const MeusDadosContratante = () => {
 
       if (res.ok || res.status === 200 || res.status === 201) {
         toast({ title: "Dados atualizados", description: "As informações foram salvas com sucesso." });
-        // Update snapshot to current values
-        setOriginalSnapshot(currentSnap);
+        setOriginalValues(currentValues);
         if (fachadaFile) { setOriginalFotoFachada(fotoFachada); setFachadaFile(null); }
         if (internoFile) { setOriginalFotoInterno(fotoInterno); setInternoFile(null); }
       } else {
