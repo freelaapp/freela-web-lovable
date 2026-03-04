@@ -259,7 +259,7 @@ const MeusDadosContratante = () => {
           return;
         }
 
-        const res = await fetch(`https://api.freelaservicos.com.br/contractors/${userId}`, {
+        const res = await fetch(`https://api.freelaservicos.com.br/users/contractors`, {
           method: "GET",
           credentials: "include",
           headers: {
