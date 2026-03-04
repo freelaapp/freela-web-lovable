@@ -51,7 +51,8 @@ const Login = () => {
         title: "Login realizado!",
         description: "Bem-vindo de volta à Freela.",
       });
-      navigate("/obrigado-freelancer");
+      const role = localStorage.getItem("userRole");
+      navigate(role === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
     } catch (err: any) {
       const message =
         err instanceof TypeError
