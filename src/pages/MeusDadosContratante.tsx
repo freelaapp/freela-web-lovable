@@ -210,7 +210,7 @@ const MeusDadosContratante = () => {
   const fachadaRef = useRef<HTMLInputElement>(null);
   const internoRef = useRef<HTMLInputElement>(null);
 
-  const [type] = useState<ContractorType>(detectContractorType);
+  const [type, setType] = useState<ContractorType>(detectContractorType);
   const [loading, setLoading] = useState(true);
 
   // Common fields
@@ -276,6 +276,18 @@ const MeusDadosContratante = () => {
 
         const body = await res.json();
         const d = body?.data ?? body;
+
+        // Detect contractor type from API data
+        if (d.cpf && !d.cnpj) {
+          setType("casa_cpf");
+          localStorage.setItem("contractorType", "casa_cpf");
+        } else if (d.cnpj && !d.establishmentFacadeImage && !d.companyName) {
+          setType("casa_cnpj");
+          localStorage.setItem("contractorType", "casa_cnpj");
+        } else if (d.cnpj) {
+          setType("empresas");
+          localStorage.setItem("contractorType", "empresas");
+        }
 
         // Fotos (Buffer → base64 data URL)
         const bufferToDataUrl = (img: any): string | null => {
