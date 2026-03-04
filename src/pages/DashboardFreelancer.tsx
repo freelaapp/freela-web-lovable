@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Briefcase, DollarSign, Star, Calendar, Clock, ChevronRight, TrendingUp, MapPin, MessageCircle } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { Briefcase, DollarSign, Star, Calendar, Clock, ChevronRight, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 
 const mockJobs = [
@@ -32,28 +32,17 @@ const DashboardFreelancer = () => {
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 space-y-6">
         {/* Greeting */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-display font-bold">Olá, Carlos! 👋</h1>
-            <p className="text-muted-foreground text-sm mt-1">Aqui está o resumo dos seus trabalhos</p>
-          </div>
-          <Link
-            to="/mensagens"
-            className="p-2.5 rounded-xl bg-primary-light text-primary hover:bg-primary hover:text-primary-foreground transition-colors relative"
-            title="Mensagens"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">2</span>
-          </Link>
+        <div>
+          <h1 className="text-2xl font-display font-bold">Olá, Carlos! 👋</h1>
+          <p className="text-muted-foreground text-sm mt-1">Aqui está o resumo dos seus trabalhos</p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {[
             { icon: DollarSign, label: "Ganhos do mês", value: "R$ 3.650", color: "text-success", bg: "bg-success-light" },
             { icon: Briefcase, label: "Jobs este mês", value: "8", color: "text-primary", bg: "bg-primary-light" },
             { icon: Star, label: "Avaliação", value: "4.9", color: "text-warning", bg: "bg-warning-light" },
-            { icon: TrendingUp, label: "Visualizações", value: "342", color: "text-accent", bg: "bg-primary-light" },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardContent className="p-4">
