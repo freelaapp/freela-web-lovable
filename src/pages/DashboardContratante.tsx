@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarPlus, Users, Clock, ChevronRight, Star, DollarSign, AlertCircle, Calendar, MapPin, Briefcase, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
+import { useEffect, useState } from "react";
 
 const mockStats = {
   totalGasto: "R$ 12.450",
@@ -29,6 +30,32 @@ const mockAvaliacoesPendentes = [
 
 const DashboardContratante = () => {
   const navigate = useNavigate();
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) return;
+        const token = JSON.parse(tokenRaw);
+        const res = await fetch("https://api.freelaservicos.com.br/users/me", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Origin-type": "Web",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        const body = await res.json();
+        if (body?.success && body?.data?.name) {
+          setUserName(body.data.name);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar dados do usuário:", err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <AppLayout showFooter={false}>
@@ -36,7 +63,7 @@ const DashboardContratante = () => {
         {/* Greeting */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold">Olá, Freela & Breja! 👋</h1>
+            <h1 className="text-2xl font-display font-bold">Olá, {userName || "Contratante"}! 👋</h1>
             <p className="text-muted-foreground text-sm mt-1">Gerencie seus eventos e freelancers</p>
           </div>
           <div className="flex items-center gap-2">
