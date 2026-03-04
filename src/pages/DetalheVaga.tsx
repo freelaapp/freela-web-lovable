@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Phone, User, MessageCircle, ShieldCheck, CheckCircle, DollarSign, Home, Building2, Briefcase, ExternalLink, Ban, Check, X } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, User, ShieldCheck, CheckCircle, DollarSign, Home, Building2, Briefcase, ExternalLink, Ban, Check, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppLayout from "@/components/layout/AppLayout";
@@ -198,18 +198,6 @@ const DetalheVaga = () => {
           </CardContent>
         </Card>
 
-        {/* Ações */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="gap-2" onClick={() => navigate("/mensagens")}>
-            <MessageCircle className="w-4 h-4" /> Mensagem
-          </Button>
-          {canConfirm && (
-            <Button className="gap-2" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
-              <ShieldCheck className="w-4 h-4" /> Confirmar Entrada
-            </Button>
-          )}
-        </div>
-
         {/* Timeline */}
         <Card>
           <CardHeader className="pb-3">
@@ -220,6 +208,9 @@ const DetalheVaga = () => {
               {timelineSteps.map((step, i) => {
                 const done = vaga.timeline[step.key as keyof typeof vaga.timeline];
                 const isLast = i === timelineSteps.length - 1;
+                const showEntrada = step.key === "inicio" && canConfirm;
+                const canConfirmExit = vaga.status === "aceita" && vaga.timeline.inicio && !vaga.timeline.fim;
+                const showSaida = step.key === "fim" && canConfirmExit;
                 return (
                   <div key={step.key} className="relative pb-6 last:pb-0">
                     {!isLast && (
@@ -228,9 +219,21 @@ const DetalheVaga = () => {
                     <div className={`absolute left-[-22px] top-1 w-3 h-3 rounded-full border-2 ${
                       done ? "bg-primary border-primary" : "bg-background border-border"
                     }`} />
-                    <div>
-                      <p className={`text-sm font-semibold ${done ? "text-foreground" : "text-muted-foreground"}`}>{step.label}</p>
-                      <p className="text-xs text-muted-foreground">{done ? "✓ Concluído" : "Pendente"}</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`text-sm font-semibold ${done ? "text-foreground" : "text-muted-foreground"}`}>{step.label}</p>
+                        <p className="text-xs text-muted-foreground">{done ? "✓ Concluído" : "Pendente"}</p>
+                      </div>
+                      {showEntrada && (
+                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
+                          <ShieldCheck className="w-4 h-4" /> Confirmar Entrada
+                        </Button>
+                      )}
+                      {showSaida && (
+                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
+                          <ShieldCheck className="w-4 h-4" /> Confirmar Saída
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
