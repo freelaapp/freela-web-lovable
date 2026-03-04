@@ -502,7 +502,7 @@ const MeusDadosContratante = () => {
       }
 
       const headers: Record<string, string> = {
-        "Origin-type": "web",
+        "Origin-type": "Web",
         "Authorization": `Bearer ${token}`,
       };
       if (contentType) headers["Content-Type"] = contentType;
