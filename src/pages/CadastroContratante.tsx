@@ -310,6 +310,15 @@ const CadastroContratante = () => {
         throw new Error(body?.message || "Não foi possível completar o cadastro. Tente novamente.");
       }
 
+      // Persist contractor type for profile page
+      if (modo === "empresa") {
+        localStorage.setItem("contractorType", "empresas");
+      } else if (tipoDoc === "cnpj") {
+        localStorage.setItem("contractorType", "casa_cnpj");
+      } else {
+        localStorage.setItem("contractorType", "casa_cpf");
+      }
+
       // Cleanup
       localStorage.removeItem("viacepData");
 
