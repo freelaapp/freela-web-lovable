@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Trash2, AlertTriangle, Building2, ImagePlus, MapPin, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import CitySelect from "@/components/CitySelect";
 
 const estadosBR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -99,7 +100,7 @@ const AddressFields = ({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label>Cidade</Label>
-          <Input value={cidade} onChange={(e) => onCidadeChange(e.target.value)} />
+          <CitySelect value={cidade} onValueChange={onCidadeChange} />
         </div>
         <div className="space-y-2">
           <Label>Estado</Label>
