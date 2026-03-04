@@ -311,7 +311,7 @@ const MeusDadosContratante = () => {
 
         // Casa CPF fields
         if (d.cpf) setCpf(d.cpf);
-        if (d.birthDate) setDataNascimento(d.birthDate);
+        if (d.birthdate || d.birthDate) setDataNascimento(d.birthdate || d.birthDate);
 
         // Address
         if (d.cep) setCep(maskCEP(d.cep));
