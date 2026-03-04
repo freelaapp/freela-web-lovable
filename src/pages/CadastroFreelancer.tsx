@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import CitySelect from "@/components/CitySelect";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowRight, ArrowLeft, CalendarIcon, Briefcase, CheckCircle, Camera, X, User, Phone, Heart } from "lucide-react";
@@ -418,11 +419,11 @@ const CadastroFreelancer = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Cidade</Label>
-                  <Input
-                    placeholder="Cidade"
+                  <CitySelect
                     value={cidade}
-                    onChange={(e) => setCidade(e.target.value)}
-                    className={`h-12 ${errors.cidade ? "border-destructive" : ""}`}
+                    onValueChange={setCidade}
+                    className={`h-12`}
+                    hasError={!!errors.cidade}
                   />
                   {errors.cidade && <p className="text-xs text-destructive">{errors.cidade}</p>}
                 </div>
