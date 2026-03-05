@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, LayoutDashboard, Calendar, Star, Map, User, DollarSign, CalendarPlus } from "lucide-react";
+import { Menu, X, Home, LayoutDashboard, Calendar, Star, Map, User, CalendarPlus } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -50,7 +50,6 @@ const Header = () => {
 
   const freelancerNavLinks = [
     { href: "/dashboard-freelancer", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/carteira", label: "Ganhos", icon: DollarSign },
     { href: "/agenda", label: "Agenda", icon: Calendar },
     { href: "/mapa-vagas", label: "Vagas", icon: Map },
     { href: "/avaliacoes", label: "Avaliações", icon: Star },
@@ -58,7 +57,6 @@ const Header = () => {
 
   const contratanteNavLinks = [
     { href: "/dashboard-contratante", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/carteira", label: "Ganhos", icon: DollarSign },
     { href: "/agenda", label: "Agenda", icon: Calendar },
     { href: "/avaliacoes", label: "Avaliações", icon: Star },
   ];
