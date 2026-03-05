@@ -1,14 +1,28 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Eye, Car, Pencil, Play, Image as ImageIconLucide, X, Check } from "lucide-react";
+import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Eye, Car, Pencil, Play, Image as ImageIconLucide, X, Check, Loader2 } from "lucide-react";
 import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
 import { useUserRole, setUserRole } from "@/hooks/useUserRole";
+
+type ContractorType = "empresas" | "casa_cnpj" | "casa_cpf";
+
+const bufferToDataUrl = (img: any): string | null => {
+  if (!img) return null;
+  if (typeof img === "string") return img;
+  if (img.type === "Buffer" && Array.isArray(img.data)) {
+    const bytes = new Uint8Array(img.data);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return `data:image/jpeg;base64,${btoa(binary)}`;
+  }
+  return null;
+};
 
 const freelancerMenuItems = [
 { icon: User, label: "Meus Dados", href: "/meus-dados", description: "Editar perfil e informações" },
@@ -95,6 +109,71 @@ const Perfil = () => {
   const [cnhCategories, setCnhCategories] = useState<string[]>(["B"]);
   const [editingCnh, setEditingCnh] = useState(false);
   const [tempCnh, setTempCnh] = useState<string[]>([]);
+
+  // Contractor API data
+  const [contractorType, setContractorType] = useState<ContractorType>("empresas");
+  const [contractorLoading, setContractorLoading] = useState(true);
+  const [contractorData, setContractorData] = useState<{
+    name: string;
+    avatarUrl: string | null;
+    rating: string;
+    segment: string;
+    city: string;
+    uf: string;
+  }>({ name: "", avatarUrl: null, rating: "0", segment: "", city: "", uf: "" });
+
+  // Fetch contractor profile when contratante
+  useEffect(() => {
+    if (!isContratante) {
+      setContractorLoading(false);
+      return;
+    }
+    const fetchContractor = async () => {
+      try {
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) { setContractorLoading(false); return; }
+        const token = JSON.parse(tokenRaw);
+
+        const res = await fetch("https://api.freelaservicos.com.br/users/contractors", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Origin-type": "Web", "Authorization": `Bearer ${token}` },
+        });
+        if (!res.ok) { setContractorLoading(false); return; }
+        const body = await res.json();
+        const d = body?.data ?? body;
+
+        // Detect type
+        let detected: ContractorType = "empresas";
+        if (d.cpf && !d.cnpj) detected = "casa_cpf";
+        else if (d.cnpj && !d.establishmentFacadeImage && !d.companyName) detected = "casa_cnpj";
+        setContractorType(detected);
+
+        // Avatar
+        const avatar = bufferToDataUrl(d.establishmentFacadeImage) || bufferToDataUrl(d.profileImage);
+
+        // Fotos for empresas
+        const facadeUrl = bufferToDataUrl(d.establishmentFacadeImage);
+        if (facadeUrl) setFotoFachada(facadeUrl);
+        const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
+        if (interiorUrl) setFotoInterno(interiorUrl);
+
+        setContractorData({
+          name: d.companyName || d.corporateReason || d.name || "",
+          avatarUrl: avatar,
+          rating: d.feedbackStars ? String(d.feedbackStars) : "0",
+          segment: d.companySegment || "",
+          city: d.city || "",
+          uf: d.uf || "",
+        });
+      } catch (err) {
+        console.error("[Perfil] contractor fetch error:", err);
+      } finally {
+        setContractorLoading(false);
+      }
+    };
+    fetchContractor();
+  }, [isContratante]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -222,68 +301,73 @@ const Perfil = () => {
         }
 
         {/* Profile Card */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start gap-5">
-              <div className="relative shrink-0">
-                <button
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold group overflow-hidden">
-
-                  {avatarUrl ?
-                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> :
-
-                  <span>{isContratante ? "FB" : "CS"}</span>
-                  }
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                    <Camera className="w-5 h-5 text-white" />
-                  </div>
-                </button>
-                {!isContratante &&
-                <img
-                  src={pcdIcon}
-                  alt="PCD"
-                  className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background"
-                  title="Pessoa com Deficiência" />
-
-                }
-              </div>
-              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-lg font-display font-bold">{isContratante ? "Freela & Breja" : "Carlos Silva"}</h2>
-                  <Shield className="w-4 h-4 text-primary fill-primary/20" />
+        {isContratante && contractorLoading ? (
+          <Card>
+            <CardContent className="p-6 flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground">Carregando perfil...</span>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-start gap-5">
+                <div className="relative shrink-0">
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold group overflow-hidden">
+                    {(isContratante ? contractorData.avatarUrl : avatarUrl) ? (
+                      <img src={(isContratante ? contractorData.avatarUrl : avatarUrl)!} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{isContratante ? (contractorData.name?.[0] || "C") : "CS"}</span>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                      <Camera className="w-5 h-5 text-white" />
+                    </div>
+                  </button>
+                  {!isContratante && (
+                    <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
+                  )}
                 </div>
-                <div className="flex items-center gap-1 text-sm text-primary font-medium">
-                  <Star className="w-4 h-4 fill-primary" /> {isContratante ? "4.9" : "4.8"}
-                  <span className="text-muted-foreground font-normal ml-1">•</span>
-                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium ml-1">
-                    {isContratante ?
-                    <><Building2 className="w-3 h-3" /> Bar e Restaurante</> :
-
-                    <><Briefcase className="w-3 h-3" /> Freelancer</>
-                    }
-                  </span>
-                </div>
-                
-
-
-
-                {isContratante ?
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4 shrink-0" />
-                    <span>São Paulo, SP</span>
-                  </div> :
-
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4 shrink-0" />
-                    <span>São Paulo, SP</span>
+                <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="text-lg font-display font-bold">
+                      {isContratante ? (contractorData.name || "Contratante") : "Carlos Silva"}
+                    </h2>
+                    <Shield className="w-4 h-4 text-primary fill-primary/20" />
                   </div>
-                }
+                  <div className="flex items-center gap-1 text-sm text-primary font-medium">
+                    <Star className="w-4 h-4 fill-primary" /> {isContratante ? contractorData.rating : "4.8"}
+                    {isContratante && contractorData.segment ? (
+                      <>
+                        <span className="text-muted-foreground font-normal ml-1">•</span>
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium ml-1">
+                          <Building2 className="w-3 h-3" /> {contractorData.segment}
+                        </span>
+                      </>
+                    ) : !isContratante ? (
+                      <>
+                        <span className="text-muted-foreground font-normal ml-1">•</span>
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary-light text-primary font-medium ml-1">
+                          <Briefcase className="w-3 h-3" /> Freelancer
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="w-4 h-4 shrink-0" />
+                    <span>
+                      {isContratante
+                        ? [contractorData.city, contractorData.uf].filter(Boolean).join(", ") || "Não informado"
+                        : "São Paulo, SP"}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Sobre mim - freelancer only */}
         {!isContratante &&
@@ -421,8 +505,8 @@ const Perfil = () => {
           </Card>
         }
 
-        {/* Contratante: Fotos do Estabelecimento */}
-        {isContratante &&
+        {/* Contratante: Fotos do Estabelecimento - only for empresas */}
+        {isContratante && contractorType === "empresas" &&
         <Card>
             <CardContent className="p-6 space-y-4">
               <h3 className="text-base font-display font-bold flex items-center gap-2">
