@@ -4,6 +4,32 @@ import { Star, AlertCircle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AppLayout from "@/components/layout/AppLayout";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+const API_BASE_URL = "https://api.freelaservicos.com.br";
+const ORIGIN_TYPE = "Web";
+
+function getAuthToken(): string | null {
+  const raw = localStorage.getItem("authToken");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
+
+interface Feedback {
+  id: string;
+  comment: string;
+  star: number;
+  sender: string;
+  receiver: string;
+  jobId: string;
+  createdAt: string;
+  senderName?: string;
+}
 
 const renderStars = (rating: number) => (
   <div className="flex gap-0.5">
@@ -37,25 +63,113 @@ const contratantePendentes = [
   { id: 2, title: "Bartender - Aniversário", client: "Juliana Alves (Bartender)", date: "22 Fev 2026", location: "Jundiaí, SP" },
 ];
 
-const contratanteRecebidas = [
-  { id: 1, client: "Carlos Silva", date: "31 Dez 2025", rating: 5, comment: "Ótimo contratante, pagou no prazo e foi muito cordial." },
-  { id: 2, client: "Pedro Lima", date: "20 Dez 2025", rating: 4, comment: "Tudo certo, evento bem organizado." },
-];
-
 const contratanteFeitas = [
   { id: 4, name: "Carlos Silva - Churrasqueiro", date: "31 Dez 2025", rating: 5, comment: "Profissional excepcional, cuidou de tudo com perfeição." },
   { id: 5, name: "Juliana Alves - Bartender", date: "20 Dez 2025", rating: 5, comment: "Drinks incríveis, super profissional!" },
   { id: 6, name: "Pedro Lima - Garçom", date: "10 Dez 2025", rating: 4, comment: "Bom profissional, pontual e educado." },
 ];
 
+function formatDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
+const FeedbackItem = ({ fb }: { fb: Feedback }) => (
+  <div className="p-3 rounded-xl bg-muted/50 space-y-1.5">
+    <div className="flex items-center justify-between">
+      <p className="text-sm font-semibold">{fb.senderName || "Freelancer"}</p>
+      {renderStars(fb.star)}
+    </div>
+    <p className="text-xs text-muted-foreground">{formatDate(fb.createdAt)}</p>
+    {fb.comment && <p className="text-sm text-foreground/80">"{fb.comment}"</p>}
+  </div>
+);
+
 const Avaliacoes = () => {
   const navigate = useNavigate();
   const role = useUserRole();
   const isContratante = role === "contratante";
 
+  const [recebidasApi, setRecebidasApi] = useState<Feedback[]>([]);
+  const [loadingRecebidas, setLoadingRecebidas] = useState(false);
+  const [showAllModal, setShowAllModal] = useState(false);
+
+  useEffect(() => {
+    if (!isContratante) return;
+
+    const fetchFeedbacks = async () => {
+      setLoadingRecebidas(true);
+      try {
+        const token = getAuthToken();
+        if (!token) return;
+
+        // 1. Get contractor id
+        const contractorRes = await fetch(`${API_BASE_URL}/users/contractors`, {
+          method: "GET",
+          credentials: "include",
+          headers: { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` },
+        });
+        const contractorBody = await contractorRes.json();
+        if (!contractorBody?.success || !contractorBody?.data?.id) return;
+        const contractorId = contractorBody.data.id;
+
+        // 2. Get feedbacks
+        const fbRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, {
+          method: "GET",
+          credentials: "include",
+          headers: { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` },
+        });
+        const fbBody = await fbRes.json();
+        if (!fbBody?.success || !Array.isArray(fbBody?.data)) {
+          setRecebidasApi([]);
+          return;
+        }
+
+        const feedbacks: Feedback[] = fbBody.data;
+
+        // 3. Fetch sender names in parallel
+        const uniqueSenders = [...new Set(feedbacks.map(f => f.sender))];
+        const nameMap: Record<string, string> = {};
+
+        await Promise.all(
+          uniqueSenders.map(async (senderId) => {
+            try {
+              const res = await fetch(`${API_BASE_URL}/users/${senderId}`, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` },
+              });
+              const body = await res.json();
+              if (body?.success && body?.data?.name) {
+                nameMap[senderId] = body.data.name;
+              }
+            } catch {
+              // ignore
+            }
+          })
+        );
+
+        setRecebidasApi(feedbacks.map(f => ({ ...f, senderName: nameMap[f.sender] })));
+      } catch (err) {
+        console.error("Erro ao buscar feedbacks:", err);
+        setRecebidasApi([]);
+      } finally {
+        setLoadingRecebidas(false);
+      }
+    };
+
+    fetchFeedbacks();
+  }, [isContratante]);
+
   const pendentes = isContratante ? contratantePendentes : freelancerPendentes;
-  const recebidas = isContratante ? contratanteRecebidas : freelancerRecebidas;
+  const recebidas = isContratante ? null : freelancerRecebidas; // null = use API for contratante
   const feitas = isContratante ? contratanteFeitas : freelancerFeitas;
+
+  const recebidasToShow = isContratante ? recebidasApi.slice(0, 4) : freelancerRecebidas;
 
   return (
     <AppLayout showFooter={false}>
@@ -94,25 +208,42 @@ const Avaliacoes = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Star className="w-5 h-5 text-primary" /> Recebidas
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Star className="w-5 h-5 text-primary" /> Recebidas
+                </CardTitle>
+                {isContratante && recebidasApi.length > 4 && (
+                  <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => setShowAllModal(true)}>
+                    Ver todas
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {recebidas.map(av => (
-                <div
-                  key={av.id}
-                  className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
-                  onClick={() => navigate(`/avaliacao/${av.id}`)}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">{av.client}</p>
-                    {renderStars(av.rating)}
+              {isContratante ? (
+                loadingRecebidas ? (
+                  <p className="text-sm text-muted-foreground">Carregando...</p>
+                ) : recebidasApi.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sem avaliações</p>
+                ) : (
+                  recebidasToShow.map(fb => <FeedbackItem key={fb.id} fb={fb} />)
+                )
+              ) : (
+                (recebidas ?? []).map(av => (
+                  <div
+                    key={av.id}
+                    className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
+                    onClick={() => navigate(`/avaliacao/${av.id}`)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold">{av.client}</p>
+                      {renderStars(av.rating)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{av.date}</p>
+                    <p className="text-sm text-foreground/80">"{av.comment}"</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{av.date}</p>
-                  <p className="text-sm text-foreground/80">"{av.comment}"</p>
-                </div>
-              ))}
+                ))
+              )}
             </CardContent>
           </Card>
 
@@ -142,6 +273,20 @@ const Avaliacoes = () => {
           </Card>
         </div>
       </div>
+
+      {/* Modal Ver Todas */}
+      <Dialog open={showAllModal} onOpenChange={setShowAllModal}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-primary" /> Todas as Avaliações Recebidas
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            {recebidasApi.map(fb => <FeedbackItem key={fb.id} fb={fb} />)}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
