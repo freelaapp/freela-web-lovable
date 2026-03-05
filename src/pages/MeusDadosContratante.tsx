@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Trash2, AlertTriangle, Building2, ImagePlus, MapPin, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle, Building2, ImagePlus, MapPin, Loader2, User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CitySelect from "@/components/CitySelect";
 
@@ -217,7 +217,7 @@ const DeleteAccountCard = ({ onOpen }: { onOpen: () => void }) => (
   </Card>
 );
 
-// ── Snapshot type for change detection ───────────────────────
+// ── Snapshot types for change detection ──────────────────────
 interface FieldSnapshot {
   cep: string; rua: string; complemento: string; bairro: string;
   numero: string; cidade: string; estado: string;
@@ -227,7 +227,12 @@ interface FieldSnapshot {
   cpf: string; dataNascimento: string;
 }
 
+interface UserSnapshot {
+  userName: string; userEmail: string; userPhone: string;
+}
+
 const makeSnapshot = (s: FieldSnapshot) => JSON.stringify(s);
+const makeUserSnapshot = (s: UserSnapshot) => JSON.stringify(s);
 
 // ── Main Component ───────────────────────────────────────────
 const MeusDadosContratante = () => {
@@ -240,8 +245,12 @@ const MeusDadosContratante = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Common fields
   const [email] = useState("contato@freelaebreja.com.br");
+  
+  // User info fields (from /users/me)
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userPhone, setUserPhone] = useState("");
   const [cep, setCep] = useState("");
   const [rua, setRua] = useState("");
   const [complemento, setComplemento] = useState("");
@@ -280,6 +289,7 @@ const MeusDadosContratante = () => {
 
   // Change detection: snapshot of original values
   const [originalSnapshot, setOriginalSnapshot] = useState("");
+  const [originalUserSnapshot, setOriginalUserSnapshot] = useState("");
   const [originalFotoFachada, setOriginalFotoFachada] = useState<string | null>(null);
   const [originalFotoInterno, setOriginalFotoInterno] = useState<string | null>(null);
 
@@ -290,6 +300,10 @@ const MeusDadosContratante = () => {
       responsavel, responsavelTelefone, cpf, dataNascimento,
     });
   }, [cep, rua, complemento, bairro, numero, cidade, estado, cnpj, razaoSocial, ramo, nomeEstabelecimento, responsavel, responsavelTelefone, cpf, dataNascimento]);
+
+  const getCurrentUserSnapshot = useCallback((): string => {
+    return makeUserSnapshot({ userName, userEmail, userPhone });
+  }, [userName, userEmail, userPhone]);
 
   // ── Fetch contractor profile from API ──────────────────────
   useEffect(() => {
@@ -407,6 +421,31 @@ const MeusDadosContratante = () => {
 
         // Save original snapshot for change detection
         setOriginalSnapshot(makeSnapshot(snapValues));
+
+        // Fetch user info from /users/me
+        try {
+          const userRes = await fetch("https://api.freelaservicos.com.br/users/me", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Origin-type": "Web",
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+          const userBody = await userRes.json();
+          const u = userBody?.data;
+          if (u) {
+            const uName = u.name || "";
+            const uEmail = u.email || "";
+            const uPhone = u.phoneNumber ? formatPhone(u.phoneNumber) : "";
+            setUserName(uName);
+            setUserEmail(uEmail);
+            setUserPhone(uPhone);
+            setOriginalUserSnapshot(makeUserSnapshot({ userName: uName, userEmail: uEmail, userPhone: uPhone }));
+          }
+        } catch (err) {
+          console.error("[MeusDados] Error fetching user info:", err);
+        }
       } catch (err) {
         console.error("[MeusDados] Error fetching profile:", err);
       } finally {
@@ -451,11 +490,13 @@ const MeusDadosContratante = () => {
   const handleSave = async () => {
     // Check for changes
     const currentSnap = getCurrentSnapshot();
+    const currentUserSnap = getCurrentUserSnapshot();
     const hasFieldChanges = currentSnap !== originalSnapshot;
+    const hasUserChanges = currentUserSnap !== originalUserSnapshot;
     const hasFachadaChange = fachadaFile !== null;
     const hasInternoChange = internoFile !== null;
 
-    if (!hasFieldChanges && !hasFachadaChange && !hasInternoChange) {
+    if (!hasFieldChanges && !hasUserChanges && !hasFachadaChange && !hasInternoChange) {
       toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
       return;
     }
@@ -463,67 +504,110 @@ const MeusDadosContratante = () => {
     setSaving(true);
     try {
       const tokenRaw = localStorage.getItem("authToken");
+      const authUserRaw = localStorage.getItem("authUser");
       if (!tokenRaw) {
         toast({ title: "Erro", description: "Token de autenticação não encontrado.", variant: "destructive" });
         setSaving(false);
         return;
       }
       const token = JSON.parse(tokenRaw);
+      const userId = authUserRaw ? JSON.parse(authUserRaw)?.id : null;
 
-      const cepDigits = cep.replace(/\D/g, "");
-      const addressFields = {
-        cep: cepDigits,
-        street: rua,
-        complement: complemento,
-        neighborhood: bairro,
-        number: numero,
-        city: cidade,
-        uf: estado,
-        ibge: viacepMeta.ibge,
-        gia: viacepMeta.gia,
-        ddd: viacepMeta.ddd,
-        siafi: viacepMeta.siafi,
-      };
+      const results: boolean[] = [];
 
-      const formData = new FormData();
-      Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
+      // 1. Update contractor fields if changed
+      if (hasFieldChanges || hasFachadaChange || hasInternoChange) {
+        const cepDigits = cep.replace(/\D/g, "");
+        const addressFields = {
+          cep: cepDigits,
+          street: rua,
+          complement: complemento,
+          neighborhood: bairro,
+          number: numero,
+          city: cidade,
+          uf: estado,
+          ibge: viacepMeta.ibge,
+          gia: viacepMeta.gia,
+          ddd: viacepMeta.ddd,
+          siafi: viacepMeta.siafi,
+        };
 
-      if (type === "casa_cpf") {
-        formData.append("cpf", cpf);
-        formData.append("birthdate", dataNascimento);
-      } else if (type === "casa_cnpj") {
-        formData.append("cnpj", cnpj);
-        formData.append("corporateReason", razaoSocial);
-      } else if (type === "empresas") {
-        formData.append("cnpj", cnpj);
-        formData.append("corporateReason", razaoSocial);
-        formData.append("companySegment", ramo);
-        formData.append("companyName", nomeEstabelecimento);
-        formData.append("nameOperationResponsible", responsavel);
-        formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
-        if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
-        if (internoFile) formData.append("establishmentInteriorImage", internoFile);
+        const formData = new FormData();
+        Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
+
+        if (type === "casa_cpf") {
+          formData.append("cpf", cpf);
+          formData.append("birthdate", dataNascimento);
+        } else if (type === "casa_cnpj") {
+          formData.append("cnpj", cnpj);
+          formData.append("corporateReason", razaoSocial);
+        } else if (type === "empresas") {
+          formData.append("cnpj", cnpj);
+          formData.append("corporateReason", razaoSocial);
+          formData.append("companySegment", ramo);
+          formData.append("companyName", nomeEstabelecimento);
+          formData.append("nameOperationResponsible", responsavel);
+          formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
+          if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
+          if (internoFile) formData.append("establishmentInteriorImage", internoFile);
+        }
+
+        const res = await fetch("https://api.freelaservicos.com.br/contractors/", {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Origin-type": "Web",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (res.ok || res.status === 200 || res.status === 201) {
+          setOriginalSnapshot(currentSnap);
+          if (fachadaFile) { setOriginalFotoFachada(fotoFachada); setFachadaFile(null); }
+          if (internoFile) { setOriginalFotoInterno(fotoInterno); setInternoFile(null); }
+          results.push(true);
+        } else {
+          const errBody = await res.text();
+          console.error("[MeusDados] Contractor save failed:", res.status, errBody);
+          results.push(false);
+        }
       }
 
-      const res = await fetch("https://api.freelaservicos.com.br/contractors/", {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Origin-type": "Web",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      // 2. Update user info if changed
+      if (hasUserChanges && userId) {
+        const userRes = await fetch("https://api.freelaservicos.com.br/users", {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Origin-type": "Web",
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: userId,
+            name: userName,
+            email: userEmail,
+            phoneNumber: userPhone.replace(/\D/g, ""),
+            status: "active",
+          }),
+        });
 
-      if (res.ok || res.status === 200 || res.status === 201) {
+        if (userRes.ok || userRes.status === 200 || userRes.status === 201) {
+          setOriginalUserSnapshot(currentUserSnap);
+          results.push(true);
+        } else {
+          const errBody = await userRes.text();
+          console.error("[MeusDados] User save failed:", userRes.status, errBody);
+          results.push(false);
+        }
+      }
+
+      if (results.every(r => r)) {
         toast({ title: "Dados atualizados", description: "As informações foram salvas com sucesso." });
-        // Update snapshot to current values
-        setOriginalSnapshot(currentSnap);
-        if (fachadaFile) { setOriginalFotoFachada(fotoFachada); setFachadaFile(null); }
-        if (internoFile) { setOriginalFotoInterno(fotoInterno); setInternoFile(null); }
+      } else if (results.some(r => r)) {
+        toast({ title: "Atualização parcial", description: "Alguns dados foram salvos, mas houve erro em parte da atualização.", variant: "destructive" });
       } else {
-        const errBody = await res.text();
-        console.error("[MeusDados] Save failed:", res.status, errBody);
         toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
       }
     } catch (err) {
@@ -571,6 +655,31 @@ const MeusDadosContratante = () => {
           </div>
         ) : (
         <>
+        {/* Informações do Usuário */}
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <h3 className="text-base font-display font-bold flex items-center gap-2">
+              <User className="w-5 h-5 text-primary" /> Informações do Usuário
+            </h3>
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Seu nome completo" />
+            </div>
+            <div className="space-y-2">
+              <Label>E-mail</Label>
+              <Input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="seu@email.com" />
+            </div>
+            <div className="space-y-2">
+              <Label>Celular</Label>
+              <Input
+                value={userPhone}
+                onChange={(e) => setUserPhone(formatPhone(e.target.value))}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {type === "empresas" && (
           <>
             {/* Fotos */}
