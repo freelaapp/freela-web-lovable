@@ -89,6 +89,7 @@ const CadastroFreelancer = () => {
   const [complemento, setComplemento] = useState("");
   const [cepLoading, setCepLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [chavePix, setChavePix] = useState("");
 
   const buscarCep = useCallback(async (cepValue: string) => {
     const digits = cepValue.replace(/\D/g, "");
@@ -441,6 +442,20 @@ const CadastroFreelancer = () => {
                   </Select>
                   {errors.estado && <p className="text-xs text-destructive">{errors.estado}</p>}
                 </div>
+              </div>
+
+              {/* Chave PIX */}
+              <div className="space-y-2">
+                <Label>Chave PIX</Label>
+                <Input
+                  placeholder="CPF, e-mail, telefone ou chave aleatória"
+                  value={chavePix}
+                  onChange={(e) => setChavePix(e.target.value)}
+                  className="h-12"
+                />
+                <p className="text-xs text-muted-foreground italic">
+                  Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
+                </p>
               </div>
             </div>
 
