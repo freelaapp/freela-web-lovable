@@ -150,7 +150,7 @@ const Header = () => {
           <div className="hidden lg:flex items-center gap-3">
             {isLoggedIn ? (
               <>
-                {role === "contratante" && (
+                {role === "contratante" && location.pathname !== "/dashboard-contratante" && (
                   <Button asChild size="sm" className="gap-1.5">
                     <Link to="/criar-evento">
                       <CalendarPlus className="w-4 h-4" /> Criar Vaga
@@ -209,7 +209,7 @@ const Header = () => {
                     </Link>
                   ))}
                   <div className="flex flex-col gap-2 mt-4 px-4">
-                    {role === "contratante" && (
+                    {role === "contratante" && location.pathname !== "/dashboard-contratante" && (
                       <Button asChild className="w-full gap-2">
                         <Link to="/criar-evento" onClick={() => setIsMenuOpen(false)}>
                           <CalendarPlus className="w-4 h-4" /> Criar Vaga

@@ -66,21 +66,11 @@ const DashboardContratante = () => {
             <h1 className="text-2xl font-display font-bold">Olá, {userName || "Contratante"}! 👋</h1>
             <p className="text-muted-foreground text-sm mt-1">Gerencie seus eventos e freelancers</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/mensagens"
-              className="p-2.5 rounded-xl bg-primary-light text-primary hover:bg-primary hover:text-primary-foreground transition-colors relative"
-              title="Mensagens"
-            >
-              <MessageCircle className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+          <Button asChild size="xl" className="gap-2">
+            <Link to="/criar-evento">
+              <CalendarPlus className="w-5 h-5" /> Criar Vaga
             </Link>
-            <Button asChild size="xl" className="gap-2">
-              <Link to="/criar-evento">
-                <CalendarPlus className="w-5 h-5" /> Criar Vaga
-              </Link>
-            </Button>
-          </div>
+          </Button>
         </div>
 
         {/* Stats */}
