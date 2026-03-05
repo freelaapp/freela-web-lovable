@@ -208,29 +208,57 @@ const Agenda = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
-                {isContratante ? <CalendarPlus className="w-5 h-5 text-primary" /> : <CalendarIcon className="w-5 h-5 text-primary" />}
-              </div>
-              <p className="text-xl font-bold font-display">{pendentes.length}</p>
-              <p className="text-xs text-muted-foreground">{isContratante ? "Serviços Pendentes" : "Vagas Aceitas"}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              </div>
-              <p className="text-xl font-bold font-display">{finalizados.length}</p>
-              <p className="text-xs text-muted-foreground">Serviços Finalizados</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Two-column layout */}
+        {/* Two-column layout: cards+list left, calendar right */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
+                    {isContratante ? <CalendarPlus className="w-5 h-5 text-primary" /> : <CalendarIcon className="w-5 h-5 text-primary" />}
+                  </div>
+                  <p className="text-xl font-bold font-display">{pendentes.length}</p>
+                  <p className="text-xs text-muted-foreground">Vagas Pendentes</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <p className="text-xl font-bold font-display">{finalizados.length}</p>
+                  <p className="text-xs text-muted-foreground">Vagas Finalizadas</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{listaTitle}</CardTitle>
+                  {selectedDate && (
+                    <button onClick={() => setSelectedDate(undefined)} className="text-xs text-primary hover:underline">
+                      Ver {isContratante ? "todos" : "todas"}
+                    </button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
+                {listaItens.length > 0 ? (
+                  isContratante ? (
+                    (listaItens as typeof eventos).map(item => <ContratanteItemCard key={item.id} item={item} />)
+                  ) : (
+                    listaItens.map(item => <FreelancerItemCard key={item.id} item={item} />)
+                  )
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-6">
+                    {isContratante ? "Nenhum evento nessa data" : "Nenhuma vaga nessa data"}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardContent className="p-4">
               <Calendar
@@ -247,32 +275,6 @@ const Agenda = () => {
                   executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
                 }}
               />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{listaTitle}</CardTitle>
-                {selectedDate && (
-                  <button onClick={() => setSelectedDate(undefined)} className="text-xs text-primary hover:underline">
-                    Ver {isContratante ? "todos" : "todas"}
-                  </button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
-              {listaItens.length > 0 ? (
-                isContratante ? (
-                  (listaItens as typeof eventos).map(item => <ContratanteItemCard key={item.id} item={item} />)
-                ) : (
-                  listaItens.map(item => <FreelancerItemCard key={item.id} item={item} />)
-                )
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-6">
-                  {isContratante ? "Nenhum evento nessa data" : "Nenhuma vaga nessa data"}
-                </p>
-              )}
             </CardContent>
           </Card>
         </div>
