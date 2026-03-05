@@ -95,70 +95,78 @@ const Avaliacoes = () => {
   const isContratante = role === "contratante";
 
   const [recebidasApi, setRecebidasApi] = useState<Feedback[]>([]);
+  const [feitasApi, setFeitasApi] = useState<Feedback[]>([]);
   const [loadingRecebidas, setLoadingRecebidas] = useState(false);
+  const [loadingFeitas, setLoadingFeitas] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
+  const [showAllFeitasModal, setShowAllFeitasModal] = useState(false);
 
   useEffect(() => {
     if (!isContratante) return;
 
     const fetchFeedbacks = async () => {
       setLoadingRecebidas(true);
+      setLoadingFeitas(true);
       try {
         const token = getAuthToken();
         if (!token) return;
 
+        const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
+
         // 1. Get contractor id
         const contractorRes = await fetch(`${API_BASE_URL}/users/contractors`, {
-          method: "GET",
-          credentials: "include",
-          headers: { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` },
+          method: "GET", credentials: "include", headers,
         });
         const contractorBody = await contractorRes.json();
         if (!contractorBody?.success || !contractorBody?.data?.id) return;
         const contractorId = contractorBody.data.id;
 
-        // 2. Get feedbacks
-        const fbRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, {
-          method: "GET",
-          credentials: "include",
-          headers: { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` },
-        });
+        // 2. Fetch recebidas and feitas in parallel
+        const [fbRes, feitasRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, {
+            method: "GET", credentials: "include", headers,
+          }),
+          fetch(`${API_BASE_URL}/providers/${contractorId}/jobs/feedbacks`, {
+            method: "GET", credentials: "include", headers,
+          }),
+        ]);
+
         const fbBody = await fbRes.json();
-        if (!fbBody?.success || !Array.isArray(fbBody?.data)) {
-          setRecebidasApi([]);
-          return;
-        }
+        const feitasBody = await feitasRes.json();
 
-        const feedbacks: Feedback[] = fbBody.data;
+        // 3. Collect all unique senders from both lists
+        const recebidasList: Feedback[] = fbBody?.success && Array.isArray(fbBody?.data) ? fbBody.data : [];
+        const feitasList: Feedback[] = feitasBody?.success && Array.isArray(feitasBody?.data) ? feitasBody.data : [];
 
-        // 3. Fetch sender names in parallel
-        const uniqueSenders = [...new Set(feedbacks.map(f => f.sender))];
+        const allSenders = [...new Set([
+          ...recebidasList.map(f => f.sender),
+          ...feitasList.map(f => f.receiver),
+        ])];
         const nameMap: Record<string, string> = {};
 
         await Promise.all(
-          uniqueSenders.map(async (senderId) => {
+          allSenders.map(async (userId) => {
             try {
-              const res = await fetch(`${API_BASE_URL}/users/${senderId}`, {
-                method: "GET",
-                credentials: "include",
-                headers: { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` },
+              const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+                method: "GET", credentials: "include", headers,
               });
               const body = await res.json();
               if (body?.success && body?.data?.name) {
-                nameMap[senderId] = body.data.name;
+                nameMap[userId] = body.data.name;
               }
-            } catch {
-              // ignore
-            }
+            } catch { /* ignore */ }
           })
         );
 
-        setRecebidasApi(feedbacks.map(f => ({ ...f, senderName: nameMap[f.sender] })));
+        setRecebidasApi(recebidasList.map(f => ({ ...f, senderName: nameMap[f.sender] })));
+        setFeitasApi(feitasList.map(f => ({ ...f, senderName: nameMap[f.receiver] })));
       } catch (err) {
         console.error("Erro ao buscar feedbacks:", err);
         setRecebidasApi([]);
+        setFeitasApi([]);
       } finally {
         setLoadingRecebidas(false);
+        setLoadingFeitas(false);
       }
     };
 
@@ -249,26 +257,43 @@ const Avaliacoes = () => {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Star className="w-5 h-5 text-accent" />
-                {isContratante ? "Feitas para freelancers" : "Feitas por mim"}
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Star className="w-5 h-5 text-accent" />
+                  {isContratante ? "Feitas para freelancers" : "Feitas por mim"}
+                </CardTitle>
+                {isContratante && feitasApi.length > 4 && (
+                  <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => setShowAllFeitasModal(true)}>
+                    Ver todas
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {feitas.map(av => (
-                <div
-                  key={av.id}
-                  className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
-                  onClick={() => navigate(`/avaliacao/${av.id}`)}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">{av.name}</p>
-                    {renderStars(av.rating)}
+              {isContratante ? (
+                loadingFeitas ? (
+                  <p className="text-sm text-muted-foreground">Carregando...</p>
+                ) : feitasApi.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sem avaliações</p>
+                ) : (
+                  feitasApi.slice(0, 4).map(fb => <FeedbackItem key={fb.id} fb={fb} />)
+                )
+              ) : (
+                feitas.map(av => (
+                  <div
+                    key={av.id}
+                    className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
+                    onClick={() => navigate(`/avaliacao/${av.id}`)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold">{av.name}</p>
+                      {renderStars(av.rating)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{av.date}</p>
+                    <p className="text-sm text-foreground/80">"{av.comment}"</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{av.date}</p>
-                  <p className="text-sm text-foreground/80">"{av.comment}"</p>
-                </div>
-              ))}
+                ))
+              )}
             </CardContent>
           </Card>
         </div>
@@ -284,6 +309,19 @@ const Avaliacoes = () => {
           </DialogHeader>
           <div className="space-y-3 mt-2">
             {recebidasApi.map(fb => <FeedbackItem key={fb.id} fb={fb} />)}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Modal Ver Todas Feitas */}
+      <Dialog open={showAllFeitasModal} onOpenChange={setShowAllFeitasModal}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-accent" /> Todas as Avaliações Feitas
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            {feitasApi.map(fb => <FeedbackItem key={fb.id} fb={fb} />)}
           </div>
         </DialogContent>
       </Dialog>
