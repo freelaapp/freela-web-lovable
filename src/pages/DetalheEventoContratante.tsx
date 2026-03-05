@@ -10,8 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 
 const mockEventos = [
-  { id: 1, title: "Aniversário 30 anos", date: "22 Fev 2026", time: "14:00 - 22:00", hours: 8, role: "Churrasqueiro", location: "Rua das Flores, 123 - Centro, SP", value: "R$ 650", status: "ativo", freelancersNeeded: 3 },
-  { id: 2, title: "Confraternização empresa", date: "15 Mar 2026", time: "18:00 - 00:00", hours: 6, role: "Garçom", location: "Av. Jundiaí, 1000 - Anhangabaú, SP", value: "R$ 1.200", status: "pendente", freelancersNeeded: 5 },
+  { id: 1, title: "Aniversário 30 anos", date: "22 Fev 2026", time: "14:00 - 22:00", hours: 8, role: "Churrasqueiro", location: "Rua das Flores, 123 - Centro, SP", value: "R$ 650", status: "Aberta", freelancersNeeded: 3 },
+  { id: 2, title: "Confraternização empresa", date: "15 Mar 2026", time: "18:00 - 00:00", hours: 6, role: "Garçom", location: "Av. Jundiaí, 1000 - Anhangabaú, SP", value: "R$ 1.200", status: "Fechado", freelancersNeeded: 5 },
+  { id: 3, title: "Casamento João & Maria", date: "10 Abr 2026", time: "16:00 - 23:00", hours: 7, role: "Garçom", location: "Salão de Festas, 50 - Centro, SP", value: "R$ 800", status: "Concluído", freelancersNeeded: 2 },
 ];
 
 const mockCandidatos = [
@@ -67,7 +68,8 @@ const DetalheEventoContratante = () => {
   };
 
   const filteredCandidatos = filter === "todos" ? candidatos : candidatos.filter(c => c.status === filter);
-  const aceitos = candidatos.filter(c => c.status === "aceito").length;
+  const confirmados = candidatos.filter(c => c.status === "aceito");
+  const aceitos = confirmados.length;
 
   return (
     <AppLayout showFooter={false}>
@@ -79,7 +81,9 @@ const DetalheEventoContratante = () => {
           </button>
           <h1 className="text-2xl font-display font-bold">{evento.title}</h1>
           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
-            evento.status === "ativo" ? "bg-success-light text-success" : "bg-warning-light text-warning"
+            evento.status === "Aberta" ? "bg-success-light text-success" : 
+            evento.status === "Fechado" ? "bg-warning-light text-warning" :
+            "bg-muted text-muted-foreground"
           }`}>{evento.status}</span>
         </div>
 
@@ -107,79 +111,117 @@ const DetalheEventoContratante = () => {
           </CardContent>
         </Card>
 
-        {/* Freelancers Inscritos */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
+        {/* Freelancers - conditional by status */}
+        {evento.status === "Aberta" && (
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" /> Freelancers Inscritos
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">{aceitos}/{evento.freelancersNeeded} aceitos</span>
+              </div>
+              {/* Filter tabs */}
+              <div className="flex gap-2 mt-3">
+                {(["todos", "pendente", "aceito", "recusado"] as const).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+                      filter === f ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {f === "todos" ? `Todos (${candidatos.length})` :
+                     f === "pendente" ? `Pendentes (${candidatos.filter(c => c.status === "pendente").length})` :
+                     f === "aceito" ? `Aceitos (${candidatos.filter(c => c.status === "aceito").length})` :
+                     `Recusados (${candidatos.filter(c => c.status === "recusado").length})`}
+                  </button>
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {filteredCandidatos.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer nesta categoria</p>
+              ) : (
+                filteredCandidatos.map((candidato) => (
+                  <div key={candidato.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
+                      {candidato.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold truncate">{candidato.name}</p>
+                        {candidato.verified && <Shield className="w-3.5 h-3.5 text-primary fill-primary/20" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{candidato.role}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star className="w-3 h-3 fill-primary text-primary" />
+                        <span className="text-xs font-medium">{candidato.rating}</span>
+                        <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
+                        <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {candidato.status === "pendente" ? (
+                        <>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:bg-success/10" onClick={() => handleAceitar(candidato.id)}>
+                            <UserCheck className="w-4 h-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleRecusar(candidato.id)}>
+                            <UserX className="w-4 h-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                          candidato.status === "aceito" ? "bg-success-light text-success" : "bg-destructive/10 text-destructive"
+                        }`}>{candidato.status}</span>
+                      )}
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedFreelancer(candidato)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Freelancers Confirmados - status Fechado */}
+        {evento.status === "Fechado" && (
+          <Card>
+            <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" /> Freelancers Inscritos
+                <UserCheck className="w-5 h-5 text-success" /> Freelancers Confirmados
               </CardTitle>
-              <span className="text-xs text-muted-foreground">{aceitos}/{evento.freelancersNeeded} aceitos</span>
-            </div>
-            {/* Filter tabs */}
-            <div className="flex gap-2 mt-3">
-              {(["todos", "pendente", "aceito", "recusado"] as const).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-                    filter === f ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  {f === "todos" ? `Todos (${candidatos.length})` :
-                   f === "pendente" ? `Pendentes (${candidatos.filter(c => c.status === "pendente").length})` :
-                   f === "aceito" ? `Aceitos (${candidatos.filter(c => c.status === "aceito").length})` :
-                   `Recusados (${candidatos.filter(c => c.status === "recusado").length})`}
-                </button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {filteredCandidatos.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer nesta categoria</p>
-            ) : (
-              filteredCandidatos.map((candidato) => (
-                <div key={candidato.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
-                    {candidato.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {confirmados.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer confirmado</p>
+              ) : (
+                confirmados.map((candidato) => (
+                  <div key={candidato.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
+                      {candidato.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{candidato.name}</p>
-                      {candidato.verified && <Shield className="w-3.5 h-3.5 text-primary fill-primary/20" />}
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star className="w-3 h-3 fill-primary text-primary" />
+                        <span className="text-xs font-medium">{candidato.rating}</span>
+                        <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
+                        <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{candidato.role}</p>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star className="w-3 h-3 fill-primary text-primary" />
-                      <span className="text-xs font-medium">{candidato.rating}</span>
-                      <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
-                      <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {candidato.status === "pendente" ? (
-                      <>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:bg-success/10" onClick={() => handleAceitar(candidato.id)}>
-                          <UserCheck className="w-4 h-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleRecusar(candidato.id)}>
-                          <UserX className="w-4 h-4" />
-                        </Button>
-                      </>
-                    ) : (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        candidato.status === "aceito" ? "bg-success-light text-success" : "bg-destructive/10 text-destructive"
-                      }`}>{candidato.status}</span>
-                    )}
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedFreelancer(candidato)}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => setSelectedFreelancer(candidato)}>
                       <Eye className="w-4 h-4" />
                     </Button>
                   </div>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Dialog Perfil do Freelancer (visão contratante) */}
