@@ -14,7 +14,7 @@ const AppLayout = ({
   children, 
   showHeader = true, 
   showFooter = true, 
-  showBottomNav = true,
+  showBottomNav = false,
   className = "" 
 }: AppLayoutProps) => {
   return (
