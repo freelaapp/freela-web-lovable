@@ -86,7 +86,7 @@ const Carteira = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <Clock className="w-5 h-5 text-secondary mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">Ganhos futuros</p>
+              <p className="text-xs text-muted-foreground">Pagamentos futuros</p>
               <p className="text-xl font-bold text-secondary">
                 R$ {(isContratante ? valorALiberarContratante : saldoALiberarFreelancer).toFixed(2)}
               </p>
