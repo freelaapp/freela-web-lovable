@@ -377,7 +377,7 @@ const CriarEventoEmpresas = () => {
                     </p>
                   )}
                   {(contractorProfile.neighborhood) && (
-                    <p>{contractorProfile.neighborhood as string}</p>
+                    <p>{String(contractorProfile.neighborhood)}</p>
                   )}
                   {(contractorProfile.city || contractorProfile.state) && (
                     <p>
