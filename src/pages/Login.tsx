@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
-import { loginUser } from "@/lib/api";
+import { loginUser, getContractorProfile } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
+import { setUserRole } from "@/hooks/useUserRole";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -47,12 +48,23 @@ const Login = () => {
     try {
       const result = await loginUser({ email, password });
       onAuthSuccess(result.data);
+
+      // Detect role by trying to fetch contractor profile
+      let detectedRole: "contratante" | "freelancer" = "freelancer";
+      try {
+        const token = JSON.parse(localStorage.getItem("authToken") || '""');
+        await getContractorProfile(token);
+        detectedRole = "contratante";
+      } catch {
+        detectedRole = "freelancer";
+      }
+      setUserRole(detectedRole);
+
       toast({
         title: "Login realizado!",
         description: "Bem-vindo de volta à Freela.",
       });
-      const role = localStorage.getItem("userRole");
-      navigate(role === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
+      navigate(detectedRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
     } catch (err: any) {
       const message =
         err instanceof TypeError
