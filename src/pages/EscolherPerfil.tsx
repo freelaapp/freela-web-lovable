@@ -47,7 +47,7 @@ const EscolherPerfil = () => {
 
         {/* Freelancer */}
         <Link
-          to="/obrigado-freelancer"
+          to="/cadastro-freelancer"
           className="group bg-card rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-border">
 
           <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
