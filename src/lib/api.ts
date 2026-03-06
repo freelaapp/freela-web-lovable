@@ -141,3 +141,65 @@ export async function registerProvider(formData: FormData, token: string): Promi
     throw new Error(body?.message || "Não foi possível completar o cadastro. Tente novamente.");
   }
 }
+
+// ── Contractor Profile ─────────────────────────────────────────
+export interface ContractorProfile {
+  id: string;
+  establishmentName?: string;
+  fantasyName?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+export async function getContractorProfile(token: string): Promise<ContractorProfile> {
+  const response = await fetch(`${API_BASE_URL}/users/contractors`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Origin-type": ORIGIN_TYPE,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível carregar o perfil do contratante.");
+  }
+
+  const data = body?.data ?? body;
+  return data as ContractorProfile;
+}
+
+// ── Create Vacancy ─────────────────────────────────────────────
+export interface CreateVacancyPayload {
+  establishment: string;
+  assignment: string;
+  description: string;
+  quantity: number;
+  jobDate: string;
+  jobTime: string;
+  jobValue: string;
+  status: string;
+  contractorId: string;
+  createdAt: string;
+}
+
+export async function createVacancy(payload: CreateVacancyPayload, token: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/vacancies`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "Origin-type": ORIGIN_TYPE,
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível criar a vaga. Tente novamente.");
+  }
+}
