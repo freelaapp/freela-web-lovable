@@ -77,14 +77,38 @@ const CriarEventoEmpresas = () => {
     setSelectedServices((prev) => prev.filter((s) => s.id !== id));
   };
 
-  const valorTotal = useMemo(() => {
-    return selectedServices.reduce((total, s) => {
+  const servicePricing = useMemo(() => {
+    return selectedServices.map((s) => {
       const hours = calcHours(s.horaInicio, s.horaFim);
-      if (hours <= 0) return total;
-      const effectiveHours = Math.max(hours, s.minHours);
-      return total + s.pricePerHour * effectiveHours * s.quantidade;
-    }, 0);
+      const effectiveHours = hours > 0 ? Math.max(hours, s.minHours) : 0;
+      const subtotal = s.pricePerHour * effectiveHours * s.quantidade;
+      const insurance = INSURANCE_FEE * s.quantidade;
+      const commission = subtotal * FREELA_COMMISSION;
+      const freelancerValue = s.quantidade > 0 ? (subtotal - commission) / s.quantidade : 0;
+      return {
+        ...s,
+        hours,
+        effectiveHours,
+        subtotal,
+        insurance,
+        commission,
+        freelancerValue,
+        total: subtotal + insurance,
+      };
+    });
   }, [selectedServices]);
+
+  const valorTotal = useMemo(() => {
+    return servicePricing.reduce((sum, s) => sum + s.total, 0);
+  }, [servicePricing]);
+
+  const totalInsurance = useMemo(() => {
+    return servicePricing.reduce((sum, s) => sum + s.insurance, 0);
+  }, [servicePricing]);
+
+  const totalSubtotal = useMemo(() => {
+    return servicePricing.reduce((sum, s) => sum + s.subtotal, 0);
+  }, [servicePricing]);
 
   const totalProfissionais = useMemo(() => {
     return selectedServices.reduce((sum, s) => sum + s.quantidade, 0);
