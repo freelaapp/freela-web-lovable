@@ -124,3 +124,20 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
     throw new Error("Código inválido ou expirado. Tente novamente.");
   }
 }
+
+export async function registerProvider(formData: FormData, token: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/providers/`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Origin-type": ORIGIN_TYPE,
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (response.status !== 200 && response.status !== 201) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "Não foi possível completar o cadastro. Tente novamente.");
+  }
+}
