@@ -146,15 +146,62 @@ const CadastroFreelancer = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (ev: React.FormEvent) => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!validate()) return;
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      // Convert profile image to base64 for persistence
+      let fotoBase64 = "";
+      if (fotoPerfil) {
+        fotoBase64 = await fileToBase64(fotoPerfil);
+      }
+
+      // Save all form data to localStorage for the next step
+      const freelancerData = {
+        fotoBase64,
+        fotoName: fotoPerfil?.name || "",
+        fotoType: fotoPerfil?.type || "",
+        nomeCompleto,
+        cpf: cpf.replace(/\D/g, ""),
+        dataNascimento: dataNascimento?.toISOString() || "",
+        sexo,
+        isPCD,
+        deficienciasSelecionadas,
+        deficiency: isPCD ? "Sim" : "Não",
+        cep: cep.replace(/\D/g, ""),
+        street: endereco,
+        complement: complemento,
+        neighborhood: bairro,
+        number: numero,
+        city: cidade,
+        uf: estado,
+        tipoChavePix,
+        pixKeyValue: chavePix,
+        emergencyContactName: contatoEmergNome,
+        emergencyContactRelationship: contatoEmergParentesco,
+        emergencyContactNumber: contatoEmergTelefone.replace(/\D/g, ""),
+      };
+
+      localStorage.setItem("freelancerFormData", JSON.stringify(freelancerData));
+
+      toast({ title: "Dados salvos!", description: "Agora defina suas áreas de atuação." });
+      navigate("/cadastro-freelancer-areas");
+    } catch {
+      toast({ title: "Erro", description: "Não foi possível salvar os dados.", variant: "destructive" });
+    } finally {
       setIsLoading(false);
-      toast({ title: "Cadastro realizado!", description: "Bem-vindo à Freela." });
-      navigate("/video-apresentacao");
-    }, 1500);
+    }
   };
 
   return (
