@@ -89,6 +89,7 @@ const CadastroFreelancer = () => {
   const [complemento, setComplemento] = useState("");
   const [cepLoading, setCepLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tipoChavePix, setTipoChavePix] = useState("");
   const [chavePix, setChavePix] = useState("");
 
   const buscarCep = useCallback(async (cepValue: string) => {
@@ -444,11 +445,28 @@ const CadastroFreelancer = () => {
                 </div>
               </div>
 
+              {/* Tipo de Chave PIX */}
+              <div className="space-y-2">
+                <Label>Tipo de Chave PIX</Label>
+                <Select value={tipoChavePix} onValueChange={setTipoChavePix}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Selecione o tipo de chave" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cpf">CPF</SelectItem>
+                    <SelectItem value="cnpj">CNPJ</SelectItem>
+                    <SelectItem value="email">E-mail</SelectItem>
+                    <SelectItem value="telefone">Telefone</SelectItem>
+                    <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Chave PIX */}
               <div className="space-y-2">
                 <Label>Chave PIX</Label>
                 <Input
-                  placeholder="CPF, e-mail, telefone ou chave aleatória"
+                  placeholder="Informe sua chave PIX"
                   value={chavePix}
                   onChange={(e) => setChavePix(e.target.value)}
                   className="h-12"
