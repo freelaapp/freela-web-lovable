@@ -1,24 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarPlus, Users, Clock, ChevronRight, Star, DollarSign, AlertCircle, Calendar, MapPin, Briefcase, MessageCircle } from "lucide-react";
+import { CalendarPlus, Users, ChevronRight, Star, DollarSign, AlertCircle, Briefcase, CheckCircle, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useEffect, useState } from "react";
 import { getContractorProfile } from "@/lib/api";
+import VagasBlock from "@/components/dashboard-contratante/VagasBlock";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
-const mockProximosEventos = [
-  { id: 1, title: "Aniversário 30 anos", date: "22 Fev 2026", time: "14:00", freelancers: 3, status: "confirmado", role: "Churrasqueiro" },
-  { id: 2, title: "Confraternização empresa", date: "15 Mar 2026", time: "18:00", freelancers: 5, status: "pendente", role: "Garçom" },
-];
-
-const mockMeusEventos = [
-  { id: 1, title: "Aniversário 30 anos", date: "22 Fev 2026", freelancers: 3, status: "ativo" },
-  { id: 2, title: "Confraternização empresa", date: "15 Mar 2026", freelancers: 5, status: "rascunho" },
-  { id: 3, title: "Churrasco de Réveillon", date: "31 Dez 2025", freelancers: 2, status: "concluído" },
-];
+interface Vacancy {
+  id: string;
+  assignment: string;
+  quantity: number;
+  jobDate: string;
+  status: string;
+  createdAt?: string;
+}
 
 const mockAvaliacoesPendentes = [
   { id: 1, freelancer: "Carlos Silva", role: "Churrasqueiro", event: "Churrasco de Réveillon", date: "31 Dez 2025" },
@@ -31,6 +30,7 @@ const DashboardContratante = () => {
   const [totalGasto, setTotalGasto] = useState("R$ 0");
   const [totalVagas, setTotalVagas] = useState(0);
   const [mediaAvaliacao, setMediaAvaliacao] = useState("0");
+  const [vacancies, setVacancies] = useState<Vacancy[]>([]);
 
   useEffect(() => {
     const tokenRaw = localStorage.getItem("authToken");
@@ -40,18 +40,15 @@ const DashboardContratante = () => {
 
     const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
 
-    // Fetch user name
     fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers })
       .then(r => r.json())
       .then(body => { if (body?.success && body?.data?.name) setUserName(body.data.name); })
       .catch(err => console.error("Erro ao buscar usuário:", err));
 
-    // Fetch contractor profile then vacancies
     getContractorProfile(token)
       .then(async (profile) => {
         const contractorId = profile.id;
 
-        // Fetch vacancies
         const vacRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, {
           method: "GET", credentials: "include", headers,
         });
@@ -61,14 +58,15 @@ const DashboardContratante = () => {
           return;
         }
 
-        const vacancies: any[] = Array.isArray(vacBody.data) ? vacBody.data : [];
-        setTotalVagas(vacancies.length);
+        const allVacancies: Vacancy[] = Array.isArray(vacBody.data) ? vacBody.data : [];
+        setVacancies(allVacancies);
+        setTotalVagas(allVacancies.length);
 
-        // Filter current month
+        // Total gasto (mês atual)
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
-        const currentMonthVacancies = vacancies.filter((v: any) => {
+        const currentMonthVacancies = allVacancies.filter((v) => {
           if (!v.createdAt) return false;
           const d = new Date(v.createdAt);
           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -76,11 +74,9 @@ const DashboardContratante = () => {
 
         if (currentMonthVacancies.length > 0) {
           const values = await Promise.all(
-            currentMonthVacancies.map(async (v: any) => {
+            currentMonthVacancies.map(async (v) => {
               try {
-                const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, {
-                  method: "GET", credentials: "include", headers,
-                });
+                const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, { method: "GET", credentials: "include", headers });
                 const jobBody = await jobRes.json();
                 if (jobRes.ok && jobBody?.data?.value != null) return Number(jobBody.data.value) || 0;
               } catch (e) { console.error(`Erro ao buscar job ${v.id}:`, e); }
@@ -91,21 +87,22 @@ const DashboardContratante = () => {
           setTotalGasto(`R$ ${sum.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`);
         }
 
-        // Fetch feedbacks for average rating
+        // Feedbacks
         try {
-          const fbRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, {
-            method: "GET", credentials: "include", headers,
-          });
+          const fbRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, { method: "GET", credentials: "include", headers });
           const fbBody = await fbRes.json();
           if (fbRes.ok && Array.isArray(fbBody?.data) && fbBody.data.length > 0) {
             const total = fbBody.data.reduce((acc: number, fb: any) => acc + (Number(fb.star) || 0), 0);
-            const avg = total / fbBody.data.length;
-            setMediaAvaliacao(avg.toFixed(1));
+            setMediaAvaliacao((total / fbBody.data.length).toFixed(1));
           }
         } catch (e) { console.error("Erro ao buscar feedbacks:", e); }
       })
       .catch(err => console.error("Erro ao buscar dados do contratante:", err));
   }, []);
+
+  const vagasAbertas = vacancies.filter(v => v.status === "open" || v.status === "in hiring");
+  const vagasPreenchidas = vacancies.filter(v => v.status === "closed");
+  const vagasConcluidas = vacancies.filter(v => v.status === "removed");
 
   return (
     <AppLayout showFooter={false}>
@@ -114,7 +111,7 @@ const DashboardContratante = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-display font-bold">Olá, {userName || "Contratante"}! 👋</h1>
-            <p className="text-muted-foreground text-sm mt-1">Gerencie seus eventos e freelancers</p>
+            <p className="text-muted-foreground text-sm mt-1">Gerencie suas vagas e freelancers</p>
           </div>
           <Button asChild size="xl" className="gap-2">
             <Link to="/criar-evento">
@@ -169,82 +166,26 @@ const DashboardContratante = () => {
           </Card>
         )}
 
-        {/* Próximos Eventos */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" /> Próximos Eventos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {mockProximosEventos.map((event) => (
-              <div
-                key={event.id}
-                className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                onClick={() => navigate(`/evento/${event.id}`)}
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
-                  <Calendar className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{event.title}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap">
-                    <Clock className="w-3 h-3" /> {event.date} às {event.time}
-                    <span>•</span>
-                    <Briefcase className="w-3 h-3" /> {event.role}
-                    <span>•</span>
-                    <Users className="w-3 h-3" /> {event.freelancers} freelancers
-                  </p>
-                </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
-                  event.status === "confirmado" ? "bg-success-light text-success" : "bg-warning-light text-warning"
-                }`}>
-                  {event.status}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        {/* Vagas em Aberto */}
+        <VagasBlock
+          title="Vagas em Aberto"
+          icon={<Briefcase className="w-5 h-5 text-primary" />}
+          vacancies={vagasAbertas}
+        />
 
-        {/* Meus Eventos */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Meus Eventos</CardTitle>
-              <Button variant="ghost" size="sm" className="text-primary text-xs" asChild>
-                <Link to="/agenda">
-                  Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {mockMeusEventos.map((event) => (
-              <div
-                key={event.id}
-                className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                onClick={() => navigate(`/evento/${event.id}`)}
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
-                  <CalendarPlus className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{event.title}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {event.date} • <Users className="w-3 h-3" /> {event.freelancers} freelancers
-                  </p>
-                </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
-                  event.status === "ativo" ? "bg-success-light text-success"
-                    : event.status === "rascunho" ? "bg-warning-light text-warning"
-                    : "bg-muted text-muted-foreground"
-                }`}>
-                  {event.status}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        {/* Vagas Preenchidas */}
+        <VagasBlock
+          title="Vagas Preenchidas"
+          icon={<Users className="w-5 h-5 text-primary" />}
+          vacancies={vagasPreenchidas}
+        />
+
+        {/* Vagas Concluídas */}
+        <VagasBlock
+          title="Vagas Concluídas"
+          icon={<CheckCircle className="w-5 h-5 text-primary" />}
+          vacancies={vagasConcluidas}
+        />
       </div>
     </AppLayout>
   );
