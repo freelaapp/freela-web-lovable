@@ -43,6 +43,7 @@ const CriarEventoEmpresas = () => {
     estado: "",
   });
   const [servicesOpen, setServicesOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const toggleService = (servico: (typeof servicosPF)[number]) => {
@@ -59,8 +60,8 @@ const CriarEventoEmpresas = () => {
           quantidade: 1,
           horaInicio: "",
           horaFim: "",
-          pricePerHour: PRICE_PER_HOUR,
-          minHours: MIN_HOURS,
+          pricePerHour: servico.pricePerHour,
+          minHours: servico.minHoursEmpresa,
         },
       ];
     });
