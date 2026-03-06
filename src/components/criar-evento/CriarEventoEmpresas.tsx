@@ -550,7 +550,7 @@ const CriarEventoEmpresas = () => {
             </span>
           ) : (
             <span className="flex items-center gap-2">
-              Publicar contratação
+              Publicar Vaga
               <ArrowRight className="w-4 h-4" />
             </span>
           )}
