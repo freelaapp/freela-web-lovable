@@ -166,7 +166,7 @@ const CadastroFreelancerAreas = () => {
       fd.append("gia", viacep.gia || "");
       fd.append("ddd", viacep.ddd || "");
       fd.append("siafi", viacep.siafi || "");
-      fd.append("userId", userId);
+      
       fd.append("pixKeyType", saved.tipoChavePix || "");
       fd.append("pixKeyValue", saved.pixKeyValue || "");
 
