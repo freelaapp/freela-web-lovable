@@ -350,29 +350,86 @@ const CriarEventoEmpresas = () => {
           />
         </div>
 
-        {/* ========== RESUMO + SUBMIT ========== */}
-        {selectedServices.length > 0 && valorTotal > 0 && (
-          <div className="bg-secondary text-secondary-foreground rounded-xl p-4 space-y-2">
-            <h3 className="text-[10px] font-medium uppercase tracking-wide opacity-70">Resumo da vaga</h3>
-            <div className="flex items-end justify-between">
-              <div className="space-y-0.5">
-                <p className="text-xs opacity-80">
-                  {selectedServices.length} serviço{selectedServices.length > 1 ? "s" : ""} •{" "}
-                  {totalProfissionais} profissiona{totalProfissionais > 1 ? "is" : "l"}
-                </p>
-                {dataEvento && (
-                  <p className="text-xs opacity-80">
-                    📅 {new Date(dataEvento + "T12:00:00").toLocaleDateString("pt-BR")}
+        {/* ========== RESUMO DE VALORES ========== */}
+        {servicePricing.some(s => s.hours > 0) && (
+          <div className="bg-card border-2 border-primary/20 rounded-xl overflow-hidden">
+            {/* Total em destaque */}
+            <div className="bg-primary/5 p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">Valor total estimado</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedServices.length} serviço{selectedServices.length > 1 ? "s" : ""} • {totalProfissionais} profissiona{totalProfissionais > 1 ? "is" : "l"}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-display font-bold text-primary">
+                    R$ {valorTotal.toFixed(2).replace(".", ",")}
                   </p>
-                )}
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-[10px] opacity-60">Valor total estimado</p>
-                <p className="text-2xl font-display font-bold">
-                  R$ {valorTotal.toFixed(2).replace(".", ",")}
+              {dataEvento && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  📅 {new Date(dataEvento + "T12:00:00").toLocaleDateString("pt-BR")}
                 </p>
-              </div>
+              )}
             </div>
+
+            {/* Botão para expandir detalhes */}
+            <button
+              type="button"
+              onClick={() => setDetailsOpen(!detailsOpen)}
+              className="w-full flex items-center justify-between px-5 py-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/50"
+            >
+              <span>Ver detalhamento por serviço</span>
+              {detailsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {/* Detalhes expandidos */}
+            {detailsOpen && (
+              <div className="px-5 pb-5 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-border/50">
+                {servicePricing.filter(s => s.hours > 0).map((s) => (
+                  <div key={s.id} className="bg-muted/30 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{getServiceIcon(s.id)}</span>
+                        <span className="text-sm font-semibold text-foreground">{s.label}</span>
+                      </div>
+                      <span className="text-sm font-bold text-primary">
+                        R$ {s.total.toFixed(2).replace(".", ",")}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-0.5 pl-7">
+                      <p>
+                        R$ {s.pricePerHour.toFixed(2).replace(".", ",")}/h × {s.effectiveHours}h × {s.quantidade} pessoa{s.quantidade > 1 ? "s" : ""} = R$ {s.subtotal.toFixed(2).replace(".", ",")}
+                      </p>
+                      <p>Taxa de seguro: R$ {s.insurance.toFixed(2).replace(".", ",")} ({s.quantidade} × R$ {INSURANCE_FEE.toFixed(2).replace(".", ",")})</p>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Totais gerais */}
+                <div className="border-t border-border pt-3 space-y-1 text-xs">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Subtotal serviços</span>
+                    <span>R$ {totalSubtotal.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Taxa de seguro</span>
+                    <span>R$ {totalInsurance.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-sm text-foreground pt-1">
+                    <span>Total</span>
+                    <span>R$ {valorTotal.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
