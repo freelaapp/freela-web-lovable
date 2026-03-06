@@ -372,8 +372,8 @@ const CriarEventoEmpresas = () => {
                   <p>{contractorProfile.establishmentName || contractorProfile.fantasyName || contractorProfile.name || "—"}</p>
                   {(contractorProfile.street || contractorProfile.address) && (
                     <p>
-                      {contractorProfile.street || contractorProfile.address}
-                      {contractorProfile.number ? `, ${contractorProfile.number}` : ""}
+                      {String(contractorProfile.street || contractorProfile.address)}
+                      {contractorProfile.number ? `, ${String(contractorProfile.number)}` : ""}
                     </p>
                   )}
                   {(contractorProfile.neighborhood) && (
@@ -381,10 +381,10 @@ const CriarEventoEmpresas = () => {
                   )}
                   {(contractorProfile.city || contractorProfile.state) && (
                     <p>
-                      {contractorProfile.city as string || ""}
+                      {String(contractorProfile.city || "")}
                       {contractorProfile.city && contractorProfile.state ? " - " : ""}
-                      {contractorProfile.state as string || ""}
-                      {contractorProfile.cep ? ` • CEP: ${contractorProfile.cep as string}` : ""}
+                      {String(contractorProfile.state || "")}
+                      {contractorProfile.cep ? ` • CEP: ${String(contractorProfile.cep)}` : ""}
                     </p>
                   )}
                   {!contractorProfile.street && !contractorProfile.address && !contractorProfile.city && (
