@@ -5,6 +5,7 @@ import { ArrowRight, ArrowLeft, Briefcase, Clock, X, CheckCircle } from "lucide-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
+import { registerProvider } from "@/lib/api";
 
 const areasAtuacao = [
   { id: "garcom", label: "Garçom" },
