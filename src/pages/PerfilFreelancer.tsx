@@ -258,10 +258,6 @@ const PerfilFreelancer = () => {
               <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">{freelancerData.location}</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Car className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Transporte próprio: {freelancerData.hasTransport ? "Sim" : "Não"}</span>
-            </div>
             {freelancerData.isPCD && freelancerData.deficiencias.length > 0 && (
               <div className="flex items-start gap-3">
                 <span className="text-sm mt-0.5">♿</span>
@@ -400,32 +396,6 @@ const PerfilFreelancer = () => {
           )}
         </div>
 
-        {/* Media Section */}
-        <div>
-          <h2 className="font-bold text-base mb-3">Mídias</h2>
-          <div className="flex gap-2">
-            <div className="relative flex-1 aspect-[9/16] bg-muted rounded-xl flex items-center justify-center border border-border overflow-hidden">
-              <div className="w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center border border-border">
-                <Play className="w-4 h-4 text-primary ml-0.5" />
-              </div>
-              <span className="absolute bottom-2 left-2 text-[10px] font-semibold bg-background/80 backdrop-blur-sm px-1.5 py-0.5 rounded-md">
-                Vídeo
-              </span>
-              {!contractorView && (
-                <button className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center border border-border">
-                  <Pencil className="w-2.5 h-2.5 text-primary" />
-                </button>
-              )}
-            </div>
-            <div className="flex-1 grid grid-cols-2 gap-2">
-              {[1, 2, 3, 4].map((_, i) => (
-                <div key={i} className="aspect-square bg-muted rounded-xl flex items-center justify-center border border-border">
-                  <ImageIcon className="w-4 h-4 text-muted-foreground" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
