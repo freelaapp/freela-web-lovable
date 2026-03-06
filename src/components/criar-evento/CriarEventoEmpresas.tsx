@@ -31,7 +31,7 @@ const CriarEventoEmpresas = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-
+  const [contractorProfile, setContractorProfile] = useState<ContractorProfile | null>(null);
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [descricaoVaga, setDescricaoVaga] = useState("");
   const [dataEvento, setDataEvento] = useState("");
@@ -46,6 +46,15 @@ const CriarEventoEmpresas = () => {
   const [servicesOpen, setServicesOpen] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch contractor profile on mount
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+    getContractorProfile(token)
+      .then(setContractorProfile)
+      .catch((err) => console.error("[CriarEvento] Contractor profile error:", err));
+  }, []);
 
   const toggleService = (servico: (typeof servicosPF)[number]) => {
     setSelectedServices((prev) => {
