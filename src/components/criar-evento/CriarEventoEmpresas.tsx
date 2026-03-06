@@ -360,6 +360,43 @@ const CriarEventoEmpresas = () => {
             />
           </div>
 
+          {/* Establishment address (always shown when toggle is ON) */}
+          {noEstabelecimento && (
+            <div className="bg-muted/50 rounded-lg p-3 space-y-1 animate-in fade-in duration-200">
+              <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-primary" />
+                Endereço do estabelecimento
+              </p>
+              {contractorProfile ? (
+                <div className="text-xs text-muted-foreground space-y-0.5">
+                  <p>{contractorProfile.establishmentName || contractorProfile.fantasyName || contractorProfile.name || "—"}</p>
+                  {(contractorProfile.street || contractorProfile.address) && (
+                    <p>
+                      {contractorProfile.street || contractorProfile.address}
+                      {contractorProfile.number ? `, ${contractorProfile.number}` : ""}
+                    </p>
+                  )}
+                  {(contractorProfile.neighborhood) && (
+                    <p>{contractorProfile.neighborhood as string}</p>
+                  )}
+                  {(contractorProfile.city || contractorProfile.state) && (
+                    <p>
+                      {contractorProfile.city as string || ""}
+                      {contractorProfile.city && contractorProfile.state ? " - " : ""}
+                      {contractorProfile.state as string || ""}
+                      {contractorProfile.cep ? ` • CEP: ${contractorProfile.cep as string}` : ""}
+                    </p>
+                  )}
+                  {!contractorProfile.street && !contractorProfile.address && !contractorProfile.city && (
+                    <p className="italic text-muted-foreground/70">Endereço não cadastrado. Atualize em Meus Dados.</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground/70 italic">Carregando dados do estabelecimento...</p>
+              )}
+            </div>
+          )}
+
           {!noEstabelecimento && (
             <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="bg-muted/50 rounded-lg p-2.5 flex items-start gap-2">
