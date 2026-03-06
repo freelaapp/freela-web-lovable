@@ -4,13 +4,10 @@ import { CalendarPlus, Users, Clock, ChevronRight, Star, DollarSign, AlertCircle
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useEffect, useState } from "react";
+import { getContractorProfile } from "@/lib/api";
 
-const mockStats = {
-  totalGasto: "R$ 12.450",
-  eventosRealizados: 12,
-  freelancersContratados: 34,
-  avaliacaoMedia: 4.8,
-};
+const API_BASE_URL = "https://api.freelaservicos.com.br";
+const ORIGIN_TYPE = "Web";
 
 const mockProximosEventos = [
   { id: 1, title: "Aniversário 30 anos", date: "22 Fev 2026", time: "14:00", freelancers: 3, status: "confirmado", role: "Churrasqueiro" },
