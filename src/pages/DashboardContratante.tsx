@@ -121,9 +121,9 @@ const DashboardContratante = () => {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: DollarSign, label: "Total Gasto", value: mockStats.totalGasto, bg: "bg-success-light", color: "text-success" },
-            { icon: CalendarPlus, label: "Vagas", value: mockStats.eventosRealizados.toString(), bg: "bg-primary-light", color: "text-primary" },
-            { icon: Star, label: "Avaliação", value: mockStats.avaliacaoMedia.toString(), bg: "bg-warning-light", color: "text-warning" },
+            { icon: DollarSign, label: "Total Gasto", value: totalGasto, bg: "bg-success-light", color: "text-success" },
+            { icon: CalendarPlus, label: "Vagas", value: totalVagas.toString(), bg: "bg-primary-light", color: "text-primary" },
+            { icon: Star, label: "Avaliação", value: "0", bg: "bg-warning-light", color: "text-warning" },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardContent className="p-4 text-center">
