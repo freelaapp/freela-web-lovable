@@ -147,7 +147,10 @@ const CadastroFreelancerAreas = () => {
       fd.append("cpf", saved.cpf || "");
       fd.append("birthdate", saved.dataNascimento || "");
       fd.append("gender", saved.sexo || "");
-      fd.append("deficiency", saved.deficiency || "Não");
+      fd.append("deficiency", saved.deficiency === "Sim" ? "true" : "false");
+      fd.append("schooling", "");
+      fd.append("cnh", "");
+      fd.append("language", "");
       fd.append("desiredJobVacancy", areasLabels);
       fd.append("emergencyContactName", saved.emergencyContactName || "");
       fd.append("emergencyContactRelationship", saved.emergencyContactRelationship || "");
