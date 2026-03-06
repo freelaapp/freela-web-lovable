@@ -169,6 +169,10 @@ const CadastroFreelancerAreas = () => {
       
       fd.append("pixKeyType", saved.tipoChavePix || "");
       fd.append("pixKeyValue", saved.pixKeyValue || "");
+      fd.append("rg", "000000000");
+      fd.append("phoneMessage", "");
+      fd.append("mileageRadius", "0");
+      fd.append("feedbackStars", "0");
 
       await registerProvider(fd, token);
 
