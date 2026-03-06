@@ -126,24 +126,107 @@ const CriarEventoEmpresas = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate services
     if (selectedServices.length === 0) {
       toast({ title: "Selecione ao menos um serviço", variant: "destructive" });
       return;
     }
+
+    // Validate date
+    if (!dataEvento) {
+      toast({ title: "Informe a data do evento", variant: "destructive" });
+      return;
+    }
+
+    // Validate description
+    if (!descricaoVaga.trim()) {
+      toast({ title: "Preencha a descrição da vaga", variant: "destructive" });
+      return;
+    }
+
+    // Validate each service has valid hours
+    for (const s of selectedServices) {
+      const hours = calcHours(s.horaInicio, s.horaFim);
+      if (!s.horaInicio || !s.horaFim || hours <= 0) {
+        toast({ title: `Configure o horário de "${s.label}"`, variant: "destructive" });
+        return;
+      }
+      if (hours < s.minHours) {
+        toast({
+          title: `Horas insuficientes para "${s.label}"`,
+          description: `O mínimo é ${s.minHours}h. Você configurou ${hours.toFixed(1)}h.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validate contractor profile
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      toast({ title: "Sessão expirada. Faça login novamente.", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
+
+    let profile = contractorProfile;
+    if (!profile) {
+      try {
+        profile = await getContractorProfile(token);
+        setContractorProfile(profile);
+      } catch {
+        toast({ title: "Não foi possível carregar o perfil do contratante.", variant: "destructive" });
+        return;
+      }
+    }
+
+    const establishment = profile.establishmentName || profile.fantasyName || profile.name || "";
+    const contractorId = profile.id;
+
+    if (!contractorId) {
+      toast({ title: "Perfil de contratante não encontrado.", variant: "destructive" });
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      // Create one vacancy per service
+      for (const s of servicePricing.filter((sp) => sp.hours > 0)) {
+        const jobTimeHours = s.effectiveHours;
+        const jobTimeFormatted = `${Math.floor(jobTimeHours)}:${String(Math.round((jobTimeHours % 1) * 60)).padStart(2, "0")}`;
+
+        await createVacancy(
+          {
+            establishment,
+            assignment: s.label,
+            description: descricaoVaga.trim(),
+            quantity: s.quantidade,
+            jobDate: new Date(dataEvento + "T12:00:00").toISOString(),
+            jobTime: jobTimeFormatted,
+            jobValue: s.total.toFixed(2),
+            status: "open",
+            contractorId,
+            createdAt: new Date().toISOString(),
+          },
+          token
+        );
+      }
+
       toast({
-        title: "✅ Contratação criada com sucesso!",
+        title: "✅ Vaga criada com sucesso!",
         description: "Freelancers já podem se candidatar.",
         className: "bg-green-600 text-white border-green-700",
         duration: 3000,
       });
-      // Redirect to event detail page after toast
-      setTimeout(() => {
-        navigate("/evento/1");
-      }, 800);
-    }, 1200);
+      setTimeout(() => navigate("/dashboard-contratante"), 800);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao criar vaga.";
+      toast({ title: "Erro ao criar vaga", description: message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
