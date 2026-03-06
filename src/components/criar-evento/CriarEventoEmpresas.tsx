@@ -49,11 +49,16 @@ const CriarEventoEmpresas = () => {
 
   // Fetch contractor profile on mount
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) return;
-    getContractorProfile(token)
-      .then(setContractorProfile)
-      .catch((err) => console.error("[CriarEvento] Contractor profile error:", err));
+    const tokenRaw = localStorage.getItem("authToken");
+    if (!tokenRaw) return;
+    try {
+      const token = JSON.parse(tokenRaw);
+      getContractorProfile(token)
+        .then(setContractorProfile)
+        .catch((err) => console.error("[CriarEvento] Contractor profile error:", err));
+    } catch {
+      console.error("[CriarEvento] Failed to parse authToken");
+    }
   }, []);
 
   const toggleService = (servico: (typeof servicosPF)[number]) => {
@@ -163,8 +168,17 @@ const CriarEventoEmpresas = () => {
     }
 
     // Validate contractor profile
-    const token = localStorage.getItem("authToken");
-    if (!token) {
+    const tokenRaw = localStorage.getItem("authToken");
+    if (!tokenRaw) {
+      toast({ title: "Sessão expirada. Faça login novamente.", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
+
+    let parsedToken: string;
+    try {
+      parsedToken = JSON.parse(tokenRaw);
+    } catch {
       toast({ title: "Sessão expirada. Faça login novamente.", variant: "destructive" });
       navigate("/login");
       return;
@@ -173,7 +187,7 @@ const CriarEventoEmpresas = () => {
     let profile = contractorProfile;
     if (!profile) {
       try {
-        profile = await getContractorProfile(token);
+        profile = await getContractorProfile(parsedToken);
         setContractorProfile(profile);
       } catch {
         toast({ title: "Não foi possível carregar o perfil do contratante.", variant: "destructive" });
@@ -210,7 +224,7 @@ const CriarEventoEmpresas = () => {
             contractorId,
             createdAt: new Date().toISOString(),
           },
-          token
+          parsedToken
         );
       }
 
