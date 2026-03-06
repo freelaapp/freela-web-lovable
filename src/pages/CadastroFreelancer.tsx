@@ -104,6 +104,13 @@ const CadastroFreelancer = () => {
         setBairro(data.bairro || "");
         setCidade(data.localidade || "");
         setEstado(data.uf || "");
+        // Persist viacep metadata for provider registration
+        localStorage.setItem("freelancerViacepData", JSON.stringify({
+          ibge: data.ibge || "",
+          gia: data.gia || "",
+          ddd: data.ddd || "",
+          siafi: data.siafi || "",
+        }));
       }
     } catch {
       // silently fail
