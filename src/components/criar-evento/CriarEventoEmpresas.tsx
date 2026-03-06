@@ -49,11 +49,16 @@ const CriarEventoEmpresas = () => {
 
   // Fetch contractor profile on mount
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) return;
-    getContractorProfile(token)
-      .then(setContractorProfile)
-      .catch((err) => console.error("[CriarEvento] Contractor profile error:", err));
+    const tokenRaw = localStorage.getItem("authToken");
+    if (!tokenRaw) return;
+    try {
+      const token = JSON.parse(tokenRaw);
+      getContractorProfile(token)
+        .then(setContractorProfile)
+        .catch((err) => console.error("[CriarEvento] Contractor profile error:", err));
+    } catch {
+      console.error("[CriarEvento] Failed to parse authToken");
+    }
   }, []);
 
   const toggleService = (servico: (typeof servicosPF)[number]) => {
