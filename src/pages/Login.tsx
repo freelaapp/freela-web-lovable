@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
-import { loginUser } from "@/lib/api";
+import { loginUser, getContractorProfile } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
+import { setUserRole } from "@/hooks/useUserRole";
 
 const Login = () => {
   const navigate = useNavigate();
