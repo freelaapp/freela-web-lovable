@@ -89,6 +89,7 @@ const CadastroFreelancer = () => {
   const [complemento, setComplemento] = useState("");
   const [cepLoading, setCepLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tipoChavePix, setTipoChavePix] = useState("");
   const [chavePix, setChavePix] = useState("");
 
   const buscarCep = useCallback(async (cepValue: string) => {
