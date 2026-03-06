@@ -9,9 +9,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Calendar, MapPin, Users, ArrowRight, ChevronDown, Building2, Info, FileText, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { servicosPF } from "@/lib/services";
+import { servicosPF, FREELA_COMMISSION, INSURANCE_FEE } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
 import ServicoCard, { getServiceIcon, calcHours } from "./ServicoCard";
 
