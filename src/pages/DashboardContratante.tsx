@@ -50,7 +50,8 @@ const DashboardContratante = () => {
     getContractorProfile(token)
       .then(async (profile) => {
         const contractorId = profile.id;
-        // Get all vacancies
+
+        // Fetch vacancies
         const vacRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, {
           method: "GET", credentials: "include", headers,
         });
@@ -63,44 +64,47 @@ const DashboardContratante = () => {
         const vacancies: any[] = Array.isArray(vacBody.data) ? vacBody.data : [];
         setTotalVagas(vacancies.length);
 
-        // Filter vacancies created in the current month
+        // Filter current month
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
-
         const currentMonthVacancies = vacancies.filter((v: any) => {
           if (!v.createdAt) return false;
           const d = new Date(v.createdAt);
           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });
 
-        if (currentMonthVacancies.length === 0) {
-          setTotalGasto("R$ 0");
-          return;
+        if (currentMonthVacancies.length > 0) {
+          const values = await Promise.all(
+            currentMonthVacancies.map(async (v: any) => {
+              try {
+                const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, {
+                  method: "GET", credentials: "include", headers,
+                });
+                const jobBody = await jobRes.json();
+                if (jobRes.ok && jobBody?.data?.value != null) return Number(jobBody.data.value) || 0;
+              } catch (e) { console.error(`Erro ao buscar job ${v.id}:`, e); }
+              return 0;
+            })
+          );
+          const sum = values.reduce((a, b) => a + b, 0);
+          setTotalGasto(`R$ ${sum.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`);
         }
 
-        // Fetch job value for each vacancy
-        const values = await Promise.all(
-          currentMonthVacancies.map(async (v: any) => {
-            try {
-              const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, {
-                method: "GET", credentials: "include", headers,
-              });
-              const jobBody = await jobRes.json();
-              if (jobRes.ok && jobBody?.data?.value != null) {
-                return Number(jobBody.data.value) || 0;
-              }
-            } catch (e) {
-              console.error(`Erro ao buscar job ${v.id}:`, e);
-            }
-            return 0;
-          })
-        );
-
-        const sum = values.reduce((a, b) => a + b, 0);
-        setTotalGasto(`R$ ${sum.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`);
+        // Fetch feedbacks for average rating
+        try {
+          const fbRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, {
+            method: "GET", credentials: "include", headers,
+          });
+          const fbBody = await fbRes.json();
+          if (fbRes.ok && Array.isArray(fbBody?.data) && fbBody.data.length > 0) {
+            const total = fbBody.data.reduce((acc: number, fb: any) => acc + (Number(fb.star) || 0), 0);
+            const avg = total / fbBody.data.length;
+            setMediaAvaliacao(avg.toFixed(1));
+          }
+        } catch (e) { console.error("Erro ao buscar feedbacks:", e); }
       })
-      .catch(err => console.error("Erro ao buscar vagas do contratante:", err));
+      .catch(err => console.error("Erro ao buscar dados do contratante:", err));
   }, []);
 
   return (
