@@ -4,13 +4,10 @@ import { CalendarPlus, Users, Clock, ChevronRight, Star, DollarSign, AlertCircle
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useEffect, useState } from "react";
+import { getContractorProfile } from "@/lib/api";
 
-const mockStats = {
-  totalGasto: "R$ 12.450",
-  eventosRealizados: 12,
-  freelancersContratados: 34,
-  avaliacaoMedia: 4.8,
-};
+const API_BASE_URL = "https://api.freelaservicos.com.br";
+const ORIGIN_TYPE = "Web";
 
 const mockProximosEventos = [
   { id: 1, title: "Aniversário 30 anos", date: "22 Fev 2026", time: "14:00", freelancers: 3, status: "confirmado", role: "Churrasqueiro" },
@@ -31,30 +28,78 @@ const mockAvaliacoesPendentes = [
 const DashboardContratante = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
+  const [totalGasto, setTotalGasto] = useState("R$ 0");
+  const [totalVagas, setTotalVagas] = useState(0);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const tokenRaw = localStorage.getItem("authToken");
-        if (!tokenRaw) return;
-        const token = JSON.parse(tokenRaw);
-        const res = await fetch("https://api.freelaservicos.com.br/users/me", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Origin-type": "Web",
-            "Authorization": `Bearer ${token}`,
-          },
+    const tokenRaw = localStorage.getItem("authToken");
+    if (!tokenRaw) return;
+    let token: string;
+    try { token = JSON.parse(tokenRaw); } catch { return; }
+
+    const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
+
+    // Fetch user name
+    fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers })
+      .then(r => r.json())
+      .then(body => { if (body?.success && body?.data?.name) setUserName(body.data.name); })
+      .catch(err => console.error("Erro ao buscar usuário:", err));
+
+    // Fetch contractor profile then vacancies
+    getContractorProfile(token)
+      .then(async (profile) => {
+        const contractorId = profile.id;
+        // Get all vacancies
+        const vacRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, {
+          method: "GET", credentials: "include", headers,
         });
-        const body = await res.json();
-        if (body?.success && body?.data?.name) {
-          setUserName(body.data.name);
+        const vacBody = await vacRes.json();
+        if (!vacRes.ok || !vacBody?.data) {
+          console.error("Erro ao buscar vagas:", vacBody);
+          return;
         }
-      } catch (err) {
-        console.error("Erro ao buscar dados do usuário:", err);
-      }
-    };
-    fetchUser();
+
+        const vacancies: any[] = Array.isArray(vacBody.data) ? vacBody.data : [];
+        setTotalVagas(vacancies.length);
+
+        // Filter vacancies created in the current month
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        const currentMonthVacancies = vacancies.filter((v: any) => {
+          if (!v.createdAt) return false;
+          const d = new Date(v.createdAt);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+
+        if (currentMonthVacancies.length === 0) {
+          setTotalGasto("R$ 0");
+          return;
+        }
+
+        // Fetch job value for each vacancy
+        const values = await Promise.all(
+          currentMonthVacancies.map(async (v: any) => {
+            try {
+              const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, {
+                method: "GET", credentials: "include", headers,
+              });
+              const jobBody = await jobRes.json();
+              if (jobRes.ok && jobBody?.data?.value != null) {
+                return Number(jobBody.data.value) || 0;
+              }
+            } catch (e) {
+              console.error(`Erro ao buscar job ${v.id}:`, e);
+            }
+            return 0;
+          })
+        );
+
+        const sum = values.reduce((a, b) => a + b, 0);
+        setTotalGasto(`R$ ${sum.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`);
+      })
+      .catch(err => console.error("Erro ao buscar vagas do contratante:", err));
   }, []);
 
   return (
@@ -76,9 +121,9 @@ const DashboardContratante = () => {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: DollarSign, label: "Total Gasto", value: mockStats.totalGasto, bg: "bg-success-light", color: "text-success" },
-            { icon: CalendarPlus, label: "Vagas", value: mockStats.eventosRealizados.toString(), bg: "bg-primary-light", color: "text-primary" },
-            { icon: Star, label: "Avaliação", value: mockStats.avaliacaoMedia.toString(), bg: "bg-warning-light", color: "text-warning" },
+            { icon: DollarSign, label: "Total Gasto", value: totalGasto, bg: "bg-success-light", color: "text-success" },
+            { icon: CalendarPlus, label: "Vagas", value: totalVagas.toString(), bg: "bg-primary-light", color: "text-primary" },
+            { icon: Star, label: "Avaliação", value: "0", bg: "bg-warning-light", color: "text-warning" },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardContent className="p-4 text-center">
