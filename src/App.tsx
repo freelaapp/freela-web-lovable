@@ -45,7 +45,7 @@ import Carteira from "./pages/Carteira";
 import DetalheEventoContratante from "./pages/DetalheEventoContratante";
 import PerfilContratante from "./pages/PerfilContratante";
 import TelaPix from "./pages/TelaPix";
-import ObrigadoFreelancer from "./pages/ObrigadoFreelancer";
+
 import ObrigadoContratante from "./pages/ObrigadoContratante";
 
 const queryClient = new QueryClient();
@@ -98,7 +98,7 @@ const App = () => (
             <Route path="/evento/:eventoId" element={<DetalheEventoContratante />} />
             <Route path="/perfil-contratante/:clientId" element={<PerfilContratante />} />
             <Route path="/tela-pix" element={<TelaPix />} />
-            <Route path="/obrigado-freelancer" element={<ObrigadoFreelancer />} />
+            
             <Route path="/obrigado-contratante" element={<ObrigadoContratante />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
