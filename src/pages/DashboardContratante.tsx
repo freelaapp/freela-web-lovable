@@ -128,7 +128,7 @@ const DashboardContratante = () => {
           {[
             { icon: DollarSign, label: "Total Gasto", value: totalGasto, bg: "bg-success-light", color: "text-success" },
             { icon: CalendarPlus, label: "Vagas", value: totalVagas.toString(), bg: "bg-primary-light", color: "text-primary" },
-            { icon: Star, label: "Avaliação", value: "0", bg: "bg-warning-light", color: "text-warning" },
+            { icon: Star, label: "Avaliação", value: mediaAvaliacao, bg: "bg-warning-light", color: "text-warning" },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardContent className="p-4 text-center">
