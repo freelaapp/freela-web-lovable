@@ -104,15 +104,81 @@ const CadastroFreelancerAreas = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const savedRaw = localStorage.getItem("freelancerFormData");
+      if (!savedRaw) {
+        toast({ title: "Erro", description: "Dados do cadastro não encontrados. Volte à etapa anterior.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      const saved = JSON.parse(savedRaw);
+
+      const viacepRaw = localStorage.getItem("freelancerViacepData");
+      const viacep = viacepRaw ? JSON.parse(viacepRaw) : { ibge: "", gia: "", ddd: "", siafi: "" };
+
+      const tokenRaw = localStorage.getItem("authToken");
+      const token = tokenRaw ? JSON.parse(tokenRaw) : "";
+      const userRaw = localStorage.getItem("authUser");
+      const userId = userRaw ? JSON.parse(userRaw)?.id || "" : "";
+
+      if (!token) {
+        toast({ title: "Erro", description: "Sessão expirada. Faça login novamente.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+
+      const areasLabels = areasSelecionadas
+        .map((id) => areasAtuacao.find((a) => a.id === id)?.label || id)
+        .join(", ");
+
+      const fd = new FormData();
+
+      if (saved.fotoBase64) {
+        const res = await fetch(saved.fotoBase64);
+        const blob = await res.blob();
+        fd.append("profileImage", blob, saved.fotoName || "profile.jpg");
+      }
+
+      fd.append("cpf", saved.cpf || "");
+      fd.append("birthdate", saved.dataNascimento || "");
+      fd.append("gender", saved.sexo || "");
+      fd.append("deficiency", saved.deficiency || "Não");
+      fd.append("desiredJobVacancy", areasLabels);
+      fd.append("emergencyContactName", saved.emergencyContactName || "");
+      fd.append("emergencyContactRelationship", saved.emergencyContactRelationship || "");
+      fd.append("emergencyContactNumber", saved.emergencyContactNumber || "");
+      fd.append("cep", saved.cep || "");
+      fd.append("street", saved.street || "");
+      fd.append("complement", saved.complement || "");
+      fd.append("neighborhood", saved.neighborhood || "");
+      fd.append("number", saved.number || "");
+      fd.append("city", saved.city || "");
+      fd.append("uf", saved.uf || "");
+      fd.append("ibge", viacep.ibge || "");
+      fd.append("gia", viacep.gia || "");
+      fd.append("ddd", viacep.ddd || "");
+      fd.append("siafi", viacep.siafi || "");
+      fd.append("userId", userId);
+      fd.append("pixKeyType", saved.tipoChavePix || "");
+      fd.append("pixKeyValue", saved.pixKeyValue || "");
+
+      await registerProvider(fd, token);
+
+      localStorage.removeItem("freelancerFormData");
+      localStorage.removeItem("freelancerViacepData");
+
       toast({ title: "Cadastro finalizado!", description: "Seu perfil está completo. Bem-vindo à Freela!" });
       navigate("/dashboard-freelancer");
-    }, 1500);
+    } catch (err: any) {
+      toast({ title: "Erro no cadastro", description: err.message || "Tente novamente.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
