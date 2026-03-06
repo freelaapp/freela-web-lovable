@@ -48,12 +48,23 @@ const Login = () => {
     try {
       const result = await loginUser({ email, password });
       onAuthSuccess(result.data);
+
+      // Detect role by trying to fetch contractor profile
+      let detectedRole: "contratante" | "freelancer" = "freelancer";
+      try {
+        const token = JSON.parse(localStorage.getItem("authToken") || '""');
+        await getContractorProfile(token);
+        detectedRole = "contratante";
+      } catch {
+        detectedRole = "freelancer";
+      }
+      setUserRole(detectedRole);
+
       toast({
         title: "Login realizado!",
         description: "Bem-vindo de volta à Freela.",
       });
-      const role = localStorage.getItem("userRole");
-      navigate(role === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
+      navigate(detectedRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
     } catch (err: any) {
       const message =
         err instanceof TypeError
