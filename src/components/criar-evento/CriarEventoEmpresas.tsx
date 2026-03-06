@@ -25,8 +25,6 @@ interface SelectedService {
   minHours: number;
 }
 
-const PRICE_PER_HOUR = 20;
-const MIN_HOURS = 6;
 
 const CriarEventoEmpresas = () => {
   const navigate = useNavigate();
