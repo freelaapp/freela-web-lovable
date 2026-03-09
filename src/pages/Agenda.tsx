@@ -121,21 +121,6 @@ const Agenda = () => {
   const totalGanhoHistorico = "R$ 6.350";
   const mediaAvaliacao = "4.9";
 
-  const handleAceitar = (eventoId: number, freelancerId: string) => {
-    setEventos(prev => prev.map(e => e.id === eventoId ? {
-      ...e,
-      candidatos: e.candidatos.map(c => c.id === freelancerId ? { ...c, status: "aceito" } : c)
-    } : e));
-    toast({ title: "Freelancer aceito!", description: "O freelancer será notificado." });
-  };
-
-  const handleRecusar = (eventoId: number, freelancerId: string) => {
-    setEventos(prev => prev.map(e => e.id === eventoId ? {
-      ...e,
-      candidatos: e.candidatos.map(c => c.id === freelancerId ? { ...c, status: "recusado" } : c)
-    } : e));
-    toast({ title: "Candidatura recusada" });
-  };
 
   const FreelancerItemCard = ({ item }: { item: typeof items[0] }) => {
     const isFinalizado = item.status === "executado" || item.status === "finalizado";
