@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, History, Star, DollarSign, Users, CalendarPlus, Briefcase, UserCheck, UserX, Shield, Eye } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, History, Star, DollarSign, Users, CalendarPlus, Briefcase, UserCheck, UserX, Shield, Eye, Loader2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import VagaCard from "@/components/dashboard-contratante/VagaCard";
+
+const API_BASE_URL = "https://api.freelaservicos.com.br";
+
+const statusOrder: Record<string, number> = {
+  open: 0,
+  "in hiring": 1,
+  closed: 2,
+  removed: 3,
+};
 
 // Freelancer mocks
 const mockVagasFreelancer = [
