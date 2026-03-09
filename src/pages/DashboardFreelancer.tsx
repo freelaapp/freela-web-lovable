@@ -2,7 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Briefcase, DollarSign, Star, Calendar, Clock, ChevronRight, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
+
+const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 const mockJobs = [
   { id: 1, title: "Churrasco - Aniversário", client: "Ana Oliveira", date: "22 Fev", status: "confirmado", value: "R$ 650" },
@@ -19,6 +22,45 @@ const mockVagasRegiao = [
 
 const DashboardFreelancer = () => {
   const navigate = useNavigate();
+  const [averageRating, setAverageRating] = useState<string>("--");
+
+  useEffect(() => {
+    const fetchRating = async () => {
+      try {
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) return;
+        const token = JSON.parse(tokenRaw);
+        const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
+
+        // 1. Get provider id
+        const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const provBody = await provRes.json().catch(() => null);
+        const providerId = provBody?.data?.id ?? provBody?.id;
+        if (!providerId) return;
+
+        // 2. Get feedbacks
+        const fbRes = await fetch(`${API_BASE_URL}/providers/${providerId}/jobs/feedbacks`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const fbBody = await fbRes.json().catch(() => null);
+        const feedbacks = fbBody?.data ?? fbBody;
+
+        if (Array.isArray(feedbacks) && feedbacks.length > 0) {
+          const avg = feedbacks.reduce((sum: number, f: any) => sum + (f.rating ?? f.score ?? 0), 0) / feedbacks.length;
+          setAverageRating(avg.toFixed(1));
+        } else if (typeof feedbacks === "number") {
+          setAverageRating(feedbacks.toFixed(1));
+        } else if (typeof fbBody?.data === "number") {
+          setAverageRating(fbBody.data.toFixed(1));
+        }
+      } catch (err) {
+        console.error("[DashboardFreelancer] error fetching rating:", err);
+      }
+    };
+    fetchRating();
+  }, []);
 
   const renderStars = (rating: number) => (
     <div className="flex gap-0.5">
@@ -42,7 +84,7 @@ const DashboardFreelancer = () => {
           {[
             { icon: DollarSign, label: "Ganhos do mês", value: "R$ 3.650", color: "text-success", bg: "bg-success-light" },
             { icon: Briefcase, label: "Jobs este mês", value: "8", color: "text-primary", bg: "bg-primary-light" },
-            { icon: Star, label: "Avaliação", value: "4.9", color: "text-warning", bg: "bg-warning-light" },
+            { icon: Star, label: "Avaliação", value: averageRating, color: "text-warning", bg: "bg-warning-light" },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardContent className="p-4">
