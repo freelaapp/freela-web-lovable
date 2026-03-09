@@ -172,17 +172,21 @@ export async function getContractorProfile(token: string): Promise<ContractorPro
 }
 
 // ── Create Vacancy ─────────────────────────────────────────────
-export interface CreateVacancyPayload {
-  establishment: string;
-  assignment: string;
-  description: string;
+export interface FreelancerEntry {
   quantity: number;
-  jobDate: string;
+  assignment: string;
   jobTime: string;
   jobValue: string;
+}
+
+export interface CreateVacancyPayload {
+  establishment: string;
+  description: string;
+  jobDate: string;
   status: string;
   contractorId: string;
   createdAt: string;
+  freelancers: FreelancerEntry[];
 }
 
 export async function createVacancy(payload: CreateVacancyPayload, token: string): Promise<void> {

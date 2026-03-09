@@ -206,27 +206,28 @@ const CriarEventoEmpresas = () => {
     setIsLoading(true);
 
     try {
-      // Create one vacancy per service
-      for (const s of servicePricing.filter((sp) => sp.hours > 0)) {
-        const jobTimeHours = s.effectiveHours;
-        const jobTimeFormatted = `${Math.floor(jobTimeHours)}:${String(Math.round((jobTimeHours % 1) * 60)).padStart(2, "0")}`;
+      // Build freelancers array from selected services
+      const freelancers = servicePricing
+        .filter((sp) => sp.hours > 0)
+        .map((s) => ({
+          quantity: s.quantidade,
+          assignment: s.label,
+          jobTime: `${Math.floor(s.effectiveHours)} horas`,
+          jobValue: `R$ ${s.total.toFixed(2).replace(".", ",")}`,
+        }));
 
-        await createVacancy(
-          {
-            establishment,
-            assignment: s.label,
-            description: descricaoVaga.trim(),
-            quantity: s.quantidade,
-            jobDate: new Date(dataEvento + "T12:00:00").toISOString(),
-            jobTime: jobTimeFormatted,
-            jobValue: s.total.toFixed(2),
-            status: "open",
-            contractorId,
-            createdAt: new Date().toISOString(),
-          },
-          parsedToken
-        );
-      }
+      await createVacancy(
+        {
+          establishment,
+          description: descricaoVaga.trim(),
+          jobDate: new Date(dataEvento + "T12:00:00").toISOString(),
+          status: "open",
+          contractorId,
+          createdAt: new Date().toISOString(),
+          freelancers,
+        },
+        parsedToken
+      );
 
       toast({
         title: "✅ Vaga criada com sucesso!",
