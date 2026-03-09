@@ -178,7 +178,7 @@ const DetalheEventoContratante = () => {
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" /> Freelancers Inscritos
                 </CardTitle>
-                <span className="text-xs text-muted-foreground">{aceitos}/{evento.freelancersNeeded} aceitos</span>
+                <span className="text-xs text-muted-foreground">{aceitos}/{vacancy.quantity} aceitos</span>
               </div>
               {/* Filter tabs */}
               <div className="flex gap-2 mt-3">
