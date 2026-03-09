@@ -61,10 +61,10 @@ const Agenda = () => {
     const fetchVacancies = async () => {
       try {
         setLoadingVacancies(true);
-        const stored = localStorage.getItem("authTokens");
-        if (!stored) return;
-        const { accessToken: token } = JSON.parse(stored);
-        if (!token) return;
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) return;
+        let token: string;
+        try { token = JSON.parse(tokenRaw); } catch { return; }
         const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
 
         // Get contractor id
