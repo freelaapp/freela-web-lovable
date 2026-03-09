@@ -28,18 +28,14 @@ const mockVagasFreelancer = [
   { id: 5, title: "Garçom - Festa de Empresa", client: "Corp ABC", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "19:00 - 02:00", location: "São Paulo, SP", status: "executado", value: "R$ 550" },
 ];
 
-// Contratante mocks with candidatos
-const mockEventosContratante = [
-  { id: 1, title: "Aniversário 30 anos", client: "3 freelancers", date: "22 Fev 2026", dateObj: new Date(2026, 1, 22), time: "14:00 - 22:00", location: "São Paulo, SP", status: "pendente", value: "R$ 1.950", candidatos: [
-    { id: "f1", name: "Carlos Silva", avatar: "CS", role: "Churrasqueiro", rating: 4.9, verified: true, status: "pendente" as string },
-    { id: "f2", name: "Juliana Alves", avatar: "JA", role: "Bartender", rating: 4.7, verified: true, status: "pendente" as string },
-  ]},
-  { id: 2, title: "Confraternização empresa", client: "5 freelancers", date: "15 Mar 2026", dateObj: new Date(2026, 2, 15), time: "18:00 - 00:00", location: "Campinas, SP", status: "pendente", value: "R$ 3.500", candidatos: [
-    { id: "f3", name: "Pedro Costa", avatar: "PC", role: "Garçom", rating: 4.5, verified: false, status: "aceito" as string },
-  ]},
-  { id: 3, title: "Churrasco de Réveillon", client: "2 freelancers", date: "31 Dez 2025", dateObj: new Date(2025, 11, 31), time: "20:00 - 04:00", location: "São Paulo, SP", status: "finalizado", value: "R$ 2.000", candidatos: [] },
-  { id: 4, title: "Happy Hour Corporativo", client: "1 freelancer", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "17:00 - 22:00", location: "Jundiaí, SP", status: "finalizado", value: "R$ 600", candidatos: [] },
-];
+interface ApiVacancy {
+  id: string;
+  assignment: string;
+  quantity: number;
+  jobDate: string;
+  status: string;
+  [key: string]: unknown;
+}
 
 const mockHistoricoFreelancer = [
   { id: 101, title: "Churrasco - Réveillon", client: "Pedro Costa", date: "31 Dez 2025", location: "São Paulo, SP", value: "R$ 2.000", rating: 5.0 },
