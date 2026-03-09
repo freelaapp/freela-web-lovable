@@ -27,20 +27,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const checkAuth = useCallback(async () => {
     setIsLoading(true);
+    const hadToken = !!localStorage.getItem("authToken");
     const valid = await initializeAuth();
     setIsAuthenticated(valid);
     setUserId(valid ? (getAuthUser()?.id ?? null) : null);
 
-    if (!valid && localStorage.getItem("authToken")) {
-      // Token existed but refresh failed — redirect to login
+    if (!valid && hadToken) {
       logoutUtil();
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
+      toast({
+        title: "Sessão expirada",
+        description: "Seu login expirou. Faça login novamente para continuar.",
+        variant: "destructive",
+      });
     }
     setIsLoading(false);
-  }, [navigate]);
+  }, [navigate, toast]);
 
   // Run on mount and on every route change
   useEffect(() => {
