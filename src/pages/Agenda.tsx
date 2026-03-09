@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, History, Star, DollarSign, CalendarPlus, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, History, Star, DollarSign, CalendarPlus, Loader2, Briefcase, Users } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
