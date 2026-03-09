@@ -224,7 +224,7 @@ const Agenda = () => {
                   <VagaCard key={item.id} id={String(item.id)} assignment={item.assignment} quantity={item.quantity} jobDate={item.jobDate} status={item.status} />
                 ))
               ) : (
-                listaItens.map(item => <FreelancerItemCard key={item.id} item={item} />)
+                (listaItens as typeof freelancerItems).map(item => <FreelancerItemCard key={item.id} item={item} />)
               )
             ) : (
               <p className="text-sm text-muted-foreground text-center py-6">
