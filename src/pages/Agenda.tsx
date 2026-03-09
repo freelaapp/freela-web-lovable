@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import { useToast } from "@/hooks/use-toast";
 import VagaCard from "@/components/dashboard-contratante/VagaCard";
 
