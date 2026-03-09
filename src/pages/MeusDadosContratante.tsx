@@ -536,13 +536,10 @@ const MeusDadosContratante = () => {
         Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
 
         if (type === "casa_cpf") {
-          formData.append("cpf", cpf);
           formData.append("birthdate", dataNascimento);
         } else if (type === "casa_cnpj") {
-          formData.append("cnpj", cnpj);
           formData.append("corporateReason", razaoSocial);
         } else if (type === "empresas") {
-          formData.append("cnpj", cnpj);
           formData.append("corporateReason", razaoSocial);
           formData.append("companySegment", ramo);
           formData.append("companyName", nomeEstabelecimento);
