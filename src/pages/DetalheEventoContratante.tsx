@@ -1,19 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 
-const mockEventos = [
-  { id: 1, title: "Aniversário 30 anos", date: "22 Fev 2026", time: "14:00 - 22:00", hours: 8, role: "Churrasqueiro", location: "Rua das Flores, 123 - Centro, SP", value: "R$ 650", status: "Aberta", freelancersNeeded: 3 },
-  { id: 2, title: "Confraternização empresa", date: "15 Mar 2026", time: "18:00 - 00:00", hours: 6, role: "Garçom", location: "Av. Jundiaí, 1000 - Anhangabaú, SP", value: "R$ 1.200", status: "Fechado", freelancersNeeded: 5 },
-  { id: 3, title: "Casamento João & Maria", date: "10 Abr 2026", time: "16:00 - 23:00", hours: 7, role: "Garçom", location: "Salão de Festas, 50 - Centro, SP", value: "R$ 800", status: "Concluído", freelancersNeeded: 2 },
-];
+const API_BASE_URL = "https://api.freelaservicos.com.br";
+const ORIGIN_TYPE = "Web";
+
+interface VacancyDetail {
+  id: string;
+  establishment: string;
+  assignment: string;
+  description: string;
+  quantity: number;
+  jobDate: string;
+  jobTime: string;
+  jobValue: string;
+  status: string;
+  contractorId: string;
+}
+
+const statusLabels: Record<string, string> = {
+  open: "Aberta",
+  "in hiring": "Em contratação",
+  closed: "Preenchida",
+  removed: "Concluída",
+};
+
+const statusStyles: Record<string, string> = {
+  open: "bg-success-light text-success",
+  "in hiring": "bg-warning-light text-warning",
+  closed: "bg-primary-light text-primary",
+  removed: "bg-muted text-muted-foreground",
+};
 
 const mockCandidatos = [
   { id: "f1", name: "Carlos Silva", avatar: "CS", role: "Churrasqueiro", rating: 4.9, reviews: 127, jobs: 253, verified: true, status: "pendente" as const, price: "R$ 480", responseTime: "~15 min", bio: "Churrasqueiro profissional com mais de 10 anos de experiência." },
@@ -27,7 +51,8 @@ const DetalheEventoContratante = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const evento = mockEventos.find(e => e.id === Number(eventoId));
+  const [vacancy, setVacancy] = useState<VacancyDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [candidatos, setCandidatos] = useState(mockCandidatos);
   const [selectedFreelancer, setSelectedFreelancer] = useState<typeof mockCandidatos[0] | null>(null);
   const [showPropostaDialog, setShowPropostaDialog] = useState(false);
@@ -36,16 +61,52 @@ const DetalheEventoContratante = () => {
   const [propostaEnviada, setPropostaEnviada] = useState(false);
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
 
-  if (!evento) {
+  useEffect(() => {
+    if (!eventoId) return;
+    const tokenRaw = localStorage.getItem("authToken");
+    if (!tokenRaw) return;
+    let token: string;
+    try { token = JSON.parse(tokenRaw); } catch { return; }
+
+    const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
+
+    fetch(`${API_BASE_URL}/vacancies/${eventoId}`, { method: "GET", credentials: "include", headers })
+      .then(r => r.json())
+      .then(body => {
+        if (body?.data) {
+          setVacancy(body.data);
+        }
+      })
+      .catch(err => console.error("Erro ao buscar vaga:", err))
+      .finally(() => setLoading(false));
+  }, [eventoId]);
+
+  if (loading) {
+    return (
+      <AppLayout showFooter={false}>
+        <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 flex justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!vacancy) {
     return (
       <AppLayout showFooter={false}>
         <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 text-center">
-          <p className="text-muted-foreground">Evento não encontrado</p>
+          <p className="text-muted-foreground">Vaga não encontrada</p>
           <Button className="mt-4" onClick={() => navigate(-1)}>Voltar</Button>
         </div>
       </AppLayout>
     );
   }
+
+  const formattedDate = (() => {
+    try {
+      return new Date(vacancy.jobDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    } catch { return vacancy.jobDate; }
+  })();
 
   const handleAceitar = (id: string) => {
     setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
