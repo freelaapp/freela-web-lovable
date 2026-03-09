@@ -151,12 +151,12 @@ const DetalheEventoContratante = () => {
           <CardContent className="p-5">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: Calendar, value: evento.date, label: "Data", color: "text-primary" },
-                { icon: Clock, value: evento.time, label: "Horário", color: "text-primary" },
-                { icon: DollarSign, value: evento.value, label: "Valor/pessoa", color: "text-success" },
-                { icon: Briefcase, value: evento.role, label: "Função", color: "text-primary" },
-                { icon: Clock, value: `${evento.hours}h`, label: "Duração", color: "text-accent" },
-                { icon: MapPin, value: evento.location.split(" - ")[0], label: "Local", color: "text-primary" },
+                { icon: Calendar, value: formattedDate, label: "Data", color: "text-primary" },
+                { icon: Clock, value: vacancy.jobTime, label: "Duração", color: "text-primary" },
+                { icon: DollarSign, value: vacancy.jobValue, label: "Valor/pessoa", color: "text-success" },
+                { icon: Briefcase, value: vacancy.assignment, label: "Função", color: "text-primary" },
+                { icon: Users, value: `${vacancy.quantity}`, label: "Freelancers", color: "text-accent" },
+                { icon: Briefcase, value: vacancy.establishment, label: "Local", color: "text-primary" },
               ].map((item, i) => (
                 <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
                   <item.icon className={`w-5 h-5 ${item.color}`} />
