@@ -99,6 +99,10 @@ const Agenda = () => {
   const freelancerItems = mockVagasFreelancer;
   const items = isContratante ? contratanteItems : freelancerItems;
 
+  const vagasAbertas = isContratante ? apiVacancies.filter(v => v.status === "open" || v.status === "in hiring") : [];
+  const vagasPreenchidas = isContratante ? apiVacancies.filter(v => v.status === "closed") : [];
+  const vagasConcluidas = isContratante ? apiVacancies.filter(v => v.status === "removed") : [];
+
   const pendentes = items.filter(v =>
     isContratante ? (v.status === "open" || v.status === "in hiring") : (v.status === "aceita")
   );
