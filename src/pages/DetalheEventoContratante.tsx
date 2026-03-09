@@ -140,12 +140,10 @@ const DetalheEventoContratante = () => {
           <button onClick={() => navigate(-1)} className="text-sm text-primary flex items-center gap-1 mb-2 hover:underline">
             ← Voltar
           </button>
-          <h1 className="text-2xl font-display font-bold">{evento.title}</h1>
+          <h1 className="text-2xl font-display font-bold">{vacancy.establishment}</h1>
           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
-            evento.status === "Aberta" ? "bg-success-light text-success" : 
-            evento.status === "Fechado" ? "bg-warning-light text-warning" :
-            "bg-muted text-muted-foreground"
-          }`}>{evento.status}</span>
+            statusStyles[vacancy.status] || "bg-muted text-muted-foreground"
+          }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
         </div>
 
         {/* Detalhes */}
