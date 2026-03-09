@@ -1,19 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 
-const mockEventos = [
-  { id: 1, title: "Aniversário 30 anos", date: "22 Fev 2026", time: "14:00 - 22:00", hours: 8, role: "Churrasqueiro", location: "Rua das Flores, 123 - Centro, SP", value: "R$ 650", status: "Aberta", freelancersNeeded: 3 },
-  { id: 2, title: "Confraternização empresa", date: "15 Mar 2026", time: "18:00 - 00:00", hours: 6, role: "Garçom", location: "Av. Jundiaí, 1000 - Anhangabaú, SP", value: "R$ 1.200", status: "Fechado", freelancersNeeded: 5 },
-  { id: 3, title: "Casamento João & Maria", date: "10 Abr 2026", time: "16:00 - 23:00", hours: 7, role: "Garçom", location: "Salão de Festas, 50 - Centro, SP", value: "R$ 800", status: "Concluído", freelancersNeeded: 2 },
-];
+const API_BASE_URL = "https://api.freelaservicos.com.br";
+const ORIGIN_TYPE = "Web";
+
+interface VacancyDetail {
+  id: string;
+  establishment: string;
+  assignment: string;
+  description: string;
+  quantity: number;
+  jobDate: string;
+  jobTime: string;
+  jobValue: string;
+  status: string;
+  contractorId: string;
+}
+
+const statusLabels: Record<string, string> = {
+  open: "Aberta",
+  "in hiring": "Em contratação",
+  closed: "Preenchida",
+  removed: "Concluída",
+};
+
+const statusStyles: Record<string, string> = {
+  open: "bg-success-light text-success",
+  "in hiring": "bg-warning-light text-warning",
+  closed: "bg-primary-light text-primary",
+  removed: "bg-muted text-muted-foreground",
+};
 
 const mockCandidatos = [
   { id: "f1", name: "Carlos Silva", avatar: "CS", role: "Churrasqueiro", rating: 4.9, reviews: 127, jobs: 253, verified: true, status: "pendente" as const, price: "R$ 480", responseTime: "~15 min", bio: "Churrasqueiro profissional com mais de 10 anos de experiência." },
@@ -27,7 +51,8 @@ const DetalheEventoContratante = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const evento = mockEventos.find(e => e.id === Number(eventoId));
+  const [vacancy, setVacancy] = useState<VacancyDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [candidatos, setCandidatos] = useState(mockCandidatos);
   const [selectedFreelancer, setSelectedFreelancer] = useState<typeof mockCandidatos[0] | null>(null);
   const [showPropostaDialog, setShowPropostaDialog] = useState(false);
@@ -36,16 +61,52 @@ const DetalheEventoContratante = () => {
   const [propostaEnviada, setPropostaEnviada] = useState(false);
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
 
-  if (!evento) {
+  useEffect(() => {
+    if (!eventoId) return;
+    const tokenRaw = localStorage.getItem("authToken");
+    if (!tokenRaw) return;
+    let token: string;
+    try { token = JSON.parse(tokenRaw); } catch { return; }
+
+    const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
+
+    fetch(`${API_BASE_URL}/vacancies/${eventoId}`, { method: "GET", credentials: "include", headers })
+      .then(r => r.json())
+      .then(body => {
+        if (body?.data) {
+          setVacancy(body.data);
+        }
+      })
+      .catch(err => console.error("Erro ao buscar vaga:", err))
+      .finally(() => setLoading(false));
+  }, [eventoId]);
+
+  if (loading) {
+    return (
+      <AppLayout showFooter={false}>
+        <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 flex justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!vacancy) {
     return (
       <AppLayout showFooter={false}>
         <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 text-center">
-          <p className="text-muted-foreground">Evento não encontrado</p>
+          <p className="text-muted-foreground">Vaga não encontrada</p>
           <Button className="mt-4" onClick={() => navigate(-1)}>Voltar</Button>
         </div>
       </AppLayout>
     );
   }
+
+  const formattedDate = (() => {
+    try {
+      return new Date(vacancy.jobDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    } catch { return vacancy.jobDate; }
+  })();
 
   const handleAceitar = (id: string) => {
     setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
@@ -79,12 +140,10 @@ const DetalheEventoContratante = () => {
           <button onClick={() => navigate(-1)} className="text-sm text-primary flex items-center gap-1 mb-2 hover:underline">
             ← Voltar
           </button>
-          <h1 className="text-2xl font-display font-bold">{evento.title}</h1>
+          <h1 className="text-2xl font-display font-bold">{vacancy.establishment}</h1>
           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
-            evento.status === "Aberta" ? "bg-success-light text-success" : 
-            evento.status === "Fechado" ? "bg-warning-light text-warning" :
-            "bg-muted text-muted-foreground"
-          }`}>{evento.status}</span>
+            statusStyles[vacancy.status] || "bg-muted text-muted-foreground"
+          }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
         </div>
 
         {/* Detalhes */}
@@ -92,12 +151,12 @@ const DetalheEventoContratante = () => {
           <CardContent className="p-5">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: Calendar, value: evento.date, label: "Data", color: "text-primary" },
-                { icon: Clock, value: evento.time, label: "Horário", color: "text-primary" },
-                { icon: DollarSign, value: evento.value, label: "Valor/pessoa", color: "text-success" },
-                { icon: Briefcase, value: evento.role, label: "Função", color: "text-primary" },
-                { icon: Clock, value: `${evento.hours}h`, label: "Duração", color: "text-accent" },
-                { icon: MapPin, value: evento.location.split(" - ")[0], label: "Local", color: "text-primary" },
+                { icon: Calendar, value: formattedDate, label: "Data", color: "text-primary" },
+                { icon: Clock, value: vacancy.jobTime, label: "Duração", color: "text-primary" },
+                { icon: DollarSign, value: vacancy.jobValue, label: "Valor/pessoa", color: "text-success" },
+                { icon: Briefcase, value: vacancy.assignment, label: "Função", color: "text-primary" },
+                { icon: Users, value: `${vacancy.quantity}`, label: "Freelancers", color: "text-accent" },
+                { icon: Briefcase, value: vacancy.establishment, label: "Local", color: "text-primary" },
               ].map((item, i) => (
                 <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
                   <item.icon className={`w-5 h-5 ${item.color}`} />
@@ -112,14 +171,14 @@ const DetalheEventoContratante = () => {
         </Card>
 
         {/* Freelancers - conditional by status */}
-        {evento.status === "Aberta" && (
+        {(vacancy.status === "open" || vacancy.status === "in hiring") && (
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" /> Freelancers Inscritos
                 </CardTitle>
-                <span className="text-xs text-muted-foreground">{aceitos}/{evento.freelancersNeeded} aceitos</span>
+                <span className="text-xs text-muted-foreground">{aceitos}/{vacancy.quantity} aceitos</span>
               </div>
               {/* Filter tabs */}
               <div className="flex gap-2 mt-3">
@@ -188,7 +247,7 @@ const DetalheEventoContratante = () => {
         )}
 
         {/* Freelancers Confirmados - status Fechado */}
-        {evento.status === "Fechado" && (
+        {vacancy.status === "closed" && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
