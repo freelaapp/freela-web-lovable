@@ -31,6 +31,7 @@ const DashboardContratante = () => {
   const [totalVagas, setTotalVagas] = useState(0);
   const [mediaAvaliacao, setMediaAvaliacao] = useState("0");
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
+  const [activeJobs, setActiveJobs] = useState<any[]>([]);
 
   useEffect(() => {
     const tokenRaw = localStorage.getItem("authToken");
@@ -48,6 +49,19 @@ const DashboardContratante = () => {
     getContractorProfile(token)
       .then(async (profile) => {
         const contractorId = profile.id;
+
+        // Fetch active jobs for "Vagas em Aberto"
+        fetch(`${API_BASE_URL}/contractors/${contractorId}/active-jobs`, {
+          method: "GET", credentials: "include", headers,
+        })
+          .then(r => r.json())
+          .then(body => {
+            if (body?.data && Array.isArray(body.data)) {
+              console.log("[active-jobs] data:", body.data);
+              setActiveJobs(body.data);
+            }
+          })
+          .catch(err => console.error("Erro ao buscar active-jobs:", err));
 
         const vacRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, {
           method: "GET", credentials: "include", headers,
@@ -100,7 +114,13 @@ const DashboardContratante = () => {
       .catch(err => console.error("Erro ao buscar dados do contratante:", err));
   }, []);
 
-  const vagasAbertas = vacancies.filter(v => v.status === "open" || v.status === "in hiring");
+  const vagasAbertas = activeJobs.map((j: any) => ({
+    id: j.id || j._id || "",
+    assignment: j.assignment || j.title || j.name || "",
+    quantity: j.quantity || 1,
+    jobDate: j.jobDate || j.date || "",
+    status: j.status || "open",
+  }));
   const vagasPreenchidas = vacancies.filter(v => v.status === "closed");
   const vagasConcluidas = vacancies.filter(v => v.status === "removed");
 
