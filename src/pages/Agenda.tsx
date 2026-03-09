@@ -51,13 +51,60 @@ const Agenda = () => {
   const { toast } = useToast();
   const isContratante = role === "contratante";
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [eventos, setEventos] = useState(mockEventosContratante);
   const [expandedEvento, setExpandedEvento] = useState<number | null>(null);
+  const [apiVacancies, setApiVacancies] = useState<ApiVacancy[]>([]);
+  const [loadingVacancies, setLoadingVacancies] = useState(false);
 
-  const items = isContratante ? eventos : mockVagasFreelancer;
+  // Fetch real vacancies for contratante
+  useEffect(() => {
+    if (!isContratante) return;
+    const fetchVacancies = async () => {
+      try {
+        setLoadingVacancies(true);
+        const stored = localStorage.getItem("authTokens");
+        if (!stored) return;
+        const { accessToken: token } = JSON.parse(stored);
+        if (!token) return;
+        const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
 
-  const pendentes = items.filter(v => v.status === "aceita" || v.status === "pendente");
-  const finalizados = items.filter(v => v.status === "executado" || v.status === "finalizado");
+        // Get contractor id
+        const cRes = await fetch(`${API_BASE_URL}/users/contractors`, { method: "GET", credentials: "include", headers });
+        const cBody = await cRes.json();
+        const contractorId = cBody?.data?.id;
+        if (!contractorId) return;
+
+        // Get vacancies
+        const vRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, { method: "GET", credentials: "include", headers });
+        const vBody = await vRes.json();
+        const vacancies: ApiVacancy[] = Array.isArray(vBody?.data) ? vBody.data : [];
+
+        // Sort: open → in hiring → closed → removed
+        vacancies.sort((a, b) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99));
+        setApiVacancies(vacancies);
+      } catch (err) {
+        console.error("Erro ao buscar vagas:", err);
+      } finally {
+        setLoadingVacancies(false);
+      }
+    };
+    fetchVacancies();
+  }, [isContratante]);
+
+  // Build contratante items with dateObj for calendar
+  const contratanteItems = apiVacancies.map(v => ({
+    ...v,
+    dateObj: new Date(v.jobDate),
+  }));
+
+  const freelancerItems = mockVagasFreelancer;
+  const items = isContratante ? contratanteItems : freelancerItems;
+
+  const pendentes = items.filter(v =>
+    isContratante ? (v.status === "open" || v.status === "in hiring") : (v.status === "aceita")
+  );
+  const finalizados = items.filter(v =>
+    isContratante ? (v.status === "closed" || v.status === "removed") : (v.status === "executado")
+  );
 
   const pendenteDates = pendentes.map(v => v.dateObj);
   const finalizadoDates = finalizados.map(v => v.dateObj);
