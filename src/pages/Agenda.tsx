@@ -166,46 +166,98 @@ const Agenda = () => {
 
         {/* Stats */}
         {/* Stats + Calendar row */}
-        <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-4 items-stretch">
-          <div className="flex flex-col gap-4">
-            <Card className="flex-1">
-              <CardContent className="p-4 text-center h-full flex flex-col items-center justify-center">
-                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
-                  {isContratante ? <CalendarPlus className="w-5 h-5 text-primary" /> : <CalendarIcon className="w-5 h-5 text-primary" />}
-                </div>
-                <p className="text-xl font-bold font-display">{pendentes.length}</p>
-                <p className="text-xs text-muted-foreground">Vagas Pendentes</p>
-              </CardContent>
-            </Card>
-            <Card className="flex-1">
-              <CardContent className="p-4 text-center h-full flex flex-col items-center justify-center">
-                <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </div>
-                <p className="text-xl font-bold font-display">{finalizados.length}</p>
-                <p className="text-xs text-muted-foreground">Vagas Finalizadas</p>
+        {isContratante ? (
+          <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-4 items-stretch">
+            <div className="flex flex-col gap-3">
+              <Card className="flex-1">
+                <CardContent className="p-3 text-center h-full flex flex-col items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-1.5">
+                    <Briefcase className="w-4 h-4 text-primary" />
+                  </div>
+                  <p className="text-lg font-bold font-display">{vagasAbertas.length}</p>
+                  <p className="text-[10px] text-muted-foreground">Vagas em Aberto</p>
+                </CardContent>
+              </Card>
+              <Card className="flex-1">
+                <CardContent className="p-3 text-center h-full flex flex-col items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-1.5">
+                    <Users className="w-4 h-4 text-primary" />
+                  </div>
+                  <p className="text-lg font-bold font-display">{vagasPreenchidas.length}</p>
+                  <p className="text-[10px] text-muted-foreground">Vagas Preenchidas</p>
+                </CardContent>
+              </Card>
+              <Card className="flex-1">
+                <CardContent className="p-3 text-center h-full flex flex-col items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-success-light flex items-center justify-center mx-auto mb-1.5">
+                    <CheckCircle className="w-4 h-4 text-success" />
+                  </div>
+                  <p className="text-lg font-bold font-display">{vagasConcluidas.length}</p>
+                  <p className="text-[10px] text-muted-foreground">Vagas Concluídas</p>
+                </CardContent>
+              </Card>
+            </div>
+            <Card className="h-full">
+              <CardContent className="p-4 h-full flex items-center justify-center">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="pointer-events-auto w-full [&_table]:w-full [&_th]:w-full [&_td]:w-full [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
+                  modifiers={{
+                    aceita: pendenteDates,
+                    executado: finalizadoDates,
+                  }}
+                  modifiersClassNames={{
+                    aceita: "bg-primary/20 text-primary font-bold rounded-full",
+                    executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
+                  }}
+                />
               </CardContent>
             </Card>
           </div>
-          <Card className="h-full">
-            <CardContent className="p-4 h-full flex items-center justify-center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="pointer-events-auto w-full [&_table]:w-full [&_th]:w-full [&_td]:w-full [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
-                modifiers={{
-                  aceita: pendenteDates,
-                  executado: finalizadoDates,
-                }}
-                modifiersClassNames={{
-                  aceita: "bg-primary/20 text-primary font-bold rounded-full",
-                  executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
-                }}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-4 items-stretch">
+            <div className="flex flex-col gap-4">
+              <Card className="flex-1">
+                <CardContent className="p-4 text-center h-full flex flex-col items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
+                    <CalendarIcon className="w-5 h-5 text-primary" />
+                  </div>
+                  <p className="text-xl font-bold font-display">{pendentes.length}</p>
+                  <p className="text-xs text-muted-foreground">Vagas Pendentes</p>
+                </CardContent>
+              </Card>
+              <Card className="flex-1">
+                <CardContent className="p-4 text-center h-full flex flex-col items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <p className="text-xl font-bold font-display">{finalizados.length}</p>
+                  <p className="text-xs text-muted-foreground">Vagas Finalizadas</p>
+                </CardContent>
+              </Card>
+            </div>
+            <Card className="h-full">
+              <CardContent className="p-4 h-full flex items-center justify-center">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="pointer-events-auto w-full [&_table]:w-full [&_th]:w-full [&_td]:w-full [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
+                  modifiers={{
+                    aceita: pendenteDates,
+                    executado: finalizadoDates,
+                  }}
+                  modifiersClassNames={{
+                    aceita: "bg-primary/20 text-primary font-bold rounded-full",
+                    executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Lista de vagas/eventos */}
         <Card>
