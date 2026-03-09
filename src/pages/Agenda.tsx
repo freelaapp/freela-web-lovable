@@ -122,7 +122,7 @@ const Agenda = () => {
   const mediaAvaliacao = "4.9";
 
 
-  const FreelancerItemCard = ({ item }: { item: typeof items[0] }) => {
+  const FreelancerItemCard = ({ item }: { item: typeof freelancerItems[0] }) => {
     const isFinalizado = item.status === "executado" || item.status === "finalizado";
     return (
       <div
