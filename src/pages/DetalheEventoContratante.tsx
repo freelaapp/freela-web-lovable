@@ -171,7 +171,7 @@ const DetalheEventoContratante = () => {
         </Card>
 
         {/* Freelancers - conditional by status */}
-        {evento.status === "Aberta" && (
+        {(vacancy.status === "open" || vacancy.status === "in hiring") && (
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
