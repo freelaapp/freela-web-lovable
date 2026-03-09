@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { initializeAuth, logout as logoutUtil, getAuthUser } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
