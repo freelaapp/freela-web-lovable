@@ -50,6 +50,19 @@ const DashboardContratante = () => {
       .then(async (profile) => {
         const contractorId = profile.id;
 
+        // Fetch active jobs for "Vagas em Aberto"
+        fetch(`${API_BASE_URL}/contractors/${contractorId}/active-jobs`, {
+          method: "GET", credentials: "include", headers,
+        })
+          .then(r => r.json())
+          .then(body => {
+            if (body?.data && Array.isArray(body.data)) {
+              console.log("[active-jobs] data:", body.data);
+              setActiveJobs(body.data);
+            }
+          })
+          .catch(err => console.error("Erro ao buscar active-jobs:", err));
+
         const vacRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, {
           method: "GET", credentials: "include", headers,
         });
