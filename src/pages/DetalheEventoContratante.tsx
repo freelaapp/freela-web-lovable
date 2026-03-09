@@ -247,7 +247,7 @@ const DetalheEventoContratante = () => {
         )}
 
         {/* Freelancers Confirmados - status Fechado */}
-        {evento.status === "Fechado" && (
+        {vacancy.status === "closed" && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
