@@ -147,6 +147,7 @@ export interface ContractorProfile {
   id: string;
   establishmentName?: string;
   fantasyName?: string;
+  companyName?: string;
   name?: string;
   [key: string]: unknown;
 }

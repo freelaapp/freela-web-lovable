@@ -195,7 +195,7 @@ const CriarEventoEmpresas = () => {
       }
     }
 
-    const establishment = profile.establishmentName || profile.fantasyName || profile.name || "";
+    const establishment = profile.companyName || profile.establishmentName || profile.fantasyName || profile.name || "";
     const contractorId = profile.id;
 
     if (!contractorId) {
