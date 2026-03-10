@@ -361,7 +361,9 @@ const Avaliacoes = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            {feitasApi.map(fb => <FeedbackItem key={fb.id} fb={fb} />)}
+            {feitasApi.map(fb => (
+              <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "feita")} />
+            ))}
           </div>
         </DialogContent>
       </Dialog>
