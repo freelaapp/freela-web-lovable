@@ -17,7 +17,7 @@ const API_BASE_URL = "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
 const areasAtuacao = [
-  { id: "garcom", label: "Garçom" },
+  { id: "garcom", label: "Garçom/Garçonete" },
   { id: "bartender", label: "Bartender" },
   { id: "cozinheiro", label: "Cozinheiro(a)" },
   { id: "auxiliar-cozinha", label: "Auxiliar de Cozinha" },
