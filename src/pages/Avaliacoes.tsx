@@ -312,7 +312,9 @@ const Avaliacoes = () => {
                 ) : feitasApi.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Sem avaliações</p>
                 ) : (
-                  feitasApi.slice(0, 4).map(fb => <FeedbackItem key={fb.id} fb={fb} />)
+                  feitasApi.slice(0, 4).map(fb => (
+                    <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "feita")} />
+                  ))
                 )
               ) : (
                 feitas.map(av => (
