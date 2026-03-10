@@ -446,6 +446,12 @@ const MeusDados = () => {
         fd.append("ddd", viacepMeta.ddd || "");
         fd.append("siafi", viacepMeta.siafi || "");
 
+        // Debug: log all FormData entries
+        console.log("[MeusDados] Provider FormData entries:");
+        for (const [key, value] of fd.entries()) {
+          console.log(`  ${key}:`, value instanceof Blob ? `Blob(${value.size} bytes)` : value);
+        }
+
         const provRes = await fetch(`${API_BASE_URL}/providers`, {
           method: "PUT",
           credentials: "include",
