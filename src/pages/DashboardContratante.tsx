@@ -112,7 +112,7 @@ const DashboardContratante = () => {
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
-        const currentMonthVacancies = allVacancies.filter((v) => {
+        const currentMonthVacancies = rawVacancies.filter((v) => {
           if (!v.createdAt) return false;
           const d = new Date(v.createdAt);
           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
