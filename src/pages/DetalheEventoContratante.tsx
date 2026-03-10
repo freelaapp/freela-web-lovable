@@ -61,10 +61,11 @@ const DetalheEventoContratante = () => {
 
   const [vacancy, setVacancy] = useState<VacancyDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [candidatos, setCandidatos] = useState(mockCandidatos);
-  const [selectedFreelancer, setSelectedFreelancer] = useState<typeof mockCandidatos[0] | null>(null);
+  const [candidatos, setCandidatos] = useState<Candidato[]>([]);
+  const [loadingCandidatos, setLoadingCandidatos] = useState(false);
+  const [selectedFreelancer, setSelectedFreelancer] = useState<Candidato | null>(null);
   const [showPropostaDialog, setShowPropostaDialog] = useState(false);
-  const [propostaFreelancer, setPropostaFreelancer] = useState<typeof mockCandidatos[0] | null>(null);
+  const [propostaFreelancer, setPropostaFreelancer] = useState<Candidato | null>(null);
   const [proposta, setProposta] = useState({ valor: "", descricao: "" });
   const [propostaEnviada, setPropostaEnviada] = useState(false);
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
