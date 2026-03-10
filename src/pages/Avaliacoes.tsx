@@ -79,8 +79,11 @@ function formatDate(dateStr: string): string {
   }
 }
 
-const FeedbackItem = ({ fb }: { fb: Feedback }) => (
-  <div className="p-3 rounded-xl bg-muted/50 space-y-1.5">
+const FeedbackItem = ({ fb, contractorId, onClick }: { fb: Feedback; contractorId?: string; onClick?: () => void }) => (
+  <div
+    className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
+    onClick={onClick}
+  >
     <div className="flex items-center justify-between">
       <p className="text-sm font-semibold">{fb.senderName || "Freelancer"}</p>
       {renderStars(fb.star)}
