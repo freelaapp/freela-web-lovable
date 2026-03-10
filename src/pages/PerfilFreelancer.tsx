@@ -258,14 +258,6 @@ const PerfilFreelancer = () => {
               <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">{freelancerData.location}</span>
             </div>
-            {freelancerData.isPCD && freelancerData.deficiencias.length > 0 && (
-              <div className="flex items-start gap-3">
-                <span className="text-sm mt-0.5">♿</span>
-                <span className="text-xs text-muted-foreground">
-                  PCD: {freelancerData.deficiencias.join(", ")}
-                </span>
-              </div>
-            )}
           </div>
         </div>
 
