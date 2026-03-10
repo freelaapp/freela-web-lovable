@@ -106,7 +106,7 @@ const DashboardContratante = () => {
           }
         }
         setVacancies(flattened);
-        setTotalVagas(rawVacancies.length);
+        setTotalVagas(flattened.length);
 
         // Total gasto (mês atual)
         const now = new Date();
