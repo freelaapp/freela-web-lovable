@@ -50,7 +50,7 @@ const DashboardContratante = () => {
   const [totalGasto, setTotalGasto] = useState("R$ 0");
   const [totalVagas, setTotalVagas] = useState(0);
   const [mediaAvaliacao, setMediaAvaliacao] = useState("0");
-  const [vacancies, setVacancies] = useState<Vacancy[]>([]);
+  const [vacancies, setVacancies] = useState<FlatVacancy[]>([]);
 
   useEffect(() => {
     const tokenRaw = localStorage.getItem("authToken");
