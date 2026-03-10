@@ -29,6 +29,7 @@ interface Feedback {
   jobId: string;
   createdAt: string;
   senderName?: string;
+  vacancyId?: string;
 }
 
 const renderStars = (rating: number) => (
