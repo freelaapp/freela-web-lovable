@@ -12,17 +12,31 @@ const ORIGIN_TYPE = "Web";
 
 interface VacancyService {
   assignment: string;
+  quantity?: number;
+  jobTime?: string;
+  jobValue?: string;
   [key: string]: unknown;
 }
 
-interface Vacancy {
+interface RawVacancy {
+  id: string;
+  jobDate: string;
+  status: string;
+  createdAt?: string;
+  services?: VacancyService[];
+  assignment?: string;
+  quantity?: number;
+  [key: string]: unknown;
+}
+
+interface FlatVacancy {
   id: string;
   assignment: string;
   quantity: number;
   jobDate: string;
   status: string;
   createdAt?: string;
-  services?: VacancyService[];
+  serviceIndex: number;
 }
 
 const mockAvaliacoesPendentes = [
