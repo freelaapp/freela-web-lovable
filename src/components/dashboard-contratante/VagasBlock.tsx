@@ -10,6 +10,7 @@ interface Vacancy {
   quantity: number;
   jobDate: string;
   status: string;
+  serviceIndex?: number;
 }
 
 interface VagasBlockProps {
