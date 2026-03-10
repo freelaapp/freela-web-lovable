@@ -24,7 +24,7 @@ const statusStyles: Record<string, string> = {
   removed: "bg-muted text-muted-foreground",
 };
 
-const VagaCard = ({ id, assignment, quantity, jobDate, status }: VagaCardProps) => {
+const VagaCard = ({ id, assignment, quantity, jobDate, status, serviceIndex = 0 }: VagaCardProps) => {
   const navigate = useNavigate();
 
   const formattedDate = (() => {
