@@ -346,7 +346,9 @@ const Avaliacoes = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            {recebidasApi.map(fb => <FeedbackItem key={fb.id} fb={fb} />)}
+            {recebidasApi.map(fb => (
+              <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "recebida")} />
+            ))}
           </div>
         </DialogContent>
       </Dialog>
