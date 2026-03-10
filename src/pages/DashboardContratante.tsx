@@ -10,6 +10,11 @@ import VagasBlock from "@/components/dashboard-contratante/VagasBlock";
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
+interface VacancyService {
+  assignment: string;
+  [key: string]: unknown;
+}
+
 interface Vacancy {
   id: string;
   assignment: string;
@@ -17,6 +22,7 @@ interface Vacancy {
   jobDate: string;
   status: string;
   createdAt?: string;
+  services?: VacancyService[];
 }
 
 const mockAvaliacoesPendentes = [
