@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Trash2, AlertTriangle, Wallet, Edit2, Check, X, Phone, User } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle, Wallet, Edit2, Check, X, Phone, User, MapPin, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
+
+const API_BASE_URL = "https://api.freelaservicos.com.br";
+const ORIGIN_TYPE = "Web";
 
 const tiposDeficiencia = [
   { id: "auditiva", label: "Deficiência Auditiva" },
@@ -31,24 +34,41 @@ const maskPhone = (v: string) => {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 };
 
+const getHeaders = (token: string) => ({
+  "Content-Type": "application/json",
+  "Origin-type": ORIGIN_TYPE,
+  Authorization: `Bearer ${token}`,
+});
+
 const MeusDados = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [nome, setNome] = useState("Carlos Silva");
-  const [email, setEmail] = useState("carlos.silva@email.com");
-  const [telefone, setTelefone] = useState("(11) 99999-1234");
-  const [cpf] = useState("123.456.789-00");
-  const [dataNascimento, setDataNascimento] = useState("1995-03-15");
-  const [sexo, setSexo] = useState("masculino");
+  const [loading, setLoading] = useState(true);
+
+  // Dados de Usuário (/users/me)
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
+
+  // Dados do Provider (/users/providers)
+  const [cpf, setCpf] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
+  const [sexo, setSexo] = useState("");
+  const [providerId, setProviderId] = useState("");
 
   // PCD
   const [isPCD, setIsPCD] = useState(false);
   const [deficienciasSelecionadas, setDeficienciasSelecionadas] = useState<string[]>([]);
 
   // Endereço
-  const [cep, setCep] = useState("01001-000");
-  const [endereco, setEndereco] = useState("Rua das Flores, 123 - São Paulo, SP");
+  const [cep, setCep] = useState("");
+  const [rua, setRua] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [numero, setNumero] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
 
   // Contato de Emergência
   const [contatoEmergNome, setContatoEmergNome] = useState("");
@@ -57,7 +77,9 @@ const MeusDados = () => {
 
   // Pix
   const [editandoPix, setEditandoPix] = useState(false);
-  const [chavePix, setChavePix] = useState("carlos.silva@email.com");
+  const [chavePixType, setChavePixType] = useState("");
+  const [chavePix, setChavePix] = useState("");
+  const [tempPixType, setTempPixType] = useState("");
   const [tempPix, setTempPix] = useState("");
 
   // Delete account
@@ -66,17 +88,98 @@ const MeusDados = () => {
   const [codigoOTP, setCodigoOTP] = useState("");
   const [confirmadoDelete, setConfirmadoDelete] = useState(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const raw = localStorage.getItem("authToken");
+      if (!raw) return;
+      const token = JSON.parse(raw) as string;
+      const headers = getHeaders(token);
+
+      try {
+        // Fetch /users/me and /users/providers in parallel
+        const [meRes, provRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers }),
+          fetch(`${API_BASE_URL}/users/providers`, { method: "GET", credentials: "include", headers }),
+        ]);
+
+        if (meRes.ok) {
+          const meBody = await meRes.json();
+          const me = meBody?.data ?? meBody;
+          setNome(me?.name ?? "");
+          setEmail(me?.email ?? "");
+          setTelefone(me?.phoneNumber ?? "");
+        }
+
+        let pId = "";
+        if (provRes.ok) {
+          const provBody = await provRes.json();
+          const rawProv = provBody?.data ?? provBody;
+          const prov = Array.isArray(rawProv) ? rawProv[0] ?? {} : rawProv;
+
+          pId = prov.id ?? "";
+          setProviderId(pId);
+          setCpf(prov.cpf ?? "");
+          setDataNascimento(prov.birthdate ? prov.birthdate.split("T")[0] : "");
+          setSexo(prov.gender ?? "");
+          setIsPCD(!!prov.deficiency);
+
+          // Endereço
+          setCep(prov.cep ?? "");
+          setRua(prov.street ?? "");
+          setComplemento(prov.complement ?? "");
+          setBairro(prov.neighborhood ?? "");
+          setNumero(prov.number ?? "");
+          setCidade(prov.city ?? "");
+          setEstado(prov.uf ?? "");
+
+          // Contato de Emergência
+          setContatoEmergNome(prov.emergencyContactName ?? "");
+          setContatoEmergTelefone(prov.emergencyContactNumber ?? "");
+          setContatoEmergParentesco(prov.emergencyContactRelationship ?? "");
+        }
+
+        // Fetch PIX keys
+        if (pId) {
+          const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
+            method: "GET",
+            credentials: "include",
+            headers,
+          });
+          if (pixRes.ok) {
+            const pixBody = await pixRes.json();
+            const pixList = pixBody?.data ?? pixBody;
+            if (Array.isArray(pixList)) {
+              const myPix = pixList.find((p: any) => p.providerId === pId);
+              if (myPix) {
+                setChavePixType(myPix.type ?? "");
+                setChavePix(myPix.key ?? "");
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[MeusDados] erro ao carregar dados:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleSave = () => {
     toast({ title: "Dados atualizados", description: "Suas informações foram salvas com sucesso." });
   };
 
   const startEditPix = () => {
     setTempPix(chavePix);
+    setTempPixType(chavePixType);
     setEditandoPix(true);
   };
 
   const savePix = () => {
     setChavePix(tempPix);
+    setChavePixType(tempPixType);
     setEditandoPix(false);
     toast({ title: "Pix atualizado", description: "Sua chave Pix foi alterada com sucesso." });
   };
@@ -98,6 +201,16 @@ const MeusDados = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <AppLayout showFooter={false}>
+        <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 space-y-6">
@@ -108,28 +221,38 @@ const MeusDados = () => {
           <h1 className="text-xl font-display font-bold">Meus Dados</h1>
         </div>
 
-        {/* Dados Pessoais */}
+        {/* Dados de Usuário */}
         <Card>
           <CardContent className="p-6 space-y-5">
             <h3 className="text-base font-display font-bold flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" /> Informações Pessoais
+              <User className="w-5 h-5 text-primary" /> Dados de Usuário
             </h3>
             <div className="space-y-2">
               <Label>Nome Completo</Label>
               <Input value={nome} onChange={(e) => setNome(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>CPF</Label>
-              <Input value={cpf} disabled className="opacity-60 cursor-not-allowed" />
-              <p className="text-xs text-muted-foreground">O CPF não pode ser alterado.</p>
-            </div>
-            <div className="space-y-2">
               <Label>E-mail</Label>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Telefone</Label>
+              <Label>Número de Celular</Label>
               <Input value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} />
+            </div>
+            <Button onClick={handleSave} className="w-full">Salvar Alterações</Button>
+          </CardContent>
+        </Card>
+
+        {/* Dados de Perfil */}
+        <Card>
+          <CardContent className="p-6 space-y-5">
+            <h3 className="text-base font-display font-bold flex items-center gap-2">
+              <User className="w-5 h-5 text-primary" /> Dados de Perfil
+            </h3>
+            <div className="space-y-2">
+              <Label>CPF</Label>
+              <Input value={cpf} disabled className="opacity-60 cursor-not-allowed" />
+              <p className="text-xs text-muted-foreground">O CPF não pode ser alterado.</p>
             </div>
             <div className="space-y-2">
               <Label>Data de Nascimento</Label>
@@ -182,7 +305,16 @@ const MeusDados = () => {
               )}
             </div>
 
-            {/* CEP + Endereço */}
+            <Button onClick={handleSave} className="w-full">Salvar Alterações</Button>
+          </CardContent>
+        </Card>
+
+        {/* Endereço */}
+        <Card>
+          <CardContent className="p-6 space-y-5">
+            <h3 className="text-base font-display font-bold flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-primary" /> Endereço
+            </h3>
             <div className="space-y-2">
               <Label>CEP</Label>
               <Input
@@ -194,10 +326,33 @@ const MeusDados = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Endereço</Label>
-              <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} />
+              <Label>Rua</Label>
+              <Input value={rua} onChange={(e) => setRua(e.target.value)} />
             </div>
-
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Número</Label>
+                <Input value={numero} onChange={(e) => setNumero(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Complemento</Label>
+                <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Bairro</Label>
+              <Input value={bairro} onChange={(e) => setBairro(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Cidade</Label>
+                <Input value={cidade} onChange={(e) => setCidade(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Estado</Label>
+                <Input value={estado} onChange={(e) => setEstado(e.target.value)} />
+              </div>
+            </div>
             <Button onClick={handleSave} className="w-full">Salvar Alterações</Button>
           </CardContent>
         </Card>
@@ -248,14 +403,28 @@ const MeusDados = () => {
                 <div>
                   <p className="text-sm font-medium">Chave Pix</p>
                   {editandoPix ? (
-                    <Input
-                      value={tempPix}
-                      onChange={(e) => setTempPix(e.target.value)}
-                      className="mt-1 h-8 text-sm"
-                      autoFocus
-                    />
+                    <div className="mt-1 space-y-2">
+                      <Input
+                        placeholder="Tipo (CPF, E-mail, Celular, Aleatória)"
+                        value={tempPixType}
+                        onChange={(e) => setTempPixType(e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                      <Input
+                        placeholder="Chave"
+                        value={tempPix}
+                        onChange={(e) => setTempPix(e.target.value)}
+                        className="h-8 text-sm"
+                        autoFocus
+                      />
+                    </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">{chavePix}</p>
+                    <div>
+                      {chavePixType && (
+                        <p className="text-xs text-muted-foreground">Tipo: {chavePixType}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">{chavePix || "Não informada"}</p>
+                    </div>
                   )}
                 </div>
               </div>

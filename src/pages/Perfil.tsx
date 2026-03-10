@@ -157,7 +157,6 @@ const Perfil = () => {
         let providerData: any = {};
         if (providerRes.ok) {
           const pBody = await providerRes.json();
-          console.log("[Perfil] providers raw response:", JSON.stringify(pBody));
           const raw = pBody?.data ?? pBody;
           providerData = Array.isArray(raw) ? raw[0] ?? {} : raw;
         }
