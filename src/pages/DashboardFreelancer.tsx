@@ -182,20 +182,36 @@ const DashboardFreelancer = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {mockVagasRegiao.slice(0, 3).map((vaga) => (
-                <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold truncate">{vaga.title}</p>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-success-light text-success font-medium">{vaga.distance}</span>
+              {loadingVagas ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Carregando vagas...</p>
+              ) : vagasDisponiveis.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga disponível</p>
+              ) : (
+                vagasDisponiveis.slice(0, 3).map((vaga: any) => (
+                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                        vaga.status === "confirmed" || vaga.status === "confirmado"
+                          ? "bg-success-light text-success"
+                          : "bg-warning-light text-warning"
+                      }`}>{vaga.status}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      {vaga.freelancers?.[0]?.assignment && (
+                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobTime && (
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobValue && (
+                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
+                      )}
+                    </div>
+                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{vaga.jobDate}</p>}
                   </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.role}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.hours}h</span>
-                    <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.value}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{vaga.location} • {vaga.date}</p>
-                </div>
-              ))}
+                ))
+              )}
               <Button variant="outline" className="w-full text-xs gap-2 mt-2" onClick={() => navigate("/mapa-vagas")}>
                 <MapPin className="w-4 h-4" /> Ver todas no mapa
               </Button>
