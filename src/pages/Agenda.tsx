@@ -28,13 +28,29 @@ const mockVagasFreelancer = [
   { id: 5, title: "Garçom - Festa de Empresa", client: "Corp ABC", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "19:00 - 02:00", location: "São Paulo, SP", status: "executado", value: "R$ 550" },
 ];
 
-interface ApiVacancy {
+interface VacancyService {
+  assignment: string;
+  quantity?: number;
+  [key: string]: unknown;
+}
+
+interface RawVacancy {
+  id: string;
+  jobDate: string;
+  status: string;
+  services?: VacancyService[];
+  assignment?: string;
+  quantity?: number;
+  [key: string]: unknown;
+}
+
+interface FlatVacancy {
   id: string;
   assignment: string;
   quantity: number;
   jobDate: string;
   status: string;
-  [key: string]: unknown;
+  serviceIndex: number;
 }
 
 const mockHistoricoFreelancer = [
@@ -52,7 +68,7 @@ const Agenda = () => {
   const isContratante = role === "contratante";
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [expandedEvento, setExpandedEvento] = useState<number | null>(null);
-  const [apiVacancies, setApiVacancies] = useState<ApiVacancy[]>([]);
+  const [apiVacancies, setApiVacancies] = useState<FlatVacancy[]>([]);
   const [loadingVacancies, setLoadingVacancies] = useState(false);
 
   // Fetch real vacancies for contratante
@@ -76,11 +92,37 @@ const Agenda = () => {
         // Get vacancies
         const vRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, { method: "GET", credentials: "include", headers });
         const vBody = await vRes.json();
-        const vacancies: ApiVacancy[] = Array.isArray(vBody?.data) ? vBody.data : [];
+        const rawVacancies: RawVacancy[] = Array.isArray(vBody?.data) ? vBody.data : [];
+
+        // Flatten services (same logic as DashboardContratante)
+        const flattened: FlatVacancy[] = [];
+        for (const v of rawVacancies) {
+          if (Array.isArray(v.services) && v.services.length > 0) {
+            v.services.forEach((s, idx) => {
+              flattened.push({
+                id: v.id,
+                assignment: s.assignment || "Sem título",
+                quantity: s.quantity ?? 1,
+                jobDate: v.jobDate,
+                status: v.status,
+                serviceIndex: idx,
+              });
+            });
+          } else {
+            flattened.push({
+              id: v.id,
+              assignment: v.assignment || "Sem título",
+              quantity: v.quantity ?? 1,
+              jobDate: v.jobDate,
+              status: v.status,
+              serviceIndex: 0,
+            });
+          }
+        }
 
         // Sort: open → in hiring → closed → removed
-        vacancies.sort((a, b) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99));
-        setApiVacancies(vacancies);
+        flattened.sort((a, b) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99));
+        setApiVacancies(flattened);
       } catch (err) {
         console.error("Erro ao buscar vagas:", err);
       } finally {
@@ -276,8 +318,8 @@ const Agenda = () => {
               <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
             ) : listaItens.length > 0 ? (
               isContratante ? (
-                (listaItens as typeof contratanteItems).map(item => (
-                  <VagaCard key={item.id} id={String(item.id)} assignment={item.assignment} quantity={item.quantity} jobDate={item.jobDate} status={item.status} />
+                (listaItens as typeof contratanteItems).map((item, idx) => (
+                  <VagaCard key={`${item.id}-${item.serviceIndex ?? idx}`} id={String(item.id)} assignment={item.assignment} quantity={item.quantity} jobDate={item.jobDate} status={item.status} serviceIndex={item.serviceIndex} />
                 ))
               ) : (
                 (listaItens as typeof freelancerItems).map(item => <FreelancerItemCard key={item.id} item={item} />)
