@@ -78,14 +78,35 @@ const DashboardContratante = () => {
           return;
         }
 
-        const allVacancies: Vacancy[] = (Array.isArray(vacBody.data) ? vacBody.data : []).map((v: any) => {
-          const servicesAssignment = Array.isArray(v.services) && v.services.length > 0
-            ? v.services.map((s: any) => s.assignment).filter(Boolean).join(", ")
-            : v.assignment || "Sem título";
-          return { ...v, assignment: servicesAssignment };
-        });
-        setVacancies(allVacancies);
-        setTotalVagas(allVacancies.length);
+        const rawVacancies: RawVacancy[] = Array.isArray(vacBody.data) ? vacBody.data : [];
+        const flattened: FlatVacancy[] = [];
+        for (const v of rawVacancies) {
+          if (Array.isArray(v.services) && v.services.length > 0) {
+            v.services.forEach((s, idx) => {
+              flattened.push({
+                id: v.id,
+                assignment: s.assignment || "Sem título",
+                quantity: s.quantity ?? 1,
+                jobDate: v.jobDate,
+                status: v.status,
+                createdAt: v.createdAt,
+                serviceIndex: idx,
+              });
+            });
+          } else {
+            flattened.push({
+              id: v.id,
+              assignment: v.assignment || "Sem título",
+              quantity: v.quantity ?? 1,
+              jobDate: v.jobDate,
+              status: v.status,
+              createdAt: v.createdAt,
+              serviceIndex: 0,
+            });
+          }
+        }
+        setVacancies(flattened);
+        setTotalVagas(rawVacancies.length);
 
         // Total gasto (mês atual)
         const now = new Date();
