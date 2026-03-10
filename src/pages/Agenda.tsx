@@ -318,8 +318,8 @@ const Agenda = () => {
               <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
             ) : listaItens.length > 0 ? (
               isContratante ? (
-                (listaItens as typeof contratanteItems).map(item => (
-                  <VagaCard key={item.id} id={String(item.id)} assignment={item.assignment} quantity={item.quantity} jobDate={item.jobDate} status={item.status} />
+                (listaItens as typeof contratanteItems).map((item, idx) => (
+                  <VagaCard key={`${item.id}-${item.serviceIndex ?? idx}`} id={String(item.id)} assignment={item.assignment} quantity={item.quantity} jobDate={item.jobDate} status={item.status} serviceIndex={item.serviceIndex} />
                 ))
               ) : (
                 (listaItens as typeof freelancerItems).map(item => <FreelancerItemCard key={item.id} item={item} />)
