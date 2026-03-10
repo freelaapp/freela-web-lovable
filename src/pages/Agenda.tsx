@@ -28,13 +28,29 @@ const mockVagasFreelancer = [
   { id: 5, title: "Garçom - Festa de Empresa", client: "Corp ABC", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "19:00 - 02:00", location: "São Paulo, SP", status: "executado", value: "R$ 550" },
 ];
 
-interface ApiVacancy {
+interface VacancyService {
+  assignment: string;
+  quantity?: number;
+  [key: string]: unknown;
+}
+
+interface RawVacancy {
+  id: string;
+  jobDate: string;
+  status: string;
+  services?: VacancyService[];
+  assignment?: string;
+  quantity?: number;
+  [key: string]: unknown;
+}
+
+interface FlatVacancy {
   id: string;
   assignment: string;
   quantity: number;
   jobDate: string;
   status: string;
-  [key: string]: unknown;
+  serviceIndex: number;
 }
 
 const mockHistoricoFreelancer = [
