@@ -68,7 +68,7 @@ const Agenda = () => {
   const isContratante = role === "contratante";
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [expandedEvento, setExpandedEvento] = useState<number | null>(null);
-  const [apiVacancies, setApiVacancies] = useState<ApiVacancy[]>([]);
+  const [apiVacancies, setApiVacancies] = useState<FlatVacancy[]>([]);
   const [loadingVacancies, setLoadingVacancies] = useState(false);
 
   // Fetch real vacancies for contratante
