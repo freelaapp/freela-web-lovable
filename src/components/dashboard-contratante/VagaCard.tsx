@@ -7,6 +7,7 @@ interface VagaCardProps {
   quantity: number;
   jobDate: string;
   status: string;
+  serviceIndex?: number;
 }
 
 const statusLabels: Record<string, string> = {
