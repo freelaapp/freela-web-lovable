@@ -165,8 +165,29 @@ const Avaliacoes = () => {
           })
         );
 
-        setRecebidasApi(recebidasList.map(f => ({ ...f, senderName: nameMap[f.sender] })));
-        setFeitasApi(feitasList.map(f => ({ ...f, senderName: nameMap[f.receiver] })));
+        // 4. Resolve vacancyId for each feedback via GET /jobs/{jobId}
+        const allFeedbacks = [...recebidasList, ...feitasList];
+        const uniqueJobIds = [...new Set(allFeedbacks.map(f => f.jobId).filter(Boolean))];
+        const jobVacancyMap: Record<string, string> = {};
+
+        await Promise.all(
+          uniqueJobIds.map(async (jobId) => {
+            try {
+              const res = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+                method: "GET", credentials: "include", headers,
+              });
+              const body = await res.json();
+              if (body?.success && body?.data?.vacancyId) {
+                jobVacancyMap[jobId] = body.data.vacancyId;
+              } else if (body?.data?.vacancyId) {
+                jobVacancyMap[jobId] = body.data.vacancyId;
+              }
+            } catch { /* ignore */ }
+          })
+        );
+
+        setRecebidasApi(recebidasList.map(f => ({ ...f, senderName: nameMap[f.sender], vacancyId: jobVacancyMap[f.jobId] })));
+        setFeitasApi(feitasList.map(f => ({ ...f, senderName: nameMap[f.receiver], vacancyId: jobVacancyMap[f.jobId] })));
       } catch (err) {
         console.error("Erro ao buscar feedbacks:", err);
         setRecebidasApi([]);
