@@ -104,6 +104,7 @@ const Avaliacoes = () => {
   const [loadingFeitas, setLoadingFeitas] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
   const [showAllFeitasModal, setShowAllFeitasModal] = useState(false);
+  const [contractorId, setContractorId] = useState<string>("");
 
   useEffect(() => {
     if (!isContratante) return;
