@@ -207,6 +207,12 @@ const Avaliacoes = () => {
 
   const recebidasToShow = isContratante ? recebidasApi.slice(0, 4) : freelancerRecebidas;
 
+  const navigateToFeedback = (fb: Feedback, type: "recebida" | "feita") => {
+    navigate(`/avaliacao/${fb.id}`, {
+      state: { jobId: fb.jobId, vacancyId: fb.vacancyId, contractorId, feedbackType: type },
+    });
+  };
+
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 space-y-6">
