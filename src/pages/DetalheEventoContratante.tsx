@@ -79,6 +79,7 @@ const DetalheEventoContratante = () => {
 
     const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
 
+    // Fetch vacancy details
     fetch(`${API_BASE_URL}/vacancies/${eventoId}`, { method: "GET", credentials: "include", headers })
       .then(r => r.json())
       .then(body => {
@@ -88,6 +89,35 @@ const DetalheEventoContratante = () => {
       })
       .catch(err => console.error("Erro ao buscar vaga:", err))
       .finally(() => setLoading(false));
+
+    // Fetch candidacies
+    setLoadingCandidatos(true);
+    fetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}&status=pending`, {
+      method: "GET",
+      credentials: "include",
+      headers,
+    })
+      .then(r => r.json())
+      .then(body => {
+        const list = Array.isArray(body?.data) ? body.data : [];
+        const mapped: Candidato[] = list.map((c: any) => ({
+          id: c.id || c.providerId || "",
+          name: c.providerName || c.name || "Freelancer",
+          avatar: (c.providerName || c.name || "FL").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
+          role: c.assignment || c.role || "",
+          rating: c.rating ?? 0,
+          reviews: c.reviews ?? 0,
+          jobs: c.jobs ?? 0,
+          verified: c.verified ?? false,
+          status: "pendente" as const,
+          price: c.price || c.jobValue || "",
+          responseTime: c.responseTime || "",
+          bio: c.bio || c.description || "",
+        }));
+        setCandidatos(mapped);
+      })
+      .catch(err => console.error("Erro ao buscar candidatos:", err))
+      .finally(() => setLoadingCandidatos(false));
   }, [eventoId]);
 
   if (loading) {
