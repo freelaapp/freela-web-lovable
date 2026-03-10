@@ -7,12 +7,6 @@ import AppLayout from "@/components/layout/AppLayout";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
-const mockJobs = [
-  { id: 1, title: "Churrasco - Aniversário", client: "Ana Oliveira", date: "22 Fev", status: "confirmado", value: "R$ 650" },
-  { id: 2, title: "Churrasco - Corporativo", client: "Tech Corp", date: "28 Fev", status: "pendente", value: "R$ 1.200" },
-  { id: 3, title: "Churrasco - Casamento", client: "Maria Santos", date: "08 Mar", status: "confirmado", value: "R$ 1.800" },
-];
-
 
 const DashboardFreelancer = () => {
   const navigate = useNavigate();
