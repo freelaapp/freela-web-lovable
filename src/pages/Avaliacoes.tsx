@@ -124,7 +124,9 @@ const Avaliacoes = () => {
         });
         const contractorBody = await contractorRes.json();
         if (!contractorBody?.success || !contractorBody?.data?.id) return;
-        const contractorId = contractorBody.data.id;
+        const cId = contractorBody.data.id;
+        setContractorId(cId);
+        const contractorId = cId;
 
         // 2. Fetch recebidas and feitas in parallel
         const [fbRes, feitasRes] = await Promise.all([
