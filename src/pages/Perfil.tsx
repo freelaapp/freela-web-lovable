@@ -377,7 +377,7 @@ const Perfil = () => {
         }
 
         {/* Profile Card */}
-        {isContratante && contractorLoading ? (
+        {(isContratante ? contractorLoading : freelancerLoading) ? (
           <Card>
             <CardContent className="p-6 flex items-center justify-center gap-2">
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
@@ -392,10 +392,10 @@ const Perfil = () => {
                   <button
                     onClick={() => avatarInputRef.current?.click()}
                     className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold group overflow-hidden">
-                    {(isContratante ? contractorData.avatarUrl : avatarUrl) ? (
-                      <img src={(isContratante ? contractorData.avatarUrl : avatarUrl)!} alt="Avatar" className="w-full h-full object-cover" />
+                    {(isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl)) ? (
+                      <img src={(isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl))!} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
-                      <span>{isContratante ? (contractorData.name?.[0] || "C") : "CS"}</span>
+                      <span>{isContratante ? (contractorData.name?.[0] || "C") : (freelancerData.name?.[0] || "F")}</span>
                     )}
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                       <Camera className="w-5 h-5 text-white" />
@@ -409,12 +409,12 @@ const Perfil = () => {
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-center gap-1.5">
                     <h2 className="text-lg font-display font-bold">
-                      {isContratante ? (contractorData.name || "Contratante") : "Carlos Silva"}
+                      {isContratante ? (contractorData.name || "Contratante") : (freelancerData.name || "Freelancer")}
                     </h2>
                     <Shield className="w-4 h-4 text-primary fill-primary/20" />
                   </div>
                   <div className="flex items-center gap-1 text-sm text-primary font-medium">
-                    <Star className="w-4 h-4 fill-primary" /> {isContratante ? contractorData.rating : "4.8"}
+                    <Star className="w-4 h-4 fill-primary" /> {isContratante ? contractorData.rating : freelancerData.rating}
                     {isContratante && contractorData.segment ? (
                       <>
                         <span className="text-muted-foreground font-normal ml-1">•</span>
@@ -436,7 +436,7 @@ const Perfil = () => {
                     <span>
                       {isContratante
                         ? [contractorData.city, contractorData.uf].filter(Boolean).join(", ") || "Não informado"
-                        : "São Paulo, SP"}
+                        : [freelancerData.city, freelancerData.uf].filter(Boolean).join(", ") || "Não informado"}
                     </span>
                   </div>
                 </div>
