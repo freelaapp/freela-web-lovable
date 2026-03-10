@@ -268,7 +268,9 @@ const Avaliacoes = () => {
                 ) : recebidasApi.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Sem avaliações</p>
                 ) : (
-                  recebidasToShow.map(fb => <FeedbackItem key={fb.id} fb={fb} />)
+                  recebidasToShow.map(fb => (
+                    <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "recebida")} />
+                  ))
                 )
               ) : (
                 (recebidas ?? []).map(av => (
