@@ -39,12 +39,20 @@ const statusStyles: Record<string, string> = {
   removed: "bg-muted text-muted-foreground",
 };
 
-const mockCandidatos = [
-  { id: "f1", name: "Carlos Silva", avatar: "CS", role: "Churrasqueiro", rating: 4.9, reviews: 127, jobs: 253, verified: true, status: "pendente" as const, price: "R$ 480", responseTime: "~15 min", bio: "Churrasqueiro profissional com mais de 10 anos de experiência." },
-  { id: "f2", name: "Juliana Alves", avatar: "JA", role: "Bartender", rating: 4.7, reviews: 89, jobs: 145, verified: true, status: "pendente" as const, price: "R$ 350", responseTime: "~30 min", bio: "Bartender especializada em drinks autorais e coquetéis clássicos." },
-  { id: "f3", name: "Pedro Costa", avatar: "PC", role: "Churrasqueiro", rating: 4.5, reviews: 56, jobs: 98, verified: false, status: "aceito" as const, price: "R$ 400", responseTime: "~1h", bio: "Experiente em churrascos para eventos de pequeno e médio porte." },
-  { id: "f4", name: "Maria Santos", avatar: "MS", role: "Garçom", rating: 4.8, reviews: 203, jobs: 312, verified: true, status: "recusado" as const, price: "R$ 300", responseTime: "~20 min", bio: "Garçonete profissional com experiência em eventos de alto padrão." },
-];
+interface Candidato {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  rating: number;
+  reviews: number;
+  jobs: number;
+  verified: boolean;
+  status: "pendente" | "aceito" | "recusado";
+  price: string;
+  responseTime: string;
+  bio: string;
+}
 
 const DetalheEventoContratante = () => {
   const { eventoId } = useParams();
