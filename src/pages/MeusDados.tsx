@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Trash2, AlertTriangle, Wallet, Edit2, Check, X, Phone, User, MapPin, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle, Wallet, Phone, User, MapPin, Loader2, Camera, X, Briefcase } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNavigate } from "react-router-dom";
@@ -16,11 +16,26 @@ import AppLayout from "@/components/layout/AppLayout";
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
-const tiposDeficiencia = [
-  { id: "auditiva", label: "Deficiência Auditiva" },
-  { id: "visual", label: "Deficiência Visual" },
-  { id: "intelectual", label: "Deficiência Intelectual" },
-  { id: "mental", label: "Deficiência Mental/Psicossocial" },
+const areasAtuacao = [
+  { id: "garcom", label: "Garçom" },
+  { id: "bartender", label: "Bartender" },
+  { id: "cozinheiro", label: "Cozinheiro(a)" },
+  { id: "auxiliar-cozinha", label: "Auxiliar de Cozinha" },
+  { id: "recepcao", label: "Recepção" },
+  { id: "caixa", label: "Caixa" },
+  { id: "churrasqueiro", label: "Churrasqueiro" },
+  { id: "copeira", label: "Copeira" },
+  { id: "recreacao-infantil", label: "Recreação Infantil" },
+  { id: "musica-ao-vivo", label: "Música ao Vivo" },
+  { id: "dj", label: "DJ" },
+  { id: "barista", label: "Barista" },
+  { id: "seguranca", label: "Segurança" },
+  { id: "hostess", label: "Hostess" },
+  { id: "manobrista", label: "Manobrista" },
+  { id: "camareira", label: "Camareira" },
+  { id: "auxiliar-limpeza", label: "Auxiliar de Limpeza" },
+  { id: "chapeiro", label: "Chapeiro(a)" },
+  { id: "cumim", label: "Cumim" },
 ];
 
 const grausParentesco = [
@@ -34,34 +49,70 @@ const maskPhone = (v: string) => {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 };
 
+const maskCEP = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 8);
+  return d.replace(/(\d{5})(\d)/, "$1-$2");
+};
+
 const getHeaders = (token: string) => ({
   "Content-Type": "application/json",
   "Origin-type": ORIGIN_TYPE,
   Authorization: `Bearer ${token}`,
 });
 
+const bufferToDataUrl = (img: any): string | null => {
+  if (!img) return null;
+  if (typeof img === "string") return img;
+  if (img.type === "Buffer" && Array.isArray(img.data)) {
+    const bytes = new Uint8Array(img.data);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return `data:image/jpeg;base64,${btoa(binary)}`;
+  }
+  return null;
+};
+
+// Snapshot helpers for change detection
+interface UserSnapshot { nome: string; email: string; telefone: string }
+interface PixSnapshot { chavePixType: string; chavePix: string }
+interface ProviderSnapshot {
+  dataNascimento: string; sexo: string; isPCD: boolean;
+  desiredJobVacancy: string;
+  contatoEmergNome: string; contatoEmergParentesco: string; contatoEmergTelefone: string;
+  cep: string; rua: string; complemento: string; bairro: string; numero: string; cidade: string; estado: string;
+}
+
+const snap = (o: any) => JSON.stringify(o);
+
 const MeusDados = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // Dados de Usuário (/users/me)
+  // User data
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
 
-  // Dados do Provider (/users/providers)
+  // Provider data
   const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [sexo, setSexo] = useState("");
   const [providerId, setProviderId] = useState("");
-
-  // PCD
   const [isPCD, setIsPCD] = useState(false);
-  const [deficienciasSelecionadas, setDeficienciasSelecionadas] = useState<string[]>([]);
 
-  // Endereço
+  // Profile image
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+
+  // Desired job vacancy (areas)
+  const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
+
+  // Address
   const [cep, setCep] = useState("");
   const [rua, setRua] = useState("");
   const [complemento, setComplemento] = useState("");
@@ -69,24 +120,89 @@ const MeusDados = () => {
   const [numero, setNumero] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
+  const [cepLoading, setCepLoading] = useState(false);
 
-  // Contato de Emergência
+  // ViaCEP metadata
+  const [viacepMeta, setViacepMeta] = useState({ ibge: "", gia: "", ddd: "", siafi: "" });
+
+  // Emergency contact
   const [contatoEmergNome, setContatoEmergNome] = useState("");
   const [contatoEmergParentesco, setContatoEmergParentesco] = useState("");
   const [contatoEmergTelefone, setContatoEmergTelefone] = useState("");
 
   // Pix
-  const [editandoPix, setEditandoPix] = useState(false);
   const [chavePixType, setChavePixType] = useState("");
   const [chavePix, setChavePix] = useState("");
-  const [tempPixType, setTempPixType] = useState("");
-  const [tempPix, setTempPix] = useState("");
 
   // Delete account
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [codigoEnviado, setCodigoEnviado] = useState(false);
   const [codigoOTP, setCodigoOTP] = useState("");
   const [confirmadoDelete, setConfirmadoDelete] = useState(false);
+
+  // Original snapshots for change detection
+  const [origUser, setOrigUser] = useState("");
+  const [origPix, setOrigPix] = useState("");
+  const [origProvider, setOrigProvider] = useState("");
+  const [origProfileImage, setOrigProfileImage] = useState<string | null>(null);
+
+  const currentUserSnap = useCallback((): string => snap({ nome, email, telefone } as UserSnapshot), [nome, email, telefone]);
+  const currentPixSnap = useCallback((): string => snap({ chavePixType, chavePix } as PixSnapshot), [chavePixType, chavePix]);
+  const currentProviderSnap = useCallback((): string => {
+    const areasLabels = areasSelecionadas
+      .map((id) => areasAtuacao.find((a) => a.id === id)?.label || id)
+      .join(", ");
+    return snap({
+      dataNascimento, sexo, isPCD,
+      desiredJobVacancy: areasLabels,
+      contatoEmergNome, contatoEmergParentesco, contatoEmergTelefone,
+      cep, rua, complemento, bairro, numero, cidade, estado,
+    } as ProviderSnapshot);
+  }, [dataNascimento, sexo, isPCD, areasSelecionadas, contatoEmergNome, contatoEmergParentesco, contatoEmergTelefone, cep, rua, complemento, bairro, numero, cidade, estado]);
+
+  const previewFoto = useMemo(() => {
+    if (profileImageFile) return URL.createObjectURL(profileImageFile);
+    return profileImageUrl;
+  }, [profileImageFile, profileImageUrl]);
+
+  // Parse desiredJobVacancy string into area IDs
+  const parseAreasFromApi = (desiredJobVacancy: string) => {
+    if (!desiredJobVacancy) return [];
+    const labels = desiredJobVacancy.split(",").map((s) => s.trim().toLowerCase());
+    return areasAtuacao
+      .filter((a) => labels.includes(a.label.toLowerCase()))
+      .map((a) => a.id);
+  };
+
+  // ViaCEP
+  const buscarCep = useCallback(async (digits: string) => {
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setRua(data.logradouro || "");
+        setBairro(data.bairro || "");
+        setCidade(data.localidade || "");
+        setEstado(data.uf || "");
+        setViacepMeta({
+          ibge: data.ibge || "",
+          gia: data.gia || "",
+          ddd: data.ddd || "",
+          siafi: data.siafi || "",
+        });
+      }
+    } catch { /* silently fail */ }
+    finally { setCepLoading(false); }
+  }, []);
+
+  const handleCepChange = (value: string) => {
+    const masked = maskCEP(value);
+    setCep(masked);
+    const digits = value.replace(/\D/g, "");
+    if (digits.length === 8) buscarCep(digits);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,21 +212,30 @@ const MeusDados = () => {
       const headers = getHeaders(token);
 
       try {
-        // Fetch /users/me and /users/providers in parallel
         const [meRes, provRes] = await Promise.all([
           fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers }),
           fetch(`${API_BASE_URL}/users/providers`, { method: "GET", credentials: "include", headers }),
         ]);
 
+        let uSnap: UserSnapshot = { nome: "", email: "", telefone: "" };
         if (meRes.ok) {
           const meBody = await meRes.json();
           const me = meBody?.data ?? meBody;
-          setNome(me?.name ?? "");
-          setEmail(me?.email ?? "");
-          setTelefone(me?.phoneNumber ?? "");
+          const n = me?.name ?? "";
+          const e = me?.email ?? "";
+          const t = me?.phoneNumber ? maskPhone(me.phoneNumber) : "";
+          setNome(n); setEmail(e); setTelefone(t);
+          uSnap = { nome: n, email: e, telefone: t };
         }
+        setOrigUser(snap(uSnap));
 
         let pId = "";
+        let pSnap: ProviderSnapshot = {
+          dataNascimento: "", sexo: "", isPCD: false, desiredJobVacancy: "",
+          contatoEmergNome: "", contatoEmergParentesco: "", contatoEmergTelefone: "",
+          cep: "", rua: "", complemento: "", bairro: "", numero: "", cidade: "", estado: "",
+        };
+
         if (provRes.ok) {
           const provBody = await provRes.json();
           const rawProv = provBody?.data ?? provBody;
@@ -119,12 +244,26 @@ const MeusDados = () => {
           pId = prov.id ?? "";
           setProviderId(pId);
           setCpf(prov.cpf ?? "");
-          setDataNascimento(prov.birthdate ? prov.birthdate.split("T")[0] : "");
-          setSexo(prov.gender ?? "");
-          setIsPCD(!!prov.deficiency);
 
-          // Endereço
-          setCep(prov.cep ?? "");
+          const bd = prov.birthdate ? prov.birthdate.split("T")[0] : "";
+          setDataNascimento(bd);
+          const g = prov.gender ?? "";
+          setSexo(g);
+          const pcd = !!prov.deficiency;
+          setIsPCD(pcd);
+
+          // Profile image
+          const imgUrl = bufferToDataUrl(prov.profileImage);
+          if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
+
+          // Desired job vacancy
+          const djv = prov.desiredJobVacancy ?? "";
+          const areas = parseAreasFromApi(djv);
+          setAreasSelecionadas(areas);
+
+          // Address
+          const cepVal = prov.cep ? maskCEP(prov.cep) : "";
+          setCep(cepVal);
           setRua(prov.street ?? "");
           setComplemento(prov.complement ?? "");
           setBairro(prov.neighborhood ?? "");
@@ -132,18 +271,35 @@ const MeusDados = () => {
           setCidade(prov.city ?? "");
           setEstado(prov.uf ?? "");
 
-          // Contato de Emergência
-          setContatoEmergNome(prov.emergencyContactName ?? "");
-          setContatoEmergTelefone(prov.emergencyContactNumber ?? "");
-          setContatoEmergParentesco(prov.emergencyContactRelationship ?? "");
-        }
+          // ViaCEP meta from API
+          if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
+            setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
+          }
 
-        // Fetch PIX keys
+          // Emergency contact
+          const ecn = prov.emergencyContactName ?? "";
+          const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
+          const ecr = prov.emergencyContactRelationship ?? "";
+          setContatoEmergNome(ecn);
+          setContatoEmergTelefone(ect);
+          setContatoEmergParentesco(ecr);
+
+          const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
+          pSnap = {
+            dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
+            contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
+            cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
+            bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
+            cidade: prov.city ?? "", estado: prov.uf ?? "",
+          };
+        }
+        setOrigProvider(snap(pSnap));
+
+        // PIX
+        let pixSnap: PixSnapshot = { chavePixType: "", chavePix: "" };
         if (pId) {
           const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
-            method: "GET",
-            credentials: "include",
-            headers,
+            method: "GET", credentials: "include", headers,
           });
           if (pixRes.ok) {
             const pixBody = await pixRes.json();
@@ -151,12 +307,16 @@ const MeusDados = () => {
             if (Array.isArray(pixList)) {
               const myPix = pixList.find((p: any) => p.providerId === pId);
               if (myPix) {
-                setChavePixType(myPix.type ?? "");
-                setChavePix(myPix.key ?? "");
+                const pt = myPix.type ?? "";
+                const pk = myPix.key ?? "";
+                setChavePixType(pt);
+                setChavePix(pk);
+                pixSnap = { chavePixType: pt, chavePix: pk };
               }
             }
           }
         }
+        setOrigPix(snap(pixSnap));
       } catch (err) {
         console.error("[MeusDados] erro ao carregar dados:", err);
       } finally {
@@ -167,21 +327,160 @@ const MeusDados = () => {
     fetchData();
   }, []);
 
-  const handleSave = () => {
-    toast({ title: "Dados atualizados", description: "Suas informações foram salvas com sucesso." });
+  const toggleArea = (id: string) => {
+    setAreasSelecionadas((prev) =>
+      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
+    );
   };
 
-  const startEditPix = () => {
-    setTempPix(chavePix);
-    setTempPixType(chavePixType);
-    setEditandoPix(true);
-  };
+  const handleSave = async () => {
+    const hasUserChanges = currentUserSnap() !== origUser;
+    const hasPixChanges = currentPixSnap() !== origPix;
+    const hasProviderChanges = currentProviderSnap() !== origProvider || profileImageFile !== null;
 
-  const savePix = () => {
-    setChavePix(tempPix);
-    setChavePixType(tempPixType);
-    setEditandoPix(false);
-    toast({ title: "Pix atualizado", description: "Sua chave Pix foi alterada com sucesso." });
+    if (!hasUserChanges && !hasPixChanges && !hasProviderChanges) {
+      toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const tokenRaw = localStorage.getItem("authToken");
+      const authUserRaw = localStorage.getItem("authUser");
+      if (!tokenRaw) {
+        toast({ title: "Erro", description: "Token de autenticação não encontrado.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      const token = JSON.parse(tokenRaw);
+      const userId = authUserRaw ? JSON.parse(authUserRaw)?.id : null;
+      const results: boolean[] = [];
+
+      // 1. PUT /users (user data)
+      if (hasUserChanges && userId) {
+        const userRes = await fetch(`${API_BASE_URL}/users`, {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Origin-type": ORIGIN_TYPE,
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: userId,
+            name: nome,
+            email: email,
+            phoneNumber: telefone.replace(/\D/g, ""),
+            status: "active",
+          }),
+        });
+        if (userRes.ok) {
+          setOrigUser(currentUserSnap());
+          results.push(true);
+        } else {
+          console.error("[MeusDados] User save failed:", userRes.status);
+          results.push(false);
+        }
+      }
+
+      // 2. PUT /providers/pix-keys
+      if (hasPixChanges) {
+        const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Origin-type": ORIGIN_TYPE,
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: chavePix,
+            type: chavePixType,
+          }),
+        });
+        if (pixRes.ok) {
+          setOrigPix(currentPixSnap());
+          results.push(true);
+        } else {
+          console.error("[MeusDados] Pix save failed:", pixRes.status);
+          results.push(false);
+        }
+      }
+
+      // 3. PUT /providers (provider data)
+      if (hasProviderChanges) {
+        const areasLabels = areasSelecionadas
+          .map((id) => areasAtuacao.find((a) => a.id === id)?.label || id)
+          .join(", ");
+
+        const fd = new FormData();
+
+        // Profile image
+        if (profileImageFile) {
+          fd.append("profileImage", profileImageFile, profileImageFile.name);
+        } else if (profileImageUrl) {
+          // Send existing image as blob
+          try {
+            const imgRes = await fetch(profileImageUrl);
+            const blob = await imgRes.blob();
+            fd.append("profileImage", blob, "profile.jpg");
+          } catch { /* skip if can't convert */ }
+        }
+
+        fd.append("birthdate", dataNascimento || "");
+        fd.append("gender", sexo || "");
+        fd.append("deficiency", isPCD ? "true" : "false");
+        fd.append("desiredJobVacancy", areasLabels);
+        fd.append("emergencyContactName", contatoEmergNome || "");
+        fd.append("emergencyContactRelationship", contatoEmergParentesco || "");
+        fd.append("emergencyContactNumber", contatoEmergTelefone.replace(/\D/g, "") || "");
+        fd.append("cep", cep.replace(/\D/g, "") || "");
+        fd.append("street", rua || "");
+        fd.append("complement", complemento || "");
+        fd.append("neighborhood", bairro || "");
+        fd.append("number", numero || "");
+        fd.append("city", cidade || "");
+        fd.append("uf", estado || "");
+        fd.append("ibge", viacepMeta.ibge || "");
+        fd.append("gia", viacepMeta.gia || "");
+        fd.append("ddd", viacepMeta.ddd || "");
+        fd.append("siafi", viacepMeta.siafi || "");
+
+        const provRes = await fetch(`${API_BASE_URL}/providers`, {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Origin-type": ORIGIN_TYPE,
+            "Authorization": `Bearer ${token}`,
+          },
+          body: fd,
+        });
+        if (provRes.ok) {
+          setOrigProvider(currentProviderSnap());
+          if (profileImageFile) {
+            setOrigProfileImage(URL.createObjectURL(profileImageFile));
+            setProfileImageFile(null);
+          }
+          results.push(true);
+        } else {
+          console.error("[MeusDados] Provider save failed:", provRes.status);
+          results.push(false);
+        }
+      }
+
+      if (results.every((r) => r)) {
+        toast({ title: "Dados atualizados", description: "As informações foram salvas com sucesso." });
+      } else if (results.some((r) => r)) {
+        toast({ title: "Atualização parcial", description: "Alguns dados foram salvos, mas houve erro em parte da atualização.", variant: "destructive" });
+      } else {
+        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("[MeusDados] Save error:", err);
+      toast({ title: "Erro ao salvar", description: "Ocorreu um erro inesperado. Tente novamente.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEnviarCodigo = () => {
@@ -221,6 +520,44 @@ const MeusDados = () => {
           <h1 className="text-xl font-display font-bold">Meus Dados</h1>
         </div>
 
+        {/* Foto de Perfil */}
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <h3 className="text-base font-display font-bold flex items-center gap-2">
+              <Camera className="w-5 h-5 text-primary" /> Foto de Perfil
+            </h3>
+            <div className="flex items-center gap-4">
+              {previewFoto ? (
+                <div className="relative">
+                  <img src={previewFoto} alt="Foto de perfil" className="w-24 h-24 rounded-full object-cover border-2 border-primary" />
+                  <button
+                    type="button"
+                    onClick={() => { setProfileImageFile(null); setProfileImageUrl(null); }}
+                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <label className="w-24 h-24 rounded-full border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                  <Camera className="w-6 h-6 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground mt-1">Adicionar</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && file.type.startsWith("image/")) setProfileImageFile(file);
+                    }}
+                  />
+                </label>
+              )}
+              <p className="text-sm text-muted-foreground">Escolha uma foto profissional e com boa iluminação.</p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Dados de Usuário */}
         <Card>
           <CardContent className="p-6 space-y-5">
@@ -239,7 +576,6 @@ const MeusDados = () => {
               <Label>Número de Celular</Label>
               <Input value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} />
             </div>
-            <Button onClick={handleSave} className="w-full">Salvar Alterações</Button>
           </CardContent>
         </Card>
 
@@ -280,32 +616,36 @@ const MeusDados = () => {
                   <Switch checked={isPCD} onCheckedChange={setIsPCD} />
                 </div>
               </div>
-              {isPCD && (
-                <div className="space-y-2 pl-1">
-                  <Label className="text-sm text-muted-foreground">Tipo de deficiência</Label>
-                  <div className="space-y-2">
-                    {tiposDeficiencia.map((tipo) => (
-                      <div key={tipo.id} className="flex items-center gap-2">
-                        <Checkbox
-                          id={`pcd-${tipo.id}`}
-                          checked={deficienciasSelecionadas.includes(tipo.id)}
-                          onCheckedChange={(checked) => {
-                            setDeficienciasSelecionadas((prev) =>
-                              checked ? [...prev, tipo.id] : prev.filter((d) => d !== tipo.id)
-                            );
-                          }}
-                        />
-                        <Label htmlFor={`pcd-${tipo.id}`} className="text-sm font-normal cursor-pointer">
-                          {tipo.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
+          </CardContent>
+        </Card>
 
-            <Button onClick={handleSave} className="w-full">Salvar Alterações</Button>
+        {/* Serviços Desejados */}
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <h3 className="text-base font-display font-bold flex items-center gap-2">
+              <Briefcase className="w-5 h-5 text-primary" /> Serviços Desejados
+            </h3>
+            <p className="text-sm text-muted-foreground">Selecione as áreas em que deseja trabalhar.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {areasAtuacao.map((area) => {
+                const selected = areasSelecionadas.includes(area.id);
+                return (
+                  <button
+                    key={area.id}
+                    type="button"
+                    onClick={() => toggleArea(area.id)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                      selected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card text-foreground border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {area.label}
+                  </button>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
 
@@ -319,11 +659,14 @@ const MeusDados = () => {
               <Label>CEP</Label>
               <Input
                 value={cep}
-                onChange={(e) => {
-                  const d = e.target.value.replace(/\D/g, "").slice(0, 8);
-                  setCep(d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d);
-                }}
+                onChange={(e) => handleCepChange(e.target.value)}
+                placeholder="00000-000"
               />
+              {cepLoading && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Buscando endereço...
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Rua</Label>
@@ -353,7 +696,6 @@ const MeusDados = () => {
                 <Input value={estado} onChange={(e) => setEstado(e.target.value)} />
               </div>
             </div>
-            <Button onClick={handleSave} className="w-full">Salvar Alterações</Button>
           </CardContent>
         </Card>
 
@@ -390,61 +732,54 @@ const MeusDados = () => {
                 onChange={(e) => setContatoEmergTelefone(maskPhone(e.target.value))}
               />
             </div>
-            <Button onClick={handleSave} className="w-full" variant="outline">Salvar Contato</Button>
           </CardContent>
         </Card>
 
         {/* Chave Pix */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Wallet className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Chave Pix</p>
-                  {editandoPix ? (
-                    <div className="mt-1 space-y-2">
-                      <Input
-                        placeholder="Tipo (CPF, E-mail, Celular, Aleatória)"
-                        value={tempPixType}
-                        onChange={(e) => setTempPixType(e.target.value)}
-                        className="h-8 text-sm"
-                      />
-                      <Input
-                        placeholder="Chave"
-                        value={tempPix}
-                        onChange={(e) => setTempPix(e.target.value)}
-                        className="h-8 text-sm"
-                        autoFocus
-                      />
-                    </div>
-                  ) : (
-                    <div>
-                      {chavePixType && (
-                        <p className="text-xs text-muted-foreground">Tipo: {chavePixType}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground">{chavePix || "Não informada"}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {editandoPix ? (
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditandoPix(false)}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={savePix}>
-                    <Check className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={startEditPix}>
-                  <Edit2 className="w-4 h-4" />
-                </Button>
-              )}
+          <CardContent className="p-6 space-y-5">
+            <h3 className="text-base font-display font-bold flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-primary" /> Chave Pix
+            </h3>
+            <div className="space-y-2">
+              <Label>Tipo de Chave PIX</Label>
+              <Select value={chavePixType} onValueChange={setChavePixType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de chave" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cpf">CPF</SelectItem>
+                  <SelectItem value="cnpj">CNPJ</SelectItem>
+                  <SelectItem value="email">E-mail</SelectItem>
+                  <SelectItem value="telefone">Telefone</SelectItem>
+                  <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Chave PIX</Label>
+              <Input
+                placeholder="Informe sua chave PIX"
+                value={chavePix}
+                onChange={(e) => setChavePix(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground italic">
+                Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
+              </p>
             </div>
           </CardContent>
         </Card>
+
+        {/* Botão Salvar */}
+        <Button onClick={handleSave} className="w-full" size="lg" disabled={saving}>
+          {saving ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" /> Salvando...
+            </span>
+          ) : (
+            "Salvar Alterações"
+          )}
+        </Button>
 
         {/* Apagar Conta */}
         <Card className="border-destructive/30">
@@ -454,7 +789,7 @@ const MeusDados = () => {
               <div className="flex-1 space-y-2">
                 <h3 className="text-sm font-bold text-destructive">Apagar Conta</h3>
                 <p className="text-xs text-muted-foreground">
-                  Ao solicitar a exclusão, um código será enviado para seu e-mail. 
+                  Ao solicitar a exclusão, um código será enviado para seu e-mail.
                   Após confirmação, sua conta será apagada em 7 dias, a menos que você faça login novamente.
                 </p>
                 <Button
