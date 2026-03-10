@@ -121,6 +121,83 @@ const Perfil = () => {
     uf: string;
   }>({ name: "", avatarUrl: null, rating: "0", segment: "", city: "", uf: "" });
 
+  // Freelancer API data
+  const [freelancerLoading, setFreelancerLoading] = useState(true);
+  const [freelancerData, setFreelancerData] = useState<{
+    name: string;
+    avatarUrl: string | null;
+    rating: string;
+    city: string;
+    uf: string;
+    desiredJobVacancy: string;
+  }>({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "" });
+
+  // Fetch freelancer profile
+  useEffect(() => {
+    if (isContratante) {
+      setFreelancerLoading(false);
+      return;
+    }
+    const fetchFreelancer = async () => {
+      try {
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) { setFreelancerLoading(false); return; }
+        const token = JSON.parse(tokenRaw);
+        const headers = { "Origin-type": "Web", "Authorization": `Bearer ${token}` };
+
+        const [providerRes, userRes] = await Promise.all([
+          fetch("https://api.freelaservicos.com.br/users/providers", {
+            method: "GET", credentials: "include", headers,
+          }),
+          fetch("https://api.freelaservicos.com.br/users/me", {
+            method: "GET", credentials: "include", headers,
+          }),
+        ]);
+
+        let providerData: any = {};
+        if (providerRes.ok) {
+          const pBody = await providerRes.json();
+          providerData = pBody?.data ?? pBody;
+        }
+
+        let userName = "";
+        if (userRes.ok) {
+          const uBody = await userRes.json();
+          const uData = uBody?.data ?? uBody;
+          userName = uData?.name || "";
+        }
+
+        const avatar = bufferToDataUrl(providerData.profileImage);
+
+        // Parse desiredJobVacancy into service chips
+        const djv = providerData.desiredJobVacancy || "";
+        if (djv) {
+          const ids = djv.split(",").map((s: string) => s.trim().toLowerCase());
+          const matched = servicosPF.filter(sv => ids.some((id: string) => sv.id === id || sv.label.toLowerCase() === id));
+          if (matched.length > 0) {
+            setServicosSelecionados(matched.map(m => m.id));
+          } else {
+            setServicosSelecionados(ids);
+          }
+        }
+
+        setFreelancerData({
+          name: userName,
+          avatarUrl: avatar,
+          rating: providerData.feedbackStars ? String(providerData.feedbackStars) : "0",
+          city: providerData.city || "",
+          uf: providerData.uf || "",
+          desiredJobVacancy: djv,
+        });
+      } catch (err) {
+        console.error("[Perfil] freelancer fetch error:", err);
+      } finally {
+        setFreelancerLoading(false);
+      }
+    };
+    fetchFreelancer();
+  }, [isContratante]);
+
   // Fetch contractor profile when contratante
   useEffect(() => {
     if (!isContratante) {
