@@ -7,6 +7,7 @@ interface VagaCardProps {
   quantity: number;
   jobDate: string;
   status: string;
+  serviceIndex?: number;
 }
 
 const statusLabels: Record<string, string> = {
@@ -23,7 +24,7 @@ const statusStyles: Record<string, string> = {
   removed: "bg-muted text-muted-foreground",
 };
 
-const VagaCard = ({ id, assignment, quantity, jobDate, status }: VagaCardProps) => {
+const VagaCard = ({ id, assignment, quantity, jobDate, status, serviceIndex = 0 }: VagaCardProps) => {
   const navigate = useNavigate();
 
   const formattedDate = (() => {
@@ -37,7 +38,7 @@ const VagaCard = ({ id, assignment, quantity, jobDate, status }: VagaCardProps) 
   return (
     <div
       className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-      onClick={() => navigate(`/evento/${id}`)}
+      onClick={() => navigate(`/evento/${id}`, { state: { serviceIndex } })}
     >
       <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
         <Briefcase className="w-5 h-5 text-primary" />

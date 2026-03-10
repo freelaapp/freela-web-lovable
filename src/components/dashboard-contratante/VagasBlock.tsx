@@ -10,6 +10,7 @@ interface Vacancy {
   quantity: number;
   jobDate: string;
   status: string;
+  serviceIndex?: number;
 }
 
 interface VagasBlockProps {
@@ -36,8 +37,8 @@ const VagasBlock = ({ title, icon, vacancies }: VagasBlockProps) => (
       {vacancies.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga encontrada</p>
       ) : (
-        vacancies.map((v) => (
-          <VagaCard key={v.id} id={v.id} assignment={v.assignment} quantity={v.quantity} jobDate={v.jobDate} status={v.status} />
+        vacancies.map((v, idx) => (
+          <VagaCard key={`${v.id}-${v.serviceIndex ?? idx}`} id={v.id} assignment={v.assignment} quantity={v.quantity} jobDate={v.jobDate} status={v.status} serviceIndex={v.serviceIndex} />
         ))
       )}
     </CardContent>

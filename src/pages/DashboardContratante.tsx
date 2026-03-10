@@ -12,17 +12,31 @@ const ORIGIN_TYPE = "Web";
 
 interface VacancyService {
   assignment: string;
+  quantity?: number;
+  jobTime?: string;
+  jobValue?: string;
   [key: string]: unknown;
 }
 
-interface Vacancy {
+interface RawVacancy {
+  id: string;
+  jobDate: string;
+  status: string;
+  createdAt?: string;
+  services?: VacancyService[];
+  assignment?: string;
+  quantity?: number;
+  [key: string]: unknown;
+}
+
+interface FlatVacancy {
   id: string;
   assignment: string;
   quantity: number;
   jobDate: string;
   status: string;
   createdAt?: string;
-  services?: VacancyService[];
+  serviceIndex: number;
 }
 
 const mockAvaliacoesPendentes = [
@@ -36,7 +50,7 @@ const DashboardContratante = () => {
   const [totalGasto, setTotalGasto] = useState("R$ 0");
   const [totalVagas, setTotalVagas] = useState(0);
   const [mediaAvaliacao, setMediaAvaliacao] = useState("0");
-  const [vacancies, setVacancies] = useState<Vacancy[]>([]);
+  const [vacancies, setVacancies] = useState<FlatVacancy[]>([]);
 
   useEffect(() => {
     const tokenRaw = localStorage.getItem("authToken");
@@ -64,20 +78,41 @@ const DashboardContratante = () => {
           return;
         }
 
-        const allVacancies: Vacancy[] = (Array.isArray(vacBody.data) ? vacBody.data : []).map((v: any) => {
-          const servicesAssignment = Array.isArray(v.services) && v.services.length > 0
-            ? v.services.map((s: any) => s.assignment).filter(Boolean).join(", ")
-            : v.assignment || "Sem título";
-          return { ...v, assignment: servicesAssignment };
-        });
-        setVacancies(allVacancies);
-        setTotalVagas(allVacancies.length);
+        const rawVacancies: RawVacancy[] = Array.isArray(vacBody.data) ? vacBody.data : [];
+        const flattened: FlatVacancy[] = [];
+        for (const v of rawVacancies) {
+          if (Array.isArray(v.services) && v.services.length > 0) {
+            v.services.forEach((s, idx) => {
+              flattened.push({
+                id: v.id,
+                assignment: s.assignment || "Sem título",
+                quantity: s.quantity ?? 1,
+                jobDate: v.jobDate,
+                status: v.status,
+                createdAt: v.createdAt,
+                serviceIndex: idx,
+              });
+            });
+          } else {
+            flattened.push({
+              id: v.id,
+              assignment: v.assignment || "Sem título",
+              quantity: v.quantity ?? 1,
+              jobDate: v.jobDate,
+              status: v.status,
+              createdAt: v.createdAt,
+              serviceIndex: 0,
+            });
+          }
+        }
+        setVacancies(flattened);
+        setTotalVagas(rawVacancies.length);
 
         // Total gasto (mês atual)
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
-        const currentMonthVacancies = allVacancies.filter((v) => {
+        const currentMonthVacancies = rawVacancies.filter((v) => {
           if (!v.createdAt) return false;
           const d = new Date(v.createdAt);
           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
