@@ -39,12 +39,20 @@ const statusStyles: Record<string, string> = {
   removed: "bg-muted text-muted-foreground",
 };
 
-const mockCandidatos = [
-  { id: "f1", name: "Carlos Silva", avatar: "CS", role: "Churrasqueiro", rating: 4.9, reviews: 127, jobs: 253, verified: true, status: "pendente" as const, price: "R$ 480", responseTime: "~15 min", bio: "Churrasqueiro profissional com mais de 10 anos de experiência." },
-  { id: "f2", name: "Juliana Alves", avatar: "JA", role: "Bartender", rating: 4.7, reviews: 89, jobs: 145, verified: true, status: "pendente" as const, price: "R$ 350", responseTime: "~30 min", bio: "Bartender especializada em drinks autorais e coquetéis clássicos." },
-  { id: "f3", name: "Pedro Costa", avatar: "PC", role: "Churrasqueiro", rating: 4.5, reviews: 56, jobs: 98, verified: false, status: "aceito" as const, price: "R$ 400", responseTime: "~1h", bio: "Experiente em churrascos para eventos de pequeno e médio porte." },
-  { id: "f4", name: "Maria Santos", avatar: "MS", role: "Garçom", rating: 4.8, reviews: 203, jobs: 312, verified: true, status: "recusado" as const, price: "R$ 300", responseTime: "~20 min", bio: "Garçonete profissional com experiência em eventos de alto padrão." },
-];
+interface Candidato {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  rating: number;
+  reviews: number;
+  jobs: number;
+  verified: boolean;
+  status: "pendente" | "aceito" | "recusado";
+  price: string;
+  responseTime: string;
+  bio: string;
+}
 
 const DetalheEventoContratante = () => {
   const { eventoId } = useParams();
@@ -53,10 +61,11 @@ const DetalheEventoContratante = () => {
 
   const [vacancy, setVacancy] = useState<VacancyDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [candidatos, setCandidatos] = useState(mockCandidatos);
-  const [selectedFreelancer, setSelectedFreelancer] = useState<typeof mockCandidatos[0] | null>(null);
+  const [candidatos, setCandidatos] = useState<Candidato[]>([]);
+  const [loadingCandidatos, setLoadingCandidatos] = useState(false);
+  const [selectedFreelancer, setSelectedFreelancer] = useState<Candidato | null>(null);
   const [showPropostaDialog, setShowPropostaDialog] = useState(false);
-  const [propostaFreelancer, setPropostaFreelancer] = useState<typeof mockCandidatos[0] | null>(null);
+  const [propostaFreelancer, setPropostaFreelancer] = useState<Candidato | null>(null);
   const [proposta, setProposta] = useState({ valor: "", descricao: "" });
   const [propostaEnviada, setPropostaEnviada] = useState(false);
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
@@ -70,6 +79,7 @@ const DetalheEventoContratante = () => {
 
     const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
 
+    // Fetch vacancy details
     fetch(`${API_BASE_URL}/vacancies/${eventoId}`, { method: "GET", credentials: "include", headers })
       .then(r => r.json())
       .then(body => {
@@ -79,6 +89,35 @@ const DetalheEventoContratante = () => {
       })
       .catch(err => console.error("Erro ao buscar vaga:", err))
       .finally(() => setLoading(false));
+
+    // Fetch candidacies
+    setLoadingCandidatos(true);
+    fetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}&status=pending`, {
+      method: "GET",
+      credentials: "include",
+      headers,
+    })
+      .then(r => r.json())
+      .then(body => {
+        const list = Array.isArray(body?.data) ? body.data : [];
+        const mapped: Candidato[] = list.map((c: any) => ({
+          id: c.id || c.providerId || "",
+          name: c.providerName || c.name || "Freelancer",
+          avatar: (c.providerName || c.name || "FL").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
+          role: c.assignment || c.role || "",
+          rating: c.rating ?? 0,
+          reviews: c.reviews ?? 0,
+          jobs: c.jobs ?? 0,
+          verified: c.verified ?? false,
+          status: "pendente" as const,
+          price: c.price || c.jobValue || "",
+          responseTime: c.responseTime || "",
+          bio: c.bio || c.description || "",
+        }));
+        setCandidatos(mapped);
+      })
+      .catch(err => console.error("Erro ao buscar candidatos:", err))
+      .finally(() => setLoadingCandidatos(false));
   }, [eventoId]);
 
   if (loading) {
