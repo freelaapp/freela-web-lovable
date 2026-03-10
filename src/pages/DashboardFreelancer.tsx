@@ -13,12 +13,6 @@ const mockJobs = [
   { id: 3, title: "Churrasco - Casamento", client: "Maria Santos", date: "08 Mar", status: "confirmado", value: "R$ 1.800" },
 ];
 
-const mockVagasRegiao = [
-  { id: 201, title: "Aniversário 50 anos", role: "Garçom", hours: 6, value: "R$ 120", date: "25 Fev", location: "Vila Mariana, SP", distance: "5km" },
-  { id: 202, title: "Happy Hour Corporativo", role: "Bartender", hours: 5, value: "R$ 100", date: "27 Fev", location: "Pinheiros, SP", distance: "8km" },
-  { id: 203, title: "Casamento - Buffet", role: "Churrasqueiro", hours: 8, value: "R$ 200", date: "01 Mar", location: "Moema, SP", distance: "12km" },
-  { id: 204, title: "Evento Beneficente", role: "Cozinheiro", hours: 6, value: "R$ 120", date: "05 Mar", location: "Itaim Bibi, SP", distance: "15km" },
-];
 
 const DashboardFreelancer = () => {
   const navigate = useNavigate();
