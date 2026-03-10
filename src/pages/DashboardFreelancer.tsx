@@ -23,9 +23,11 @@ const mockVagasRegiao = [
 const DashboardFreelancer = () => {
   const navigate = useNavigate();
   const [averageRating, setAverageRating] = useState<string>("--");
+  const [vagasDisponiveis, setVagasDisponiveis] = useState<any[]>([]);
+  const [loadingVagas, setLoadingVagas] = useState(true);
 
   useEffect(() => {
-    const fetchRating = async () => {
+    const fetchData = async () => {
       try {
         const tokenRaw = localStorage.getItem("authToken");
         if (!tokenRaw) return;
@@ -37,7 +39,8 @@ const DashboardFreelancer = () => {
           method: "GET", credentials: "include", headers,
         });
         const provBody = await provRes.json().catch(() => null);
-        const providerId = provBody?.data?.id ?? provBody?.id;
+        const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
+        const providerId = provData?.id ?? provBody?.id;
         if (!providerId) return;
 
         // 2. Get feedbacks
@@ -55,11 +58,44 @@ const DashboardFreelancer = () => {
         } else if (typeof fbBody?.data === "number") {
           setAverageRating(fbBody.data.toFixed(1));
         }
+
+        // 3. Get applied vacancies (IDs)
+        setLoadingVagas(true);
+        const appliedRes = await fetch(`${API_BASE_URL}/providers/${providerId}/applied-vacancies`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const appliedBody = await appliedRes.json().catch(() => null);
+        const appliedData = appliedBody?.data ?? appliedBody;
+        const vacancyIds: string[] = Array.isArray(appliedData)
+          ? appliedData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+          : [];
+
+        // 4. Fetch each vacancy detail
+        if (vacancyIds.length > 0) {
+          const details = await Promise.all(
+            vacancyIds.filter(Boolean).map(async (vacId: string) => {
+              try {
+                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
+                  method: "GET", credentials: "include", headers,
+                });
+                const body = await res.json().catch(() => null);
+                return body?.data ?? body ?? null;
+              } catch {
+                return null;
+              }
+            })
+          );
+          setVagasDisponiveis(details.filter(Boolean));
+        } else {
+          setVagasDisponiveis([]);
+        }
       } catch (err) {
-        console.error("[DashboardFreelancer] error fetching rating:", err);
+        console.error("[DashboardFreelancer] error fetching data:", err);
+      } finally {
+        setLoadingVagas(false);
       }
     };
-    fetchRating();
+    fetchData();
   }, []);
 
   const renderStars = (rating: number) => (
