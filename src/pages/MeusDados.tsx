@@ -446,6 +446,9 @@ const MeusDados = () => {
         fd.append("ddd", viacepMeta.ddd || "");
         fd.append("siafi", viacepMeta.siafi || "");
         fd.append("cpf", cpf.replace(/\D/g, "") || "");
+        fd.append("schooling", "");
+        fd.append("cnh", "");
+        fd.append("language", "");
 
         const provRes = await fetch(`${API_BASE_URL}/providers`, {
           method: "PUT",
