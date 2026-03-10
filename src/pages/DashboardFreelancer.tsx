@@ -18,7 +18,9 @@ const DashboardFreelancer = () => {
   const navigate = useNavigate();
   const [averageRating, setAverageRating] = useState<string>("--");
   const [vagasDisponiveis, setVagasDisponiveis] = useState<any[]>([]);
+  const [vagasAtivas, setVagasAtivas] = useState<any[]>([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
+  const [loadingAtivas, setLoadingAtivas] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
