@@ -92,11 +92,37 @@ const Agenda = () => {
         // Get vacancies
         const vRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, { method: "GET", credentials: "include", headers });
         const vBody = await vRes.json();
-        const vacancies: ApiVacancy[] = Array.isArray(vBody?.data) ? vBody.data : [];
+        const rawVacancies: RawVacancy[] = Array.isArray(vBody?.data) ? vBody.data : [];
+
+        // Flatten services (same logic as DashboardContratante)
+        const flattened: FlatVacancy[] = [];
+        for (const v of rawVacancies) {
+          if (Array.isArray(v.services) && v.services.length > 0) {
+            v.services.forEach((s, idx) => {
+              flattened.push({
+                id: v.id,
+                assignment: s.assignment || "Sem título",
+                quantity: s.quantity ?? 1,
+                jobDate: v.jobDate,
+                status: v.status,
+                serviceIndex: idx,
+              });
+            });
+          } else {
+            flattened.push({
+              id: v.id,
+              assignment: v.assignment || "Sem título",
+              quantity: v.quantity ?? 1,
+              jobDate: v.jobDate,
+              status: v.status,
+              serviceIndex: 0,
+            });
+          }
+        }
 
         // Sort: open → in hiring → closed → removed
-        vacancies.sort((a, b) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99));
-        setApiVacancies(vacancies);
+        flattened.sort((a, b) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99));
+        setApiVacancies(flattened);
       } catch (err) {
         console.error("Erro ao buscar vagas:", err);
       } finally {
