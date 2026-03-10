@@ -1,51 +1,55 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Calendar, Clock, MapPin, Briefcase, DollarSign, AlertTriangle, CheckCircle, Upload, X, Image, Video } from "lucide-react";
+import { Star, Calendar, Clock, MapPin, Briefcase, DollarSign, AlertTriangle, CheckCircle, Upload, X, Image, Video, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import AppLayout from "@/components/layout/AppLayout";
 
-const mockAvaliacoes = [
-  {
-    id: 1, type: "recebida",
-    client: "Ana Oliveira", date: "31 Dez 2025", rating: 5,
-    comment: "Carlos foi impecável! Super pontual e muito profissional.",
-    service: { title: "Churrasco - Réveillon", role: "Churrasqueiro", location: "Jundiaí, SP", time: "20:00 - 04:00", hours: 8, value: "R$ 2.000" },
-  },
-  {
-    id: 2, type: "recebida",
-    client: "Tech Corp", date: "20 Dez 2025", rating: 5,
-    comment: "Ótimo profissional, recomendo a todos.",
-    service: { title: "Bartender - Formatura", role: "Bartender", location: "Jundiaí, SP", time: "19:00 - 03:00", hours: 8, value: "R$ 1.500" },
-  },
-  {
-    id: 3, type: "recebida",
-    client: "Maria Santos", date: "10 Dez 2025", rating: 4,
-    comment: "Muito bom, apenas chegou um pouco atrasado.",
-    service: { title: "Garçom - Casamento", role: "Garçom", location: "Jundiaí, SP", time: "16:00 - 23:00", hours: 7, value: "R$ 800" },
-  },
-  {
-    id: 4, type: "feita",
-    client: "Restaurante Sabor & Arte", date: "31 Dez 2025", rating: 4,
-    comment: "Boa estrutura, equipe organizada. Apenas o estacionamento era difícil.",
-    service: { title: "Churrasco - Réveillon", role: "Churrasqueiro", location: "Jundiaí, SP", time: "20:00 - 04:00", hours: 8, value: "R$ 2.000" },
-  },
-  {
-    id: 5, type: "feita",
-    client: "Buffet Estrela", date: "20 Dez 2025", rating: 5,
-    comment: "Excelente local para trabalhar, muito bem organizado!",
-    service: { title: "Bartender - Formatura", role: "Bartender", location: "Jundiaí, SP", time: "19:00 - 03:00", hours: 8, value: "R$ 1.500" },
-  },
-  {
-    id: 6, type: "feita",
-    client: "Bar do João", date: "10 Dez 2025", rating: 3,
-    comment: "Ambiente ok, mas a cozinha poderia ser mais limpa.",
-    service: { title: "Evento Especial", role: "Cozinheiro", location: "Jundiaí, SP", time: "18:00 - 00:00", hours: 6, value: "R$ 600" },
-  },
-];
+const API_BASE_URL = "https://api.freelaservicos.com.br";
+const ORIGIN_TYPE = "Web";
+
+function getAuthToken(): string | null {
+  const raw = localStorage.getItem("authToken");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
+
+interface VacancyDetail {
+  id: string;
+  establishment: string;
+  assignment: string;
+  description: string;
+  quantity: number;
+  jobDate: string;
+  jobTime: string;
+  jobValue: string;
+  status: string;
+  contractorId: string;
+}
+
+interface FeedbackDetail {
+  id: string;
+  comment: string;
+  star: number;
+  sender: string;
+  receiver: string;
+  jobId: string;
+  createdAt: string;
+}
+
+interface LocationState {
+  jobId?: string;
+  vacancyId?: string;
+  contractorId?: string;
+  feedbackType?: "recebida" | "feita";
+}
 
 const renderStars = (rating: number) => (
   <div className="flex gap-0.5">
@@ -55,15 +59,98 @@ const renderStars = (rating: number) => (
   </div>
 );
 
+function formatDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
 const DetalheAvaliacao = () => {
   const { avaliacaoId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = (location.state || {}) as LocationState;
+
+  const [vacancy, setVacancy] = useState<VacancyDetail | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackDetail | null>(null);
+  const [senderName, setSenderName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [showContestar, setShowContestar] = useState(false);
   const [justificativa, setJustificativa] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const avaliacao = mockAvaliacoes.find(a => a.id === Number(avaliacaoId));
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError("");
+
+      const token = getAuthToken();
+      if (!token) {
+        setError("Sessão expirada. Faça login novamente.");
+        setLoading(false);
+        return;
+      }
+
+      const { jobId, vacancyId, contractorId } = state;
+      if (!jobId || !vacancyId || !contractorId) {
+        setError("Dados insuficientes para carregar a avaliação.");
+        setLoading(false);
+        return;
+      }
+
+      const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
+
+      try {
+        // Fetch vacancy details and feedbacks in parallel
+        const [vacRes, fbRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/vacancies/${vacancyId}`, { method: "GET", credentials: "include", headers }),
+          fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/${jobId}/feedbacks`, { method: "GET", credentials: "include", headers }),
+        ]);
+
+        const vacBody = await vacRes.json().catch(() => null);
+        const fbBody = await fbRes.json().catch(() => null);
+
+        // Set vacancy
+        if (vacBody?.data) {
+          setVacancy(vacBody.data);
+        }
+
+        // Find the specific feedback by avaliacaoId
+        const feedbacksList: FeedbackDetail[] = fbBody?.success && Array.isArray(fbBody?.data) ? fbBody.data : [];
+        const found = feedbacksList.find(f => f.id === avaliacaoId);
+        if (found) {
+          setFeedback(found);
+
+          // Fetch sender name
+          const senderId = state.feedbackType === "feita" ? found.receiver : found.sender;
+          if (senderId) {
+            try {
+              const userRes = await fetch(`${API_BASE_URL}/users/${senderId}`, { method: "GET", credentials: "include", headers });
+              const userBody = await userRes.json();
+              if (userBody?.success && userBody?.data?.name) {
+                setSenderName(userBody.data.name);
+              }
+            } catch { /* ignore */ }
+          }
+        } else {
+          setError("Avaliação não encontrada.");
+        }
+      } catch (err) {
+        console.error("Erro ao carregar detalhes:", err);
+        setError("Erro ao carregar os dados. Tente novamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [avaliacaoId, state.jobId, state.vacancyId, state.contractorId]);
 
   useEffect(() => {
     if (showSuccess) {
@@ -75,11 +162,21 @@ const DetalheAvaliacao = () => {
     }
   }, [showSuccess, navigate]);
 
-  if (!avaliacao) {
+  if (loading) {
+    return (
+      <AppLayout showFooter={false}>
+        <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 flex justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (error || !feedback) {
     return (
       <AppLayout showFooter={false}>
         <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 text-center">
-          <p className="text-muted-foreground">Avaliação não encontrada</p>
+          <p className="text-muted-foreground">{error || "Avaliação não encontrada"}</p>
           <Button className="mt-4" onClick={() => navigate(-1)}>Voltar</Button>
         </div>
       </AppLayout>
@@ -103,6 +200,8 @@ const DetalheAvaliacao = () => {
     setFiles([]);
   };
 
+  const feedbackType = state.feedbackType || "recebida";
+
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-3xl mx-auto pb-8 space-y-6">
@@ -112,63 +211,67 @@ const DetalheAvaliacao = () => {
 
         <div>
           <h1 className="text-2xl font-display font-bold">
-            {avaliacao.type === "recebida" ? "Avaliação Recebida" : "Avaliação Feita"}
+            {feedbackType === "recebida" ? "Avaliação Recebida" : "Avaliação Feita"}
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">de {avaliacao.client} • {avaliacao.date}</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            de {senderName || "Usuário"} • {formatDate(feedback.createdAt)}
+          </p>
         </div>
 
         {/* Dados do Serviço */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Dados do Serviço</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
-                <Briefcase className="w-6 h-6 text-primary" />
-                <div>
-                  <p className="text-sm font-bold">{avaliacao.service.title}</p>
-                  <p className="text-[10px] text-muted-foreground">Evento</p>
+        {vacancy && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Dados do Serviço</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
+                  <Briefcase className="w-6 h-6 text-primary" />
+                  <div>
+                    <p className="text-sm font-bold">{vacancy.assignment || "—"}</p>
+                    <p className="text-[10px] text-muted-foreground">Função</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
+                  <Calendar className="w-6 h-6 text-primary" />
+                  <div>
+                    <p className="text-sm font-bold">{vacancy.jobDate ? formatDate(vacancy.jobDate) : "—"}</p>
+                    <p className="text-[10px] text-muted-foreground">Data</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-success-light/50 text-center">
+                  <DollarSign className="w-6 h-6 text-success" />
+                  <div>
+                    <p className="text-sm font-bold text-success">{vacancy.jobValue ? `R$ ${vacancy.jobValue}` : "—"}</p>
+                    <p className="text-[10px] text-muted-foreground">Valor</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
+                  <Briefcase className="w-6 h-6 text-primary" />
+                  <div>
+                    <p className="text-sm font-bold">{vacancy.establishment || "—"}</p>
+                    <p className="text-[10px] text-muted-foreground">Estabelecimento</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
+                  <Clock className="w-6 h-6 text-accent" />
+                  <div>
+                    <p className="text-sm font-bold">{vacancy.jobTime || "—"}</p>
+                    <p className="text-[10px] text-muted-foreground">Horário</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
+                  <MapPin className="w-6 h-6 text-primary" />
+                  <div>
+                    <p className="text-sm font-bold">{vacancy.quantity} freelancer{vacancy.quantity !== 1 ? "s" : ""}</p>
+                    <p className="text-[10px] text-muted-foreground">Qtd</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
-                <Calendar className="w-6 h-6 text-primary" />
-                <div>
-                  <p className="text-sm font-bold">{avaliacao.date}</p>
-                  <p className="text-[10px] text-muted-foreground">Data</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-success-light/50 text-center">
-                <DollarSign className="w-6 h-6 text-success" />
-                <div>
-                  <p className="text-sm font-bold text-success">{avaliacao.service.value}</p>
-                  <p className="text-[10px] text-muted-foreground">Valor</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
-                <Briefcase className="w-6 h-6 text-primary" />
-                <div>
-                  <p className="text-sm font-bold">{avaliacao.service.role}</p>
-                  <p className="text-[10px] text-muted-foreground">Função</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
-                <Clock className="w-6 h-6 text-accent" />
-                <div>
-                  <p className="text-sm font-bold">{avaliacao.service.hours}h</p>
-                  <p className="text-[10px] text-muted-foreground">Duração</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 text-center">
-                <MapPin className="w-6 h-6 text-primary" />
-                <div>
-                  <p className="text-sm font-bold">{avaliacao.service.location}</p>
-                  <p className="text-[10px] text-muted-foreground">Local</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Avaliação */}
         <Card>
@@ -179,13 +282,15 @@ const DetalheAvaliacao = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
-              {renderStars(avaliacao.rating)}
-              <span className="text-sm font-bold">{avaliacao.rating}/5</span>
+              {renderStars(feedback.star)}
+              <span className="text-sm font-bold">{feedback.star}/5</span>
             </div>
-            <div className="p-4 rounded-xl bg-muted/50">
-              <p className="text-sm text-foreground/80 italic">"{avaliacao.comment}"</p>
-            </div>
-            <p className="text-xs text-muted-foreground">Avaliado por: {avaliacao.client}</p>
+            {feedback.comment && (
+              <div className="p-4 rounded-xl bg-muted/50">
+                <p className="text-sm text-foreground/80 italic">"{feedback.comment}"</p>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">Avaliado por: {senderName || "Usuário"}</p>
           </CardContent>
         </Card>
 
