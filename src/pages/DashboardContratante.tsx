@@ -64,7 +64,12 @@ const DashboardContratante = () => {
           return;
         }
 
-        const allVacancies: Vacancy[] = Array.isArray(vacBody.data) ? vacBody.data : [];
+        const allVacancies: Vacancy[] = (Array.isArray(vacBody.data) ? vacBody.data : []).map((v: any) => {
+          const servicesAssignment = Array.isArray(v.services) && v.services.length > 0
+            ? v.services.map((s: any) => s.assignment).filter(Boolean).join(", ")
+            : v.assignment || "Sem título";
+          return { ...v, assignment: servicesAssignment };
+        });
         setVacancies(allVacancies);
         setTotalVagas(allVacancies.length);
 
