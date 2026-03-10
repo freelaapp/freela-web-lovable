@@ -29,6 +29,7 @@ interface Feedback {
   jobId: string;
   createdAt: string;
   senderName?: string;
+  vacancyId?: string;
 }
 
 const renderStars = (rating: number) => (
@@ -78,8 +79,11 @@ function formatDate(dateStr: string): string {
   }
 }
 
-const FeedbackItem = ({ fb }: { fb: Feedback }) => (
-  <div className="p-3 rounded-xl bg-muted/50 space-y-1.5">
+const FeedbackItem = ({ fb, contractorId, onClick }: { fb: Feedback; contractorId?: string; onClick?: () => void }) => (
+  <div
+    className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
+    onClick={onClick}
+  >
     <div className="flex items-center justify-between">
       <p className="text-sm font-semibold">{fb.senderName || "Freelancer"}</p>
       {renderStars(fb.star)}
@@ -100,6 +104,7 @@ const Avaliacoes = () => {
   const [loadingFeitas, setLoadingFeitas] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
   const [showAllFeitasModal, setShowAllFeitasModal] = useState(false);
+  const [contractorId, setContractorId] = useState<string>("");
 
   useEffect(() => {
     if (!isContratante) return;
@@ -119,7 +124,9 @@ const Avaliacoes = () => {
         });
         const contractorBody = await contractorRes.json();
         if (!contractorBody?.success || !contractorBody?.data?.id) return;
-        const contractorId = contractorBody.data.id;
+        const cId = contractorBody.data.id;
+        setContractorId(cId);
+        const contractorId = cId;
 
         // 2. Fetch recebidas and feitas in parallel
         const [fbRes, feitasRes] = await Promise.all([
@@ -158,8 +165,29 @@ const Avaliacoes = () => {
           })
         );
 
-        setRecebidasApi(recebidasList.map(f => ({ ...f, senderName: nameMap[f.sender] })));
-        setFeitasApi(feitasList.map(f => ({ ...f, senderName: nameMap[f.receiver] })));
+        // 4. Resolve vacancyId for each feedback via GET /jobs/{jobId}
+        const allFeedbacks = [...recebidasList, ...feitasList];
+        const uniqueJobIds = [...new Set(allFeedbacks.map(f => f.jobId).filter(Boolean))];
+        const jobVacancyMap: Record<string, string> = {};
+
+        await Promise.all(
+          uniqueJobIds.map(async (jobId) => {
+            try {
+              const res = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+                method: "GET", credentials: "include", headers,
+              });
+              const body = await res.json();
+              if (body?.success && body?.data?.vacancyId) {
+                jobVacancyMap[jobId] = body.data.vacancyId;
+              } else if (body?.data?.vacancyId) {
+                jobVacancyMap[jobId] = body.data.vacancyId;
+              }
+            } catch { /* ignore */ }
+          })
+        );
+
+        setRecebidasApi(recebidasList.map(f => ({ ...f, senderName: nameMap[f.sender], vacancyId: jobVacancyMap[f.jobId] })));
+        setFeitasApi(feitasList.map(f => ({ ...f, senderName: nameMap[f.receiver], vacancyId: jobVacancyMap[f.jobId] })));
       } catch (err) {
         console.error("Erro ao buscar feedbacks:", err);
         setRecebidasApi([]);
@@ -178,6 +206,12 @@ const Avaliacoes = () => {
   const feitas = isContratante ? contratanteFeitas : freelancerFeitas;
 
   const recebidasToShow = isContratante ? recebidasApi.slice(0, 4) : freelancerRecebidas;
+
+  const navigateToFeedback = (fb: Feedback, type: "recebida" | "feita") => {
+    navigate(`/avaliacao/${fb.id}`, {
+      state: { jobId: fb.jobId, vacancyId: fb.vacancyId, contractorId, feedbackType: type },
+    });
+  };
 
   return (
     <AppLayout showFooter={false}>
@@ -234,7 +268,9 @@ const Avaliacoes = () => {
                 ) : recebidasApi.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Sem avaliações</p>
                 ) : (
-                  recebidasToShow.map(fb => <FeedbackItem key={fb.id} fb={fb} />)
+                  recebidasToShow.map(fb => (
+                    <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "recebida")} />
+                  ))
                 )
               ) : (
                 (recebidas ?? []).map(av => (
@@ -276,7 +312,9 @@ const Avaliacoes = () => {
                 ) : feitasApi.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Sem avaliações</p>
                 ) : (
-                  feitasApi.slice(0, 4).map(fb => <FeedbackItem key={fb.id} fb={fb} />)
+                  feitasApi.slice(0, 4).map(fb => (
+                    <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "feita")} />
+                  ))
                 )
               ) : (
                 feitas.map(av => (
@@ -308,7 +346,9 @@ const Avaliacoes = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            {recebidasApi.map(fb => <FeedbackItem key={fb.id} fb={fb} />)}
+            {recebidasApi.map(fb => (
+              <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "recebida")} />
+            ))}
           </div>
         </DialogContent>
       </Dialog>
@@ -321,7 +361,9 @@ const Avaliacoes = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            {feitasApi.map(fb => <FeedbackItem key={fb.id} fb={fb} />)}
+            {feitasApi.map(fb => (
+              <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "feita")} />
+            ))}
           </div>
         </DialogContent>
       </Dialog>
