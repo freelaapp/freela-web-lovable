@@ -55,7 +55,36 @@ const DashboardFreelancer = () => {
           setAverageRating(fbBody.data.toFixed(1));
         }
 
-        // 3. Get applied vacancies (IDs)
+        // 3. Get active jobs (IDs) then fetch details
+        setLoadingAtivas(true);
+        const activeRes = await fetch(`${API_BASE_URL}/providers/${providerId}/active-jobs`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const activeBody = await activeRes.json().catch(() => null);
+        const activeData = activeBody?.data ?? activeBody;
+        const activeIds: string[] = Array.isArray(activeData)
+          ? activeData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+          : [];
+
+        if (activeIds.length > 0) {
+          const activeDetails = await Promise.all(
+            activeIds.filter(Boolean).map(async (vacId: string) => {
+              try {
+                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
+                  method: "GET", credentials: "include", headers,
+                });
+                const body = await res.json().catch(() => null);
+                return body?.data ?? body ?? null;
+              } catch { return null; }
+            })
+          );
+          setVagasAtivas(activeDetails.filter(Boolean));
+        } else {
+          setVagasAtivas([]);
+        }
+        setLoadingAtivas(false);
+
+        // 4. Get applied vacancies (IDs)
         setLoadingVagas(true);
         const appliedRes = await fetch(`${API_BASE_URL}/providers/${providerId}/applied-vacancies`, {
           method: "GET", credentials: "include", headers,
@@ -66,7 +95,7 @@ const DashboardFreelancer = () => {
           ? appliedData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
           : [];
 
-        // 4. Fetch each vacancy detail
+        // 5. Fetch each vacancy detail
         if (vacancyIds.length > 0) {
           const details = await Promise.all(
             vacancyIds.filter(Boolean).map(async (vacId: string) => {
@@ -76,9 +105,7 @@ const DashboardFreelancer = () => {
                 });
                 const body = await res.json().catch(() => null);
                 return body?.data ?? body ?? null;
-              } catch {
-                return null;
-              }
+              } catch { return null; }
             })
           );
           setVagasDisponiveis(details.filter(Boolean));
