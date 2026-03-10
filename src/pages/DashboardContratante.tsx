@@ -10,6 +10,11 @@ import VagasBlock from "@/components/dashboard-contratante/VagasBlock";
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
+interface VacancyService {
+  assignment: string;
+  [key: string]: unknown;
+}
+
 interface Vacancy {
   id: string;
   assignment: string;
@@ -17,6 +22,7 @@ interface Vacancy {
   jobDate: string;
   status: string;
   createdAt?: string;
+  services?: VacancyService[];
 }
 
 const mockAvaliacoesPendentes = [
@@ -58,7 +64,12 @@ const DashboardContratante = () => {
           return;
         }
 
-        const allVacancies: Vacancy[] = Array.isArray(vacBody.data) ? vacBody.data : [];
+        const allVacancies: Vacancy[] = (Array.isArray(vacBody.data) ? vacBody.data : []).map((v: any) => {
+          const servicesAssignment = Array.isArray(v.services) && v.services.length > 0
+            ? v.services.map((s: any) => s.assignment).filter(Boolean).join(", ")
+            : v.assignment || "Sem título";
+          return { ...v, assignment: servicesAssignment };
+        });
         setVacancies(allVacancies);
         setTotalVagas(allVacancies.length);
 
