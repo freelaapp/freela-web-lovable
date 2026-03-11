@@ -208,7 +208,7 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
   }
 }
 
-export async function registerProvider(formData: FormData, token: string): Promise<void> {
+export async function registerProvider(formData: FormData): Promise<void> {
   const response = await apiFetch(`${API_BASE_URL}/providers/`, {
     method: "POST",
     body: formData,

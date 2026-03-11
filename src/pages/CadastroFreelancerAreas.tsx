@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 import { registerProvider } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const areasAtuacao = [
   { id: "barista", label: "Barista" },
@@ -46,6 +47,7 @@ type Horarios = Record<string, { de: string; ate: string }>;
 const CadastroFreelancerAreas = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { recheckAuth, userId } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
   const [diasAtivos, setDiasAtivos] = useState<string[]>([]);
@@ -110,6 +112,11 @@ const CadastroFreelancerAreas = () => {
     setIsLoading(true);
 
     try {
+      // Ensure the token is still valid (refresh silently if needed).
+      // If the session cannot be recovered, recheckAuth redirects to /login
+      // via the global handler — we just bail out here.
+      await recheckAuth();
+
       const savedRaw = localStorage.getItem("freelancerFormData");
       if (!savedRaw) {
         toast({ title: "Erro", description: "Dados do cadastro não encontrados. Volte à etapa anterior.", variant: "destructive" });
@@ -121,13 +128,9 @@ const CadastroFreelancerAreas = () => {
       const viacepRaw = localStorage.getItem("freelancerViacepData");
       const viacep = viacepRaw ? JSON.parse(viacepRaw) : { ibge: "", gia: "", ddd: "", siafi: "" };
 
-      const tokenRaw = localStorage.getItem("authToken");
-      const token = tokenRaw ? JSON.parse(tokenRaw) : "";
-      const userRaw = localStorage.getItem("authUser");
-      const userId = userRaw ? JSON.parse(userRaw)?.id || "" : "";
-
-      if (!token) {
-        toast({ title: "Erro", description: "Sessão expirada. Faça login novamente.", variant: "destructive" });
+      if (!userId) {
+        toast({ title: "Sessão expirada", description: "Faça login novamente.", variant: "destructive" });
+        navigate("/login");
         setIsLoading(false);
         return;
       }
@@ -169,15 +172,15 @@ const CadastroFreelancerAreas = () => {
       fd.append("gia", viacep.gia || "");
       fd.append("ddd", viacep.ddd || "");
       fd.append("siafi", viacep.siafi || "");
-      
-      fd.append("userId", userId || "");
+
+      fd.append("userId", userId);
       fd.append("pixKeyType", saved.tipoChavePix || "");
       fd.append("pixKeyValue", saved.pixKeyValue || "");
       fd.append("phoneMessage", "");
       fd.append("mileageRadius", "0");
       fd.append("feedbackStars", "0");
 
-      await registerProvider(fd, token);
+      await registerProvider(fd);
 
       localStorage.removeItem("freelancerFormData");
       localStorage.removeItem("freelancerViacepData");
