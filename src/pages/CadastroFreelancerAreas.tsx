@@ -140,12 +140,15 @@ const CadastroFreelancerAreas = () => {
 
       if (saved.fotoBase64) {
         const res = await fetch(saved.fotoBase64);
-        const blob = await res.blob();
+        const rawBlob = await res.blob();
+        // Preserva o MIME type original (fetch de data:URL pode retornar application/octet-stream)
+        const mimeType = saved.fotoType || rawBlob.type || "image/jpeg";
+        const blob = rawBlob.type === mimeType ? rawBlob : new Blob([rawBlob], { type: mimeType });
         fd.append("profileImage", blob, saved.fotoName || "profile.jpg");
       }
 
       fd.append("cpf", saved.cpf || "");
-      fd.append("birthdate", saved.dataNascimento || "");
+      fd.append("birthdate", saved.dataNascimento ? saved.dataNascimento.split("T")[0] : "");
       fd.append("gender", saved.sexo || "");
       fd.append("deficiency", saved.deficiency === "Sim" ? "true" : "false");
       fd.append("schooling", "");
@@ -167,9 +170,9 @@ const CadastroFreelancerAreas = () => {
       fd.append("ddd", viacep.ddd || "");
       fd.append("siafi", viacep.siafi || "");
       
+      fd.append("userId", userId || "");
       fd.append("pixKeyType", saved.tipoChavePix || "");
       fd.append("pixKeyValue", saved.pixKeyValue || "");
-      fd.append("rg", "000000000");
       fd.append("phoneMessage", "");
       fd.append("mileageRadius", "0");
       fd.append("feedbackStars", "0");
