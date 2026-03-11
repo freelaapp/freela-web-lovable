@@ -95,20 +95,55 @@ const ConfirmarEmail = () => {
       setLoadingMessage("Validando código…");
       await confirmEmail(pendingData.email, fullCode);
 
-      // 3) Registrar usuário
+      // 4) Registrar usuário
       setLoadingMessage("Finalizando cadastro…");
       const result = await registerUser(pendingData);
 
-      // 4) Sucesso
+      // 5) Sucesso
       onAuthSuccess(result.data);
       localStorage.removeItem("pendingRegisterData");
 
       navigate("/escolher-perfil");
     } catch (err: any) {
+      const msg = err?.message || "";
+
+      // Se e-mail já cadastrado, tentar verificar se já tem perfil de provider
+      if (msg === "Este e-mail já está cadastrado.") {
+        try {
+          const tokenRaw = localStorage.getItem("authToken");
+          const token = tokenRaw ? JSON.parse(tokenRaw) : null;
+
+          if (!token) {
+            navigate("/escolher-perfil");
+            return;
+          }
+
+          const provRes = await fetch("https://api.freelaservicos.com.br/users/providers", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Origin-type": "Web",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!provRes.ok) {
+            navigate("/escolher-perfil");
+            return;
+          }
+
+          // Provider exists — redirect to freelancer dashboard
+          navigate("/dashboard-freelancer");
+        } catch {
+          navigate("/escolher-perfil");
+        }
+        return;
+      }
+
       const message =
         err instanceof TypeError
           ? "Falha de conexão. Verifique sua internet e tente novamente."
-          : err.message || "Não foi possível concluir seu cadastro. Tente novamente.";
+          : msg || "Não foi possível concluir seu cadastro. Tente novamente.";
       setError(message);
     } finally {
       setIsLoading(false);
