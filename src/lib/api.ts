@@ -1,7 +1,96 @@
+import { refreshAuthToken, logout } from "@/lib/auth";
+
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 // Trocar para "mobile" quando necessário
 const ORIGIN_TYPE = "Web";
+
+// ── Session expired callback ────────────────────────────────────
+// Registered by AuthContext so the API layer can trigger logout
+// without importing React context (avoids circular deps).
+type OnSessionExpired = () => void;
+let onSessionExpiredCallback: OnSessionExpired | null = null;
+
+export function registerSessionExpiredHandler(cb: OnSessionExpired): void {
+  onSessionExpiredCallback = cb;
+}
+
+// ── Sentinel error ──────────────────────────────────────────────
+// Thrown when a 401 is detected after a failed refresh attempt.
+// Callers can catch it explicitly if they need custom handling,
+// but in most cases the global handler already redirected to login.
+export class SessionExpiredError extends Error {
+  constructor() {
+    super("Sessão expirada. Faça login novamente.");
+    this.name = "SessionExpiredError";
+  }
+}
+
+// ── Authenticated fetch with automatic token refresh ────────────
+/**
+ * Drop-in replacement for fetch() for authenticated endpoints.
+ *
+ * Flow:
+ * 1. Attach the stored Bearer token.
+ * 2. Execute the request.
+ * 3. If the response is 401 → attempt one silent token refresh.
+ * 4. If refresh succeeds → retry the original request once with the new token.
+ * 5. If refresh fails (API returned 401/any error) → clear local auth,
+ *    fire the registered session-expired handler and throw SessionExpiredError.
+ */
+export async function apiFetch(
+  input: string,
+  init: RequestInit & { skipAuth?: boolean } = {},
+): Promise<Response> {
+  const { skipAuth = false, ...fetchInit } = init;
+
+  const buildHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
+    const base: Record<string, string> = {
+      "Origin-type": ORIGIN_TYPE,
+      ...(fetchInit.headers as Record<string, string>),
+      ...(extraHeaders as Record<string, string>),
+    };
+
+    if (!skipAuth) {
+      const raw = localStorage.getItem("authToken");
+      if (raw) {
+        try {
+          const token = JSON.parse(raw) as string;
+          base["Authorization"] = `Bearer ${token}`;
+        } catch {
+          // malformed token — will 401 and trigger refresh below
+        }
+      }
+    }
+
+    return base;
+  };
+
+  const response = await fetch(input, {
+    credentials: "include",
+    ...fetchInit,
+    headers: buildHeaders(),
+  });
+
+  // Not a 401 or auth is skipped — return as-is
+  if (response.status !== 401 || skipAuth) return response;
+
+  // ── 401 received — attempt silent refresh ──────────────────────
+  const refreshed = await refreshAuthToken();
+
+  if (!refreshed) {
+    logout();
+    onSessionExpiredCallback?.();
+    throw new SessionExpiredError();
+  }
+
+  // Refresh succeeded — retry original request with new token
+  return fetch(input, {
+    credentials: "include",
+    ...fetchInit,
+    headers: buildHeaders(),
+  });
+}
 
 interface LoginPayload {
   email: string;
@@ -16,12 +105,11 @@ interface LoginResponse {
 }
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE_URL}/users/login`, {
+  const response = await apiFetch(`${API_BASE_URL}/users/login`, {
     method: "POST",
-    credentials: "include",
+    skipAuth: true,
     headers: {
       "Content-Type": "application/json",
-      "Origin-type": ORIGIN_TYPE,
     },
     body: JSON.stringify({ ...payload, date: new Date().toISOString() }),
   });
@@ -63,12 +151,11 @@ interface RegisterResponse {
 }
 
 export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
-  const response = await fetch(`${API_BASE_URL}/users/register`, {
+  const response = await apiFetch(`${API_BASE_URL}/users/register`, {
     method: "POST",
-    credentials: "include",
+    skipAuth: true,
     headers: {
       "Content-Type": "application/json",
-      "Origin-type": ORIGIN_TYPE,
     },
     body: JSON.stringify(payload),
   });
@@ -93,14 +180,11 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
 }
 
 export async function generateEmailConfirmationCode(email: string): Promise<void> {
-  const response = await fetch(
+  const response = await apiFetch(
     `${API_BASE_URL}/users/generate-email-confirmation-code?email=${encodeURIComponent(email)}`,
     {
       method: "GET",
-      credentials: "include",
-      headers: {
-        "Origin-type": ORIGIN_TYPE,
-      },
+      skipAuth: true,
     },
   );
 
@@ -110,12 +194,11 @@ export async function generateEmailConfirmationCode(email: string): Promise<void
 }
 
 export async function confirmEmail(email: string, code: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/users/confirm-email`, {
+  const response = await apiFetch(`${API_BASE_URL}/users/confirm-email`, {
     method: "POST",
-    credentials: "include",
+    skipAuth: true,
     headers: {
       "Content-Type": "application/json",
-      "Origin-type": ORIGIN_TYPE,
     },
     body: JSON.stringify({ code, email, createdAt: new Date().toISOString() }),
   });
@@ -126,13 +209,8 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
 }
 
 export async function registerProvider(formData: FormData, token: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/providers/`, {
+  const response = await apiFetch(`${API_BASE_URL}/providers/`, {
     method: "POST",
-    credentials: "include",
-    headers: {
-      "Origin-type": ORIGIN_TYPE,
-      Authorization: `Bearer ${token}`,
-    },
     body: formData,
   });
 
@@ -153,13 +231,8 @@ export interface ContractorProfile {
 }
 
 export async function getContractorProfile(token: string): Promise<ContractorProfile> {
-  const response = await fetch(`${API_BASE_URL}/users/contractors`, {
+  const response = await apiFetch(`${API_BASE_URL}/users/contractors`, {
     method: "GET",
-    credentials: "include",
-    headers: {
-      "Origin-type": ORIGIN_TYPE,
-      Authorization: `Bearer ${token}`,
-    },
   });
 
   const body = await response.json().catch(() => null);
@@ -191,13 +264,10 @@ export interface CreateVacancyPayload {
 }
 
 export async function createVacancy(payload: CreateVacancyPayload, token: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/vacancies`, {
+  const response = await apiFetch(`${API_BASE_URL}/vacancies`, {
     method: "POST",
-    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      "Origin-type": ORIGIN_TYPE,
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });

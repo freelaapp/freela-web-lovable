@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { initializeAuth, logout as logoutUtil, getAuthUser } from "@/lib/auth";
+import { registerSessionExpiredHandler } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextValue {
@@ -52,6 +53,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setIsLoading(false);
   }, []); // stable — no external deps needed thanks to refs
+
+  // Register the global session-expired handler so apiFetch() can
+  // trigger logout + redirect when any authenticated call gets a 401
+  // that couldn't be recovered via refresh.
+  useEffect(() => {
+    registerSessionExpiredHandler(() => {
+      logoutUtil();
+      setIsAuthenticated(false);
+      setUserId(null);
+      navigateRef.current("/", { replace: true });
+      toastRef.current({
+        title: "Sessão expirada",
+        description: "Seu login expirou. Faça login novamente para continuar.",
+        variant: "destructive",
+      });
+    });
+  }, []);
 
   // Run only on mount — route changes do NOT require re-validating the token.
   // The token expiry is already checked lazily inside initializeAuth() when
