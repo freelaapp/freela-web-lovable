@@ -99,19 +99,24 @@ const CadastroFreelancer = () => {
     try {
       const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
       const data = await res.json();
-      if (!data.erro) {
-        setEndereco(data.logradouro || "");
-        setBairro(data.bairro || "");
-        setCidade(data.localidade || "");
-        setEstado(data.uf || "");
-        // Persist viacep metadata for provider registration
-        localStorage.setItem("freelancerViacepData", JSON.stringify({
-          ibge: data.ibge || "",
-          gia: data.gia || "",
-          ddd: data.ddd || "",
-          siafi: data.siafi || "",
-        }));
-      }
+        if (!data.erro) {
+          setEndereco(data.logradouro || "");
+          setBairro(data.bairro || "");
+          setCidade(data.localidade || "");
+          setEstado(data.uf || "");
+          // Persist viacep metadata for provider registration
+          try {
+            localStorage.setItem("freelancerViacepData", JSON.stringify({
+              ibge: data.ibge || "",
+              gia: data.gia || "",
+              ddd: data.ddd || "",
+              siafi: data.siafi || "",
+            }));
+          } catch {
+            // QuotaExceededError — os dados de viacep são apenas metadados secundários,
+            // a falha aqui não bloqueia o fluxo principal
+          }
+        }
     } catch {
       // silently fail
     } finally {
@@ -139,6 +144,7 @@ const CadastroFreelancer = () => {
     else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
     if (!sexo) e.sexo = "Sexo é obrigatório";
     if (!endereco.trim()) e.endereco = "Endereço é obrigatório";
+    if (!numero.trim()) e.numero = "Número do endereço é obrigatório";
     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
     if (!estado) e.estado = "Estado é obrigatório";
     if (!acceptTerms) e.terms = "Você deve aceitar os termos";
@@ -193,7 +199,18 @@ const CadastroFreelancer = () => {
         emergencyContactNumber: contatoEmergTelefone.replace(/\D/g, ""),
       };
 
-      localStorage.setItem("freelancerFormData", JSON.stringify(freelancerData));
+      try {
+        localStorage.setItem("freelancerFormData", JSON.stringify(freelancerData));
+      } catch {
+        // localStorage cheio (QuotaExceededError) — salva sem a foto e avisa o usuário
+        const dataWithoutPhoto = { ...freelancerData, fotoBase64: "" };
+        localStorage.setItem("freelancerFormData", JSON.stringify(dataWithoutPhoto));
+        toast({
+          title: "Aviso",
+          description: "A foto é muito grande para ser armazenada temporariamente. Ela será solicitada novamente na próxima etapa.",
+          variant: "destructive",
+        });
+      }
 
       toast({ title: "Dados salvos!", description: "Agora defina suas áreas de atuação." });
       navigate("/cadastro-freelancer-areas");
@@ -446,8 +463,9 @@ const CadastroFreelancer = () => {
                     placeholder="Nº"
                     value={numero}
                     onChange={(e) => setNumero(e.target.value)}
-                    className="h-12"
+                    className={`h-12 ${errors.numero ? "border-destructive" : ""}`}
                   />
+                  {errors.numero && <p className="text-sm text-destructive">{errors.numero}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Complemento</Label>
