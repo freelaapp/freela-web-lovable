@@ -78,34 +78,14 @@ const DashboardFreelancer = () => {
         }
         setLoadingAtivas(false);
 
-        // 4. Get applied vacancies (IDs)
+        // 4. Get filtered vacancies
         setLoadingVagas(true);
-        const appliedRes = await fetch(`${API_BASE_URL}/providers/${providerId}/applied-vacancies`, {
+        const filteredRes = await fetch(`${API_BASE_URL}/providers/${providerId}/filtered-vacancies`, {
           method: "GET", credentials: "include", headers,
         });
-        const appliedBody = await appliedRes.json().catch(() => null);
-        const appliedData = appliedBody?.data ?? appliedBody;
-        const vacancyIds: string[] = Array.isArray(appliedData)
-          ? appliedData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
-          : [];
-
-        // 5. Fetch each vacancy detail
-        if (vacancyIds.length > 0) {
-          const details = await Promise.all(
-            vacancyIds.filter(Boolean).map(async (vacId: string) => {
-              try {
-                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
-                  method: "GET", credentials: "include", headers,
-                });
-                const body = await res.json().catch(() => null);
-                return body?.data ?? body ?? null;
-              } catch { return null; }
-            })
-          );
-          setVagasDisponiveis(details.filter(Boolean));
-        } else {
-          setVagasDisponiveis([]);
-        }
+        const filteredBody = await filteredRes.json().catch(() => null);
+        const filteredData = filteredBody?.data ?? filteredBody;
+        setVagasDisponiveis(Array.isArray(filteredData) ? filteredData : []);
       } catch (err) {
         console.error("[DashboardFreelancer] error fetching data:", err);
       } finally {
