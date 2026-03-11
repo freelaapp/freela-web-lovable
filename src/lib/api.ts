@@ -231,6 +231,9 @@ export async function rejectCandidacy(candidacyId: string): Promise<CandidacyAct
 
   const body = await response.json().catch(() => null);
 
+  if (response.status === 404) {
+    throw new Error("Candidatura não encontrada.");
+  }
   if (response.status === 409) {
     throw new Error("Esta candidatura já foi aceita ou recusada anteriormente.");
   }
