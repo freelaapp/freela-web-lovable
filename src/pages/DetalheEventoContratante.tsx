@@ -69,7 +69,7 @@ const DetalheEventoContratante = () => {
   const [proposta, setProposta] = useState({ valor: "", descricao: "" });
   const [propostaEnviada, setPropostaEnviada] = useState(false);
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
-  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [actionLoadingIds, setActionLoadingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!eventoId) return;
@@ -83,9 +83,9 @@ const DetalheEventoContratante = () => {
       .catch(err => console.error("Erro ao buscar vaga:", err))
       .finally(() => setLoading(false));
 
-    // Fetch candidacies
+    // Fetch candidacies — sem filtro de status para carregar todos (pendentes, aceitos e recusados)
     setLoadingCandidatos(true);
-    apiFetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}&status=pending`, { method: "GET" })
+    apiFetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}`, { method: "GET" })
       .then(r => r.json())
       .then(body => {
         const list = Array.isArray(body?.data) ? body.data : [];
@@ -98,7 +98,7 @@ const DetalheEventoContratante = () => {
           reviews: c.reviews ?? 0,
           jobs: c.jobs ?? 0,
           verified: c.verified ?? false,
-          status: "pendente" as const,
+          status: c.status === "accepted" ? "aceito" : c.status === "rejected" ? "recusado" : "pendente",
           price: c.price || c.jobValue || "",
           responseTime: c.responseTime || "",
           bio: c.bio || c.description || "",
@@ -137,12 +137,10 @@ const DetalheEventoContratante = () => {
   })();
 
   const handleAceitar = async (id: string) => {
-    setActionLoadingId(id);
+    setActionLoadingIds(prev => new Set(prev).add(id));
     try {
       const result = await acceptCandidacy(id);
-      // Atualização otimista: marca como aceito na lista local
       setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
-      // Se o back retornou novo status da vaga, atualiza
       if (result?.vacancy?.status) {
         setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
       }
@@ -150,21 +148,20 @@ const DetalheEventoContratante = () => {
     } catch (err: any) {
       toast({ title: "Erro ao aceitar", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
-      setActionLoadingId(null);
+      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
     }
   };
 
   const handleRecusar = async (id: string) => {
-    setActionLoadingId(id);
+    setActionLoadingIds(prev => new Set(prev).add(id));
     try {
       await rejectCandidacy(id);
-      // Atualização otimista: marca como recusado na lista local
       setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
       toast({ title: "Candidatura recusada", description: "O freelancer será notificado por e-mail." });
     } catch (err: any) {
       toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
-      setActionLoadingId(null);
+      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
     }
   };
 
@@ -277,10 +274,10 @@ const DetalheEventoContratante = () => {
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8 text-success hover:bg-success/10"
-                            disabled={actionLoadingId === candidato.id}
+                            disabled={actionLoadingIds.has(candidato.id)}
                             onClick={() => handleAceitar(candidato.id)}
                           >
-                            {actionLoadingId === candidato.id
+                            {actionLoadingIds.has(candidato.id)
                               ? <Loader2 className="w-4 h-4 animate-spin" />
                               : <UserCheck className="w-4 h-4" />}
                           </Button>
@@ -288,10 +285,10 @@ const DetalheEventoContratante = () => {
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                            disabled={actionLoadingId === candidato.id}
+                            disabled={actionLoadingIds.has(candidato.id)}
                             onClick={() => handleRecusar(candidato.id)}
                           >
-                            {actionLoadingId === candidato.id
+                            {actionLoadingIds.has(candidato.id)
                               ? <Loader2 className="w-4 h-4 animate-spin" />
                               : <UserX className="w-4 h-4" />}
                           </Button>
@@ -427,10 +424,10 @@ const DetalheEventoContratante = () => {
                   <div className="flex gap-2">
                     <Button
                       className="flex-1 gap-2 bg-success hover:bg-success/90"
-                      disabled={actionLoadingId === selectedFreelancer.id}
+                      disabled={actionLoadingIds.has(selectedFreelancer.id)}
                       onClick={() => { handleAceitar(selectedFreelancer.id); setSelectedFreelancer(null); }}
                     >
-                      {actionLoadingId === selectedFreelancer.id
+                      {actionLoadingIds.has(selectedFreelancer.id)
                         ? <Loader2 className="w-4 h-4 animate-spin" />
                         : <UserCheck className="w-4 h-4" />}
                       Aceitar
@@ -438,10 +435,10 @@ const DetalheEventoContratante = () => {
                     <Button
                       variant="destructive"
                       className="flex-1 gap-2"
-                      disabled={actionLoadingId === selectedFreelancer.id}
+                      disabled={actionLoadingIds.has(selectedFreelancer.id)}
                       onClick={() => { handleRecusar(selectedFreelancer.id); setSelectedFreelancer(null); }}
                     >
-                      {actionLoadingId === selectedFreelancer.id
+                      {actionLoadingIds.has(selectedFreelancer.id)
                         ? <Loader2 className="w-4 h-4 animate-spin" />
                         : <UserX className="w-4 h-4" />}
                       Recusar
