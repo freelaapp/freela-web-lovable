@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
+import { apiFetch, acceptCandidacy, rejectCandidacy } from "@/lib/api";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
-const ORIGIN_TYPE = "Web";
 
 interface VacancyDetail {
   id: string;
@@ -69,39 +69,28 @@ const DetalheEventoContratante = () => {
   const [proposta, setProposta] = useState({ valor: "", descricao: "" });
   const [propostaEnviada, setPropostaEnviada] = useState(false);
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
+  const [actionLoadingIds, setActionLoadingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!eventoId) return;
-    const tokenRaw = localStorage.getItem("authToken");
-    if (!tokenRaw) return;
-    let token: string;
-    try { token = JSON.parse(tokenRaw); } catch { return; }
-
-    const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
 
     // Fetch vacancy details
-    fetch(`${API_BASE_URL}/vacancies/${eventoId}`, { method: "GET", credentials: "include", headers })
+    apiFetch(`${API_BASE_URL}/vacancies/${eventoId}`, { method: "GET" })
       .then(r => r.json())
       .then(body => {
-        if (body?.data) {
-          setVacancy(body.data);
-        }
+        if (body?.data) setVacancy(body.data);
       })
       .catch(err => console.error("Erro ao buscar vaga:", err))
       .finally(() => setLoading(false));
 
-    // Fetch candidacies
+    // Fetch candidacies — sem filtro de status para carregar todos (pendentes, aceitos e recusados)
     setLoadingCandidatos(true);
-    fetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}&status=pending`, {
-      method: "GET",
-      credentials: "include",
-      headers,
-    })
+    apiFetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}`, { method: "GET" })
       .then(r => r.json())
       .then(body => {
         const list = Array.isArray(body?.data) ? body.data : [];
         const mapped: Candidato[] = list.map((c: any) => ({
-          id: c.id || c.providerId || "",
+          id: c.id || "",
           name: c.providerName || c.name || "Freelancer",
           avatar: (c.providerName || c.name || "FL").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
           role: c.assignment || c.role || "",
@@ -109,7 +98,7 @@ const DetalheEventoContratante = () => {
           reviews: c.reviews ?? 0,
           jobs: c.jobs ?? 0,
           verified: c.verified ?? false,
-          status: "pendente" as const,
+          status: c.status === "accepted" ? "aceito" : c.status === "rejected" ? "recusado" : "pendente",
           price: c.price || c.jobValue || "",
           responseTime: c.responseTime || "",
           bio: c.bio || c.description || "",
@@ -147,14 +136,33 @@ const DetalheEventoContratante = () => {
     } catch { return vacancy.jobDate; }
   })();
 
-  const handleAceitar = (id: string) => {
-    setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
-    toast({ title: "Freelancer aceito!", description: "O freelancer será notificado." });
+  const handleAceitar = async (id: string) => {
+    setActionLoadingIds(prev => new Set(prev).add(id));
+    try {
+      const result = await acceptCandidacy(id);
+      setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
+      if (result?.vacancy?.status) {
+        setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
+      }
+      toast({ title: "Freelancer aceito!", description: "O freelancer será notificado por e-mail." });
+    } catch (err: any) {
+      toast({ title: "Erro ao aceitar", description: err.message || "Tente novamente.", variant: "destructive" });
+    } finally {
+      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+    }
   };
 
-  const handleRecusar = (id: string) => {
-    setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
-    toast({ title: "Candidatura recusada", description: "O freelancer foi notificado." });
+  const handleRecusar = async (id: string) => {
+    setActionLoadingIds(prev => new Set(prev).add(id));
+    try {
+      await rejectCandidacy(id);
+      setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
+      toast({ title: "Candidatura recusada", description: "O freelancer será notificado por e-mail." });
+    } catch (err: any) {
+      toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
+    } finally {
+      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+    }
   };
 
   const handleEnviarProposta = () => {
@@ -262,11 +270,27 @@ const DetalheEventoContratante = () => {
                     <div className="flex items-center gap-1.5 shrink-0">
                       {candidato.status === "pendente" ? (
                         <>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:bg-success/10" onClick={() => handleAceitar(candidato.id)}>
-                            <UserCheck className="w-4 h-4" />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-success hover:bg-success/10"
+                            disabled={actionLoadingIds.has(candidato.id)}
+                            onClick={() => handleAceitar(candidato.id)}
+                          >
+                            {actionLoadingIds.has(candidato.id)
+                              ? <Loader2 className="w-4 h-4 animate-spin" />
+                              : <UserCheck className="w-4 h-4" />}
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleRecusar(candidato.id)}>
-                            <UserX className="w-4 h-4" />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            disabled={actionLoadingIds.has(candidato.id)}
+                            onClick={() => handleRecusar(candidato.id)}
+                          >
+                            {actionLoadingIds.has(candidato.id)
+                              ? <Loader2 className="w-4 h-4 animate-spin" />
+                              : <UserX className="w-4 h-4" />}
                           </Button>
                         </>
                       ) : (
@@ -398,11 +422,26 @@ const DetalheEventoContratante = () => {
 
                 {selectedFreelancer.status === "pendente" && (
                   <div className="flex gap-2">
-                    <Button className="flex-1 gap-2 bg-success hover:bg-success/90" onClick={() => { handleAceitar(selectedFreelancer.id); setSelectedFreelancer(null); }}>
-                      <UserCheck className="w-4 h-4" /> Aceitar
+                    <Button
+                      className="flex-1 gap-2 bg-success hover:bg-success/90"
+                      disabled={actionLoadingIds.has(selectedFreelancer.id)}
+                      onClick={() => { handleAceitar(selectedFreelancer.id); setSelectedFreelancer(null); }}
+                    >
+                      {actionLoadingIds.has(selectedFreelancer.id)
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <UserCheck className="w-4 h-4" />}
+                      Aceitar
                     </Button>
-                    <Button variant="destructive" className="flex-1 gap-2" onClick={() => { handleRecusar(selectedFreelancer.id); setSelectedFreelancer(null); }}>
-                      <UserX className="w-4 h-4" /> Recusar
+                    <Button
+                      variant="destructive"
+                      className="flex-1 gap-2"
+                      disabled={actionLoadingIds.has(selectedFreelancer.id)}
+                      onClick={() => { handleRecusar(selectedFreelancer.id); setSelectedFreelancer(null); }}
+                    >
+                      {actionLoadingIds.has(selectedFreelancer.id)
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <UserX className="w-4 h-4" />}
+                      Recusar
                     </Button>
                   </div>
                 )}
