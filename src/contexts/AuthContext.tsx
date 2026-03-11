@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { initializeAuth, logout as logoutUtil, getAuthUser } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,9 +25,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Stable refs to avoid stale closures without re-creating checkAuth
+  const navigateRef = useRef(navigate);
+  const toastRef = useRef(toast);
+  useEffect(() => { navigateRef.current = navigate; }, [navigate]);
+  useEffect(() => { toastRef.current = toast; }, [toast]);
 
   const checkAuth = useCallback(async () => {
     setIsLoading(true);
@@ -38,20 +43,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (!valid && hadToken) {
       logoutUtil();
-      navigate("/", { replace: true });
-      toast({
+      navigateRef.current("/", { replace: true });
+      toastRef.current({
         title: "Sessão expirada",
         description: "Seu login expirou. Faça login novamente para continuar.",
         variant: "destructive",
       });
     }
     setIsLoading(false);
-  }, [navigate, toast]);
+  }, []); // stable — no external deps needed thanks to refs
 
-  // Run on mount and on every route change
+  // Run only on mount — route changes do NOT require re-validating the token.
+  // The token expiry is already checked lazily inside initializeAuth() when
+  // protected pages make authenticated API calls. Re-checking on every
+  // navigation was causing false "session expired" logouts whenever the
+  // refresh endpoint was temporarily unreachable.
   useEffect(() => {
     checkAuth();
-  }, [location.pathname, checkAuth]);
+  }, [checkAuth]);
 
   const handleLogout = useCallback(() => {
     logoutUtil();
