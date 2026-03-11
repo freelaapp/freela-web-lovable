@@ -263,6 +263,57 @@ export interface CreateVacancyPayload {
   freelancers: FreelancerEntry[];
 }
 
+// ── Candidacy ──────────────────────────────────────────────────
+
+export interface CandidacyActionResponse {
+  id: string;
+  status: "accepted" | "rejected";
+  date: string;
+  providerId: string;
+  vacancy: {
+    id: string;
+    status: string;
+    [key: string]: unknown;
+  };
+}
+
+export async function acceptCandidacy(candidacyId: string): Promise<CandidacyActionResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/candidacies/${candidacyId}/accept`, {
+    method: "PATCH",
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (response.status === 403) {
+    throw new Error("Esta vaga já atingiu o número máximo de freelancers.");
+  }
+  if (response.status === 409) {
+    throw new Error("Esta candidatura já foi aceita ou recusada anteriormente.");
+  }
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível aceitar a candidatura. Tente novamente.");
+  }
+
+  return body.data as CandidacyActionResponse;
+}
+
+export async function rejectCandidacy(candidacyId: string): Promise<CandidacyActionResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/candidacies/${candidacyId}/reject`, {
+    method: "PATCH",
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (response.status === 409) {
+    throw new Error("Esta candidatura já foi aceita ou recusada anteriormente.");
+  }
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível recusar a candidatura. Tente novamente.");
+  }
+
+  return body.data as CandidacyActionResponse;
+}
+
 export async function createVacancy(payload: CreateVacancyPayload, token: string): Promise<void> {
   const response = await apiFetch(`${API_BASE_URL}/vacancies`, {
     method: "POST",
