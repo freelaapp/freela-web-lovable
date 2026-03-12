@@ -42,6 +42,7 @@ const statusStyles: Record<string, string> = {
 
 interface Candidato {
   id: string;
+  providerId: string;
   name: string;
   avatar: string;
   role: string;
