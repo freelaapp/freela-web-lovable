@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, Briefcase, Clock, X, CheckCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { ArrowRight, ArrowLeft, Briefcase, Clock, X, CheckCircle, MapPin } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
@@ -63,6 +65,7 @@ const CadastroFreelancerAreas = () => {
   const [horarioDialog, setHorarioDialog] = useState<string | null>(null);
   const [tempDe, setTempDe] = useState("");
   const [tempAte, setTempAte] = useState("");
+  const [mileageRadius, setMileageRadius] = useState(30);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const toggleArea = (id: string) => {
@@ -177,7 +180,7 @@ const CadastroFreelancerAreas = () => {
       fd.append("pixKeyType", saved.tipoChavePix || "");
       fd.append("pixKeyValue", saved.pixKeyValue || "");
       fd.append("phoneMessage", "");
-      fd.append("mileageRadius", "0");
+      fd.append("mileageRadius", String(mileageRadius));
       fd.append("feedbackStars", "0");
 
       await registerProvider(fd);
@@ -342,6 +345,40 @@ const CadastroFreelancerAreas = () => {
                 })}
               </div>
               {errors.dias && <p className="text-sm text-destructive">{errors.dias}</p>}
+            </div>
+
+            {/* Distância máxima para trabalho */}
+            <div className="border-t border-border pt-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  Distância máxima para trabalho
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Defina até quantos quilômetros você aceita se deslocar para trabalhar.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Até <span className="text-primary font-bold">{mileageRadius} km</span> da minha casa
+                </Label>
+                <Slider
+                  value={[mileageRadius]}
+                  onValueChange={(v) => setMileageRadius(v[0])}
+                  min={5}
+                  max={100}
+                  step={5}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>5 km</span>
+                  <span>100 km</span>
+                </div>
+                <p className="text-xs text-muted-foreground italic">
+                  Vagas dentro deste raio a partir do seu endereço serão exibidas para você.
+                </p>
+              </div>
             </div>
 
             <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
