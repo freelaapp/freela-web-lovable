@@ -71,8 +71,28 @@ const DetalheEventoContratante = () => {
   const [propostaEnviada, setPropostaEnviada] = useState(false);
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
   const [actionLoadingIds, setActionLoadingIds] = useState<Set<string>>(new Set());
+  const [paymentStatus, setPaymentStatus] = useState<Record<string, string>>({});
 
+  // ── Pusher: listen for payment updates ──────────────────────
   useEffect(() => {
+    const pusher = new Pusher("f8d94fc93946ed0f4e0b", { cluster: "sa1" });
+    const channel = pusher.subscribe("payments");
+
+    channel.bind("payment.updated", (data: any) => {
+      console.log("[Pusher] payment.updated", data);
+      if (data?.status) {
+        setPaymentStatus(prev => ({ ...prev, [data.providerId ?? data.jobId ?? ""]: data.status }));
+      }
+      toast({ title: "Pagamento atualizado", description: data?.message || `Status: ${data?.status}` });
+    });
+
+    return () => {
+      channel.unbind_all();
+      pusher.unsubscribe("payments");
+      pusher.disconnect();
+    };
+  }, [toast]);
+
     if (!eventoId) return;
 
     // Fetch vacancy details
