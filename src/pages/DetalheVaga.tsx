@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Ban, Check, X } from "lucide-react";
+import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Ban, Check, X, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
@@ -35,27 +36,44 @@ const DetalheVaga = () => {
   const serviceIndex: number = (location.state as any)?.serviceIndex ?? 0;
 
   const [applied, setApplied] = useState(false);
+  const [applying, setApplying] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [vaga, setVaga] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [providerId, setProviderId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchVaga = async () => {
+    const fetchData = async () => {
       if (!vagaId) return;
       try {
-        const res = await apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, {
-          method: "GET",
-        });
-        const body = await res.json().catch(() => null);
-        const data = body?.data ?? body;
-        setVaga(data);
+        // Fetch vacancy and provider profile in parallel
+        const [vacRes, provRes] = await Promise.all([
+          apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
+          apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
+        ]);
+
+        const vacBody = await vacRes.json().catch(() => null);
+        const vacData = vacBody?.data ?? vacBody;
+        setVaga(vacData);
+
+        const provBody = await provRes.json().catch(() => null);
+        const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
+        if (provData?.id) setProviderId(provData.id);
+
+        // Check if already applied — look in candidacies of this vacancy
+        if (vacData?.candidacies && Array.isArray(vacData.candidacies) && provData?.id) {
+          const alreadyApplied = vacData.candidacies.some(
+            (c: any) => c.providerId === provData.id && c.status !== "rejected"
+          );
+          if (alreadyApplied) setApplied(true);
+        }
       } catch (err) {
-        console.error("[DetalheVaga] error fetching vacancy:", err);
+        console.error("[DetalheVaga] error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchVaga();
+    fetchData();
   }, [vagaId]);
 
   if (loading) {
@@ -97,10 +115,36 @@ const DetalheVaga = () => {
   const canConfirm = status === "aceita" && !timeline.inicio;
   const isOpen = status === "aberta" || status === "open";
 
-  const handleApply = () => {
-    setApplied(true);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 2500);
+  const handleApply = async () => {
+    if (!providerId || !vagaId) {
+      toast.error("Não foi possível identificar seu perfil. Tente novamente.");
+      return;
+    }
+    setApplying(true);
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/candidacies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vacancyId: vagaId,
+          providerId,
+          date: new Date().toISOString(),
+          status: "pending",
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || "Erro ao se candidatar.");
+      }
+      setApplied(true);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2500);
+    } catch (err: any) {
+      console.error("[DetalheVaga] apply error:", err);
+      toast.error(err.message || "Erro ao se candidatar. Tente novamente.");
+    } finally {
+      setApplying(false);
+    }
   };
 
   return (
