@@ -183,14 +183,16 @@ const DetalheEventoContratante = () => {
         const pixKeyValue = providerData?.pixKeyValue ?? "";
 
         if (jobId) {
-          await createJobPayment(jobId, {
+          const paymentResult = await createJobPayment(jobId, {
             vacancyId,
             contractorId,
             providerId,
             providerPixKeyId: pixKeyValue,
             method: "pix",
           });
-          console.log("[Payment] created successfully for job", jobId);
+          console.log("[Payment] created successfully for job", jobId, paymentResult);
+          setPixData(paymentResult);
+          setShowPixModal(true);
         } else {
           console.warn("[Payment] jobId not found in accept response, skipping payment creation");
         }
