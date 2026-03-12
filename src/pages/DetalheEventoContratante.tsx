@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment } from "@/lib/api";
+import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, type JobPaymentResponse } from "@/lib/api";
 import Pusher from "pusher-js";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
@@ -72,6 +72,9 @@ const DetalheEventoContratante = () => {
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
   const [actionLoadingIds, setActionLoadingIds] = useState<Set<string>>(new Set());
   const [paymentStatus, setPaymentStatus] = useState<Record<string, string>>({});
+  const [showPixModal, setShowPixModal] = useState(false);
+  const [pixData, setPixData] = useState<JobPaymentResponse | null>(null);
+  const [pixCopied, setPixCopied] = useState(false);
 
   // ── Pusher: listen for payment updates ──────────────────────
   useEffect(() => {
@@ -180,14 +183,16 @@ const DetalheEventoContratante = () => {
         const pixKeyValue = providerData?.pixKeyValue ?? "";
 
         if (jobId) {
-          await createJobPayment(jobId, {
+          const paymentResult = await createJobPayment(jobId, {
             vacancyId,
             contractorId,
             providerId,
             providerPixKeyId: pixKeyValue,
             method: "pix",
           });
-          console.log("[Payment] created successfully for job", jobId);
+          console.log("[Payment] created successfully for job", jobId, paymentResult);
+          setPixData(paymentResult);
+          setShowPixModal(true);
         } else {
           console.warn("[Payment] jobId not found in accept response, skipping payment creation");
         }
@@ -502,6 +507,80 @@ const DetalheEventoContratante = () => {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal Pix ──────────────────────────────────────────── */}
+      <Dialog open={showPixModal} onOpenChange={setShowPixModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">Pagamento via Pix</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4 py-4">
+            {/* QR Code */}
+            {pixData?.qrCodeBase64 ? (
+              <img
+                src={pixData.qrCodeBase64.startsWith("data:") ? pixData.qrCodeBase64 : `data:image/png;base64,${pixData.qrCodeBase64}`}
+                alt="QR Code Pix"
+                className="w-56 h-56 rounded-xl"
+              />
+            ) : pixData?.qrCode ? (
+              <img
+                src={pixData.qrCode}
+                alt="QR Code Pix"
+                className="w-56 h-56 rounded-xl"
+              />
+            ) : (
+              <div className="w-56 h-56 bg-foreground rounded-xl flex items-center justify-center p-4">
+                <div className="w-full h-full bg-background rounded-lg flex items-center justify-center">
+                  <QrCode className="w-12 h-12 text-muted-foreground" />
+                </div>
+              </div>
+            )}
+
+            {/* Valor */}
+            {pixData?.value != null && (
+              <div className="text-center space-y-1">
+                <p className="text-2xl font-display font-bold text-primary">
+                  {Number(pixData.value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </p>
+                <p className="text-xs text-muted-foreground">Valor do pagamento</p>
+              </div>
+            )}
+
+            {/* Pix Copia e Cola */}
+            {(pixData?.pixCopyPaste || pixData?.brCode) && (
+              <div className="w-full space-y-2">
+                <div className="bg-muted rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground break-all font-mono">
+                    {pixData.pixCopyPaste || pixData.brCode}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 text-sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(pixData.pixCopyPaste || pixData.brCode || "");
+                    setPixCopied(true);
+                    setTimeout(() => setPixCopied(false), 2000);
+                  }}
+                >
+                  {pixCopied ? (
+                    <><CheckCircle className="w-4 h-4 text-success" /> Código copiado!</>
+                  ) : (
+                    <>📋 Copiar código Pix</>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            <div className="bg-muted rounded-lg p-3 w-full">
+              <p className="text-xs text-muted-foreground text-center">
+                O pagamento é processado pela <strong>OpenPix</strong> e será liberado ao freelancer
+                após a conclusão do trabalho.
+              </p>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
