@@ -277,9 +277,11 @@ export interface CandidacyActionResponse {
   status: "accepted" | "rejected";
   date: string;
   providerId: string;
+  jobId?: string;
   vacancy: {
     id: string;
     status: string;
+    contractorId?: string;
     [key: string]: unknown;
   };
 }
