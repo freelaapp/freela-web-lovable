@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { apiFetch, acceptCandidacy, rejectCandidacy } from "@/lib/api";
+import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment } from "@/lib/api";
+import Pusher from "pusher-js";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
@@ -70,6 +71,27 @@ const DetalheEventoContratante = () => {
   const [propostaEnviada, setPropostaEnviada] = useState(false);
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
   const [actionLoadingIds, setActionLoadingIds] = useState<Set<string>>(new Set());
+  const [paymentStatus, setPaymentStatus] = useState<Record<string, string>>({});
+
+  // ── Pusher: listen for payment updates ──────────────────────
+  useEffect(() => {
+    const pusher = new Pusher("f8d94fc93946ed0f4e0b", { cluster: "sa1" });
+    const channel = pusher.subscribe("payments");
+
+    channel.bind("payment.updated", (data: any) => {
+      console.log("[Pusher] payment.updated", data);
+      if (data?.status) {
+        setPaymentStatus(prev => ({ ...prev, [data.providerId ?? data.jobId ?? ""]: data.status }));
+      }
+      toast({ title: "Pagamento atualizado", description: data?.message || `Status: ${data?.status}` });
+    });
+
+    return () => {
+      channel.unbind_all();
+      pusher.unsubscribe("payments");
+      pusher.disconnect();
+    };
+  }, [toast]);
 
   useEffect(() => {
     if (!eventoId) return;
@@ -145,6 +167,34 @@ const DetalheEventoContratante = () => {
         setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
       }
       toast({ title: "Freelancer aceito!", description: "O freelancer será notificado por e-mail." });
+
+      // ── Create payment after successful accept ──────────────
+      try {
+        const providerId = result.providerId;
+        const vacancyId = result.vacancy?.id ?? eventoId ?? "";
+        const contractorId = (result.vacancy as any)?.contractorId ?? vacancy?.contractorId ?? "";
+        const jobId = (result as any).jobId ?? (result as any).job?.id ?? "";
+
+        // Fetch provider details to get PIX key
+        const providerData = await getProviderDetails(providerId);
+        const pixKeyValue = providerData?.pixKeyValue ?? "";
+
+        if (jobId) {
+          await createJobPayment(jobId, {
+            vacancyId,
+            contractorId,
+            providerId,
+            providerPixKeyId: pixKeyValue,
+            method: "pix",
+          });
+          console.log("[Payment] created successfully for job", jobId);
+        } else {
+          console.warn("[Payment] jobId not found in accept response, skipping payment creation");
+        }
+      } catch (payErr: any) {
+        console.error("[Payment] error:", payErr);
+        toast({ title: "Erro ao criar pagamento", description: payErr.message || "Tente novamente.", variant: "destructive" });
+      }
     } catch (err: any) {
       toast({ title: "Erro ao aceitar", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
