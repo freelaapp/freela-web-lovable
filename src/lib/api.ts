@@ -358,7 +358,18 @@ export interface CreateJobPaymentPayload {
   method: string;
 }
 
-export async function createJobPayment(jobId: string, payload: CreateJobPaymentPayload): Promise<void> {
+export interface JobPaymentResponse {
+  id?: string;
+  qrCode?: string;
+  qrCodeBase64?: string;
+  pixCopyPaste?: string;
+  brCode?: string;
+  value?: number;
+  status?: string;
+  [key: string]: unknown;
+}
+
+export async function createJobPayment(jobId: string, payload: CreateJobPaymentPayload): Promise<JobPaymentResponse> {
   const response = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, {
     method: "POST",
     headers: {
@@ -372,6 +383,8 @@ export async function createJobPayment(jobId: string, payload: CreateJobPaymentP
   if (!response.ok) {
     throw new Error(body?.message || "Não foi possível criar o pagamento. Tente novamente.");
   }
+
+  return (body?.data ?? body) as JobPaymentResponse;
 }
 
 export async function createVacancy(payload: CreateVacancyPayload, token: string): Promise<void> {
