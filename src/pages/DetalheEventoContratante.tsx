@@ -72,6 +72,9 @@ const DetalheEventoContratante = () => {
   const [filter, setFilter] = useState<"todos" | "pendente" | "aceito" | "recusado">("todos");
   const [actionLoadingIds, setActionLoadingIds] = useState<Set<string>>(new Set());
   const [paymentStatus, setPaymentStatus] = useState<Record<string, string>>({});
+  const [showPixModal, setShowPixModal] = useState(false);
+  const [pixData, setPixData] = useState<JobPaymentResponse | null>(null);
+  const [pixCopied, setPixCopied] = useState(false);
 
   // ── Pusher: listen for payment updates ──────────────────────
   useEffect(() => {
