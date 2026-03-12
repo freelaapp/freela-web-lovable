@@ -1,17 +1,43 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Briefcase, DollarSign, Star, Clock, ChevronRight, MapPin, CheckCircle } from "lucide-react";
+import { Briefcase, DollarSign, Star, Clock, ChevronRight, MapPin, CheckCircle, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
+// Format date string to DD-MM-YYYY
+const formatDateDDMMYYYY = (dateStr: string): string => {
+  if (!dateStr || dateStr === "--") return "--";
+  // Try parsing ISO or YYYY-MM-DD
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  }
+  // Already formatted or unknown
+  return dateStr;
+};
+
+interface FlattenedVaga {
+  vacancyId: string;
+  serviceIndex: number;
+  assignment: string;
+  jobTime: string;
+  jobValue: string;
+  jobDate: string;
+  establishment: string;
+  status: string;
+  quantity: number;
+}
 
 const DashboardFreelancer = () => {
   const navigate = useNavigate();
   const [averageRating, setAverageRating] = useState<string>("--");
-  const [vagasDisponiveis, setVagasDisponiveis] = useState<any[]>([]);
+  const [vagasDisponiveis, setVagasDisponiveis] = useState<FlattenedVaga[]>([]);
   const [vagasAtivas, setVagasAtivas] = useState<any[]>([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
   const [loadingAtivas, setLoadingAtivas] = useState(true);
@@ -24,7 +50,7 @@ const DashboardFreelancer = () => {
         const token = JSON.parse(tokenRaw);
         const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
 
-        // 1. Get provider id
+        // 1. Get provider profile (id + services/areas)
         const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
           method: "GET", credentials: "include", headers,
         });
@@ -32,6 +58,17 @@ const DashboardFreelancer = () => {
         const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
         const providerId = provData?.id ?? provBody?.id;
         if (!providerId) return;
+
+        // Extract freelancer's service areas from profile
+        const providerServices: string[] = [];
+        const rawServices = provData?.services ?? provData?.areas ?? provData?.assignments ?? [];
+        if (Array.isArray(rawServices)) {
+          rawServices.forEach((s: any) => {
+            if (typeof s === "string") providerServices.push(s.toLowerCase().trim());
+            else if (s?.name) providerServices.push(s.name.toLowerCase().trim());
+            else if (s?.assignment) providerServices.push(s.assignment.toLowerCase().trim());
+          });
+        }
 
         // 2. Get feedbacks
         const fbRes = await fetch(`${API_BASE_URL}/providers/${providerId}/jobs/feedbacks`, {
@@ -78,14 +115,43 @@ const DashboardFreelancer = () => {
         }
         setLoadingAtivas(false);
 
-        // 4. Get filtered vacancies
+        // 4. Get filtered vacancies and flatten services
         setLoadingVagas(true);
         const filteredRes = await fetch(`${API_BASE_URL}/providers/${providerId}/filtered-vacancies`, {
           method: "GET", credentials: "include", headers,
         });
         const filteredBody = await filteredRes.json().catch(() => null);
         const filteredData = filteredBody?.data ?? filteredBody;
-        setVagasDisponiveis(Array.isArray(filteredData) ? filteredData : []);
+        const vacancies = Array.isArray(filteredData) ? filteredData : [];
+
+        // Flatten: each service inside each vacancy becomes a card
+        // Filter by matching assignment with provider's profile services
+        const flattened: FlattenedVaga[] = [];
+        vacancies.forEach((vacancy: any) => {
+          const services = vacancy.services ?? vacancy.freelancers ?? [];
+          if (Array.isArray(services)) {
+            services.forEach((svc: any, idx: number) => {
+              const svcAssignment = (svc.assignment || "").toLowerCase().trim();
+              // If provider has no services listed, show all; otherwise filter
+              const matches = providerServices.length === 0 || providerServices.includes(svcAssignment);
+              if (matches && svc.assignment) {
+                flattened.push({
+                  vacancyId: vacancy.id,
+                  serviceIndex: idx,
+                  assignment: svc.assignment,
+                  jobTime: svc.jobTime || "--",
+                  jobValue: svc.jobValue || "--",
+                  jobDate: vacancy.jobDate || "--",
+                  establishment: vacancy.establishment || vacancy.description || "",
+                  status: vacancy.status || "aberta",
+                  quantity: svc.quantity || 1,
+                });
+              }
+            });
+          }
+        });
+
+        setVagasDisponiveis(flattened);
       } catch (err) {
         console.error("[DashboardFreelancer] error fetching data:", err);
       } finally {
@@ -94,14 +160,6 @@ const DashboardFreelancer = () => {
     };
     fetchData();
   }, []);
-
-  const renderStars = (rating: number) => (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} className={`w-3 h-3 ${i <= rating ? "fill-primary text-primary" : "text-muted-foreground"}`} />
-      ))}
-    </div>
-  );
 
   return (
     <AppLayout showFooter={false}>
@@ -131,7 +189,7 @@ const DashboardFreelancer = () => {
           ))}
         </div>
 
-        {/* Jobs Grid: Próximos + Vagas Disponíveis */}
+        {/* Jobs Grid: Ativas + Disponíveis */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Vagas Ativas */}
           <Card>
@@ -168,7 +226,7 @@ const DashboardFreelancer = () => {
                         <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
                       )}
                     </div>
-                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{vaga.jobDate}</p>}
+                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(vaga.jobDate)}</p>}
                   </div>
                 ))
               )}
@@ -191,10 +249,14 @@ const DashboardFreelancer = () => {
               ) : vagasDisponiveis.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga disponível</p>
               ) : (
-                vagasDisponiveis.slice(0, 3).map((vaga: any) => (
-                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
+                vagasDisponiveis.slice(0, 3).map((vaga, idx) => (
+                  <div
+                    key={`${vaga.vacancyId}-${vaga.serviceIndex}`}
+                    className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2"
+                    onClick={() => navigate(`/vaga/${vaga.vacancyId}`, { state: { serviceIndex: vaga.serviceIndex } })}
+                  >
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
+                      <p className="text-sm font-semibold truncate">{vaga.assignment}</p>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                         vaga.status === "confirmed" || vaga.status === "confirmado"
                           ? "bg-success-light text-success"
@@ -202,17 +264,21 @@ const DashboardFreelancer = () => {
                       }`}>{vaga.status}</span>
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {vaga.freelancers?.[0]?.assignment && (
-                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
+                      {vaga.establishment && (
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{vaga.establishment}</span>
                       )}
-                      {vaga.freelancers?.[0]?.jobTime && (
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
+                      {vaga.jobTime && vaga.jobTime !== "--" && (
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.jobTime}</span>
                       )}
-                      {vaga.freelancers?.[0]?.jobValue && (
-                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
+                      {vaga.jobValue && vaga.jobValue !== "--" && (
+                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.jobValue}</span>
                       )}
                     </div>
-                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{vaga.jobDate}</p>}
+                    {vaga.jobDate && vaga.jobDate !== "--" && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(vaga.jobDate)}
+                      </p>
+                    )}
                   </div>
                 ))
               )}
