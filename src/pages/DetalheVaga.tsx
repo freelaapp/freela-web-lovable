@@ -1,26 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Phone, User, ShieldCheck, CheckCircle, DollarSign, Home, Building2, Briefcase, ExternalLink, Ban, Check, X } from "lucide-react";
+import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Ban, Check, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppLayout from "@/components/layout/AppLayout";
+import { apiFetch } from "@/lib/api";
 
-type VagaType = "casa" | "empresas";
-
-const allVagas = [
-  { id: 1, title: "Churrasco - Aniversário 30 anos", client: "Ana Oliveira", clientId: "c1", phone: "(11) 99999-1234", address: "Rua das Flores, 123 - Centro, Jundiaí, SP", date: "22 Fev 2026", time: "14:00 - 22:00", hours: 8, role: "Churrasqueiro", location: "Jundiaí, SP", status: "aceita", value: "R$ 650", type: "casa" as VagaType, timeline: { aceite: true, inicio: false, fim: false, pagamento: false } },
-  { id: 2, title: "Bartender - Evento Corporativo", client: "Tech Corp", clientId: "c2", phone: "(11) 98888-5678", address: "Av. Jundiaí, 1000 - Anhangabaú, Jundiaí, SP", date: "28 Fev 2026", time: "18:00 - 00:00", hours: 6, role: "Bartender", location: "Jundiaí, SP", status: "aceita", value: "R$ 1.200", type: "empresas" as VagaType, timeline: { aceite: true, inicio: false, fim: false, pagamento: false } },
-  { id: 3, title: "Garçom - Casamento", client: "Maria Santos", clientId: "c3", phone: "(11) 97777-9012", address: "Salão de Festas Aurora, Rua Central, 500 - Eloy Chaves, Jundiaí, SP", date: "08 Mar 2026", time: "16:00 - 23:00", hours: 7, role: "Garçom", location: "Jundiaí, SP", status: "preenchida", value: "R$ 800", type: "casa" as VagaType, timeline: { aceite: true, inicio: true, fim: true, pagamento: true } },
-  { id: 4, title: "Churrasco - Confraternização", client: "Empresa X", clientId: "c4", phone: "(11) 96666-3456", address: "Chácara Boa Vista, Estrada Rural, 200 - Vila Arens, Jundiaí, SP", date: "15 Mar 2026", time: "12:00 - 18:00", hours: 6, role: "Churrasqueiro", location: "Jundiaí, SP", status: "aceita", value: "R$ 900", type: "empresas" as VagaType, timeline: { aceite: true, inicio: false, fim: false, pagamento: false } },
-  { id: 101, title: "Churrasco - Réveillon", client: "Pedro Costa", clientId: "c5", phone: "(11) 95555-7890", address: "Rua Beira Rio, 100 - Jundiaí, SP", date: "31 Dez 2025", time: "20:00 - 04:00", hours: 8, role: "Churrasqueiro", location: "Jundiaí, SP", status: "concluida", value: "R$ 2.000", type: "casa" as VagaType, timeline: { aceite: true, inicio: true, fim: true, pagamento: true } },
-  { id: 102, title: "Bartender - Formatura", client: "Faculdade ABC", clientId: "c6", phone: "(11) 94444-1234", address: "Centro de Convenções, Rua Universitária, 50 - Ponte São João, Jundiaí, SP", date: "20 Dez 2025", time: "19:00 - 03:00", hours: 8, role: "Bartender", location: "Jundiaí, SP", status: "concluida", value: "R$ 1.500", type: "empresas" as VagaType, timeline: { aceite: true, inicio: true, fim: true, pagamento: true } },
-  { id: 201, title: "Aniversário 50 anos", client: "Roberto Lima", clientId: "c7", phone: "(11) 93333-5678", address: "Rua dos Lírios, 45 - Centro, Jundiaí, SP", date: "25 Fev 2026", time: "18:00 - 00:00", hours: 6, role: "Garçom", location: "Centro, Jundiaí", status: "aberta", value: "R$ 120", type: "casa" as VagaType, timeline: { aceite: false, inicio: false, fim: false, pagamento: false } },
-  { id: 202, title: "Happy Hour Corporativo", client: "StartUp Inc", clientId: "c8", phone: "(11) 92222-9012", address: "Rua Barão de Jundiaí, 300 - Anhangabaú, Jundiaí, SP", date: "27 Fev 2026", time: "17:00 - 22:00", hours: 5, role: "Bartender", location: "Anhangabaú, Jundiaí", status: "aberta", value: "R$ 100", type: "empresas" as VagaType, timeline: { aceite: false, inicio: false, fim: false, pagamento: false } },
-  { id: 203, title: "Casamento - Buffet", client: "Juliana Mendes", clientId: "c9", phone: "(11) 91111-3456", address: "Espaço Garden, Av. Eloy Chaves, 800 - Jundiaí, SP", date: "01 Mar 2026", time: "14:00 - 22:00", hours: 8, role: "Churrasqueiro", location: "Eloy Chaves, Jundiaí", status: "aberta", value: "R$ 200", type: "casa" as VagaType, timeline: { aceite: false, inicio: false, fim: false, pagamento: false } },
-  { id: 204, title: "Evento Beneficente", client: "ONG Esperança", clientId: "c10", phone: "(11) 90000-7890", address: "Centro Comunitário, Rua Vila Arens, 150 - Jundiaí, SP", date: "05 Mar 2026", time: "10:00 - 16:00", hours: 6, role: "Cozinheiro", location: "Vila Arens, Jundiaí", status: "aberta", value: "R$ 120", type: "empresas" as VagaType, timeline: { aceite: false, inicio: false, fim: false, pagamento: false } },
-];
+const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 const timelineSteps = [
   { key: "aceite", label: "Aceite da Vaga", icon: CheckCircle },
@@ -34,7 +22,37 @@ const DetalheVaga = () => {
   const navigate = useNavigate();
   const [applied, setApplied] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const vaga = allVagas.find(v => v.id === Number(vagaId));
+  const [vaga, setVaga] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVaga = async () => {
+      if (!vagaId) return;
+      try {
+        const res = await apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, {
+          method: "GET",
+        });
+        const body = await res.json().catch(() => null);
+        const data = body?.data ?? body;
+        setVaga(data);
+      } catch (err) {
+        console.error("[DetalheVaga] error fetching vacancy:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVaga();
+  }, [vagaId]);
+
+  if (loading) {
+    return (
+      <AppLayout showFooter={false}>
+        <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 text-center">
+          <p className="text-muted-foreground">Carregando vaga...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!vaga) {
     return (
@@ -47,10 +65,22 @@ const DetalheVaga = () => {
     );
   }
 
-  const canConfirm = vaga.status === "aceita" && !vaga.timeline.inicio;
-  const userRole = "Bartender";
-  const isCompatible = vaga.role === userRole;
-  const isOpen = vaga.status === "aberta";
+  // Extract data from API response
+  const freelancerInfo = vaga.freelancers?.[0];
+  const title = vaga.establishment || vaga.description || "Vaga";
+  const status = vaga.status || "aberta";
+  const jobDate = vaga.jobDate || "--";
+  const jobTime = freelancerInfo?.jobTime || "--";
+  const jobValue = freelancerInfo?.jobValue || "--";
+  const assignment = freelancerInfo?.assignment || "--";
+  const location = vaga.address || vaga.location || "--";
+  const clientName = vaga.contractorName || vaga.contractor?.name || vaga.establishment || "--";
+  const contractorId = vaga.contractorId || vaga.contractor?.id;
+
+  const timeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
+  const canConfirm = status === "aceita" && !timeline.inicio;
+
+  const isOpen = status === "aberta" || status === "open";
 
   const handleApply = () => {
     setApplied(true);
@@ -67,24 +97,8 @@ const DetalheVaga = () => {
             ← Voltar
           </button>
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-display font-bold">{vaga.title}</h1>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-default">
-                    {vaga.type === "casa" ? (
-                      <Home className="w-5 h-5 text-primary" />
-                    ) : (
-                      <Building2 className="w-5 h-5 text-accent" />
-                    )}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {vaga.type === "casa" ? "Freela em Casa" : "Freela para Empresas"}
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            {isOpen && !applied && isCompatible && (
+            <h1 className="text-2xl font-display font-bold">{title}</h1>
+            {isOpen && !applied && (
               <Button size="lg" className="gap-2 text-base" onClick={handleApply}>
                 <CheckCircle className="w-5 h-5" /> Se Aplicar
               </Button>
@@ -101,28 +115,18 @@ const DetalheVaga = () => {
                 <span className="hidden group-hover:inline">Cancelar Aplicação</span>
               </Button>
             )}
-            {isOpen && !applied && !isCompatible && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="lg" className="gap-2 text-base" disabled variant="secondary">
-                    <Ban className="w-5 h-5" /> Perfil Indisponível
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Vaga incompatível com seu perfil</TooltipContent>
-              </Tooltip>
-            )}
           </div>
           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
-            vaga.status === "aceita" ? "bg-primary-light text-primary" :
-            vaga.status === "preenchida" ? "bg-success-light text-success" :
-            vaga.status === "aberta" ? "bg-warning-light text-warning" :
+            status === "aceita" || status === "accepted" ? "bg-primary-light text-primary" :
+            status === "preenchida" || status === "confirmed" ? "bg-success-light text-success" :
+            status === "aberta" || status === "open" ? "bg-warning-light text-warning" :
             "bg-muted text-muted-foreground"
           }`}>
-            {vaga.status === "concluida" ? "concluída" : vaga.status}
+            {status === "concluida" ? "concluída" : status}
           </span>
         </div>
 
-        {/* Detalhes do Evento - Grid 3x2 */}
+        {/* Detalhes do Evento */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Detalhes do Evento</CardTitle>
@@ -132,42 +136,35 @@ const DetalheVaga = () => {
               <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-default text-center">
                 <Calendar className="w-6 h-6 text-primary" />
                 <div>
-                  <p className="text-sm font-bold">{vaga.date}</p>
+                  <p className="text-sm font-bold">{jobDate}</p>
                   <p className="text-[10px] text-muted-foreground">Data</p>
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-default text-center">
                 <Clock className="w-6 h-6 text-primary" />
                 <div>
-                  <p className="text-sm font-bold">{vaga.time}</p>
+                  <p className="text-sm font-bold">{jobTime}</p>
                   <p className="text-[10px] text-muted-foreground">Horário</p>
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-success-light/50 hover:bg-success-light transition-colors cursor-default text-center">
                 <DollarSign className="w-6 h-6 text-success" />
                 <div>
-                  <p className="text-sm font-bold text-success">{vaga.value}</p>
+                  <p className="text-sm font-bold text-success">{jobValue}</p>
                   <p className="text-[10px] text-muted-foreground">Valor</p>
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-default text-center">
                 <Briefcase className="w-6 h-6 text-primary" />
                 <div>
-                  <p className="text-sm font-bold">{vaga.role}</p>
+                  <p className="text-sm font-bold">{assignment}</p>
                   <p className="text-[10px] text-muted-foreground">Função</p>
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-default text-center">
-                <Clock className="w-6 h-6 text-accent" />
-                <div>
-                  <p className="text-sm font-bold">{vaga.hours}h</p>
-                  <p className="text-[10px] text-muted-foreground">Duração</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-default text-center">
+              <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-default text-center col-span-2">
                 <MapPin className="w-6 h-6 text-primary" />
                 <div>
-                  <p className="text-sm font-bold truncate max-w-[120px]">{vaga.location}</p>
+                  <p className="text-sm font-bold truncate max-w-[250px]">{location}</p>
                   <p className="text-[10px] text-muted-foreground">Local</p>
                 </div>
               </div>
@@ -180,9 +177,11 @@ const DetalheVaga = () => {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Contratante</CardTitle>
-              <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate(`/perfil-contratante/${vaga.clientId}`)}>
-                Ver perfil <ExternalLink className="w-3 h-3" />
-              </Button>
+              {contractorId && (
+                <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate(`/perfil-contratante/${contractorId}`)}>
+                  Ver perfil <ExternalLink className="w-3 h-3" />
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -191,8 +190,7 @@ const DetalheVaga = () => {
                 <User className="w-7 h-7 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-semibold">{vaga.client}</p>
-                <p className="text-xs text-muted-foreground">{vaga.type === "casa" ? "Pessoa Física" : "Empresa"}</p>
+                <p className="text-sm font-semibold">{clientName}</p>
               </div>
             </div>
           </CardContent>
@@ -206,10 +204,10 @@ const DetalheVaga = () => {
           <CardContent>
             <div className="relative pl-6">
               {timelineSteps.map((step, i) => {
-                const done = vaga.timeline[step.key as keyof typeof vaga.timeline];
+                const done = timeline[step.key as keyof typeof timeline];
                 const isLast = i === timelineSteps.length - 1;
                 const showEntrada = step.key === "inicio" && canConfirm;
-                const canConfirmExit = vaga.status === "aceita" && vaga.timeline.inicio && !vaga.timeline.fim;
+                const canConfirmExit = (status === "aceita" || status === "accepted") && timeline.inicio && !timeline.fim;
                 const showSaida = step.key === "fim" && canConfirmExit;
                 return (
                   <div key={step.key} className="relative pb-6 last:pb-0">
@@ -241,6 +239,7 @@ const DetalheVaga = () => {
             </div>
           </CardContent>
         </Card>
+
         {/* Popup de sucesso */}
         <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
           <DialogContent className="max-w-sm text-center border-emerald-500 bg-emerald-50">
