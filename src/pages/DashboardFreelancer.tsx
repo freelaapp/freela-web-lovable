@@ -59,9 +59,9 @@ const DashboardFreelancer = () => {
         const providerId = provData?.id ?? provBody?.id;
         if (!providerId) return;
 
-        // Extract freelancer's service areas from profile
+        // Extract freelancer's service areas from profile (desiredJobVacancy)
         const providerServices: string[] = [];
-        const rawServices = provData?.services ?? provData?.areas ?? provData?.assignments ?? [];
+        const rawServices = provData?.desiredJobVacancy ?? [];
         if (Array.isArray(rawServices)) {
           rawServices.forEach((s: any) => {
             if (typeof s === "string") providerServices.push(s.toLowerCase().trim());
