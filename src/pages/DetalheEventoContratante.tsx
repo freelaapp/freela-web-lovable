@@ -117,6 +117,7 @@ const DetalheEventoContratante = () => {
         const list = Array.isArray(body?.data) ? body.data : [];
         const mapped: Candidato[] = list.map((c: any) => ({
           id: c.id || "",
+          providerId: c.providerId || "",
           name: c.providerName || c.name || "Freelancer",
           avatar: (c.providerName || c.name || "FL").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
           role: c.assignment || c.role || "",
