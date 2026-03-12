@@ -63,6 +63,13 @@ export async function apiFetch(
       }
     }
 
+    // When the body is FormData the browser must set Content-Type itself
+    // (it needs to include the multipart boundary). Removing it here
+    // ensures the header is never overridden by accident.
+    if (fetchInit.body instanceof FormData) {
+      delete base["Content-Type"];
+    }
+
     return base;
   };
 
