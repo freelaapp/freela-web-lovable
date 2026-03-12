@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { apiFetch, acceptCandidacy, rejectCandidacy } from "@/lib/api";
+import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment } from "@/lib/api";
+import Pusher from "pusher-js";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
