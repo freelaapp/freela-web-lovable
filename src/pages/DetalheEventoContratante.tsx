@@ -172,41 +172,6 @@ const DetalheEventoContratante = () => {
         setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
       }
       toast({ title: "Freelancer aceito!", description: "O freelancer será notificado por e-mail." });
-
-      // ── Create payment after successful accept ──────────────
-      try {
-        const providerId = result.providerId;
-        const vacancyId = result.vacancy?.id ?? eventoId ?? "";
-        const contractorId = (result.vacancy as any)?.contractorId ?? vacancy?.contractorId ?? "";
-
-        // Fetch jobId from /vacancies/jobs?vacancyId=
-        const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
-        const jobsBody = await jobsRes.json().catch(() => null);
-        const jobData = jobsBody?.data ?? jobsBody;
-        const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
-
-        // Fetch provider details to get PIX key
-        const providerData = await getProviderDetails(providerId);
-        const pixKeyValue = providerData?.pixKeyValue ?? "";
-
-        if (jobId) {
-          const paymentResult = await createJobPayment(jobId, {
-            vacancyId,
-            contractorId,
-            providerId,
-            providerPixKeyId: pixKeyValue,
-            method: "pix",
-          });
-          console.log("[Payment] created successfully for job", jobId, paymentResult);
-          setPixData(paymentResult);
-          setShowPixModal(true);
-        } else {
-          console.warn("[Payment] jobId not found in accept response, skipping payment creation");
-        }
-      } catch (payErr: any) {
-        console.error("[Payment] error:", payErr);
-        toast({ title: "Erro ao criar pagamento", description: payErr.message || "Tente novamente.", variant: "destructive" });
-      }
     } catch (err: any) {
       toast({ title: "Erro ao aceitar", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
