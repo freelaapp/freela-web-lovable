@@ -93,6 +93,7 @@ const DetalheEventoContratante = () => {
     };
   }, [toast]);
 
+  useEffect(() => {
     if (!eventoId) return;
 
     // Fetch vacancy details
