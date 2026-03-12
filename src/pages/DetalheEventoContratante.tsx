@@ -361,11 +361,24 @@ const DetalheEventoContratante = () => {
                               : <UserX className="w-4 h-4" />}
                           </Button>
                         </>
+                      ) : candidato.status === "aceito" ? (
+                        <>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">aceito</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs px-2"
+                            disabled={actionLoadingIds.has(candidato.id)}
+                            onClick={() => handlePagamento(candidato)}
+                          >
+                            {actionLoadingIds.has(candidato.id)
+                              ? <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                              : <DollarSign className="w-3 h-3 mr-1" />}
+                            Pagamento
+                          </Button>
+                        </>
                       ) : (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                          candidato.status === "aceito" ? "bg-success-light text-success" : "bg-destructive/10 text-destructive"
-                        }`}>{candidato.status}</span>
-                      )}
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedFreelancer(candidato)}>
                         <Eye className="w-4 h-4" />
                       </Button>
