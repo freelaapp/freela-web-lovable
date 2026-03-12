@@ -176,7 +176,12 @@ const DetalheEventoContratante = () => {
         const providerId = result.providerId;
         const vacancyId = result.vacancy?.id ?? eventoId ?? "";
         const contractorId = (result.vacancy as any)?.contractorId ?? vacancy?.contractorId ?? "";
-        const jobId = (result as any).jobId ?? (result as any).job?.id ?? "";
+
+        // Fetch jobId from /vacancies/jobs?vacancyId=
+        const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+        const jobsBody = await jobsRes.json().catch(() => null);
+        const jobData = jobsBody?.data ?? jobsBody;
+        const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
 
         // Fetch provider details to get PIX key
         const providerData = await getProviderDetails(providerId);
