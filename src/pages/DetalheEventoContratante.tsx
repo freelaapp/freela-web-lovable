@@ -167,6 +167,34 @@ const DetalheEventoContratante = () => {
         setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
       }
       toast({ title: "Freelancer aceito!", description: "O freelancer será notificado por e-mail." });
+
+      // ── Create payment after successful accept ──────────────
+      try {
+        const providerId = result.providerId;
+        const vacancyId = result.vacancy?.id ?? eventoId ?? "";
+        const contractorId = (result.vacancy as any)?.contractorId ?? vacancy?.contractorId ?? "";
+        const jobId = (result as any).jobId ?? (result as any).job?.id ?? "";
+
+        // Fetch provider details to get PIX key
+        const providerData = await getProviderDetails(providerId);
+        const pixKeyValue = providerData?.pixKeyValue ?? "";
+
+        if (jobId) {
+          await createJobPayment(jobId, {
+            vacancyId,
+            contractorId,
+            providerId,
+            providerPixKeyId: pixKeyValue,
+            method: "pix",
+          });
+          console.log("[Payment] created successfully for job", jobId);
+        } else {
+          console.warn("[Payment] jobId not found in accept response, skipping payment creation");
+        }
+      } catch (payErr: any) {
+        console.error("[Payment] error:", payErr);
+        toast({ title: "Erro ao criar pagamento", description: payErr.message || "Tente novamente.", variant: "destructive" });
+      }
     } catch (err: any) {
       toast({ title: "Erro ao aceitar", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
