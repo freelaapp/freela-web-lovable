@@ -379,6 +379,7 @@ const DetalheEventoContratante = () => {
                         </>
                       ) : (
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
+                      )}
                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedFreelancer(candidato)}>
                         <Eye className="w-4 h-4" />
                       </Button>
