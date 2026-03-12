@@ -131,10 +131,7 @@ const DashboardFreelancer = () => {
           const services = vacancy.services ?? vacancy.freelancers ?? [];
           if (Array.isArray(services)) {
             services.forEach((svc: any, idx: number) => {
-              const svcAssignment = (svc.assignment || "").toLowerCase().trim();
-              // If provider has no services listed, show all; otherwise filter
-              const matches = providerServices.length === 0 || providerServices.includes(svcAssignment);
-              if (matches && svc.assignment) {
+              if (svc.assignment) {
                 flattened.push({
                   vacancyId: vacancy.id,
                   serviceIndex: idx,
