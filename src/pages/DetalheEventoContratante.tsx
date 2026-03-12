@@ -192,6 +192,47 @@ const DetalheEventoContratante = () => {
     }
   };
 
+  const handlePagamento = async (candidato: Candidato) => {
+    setActionLoadingIds(prev => new Set(prev).add(candidato.id));
+    try {
+      const vacancyId = eventoId ?? "";
+      const contractorId = vacancy?.contractorId ?? "";
+      const providerId = candidato.providerId;
+
+      // Fetch jobId
+      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+      const jobsBody = await jobsRes.json().catch(() => null);
+      const jobData = jobsBody?.data ?? jobsBody;
+      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+
+      if (!jobId) {
+        toast({ title: "Erro", description: "Job não encontrado para esta vaga.", variant: "destructive" });
+        return;
+      }
+
+      // Fetch provider PIX key
+      const providerData = await getProviderDetails(providerId);
+      const pixKeyValue = providerData?.pixKeyValue ?? "";
+
+      const paymentResult = await createJobPayment(jobId, {
+        vacancyId,
+        contractorId,
+        providerId,
+        providerPixKeyId: pixKeyValue,
+        method: "pix",
+      });
+
+      console.log("[Payment] created successfully for job", jobId, paymentResult);
+      setPixData(paymentResult);
+      setShowPixModal(true);
+    } catch (err: any) {
+      console.error("[Payment] error:", err);
+      toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
+    } finally {
+      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(candidato.id); return next; });
+    }
+  };
+
   const handleEnviarProposta = () => {
     setPropostaEnviada(true);
     setTimeout(() => {
