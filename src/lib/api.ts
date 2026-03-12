@@ -326,7 +326,69 @@ export async function rejectCandidacy(candidacyId: string): Promise<CandidacyAct
   return body.data as CandidacyActionResponse;
 }
 
+// ── Provider Details (public) ──────────────────────────────────
+export interface ProviderDetails {
+  id: string;
+  pixKeyValue?: string;
+  pixKeyType?: string;
+  [key: string]: unknown;
+}
+
+export async function getProviderDetails(providerId: string): Promise<ProviderDetails> {
+  const response = await apiFetch(`${API_BASE_URL}/providers/${providerId}`, {
+    method: "GET",
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível carregar os dados do freelancer.");
+  }
+
+  const data = body?.data ?? body;
+  return data as ProviderDetails;
+}
+
+// ── Job Payment ───────────────────────────────────────────────
+export interface CreateJobPaymentPayload {
+  vacancyId: string;
+  contractorId: string;
+  providerId: string;
+  providerPixKeyId: string;
+  method: string;
+}
+
+export async function createJobPayment(jobId: string, payload: CreateJobPaymentPayload): Promise<void> {
+  const response = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível criar o pagamento. Tente novamente.");
+  }
+}
+
 export async function createVacancy(payload: CreateVacancyPayload, token: string): Promise<void> {
+  const response = await apiFetch(`${API_BASE_URL}/vacancies`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível criar a vaga. Tente novamente.");
+  }
+}
   const response = await apiFetch(`${API_BASE_URL}/vacancies`, {
     method: "POST",
     headers: {
