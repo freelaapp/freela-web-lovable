@@ -13,17 +13,26 @@ import Pusher from "pusher-js";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
+interface VacancyService {
+  assignment?: string;
+  quantity?: number;
+  jobTime?: string;
+  jobValue?: string;
+}
+
 interface VacancyDetail {
   id: string;
   establishment: string;
-  assignment: string;
   description: string;
-  quantity: number;
   jobDate: string;
-  jobTime: string;
-  jobValue: string;
   status: string;
   contractorId: string;
+  address?: string;
+  location?: string;
+  contractorName?: string;
+  services?: VacancyService[];
+  freelancers?: VacancyService[];
+  [key: string]: unknown;
 }
 
 const statusLabels: Record<string, string> = {
