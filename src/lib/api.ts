@@ -389,17 +389,3 @@ export async function createVacancy(payload: CreateVacancyPayload, token: string
     throw new Error(body?.message || "Não foi possível criar a vaga. Tente novamente.");
   }
 }
-  const response = await apiFetch(`${API_BASE_URL}/vacancies`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível criar a vaga. Tente novamente.");
-  }
-}
