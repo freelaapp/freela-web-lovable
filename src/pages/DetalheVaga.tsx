@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Ban, Check, X } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
@@ -17,9 +16,24 @@ const timelineSteps = [
   { key: "pagamento", label: "Pagamento", icon: DollarSign },
 ];
 
+const formatDateDDMMYYYY = (dateStr: string): string => {
+  if (!dateStr || dateStr === "--") return "--";
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  }
+  return dateStr;
+};
+
 const DetalheVaga = () => {
   const { vagaId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const serviceIndex: number = (location.state as any)?.serviceIndex ?? 0;
+
   const [applied, setApplied] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [vaga, setVaga] = useState<any>(null);
@@ -65,21 +79,22 @@ const DetalheVaga = () => {
     );
   }
 
-  // Extract data from API response
-  const freelancerInfo = vaga.freelancers?.[0];
-  const title = vaga.establishment || vaga.description || "Vaga";
+  // Use service data from the services array based on serviceIndex
+  const services = vaga.services ?? vaga.freelancers ?? [];
+  const serviceInfo = services[serviceIndex] ?? services[0] ?? {};
+
+  const title = serviceInfo.assignment || vaga.establishment || vaga.description || "Vaga";
   const status = vaga.status || "aberta";
-  const jobDate = vaga.jobDate || "--";
-  const jobTime = freelancerInfo?.jobTime || "--";
-  const jobValue = freelancerInfo?.jobValue || "--";
-  const assignment = freelancerInfo?.assignment || "--";
-  const location = vaga.address || vaga.location || "--";
+  const jobDate = vaga.jobDate ? formatDateDDMMYYYY(vaga.jobDate) : "--";
+  const jobTime = serviceInfo.jobTime || "--";
+  const jobValue = serviceInfo.jobValue || "--";
+  const assignment = serviceInfo.assignment || "--";
+  const location_ = vaga.address || vaga.location || "--";
   const clientName = vaga.contractorName || vaga.contractor?.name || vaga.establishment || "--";
   const contractorId = vaga.contractorId || vaga.contractor?.id;
 
   const timeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
   const canConfirm = status === "aceita" && !timeline.inicio;
-
   const isOpen = status === "aberta" || status === "open";
 
   const handleApply = () => {
@@ -164,7 +179,7 @@ const DetalheVaga = () => {
               <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-default text-center col-span-2">
                 <MapPin className="w-6 h-6 text-primary" />
                 <div>
-                  <p className="text-sm font-bold truncate max-w-[250px]">{location}</p>
+                  <p className="text-sm font-bold truncate max-w-[250px]">{location_}</p>
                   <p className="text-[10px] text-muted-foreground">Local</p>
                 </div>
               </div>
