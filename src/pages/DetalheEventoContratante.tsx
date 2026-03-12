@@ -42,6 +42,7 @@ const statusStyles: Record<string, string> = {
 
 interface Candidato {
   id: string;
+  providerId: string;
   name: string;
   avatar: string;
   role: string;
@@ -116,6 +117,7 @@ const DetalheEventoContratante = () => {
         const list = Array.isArray(body?.data) ? body.data : [];
         const mapped: Candidato[] = list.map((c: any) => ({
           id: c.id || "",
+          providerId: c.providerId || "",
           name: c.providerName || c.name || "Freelancer",
           avatar: (c.providerName || c.name || "FL").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
           role: c.assignment || c.role || "",
@@ -170,41 +172,6 @@ const DetalheEventoContratante = () => {
         setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
       }
       toast({ title: "Freelancer aceito!", description: "O freelancer será notificado por e-mail." });
-
-      // ── Create payment after successful accept ──────────────
-      try {
-        const providerId = result.providerId;
-        const vacancyId = result.vacancy?.id ?? eventoId ?? "";
-        const contractorId = (result.vacancy as any)?.contractorId ?? vacancy?.contractorId ?? "";
-
-        // Fetch jobId from /vacancies/jobs?vacancyId=
-        const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
-        const jobsBody = await jobsRes.json().catch(() => null);
-        const jobData = jobsBody?.data ?? jobsBody;
-        const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
-
-        // Fetch provider details to get PIX key
-        const providerData = await getProviderDetails(providerId);
-        const pixKeyValue = providerData?.pixKeyValue ?? "";
-
-        if (jobId) {
-          const paymentResult = await createJobPayment(jobId, {
-            vacancyId,
-            contractorId,
-            providerId,
-            providerPixKeyId: pixKeyValue,
-            method: "pix",
-          });
-          console.log("[Payment] created successfully for job", jobId, paymentResult);
-          setPixData(paymentResult);
-          setShowPixModal(true);
-        } else {
-          console.warn("[Payment] jobId not found in accept response, skipping payment creation");
-        }
-      } catch (payErr: any) {
-        console.error("[Payment] error:", payErr);
-        toast({ title: "Erro ao criar pagamento", description: payErr.message || "Tente novamente.", variant: "destructive" });
-      }
     } catch (err: any) {
       toast({ title: "Erro ao aceitar", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
@@ -222,6 +189,47 @@ const DetalheEventoContratante = () => {
       toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
       setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+    }
+  };
+
+  const handlePagamento = async (candidato: Candidato) => {
+    setActionLoadingIds(prev => new Set(prev).add(candidato.id));
+    try {
+      const vacancyId = eventoId ?? "";
+      const contractorId = vacancy?.contractorId ?? "";
+      const providerId = candidato.providerId;
+
+      // Fetch jobId
+      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+      const jobsBody = await jobsRes.json().catch(() => null);
+      const jobData = jobsBody?.data ?? jobsBody;
+      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+
+      if (!jobId) {
+        toast({ title: "Erro", description: "Job não encontrado para esta vaga.", variant: "destructive" });
+        return;
+      }
+
+      // Fetch provider PIX key
+      const providerData = await getProviderDetails(providerId);
+      const pixKeyValue = providerData?.pixKeyValue ?? "";
+
+      const paymentResult = await createJobPayment(jobId, {
+        vacancyId,
+        contractorId,
+        providerId,
+        providerPixKeyId: pixKeyValue,
+        method: "pix",
+      });
+
+      console.log("[Payment] created successfully for job", jobId, paymentResult);
+      setPixData(paymentResult);
+      setShowPixModal(true);
+    } catch (err: any) {
+      console.error("[Payment] error:", err);
+      toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
+    } finally {
+      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(candidato.id); return next; });
     }
   };
 
@@ -353,10 +361,24 @@ const DetalheEventoContratante = () => {
                               : <UserX className="w-4 h-4" />}
                           </Button>
                         </>
+                      ) : candidato.status === "aceito" ? (
+                        <>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">aceito</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs px-2"
+                            disabled={actionLoadingIds.has(candidato.id)}
+                            onClick={() => handlePagamento(candidato)}
+                          >
+                            {actionLoadingIds.has(candidato.id)
+                              ? <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                              : <DollarSign className="w-3 h-3 mr-1" />}
+                            Pagamento
+                          </Button>
+                        </>
                       ) : (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                          candidato.status === "aceito" ? "bg-success-light text-success" : "bg-destructive/10 text-destructive"
-                        }`}>{candidato.status}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
                       )}
                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedFreelancer(candidato)}>
                         <Eye className="w-4 h-4" />
