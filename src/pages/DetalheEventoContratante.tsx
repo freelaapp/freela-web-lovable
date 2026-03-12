@@ -13,26 +13,17 @@ import Pusher from "pusher-js";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
-interface VacancyService {
-  assignment?: string;
-  quantity?: number;
-  jobTime?: string;
-  jobValue?: string;
-}
-
 interface VacancyDetail {
   id: string;
   establishment: string;
+  assignment: string;
   description: string;
+  quantity: number;
   jobDate: string;
+  jobTime: string;
+  jobValue: string;
   status: string;
   contractorId: string;
-  address?: string;
-  location?: string;
-  contractorName?: string;
-  services?: VacancyService[];
-  freelancers?: VacancyService[];
-  [key: string]: unknown;
 }
 
 const statusLabels: Record<string, string> = {
@@ -270,76 +261,29 @@ const DetalheEventoContratante = () => {
           }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
         </div>
 
-        {/* Serviços / Funções */}
-        {(() => {
-          const services: VacancyService[] = vacancy.services ?? vacancy.freelancers ?? [];
-          const totalQuantity = services.reduce((sum, s) => sum + (s.quantity ?? 0), 0);
-
-          return (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Detalhes do Evento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Data e Local */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
-                    <Calendar className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-xs font-bold">{formattedDate}</p>
-                      <p className="text-[10px] text-muted-foreground">Data</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
-                    <MapPin className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-xs font-bold truncate max-w-[140px]">{String(vacancy.address || vacancy.location || vacancy.establishment || "--")}</p>
-                      <p className="text-[10px] text-muted-foreground">Local</p>
-                    </div>
+        {/* Detalhes */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { icon: Calendar, value: formattedDate, label: "Data", color: "text-primary" },
+                { icon: Clock, value: vacancy.jobTime, label: "Duração", color: "text-primary" },
+                { icon: DollarSign, value: vacancy.jobValue, label: "Valor/pessoa", color: "text-success" },
+                { icon: Briefcase, value: vacancy.assignment, label: "Função", color: "text-primary" },
+                { icon: Users, value: `${vacancy.quantity}`, label: "Freelancers", color: "text-accent" },
+                { icon: Briefcase, value: vacancy.establishment, label: "Local", color: "text-primary" },
+              ].map((item, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
+                  <item.icon className={`w-5 h-5 ${item.color}`} />
+                  <div>
+                    <p className="text-xs font-bold truncate max-w-[100px]">{item.value}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.label}</p>
                   </div>
                 </div>
-
-                {/* Serviços */}
-                {services.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground font-medium">Funções ({services.length})</p>
-                    {services.map((svc, i) => (
-                      <div key={i} className="grid grid-cols-4 gap-2 p-3 rounded-xl bg-muted/50">
-                        <div className="flex flex-col items-center text-center">
-                          <Briefcase className="w-4 h-4 text-primary mb-1" />
-                          <p className="text-xs font-bold">{svc.assignment || "--"}</p>
-                          <p className="text-[10px] text-muted-foreground">Função</p>
-                        </div>
-                        <div className="flex flex-col items-center text-center">
-                          <Users className="w-4 h-4 text-accent mb-1" />
-                          <p className="text-xs font-bold">{svc.quantity ?? "--"}</p>
-                          <p className="text-[10px] text-muted-foreground">Qtd</p>
-                        </div>
-                        <div className="flex flex-col items-center text-center">
-                          <Clock className="w-4 h-4 text-primary mb-1" />
-                          <p className="text-xs font-bold">{svc.jobTime || "--"}</p>
-                          <p className="text-[10px] text-muted-foreground">Duração</p>
-                        </div>
-                        <div className="flex flex-col items-center text-center">
-                          <DollarSign className="w-4 h-4 text-success mb-1" />
-                          <p className="text-xs font-bold text-success">{svc.jobValue || "--"}</p>
-                          <p className="text-[10px] text-muted-foreground">Valor</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">Nenhuma função cadastrada</p>
-                )}
-
-                {/* Total */}
-                <div className="flex justify-end">
-                  <span className="text-xs text-muted-foreground">Total de freelancers: <strong>{totalQuantity}</strong></span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })()}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Freelancers - conditional by status */}
         {(vacancy.status === "open" || vacancy.status === "in hiring") && (
@@ -349,7 +293,7 @@ const DetalheEventoContratante = () => {
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" /> Freelancers Inscritos
                 </CardTitle>
-                <span className="text-xs text-muted-foreground">{aceitos}/{((vacancy.services ?? vacancy.freelancers ?? []) as VacancyService[]).reduce((s, sv) => s + (sv.quantity ?? 0), 0)} aceitos</span>
+                <span className="text-xs text-muted-foreground">{aceitos}/{vacancy.quantity} aceitos</span>
               </div>
               {/* Filter tabs */}
               <div className="flex gap-2 mt-3">
