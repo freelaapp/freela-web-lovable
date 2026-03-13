@@ -728,17 +728,28 @@ const DetalheEventoContratante = () => {
                         </Button>
                       )}
                       {item.key === "termino" && (
-                        <Button
-                          size="sm"
-                          className="gap-1.5"
-                          onClick={handleGerarCodigoCheckout}
-                          disabled={checkOutLoading}
-                        >
-                          {checkOutLoading
-                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : <KeyRound className="w-4 h-4" />}
-                          {checkOutCode ? "Ver Código" : "Check-out"}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={handleGerarCodigoCheckout}
+                            disabled={checkOutLoading}
+                          >
+                            {checkOutLoading
+                              ? <Loader2 className="w-4 h-4 animate-spin" />
+                              : <KeyRound className="w-4 h-4" />}
+                            {checkOutCode ? "Ver Código" : "Check-out"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1.5"
+                            onClick={() => setShowReviewModal(true)}
+                          >
+                            <Star className="w-4 h-4" />
+                            Avaliação
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
