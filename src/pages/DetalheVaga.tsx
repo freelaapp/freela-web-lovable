@@ -478,46 +478,6 @@ const DetalheVaga = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Modal de Check-out */}
-        <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-          <DialogContent className="max-w-xs">
-            <DialogHeader>
-              <DialogTitle className="text-center">Código de Check-out</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col items-center space-y-4 py-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Compartilhe este código com o contratante para confirmar o término do trabalho.
-              </p>
-              <div className="flex justify-center gap-2">
-                {(checkoutCode || "------").split("").map((char, i) => (
-                  <div
-                    key={i}
-                    className="w-11 h-14 rounded-lg bg-muted border border-border flex items-center justify-center text-2xl font-bold font-mono text-foreground"
-                  >
-                    {char}
-                  </div>
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                className="w-full gap-2"
-                onClick={() => {
-                  if (checkoutCode) {
-                    navigator.clipboard.writeText(checkoutCode);
-                    setCheckoutCopied(true);
-                    setTimeout(() => setCheckoutCopied(false), 2000);
-                  }
-                }}
-              >
-                {checkoutCopied ? (
-                  <><CheckCircle className="w-4 h-4 text-success" /> Código copiado!</>
-                ) : (
-                  <><Copy className="w-4 h-4" /> Copiar código</>
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </AppLayout>
   );
