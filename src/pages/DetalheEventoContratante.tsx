@@ -203,6 +203,7 @@ const DetalheEventoContratante = () => {
     try {
       const result = await acceptCandidacy(id);
       setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
+      if (timelineStep < 1) setTimelineStep(1);
       if (result?.vacancy?.status) {
         setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
       }
