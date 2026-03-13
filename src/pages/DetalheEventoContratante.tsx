@@ -82,6 +82,10 @@ const DetalheEventoContratante = () => {
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [checkInCopied, setCheckInCopied] = useState(false);
+  const [checkOutCode, setCheckOutCode] = useState<string | null>(null);
+  const [showCheckOutModal, setShowCheckOutModal] = useState(false);
+  const [checkOutLoading, setCheckOutLoading] = useState(false);
+  const [checkOutCopied, setCheckOutCopied] = useState(false);
 
   // Helper: fetch payment details for a job, then schedule if successful
   const fetchJobPayments = async (jobId: string, scheduleAfter = false) => {
@@ -362,6 +366,51 @@ const DetalheEventoContratante = () => {
     }
   };
 
+  const handleGerarCodigoCheckout = async () => {
+    if (checkOutCode) {
+      setShowCheckOutModal(true);
+      return;
+    }
+    setCheckOutLoading(true);
+    try {
+      const vacancyId = eventoId ?? "";
+      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+      const jobsBody = await jobsRes.json().catch(() => null);
+      const jobData = jobsBody?.data ?? jobsBody;
+      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+
+      if (!jobId) {
+        toast({ title: "Erro", description: "Job não encontrado.", variant: "destructive" });
+        return;
+      }
+
+      const providerId = confirmados[0]?.providerId;
+      if (!providerId) {
+        toast({ title: "Erro", description: "Nenhum freelancer confirmado.", variant: "destructive" });
+        return;
+      }
+
+      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-outs/code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId, jobId }),
+      });
+
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.message || "Não foi possível gerar o código de check-out.");
+      }
+
+      const code = body?.data?.code || body?.data || body?.code || "";
+      setCheckOutCode(String(code));
+      setShowCheckOutModal(true);
+    } catch (err: any) {
+      toast({ title: "Erro ao gerar código", description: err.message, variant: "destructive" });
+    } finally {
+      setCheckOutLoading(false);
+    }
+  };
+
   const handleEnviarProposta = () => {
     setPropostaEnviada(true);
     setTimeout(() => {
@@ -624,13 +673,13 @@ const DetalheEventoContratante = () => {
                         <Button
                           size="sm"
                           className="gap-1.5"
-                          onClick={handleGerarCodigo}
-                          disabled={checkInLoading}
+                          onClick={handleGerarCodigoCheckout}
+                          disabled={checkOutLoading}
                         >
-                          {checkInLoading
+                          {checkOutLoading
                             ? <Loader2 className="w-4 h-4 animate-spin" />
                             : <KeyRound className="w-4 h-4" />}
-                          Check-out
+                          {checkOutCode ? "Ver Código" : "Check-out"}
                         </Button>
                       )}
                     </div>
@@ -857,6 +906,47 @@ const DetalheEventoContratante = () => {
               }}
             >
               {checkInCopied ? (
+                <><CheckCircle className="w-4 h-4 text-success" /> Código copiado!</>
+              ) : (
+                <><Copy className="w-4 h-4" /> Copiar código</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal Código Check-out ──────────────────────────────── */}
+      <Dialog open={showCheckOutModal} onOpenChange={setShowCheckOutModal}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="text-center">Código de Check-out</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4 py-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Compartilhe este código com o freelancer para confirmar o término do trabalho.
+            </p>
+            <div className="flex justify-center gap-2">
+              {(checkOutCode || "------").split("").map((char, i) => (
+                <div
+                  key={i}
+                  className="w-11 h-14 rounded-lg bg-muted border border-border flex items-center justify-center text-2xl font-bold font-mono text-foreground"
+                >
+                  {char}
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => {
+                if (checkOutCode) {
+                  navigator.clipboard.writeText(checkOutCode);
+                  setCheckOutCopied(true);
+                  setTimeout(() => setCheckOutCopied(false), 2000);
+                }
+              }}
+            >
+              {checkOutCopied ? (
                 <><CheckCircle className="w-4 h-4 text-success" /> Código copiado!</>
               ) : (
                 <><Copy className="w-4 h-4" /> Copiar código</>
