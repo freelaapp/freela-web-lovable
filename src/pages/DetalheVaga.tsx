@@ -380,7 +380,7 @@ const DetalheVaga = () => {
 
                 const isInProgress = stepStatus === "in_progress";
                 const showCheckin = isAgendada && step.key === "inicio" && isInProgress && !checkinDone;
-                const showCheckout = isAgendada && step.key === "fim" && isInProgress;
+                const showCheckout = isAgendada && step.key === "fim";
 
                 // For non-agendada: existing logic
                 const showEntrada = !isAgendada && step.key === "inicio" && canConfirm;
