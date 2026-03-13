@@ -129,14 +129,23 @@ const DashboardFreelancer = () => {
           : [];
 
         if (futureIds.length > 0) {
+          // Keep raw items to preserve jobId mapping
+          const rawFutureItems = Array.isArray(futureData) ? futureData : [];
           const futureDetails = await Promise.all(
-            futureIds.filter(Boolean).map(async (vacId: string) => {
+            futureIds.filter(Boolean).map(async (vacId: string, idx: number) => {
               try {
                 const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
                   method: "GET", credentials: "include", headers,
                 });
                 const body = await res.json().catch(() => null);
-                return body?.data ?? body ?? null;
+                const detail = body?.data ?? body ?? null;
+                if (detail) {
+                  // Attach jobId from the raw future-jobs response
+                  const rawItem = rawFutureItems[idx];
+                  detail._jobId = rawItem?.jobId ?? rawItem?.id ?? vacId;
+                  detail._vacancyId = vacId;
+                }
+                return detail;
               } catch { return null; }
             })
           );
@@ -280,7 +289,7 @@ const DashboardFreelancer = () => {
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga agendada</p>
               ) : (
                 vagasAgendadas.slice(0, 3).map((vaga: any) => (
-                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
+                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`, { state: { source: "agendadas", jobId: vaga._jobId, vacancyId: vaga._vacancyId || vaga.id } })}>
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
                       <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary-light text-primary">Agendada</span>
