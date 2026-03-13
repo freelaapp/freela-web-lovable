@@ -56,6 +56,10 @@ const DetalheVaga = () => {
   const [loading, setLoading] = useState(true);
   const [providerId, setProviderId] = useState<string | null>(null);
   const [candidacyStatus, setCandidacyStatus] = useState<string | null>(null);
+  const [showCheckinModal, setShowCheckinModal] = useState(false);
+  const [checkinCode, setCheckinCode] = useState("");
+  const [checkinLoading, setCheckinLoading] = useState(false);
+  const [checkinDone, setCheckinDone] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
