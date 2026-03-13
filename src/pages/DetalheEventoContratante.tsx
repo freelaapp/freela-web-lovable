@@ -78,6 +78,10 @@ const DetalheEventoContratante = () => {
   const [pixCopied, setPixCopied] = useState(false);
   const [timelineStep, setTimelineStep] = useState(0);
   const lastJobIdRef = useRef<string | null>(null);
+  const [checkInCode, setCheckInCode] = useState<string | null>(null);
+  const [showCheckInModal, setShowCheckInModal] = useState(false);
+  const [checkInLoading, setCheckInLoading] = useState(false);
+  const [checkInCopied, setCheckInCopied] = useState(false);
 
   // Helper: fetch payment details for a job, then schedule if successful
   const fetchJobPayments = async (jobId: string, scheduleAfter = false) => {
