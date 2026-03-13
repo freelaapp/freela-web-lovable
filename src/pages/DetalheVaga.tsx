@@ -414,8 +414,9 @@ const DetalheVaga = () => {
                         </Button>
                       )}
                       {showCheckout && (
-                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
-                          <ShieldCheck className="w-4 h-4" /> Check-out
+                        <Button size="sm" className="gap-1.5" onClick={handleGerarCodigoCheckout} disabled={checkoutLoading}>
+                          {checkoutLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                          {checkoutCode ? "Ver Código" : "Check-out"}
                         </Button>
                       )}
                       {showEntrada && (
