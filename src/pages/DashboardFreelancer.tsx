@@ -129,14 +129,23 @@ const DashboardFreelancer = () => {
           : [];
 
         if (futureIds.length > 0) {
+          // Keep raw items to preserve jobId mapping
+          const rawFutureItems = Array.isArray(futureData) ? futureData : [];
           const futureDetails = await Promise.all(
-            futureIds.filter(Boolean).map(async (vacId: string) => {
+            futureIds.filter(Boolean).map(async (vacId: string, idx: number) => {
               try {
                 const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
                   method: "GET", credentials: "include", headers,
                 });
                 const body = await res.json().catch(() => null);
-                return body?.data ?? body ?? null;
+                const detail = body?.data ?? body ?? null;
+                if (detail) {
+                  // Attach jobId from the raw future-jobs response
+                  const rawItem = rawFutureItems[idx];
+                  detail._jobId = rawItem?.jobId ?? rawItem?.id ?? vacId;
+                  detail._vacancyId = vacId;
+                }
+                return detail;
               } catch { return null; }
             })
           );
