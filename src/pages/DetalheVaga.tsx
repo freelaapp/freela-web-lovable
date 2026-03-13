@@ -432,6 +432,38 @@ const DetalheVaga = () => {
           </CardContent>
         </Card>
 
+        {/* Modal de Check-in */}
+        <Dialog open={showCheckinModal} onOpenChange={setShowCheckinModal}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-center">Código de Check-in</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-6 py-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Insira o código de 6 dígitos fornecido pelo contratante.
+              </p>
+              <InputOTP maxLength={6} value={checkinCode} onChange={setCheckinCode}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+              <Button
+                className="w-full gap-2"
+                onClick={handleCheckinValidate}
+                disabled={checkinLoading || checkinCode.length !== 6}
+              >
+                {checkinLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                {checkinLoading ? "Validando..." : "Enviar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Popup de sucesso */}
         <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
           <DialogContent className="max-w-sm text-center border-emerald-500 bg-emerald-50">
