@@ -210,6 +210,38 @@ const DetalheVaga = () => {
     }
   };
 
+  const handleCheckoutValidate = async () => {
+    if (checkoutCode.length !== 6) {
+      toast.error("Digite o código de 6 dígitos.");
+      return;
+    }
+    const jobId = jobIdFromState || vagaId;
+    if (!providerId || !jobId) {
+      toast.error("Não foi possível identificar os dados. Tente novamente.");
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-outs/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId, providerId, code: checkoutCode }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || "Código inválido. Tente novamente.");
+      }
+      setCheckoutDone(true);
+      setShowCheckoutModal(false);
+      setCheckoutCode("");
+      toast.success("Check-out realizado com sucesso!");
+    } catch (err: any) {
+      console.error("[DetalheVaga] checkout error:", err);
+      toast.error(err.message || "Erro ao validar código. Tente novamente.");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
   const agendadaTimeline = {
