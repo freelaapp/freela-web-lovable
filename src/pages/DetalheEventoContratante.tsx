@@ -82,6 +82,10 @@ const DetalheEventoContratante = () => {
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [checkInCopied, setCheckInCopied] = useState(false);
+  const [checkOutCode, setCheckOutCode] = useState<string | null>(null);
+  const [showCheckOutModal, setShowCheckOutModal] = useState(false);
+  const [checkOutLoading, setCheckOutLoading] = useState(false);
+  const [checkOutCopied, setCheckOutCopied] = useState(false);
 
   // Helper: fetch payment details for a job, then schedule if successful
   const fetchJobPayments = async (jobId: string, scheduleAfter = false) => {
