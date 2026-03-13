@@ -450,6 +450,7 @@ const DetalheEventoContratante = () => {
           sender: contractorId,
           receiver: providerId,
           jobId,
+          providerAttendedJob: providerAttendedJob === true,
           createdAt: new Date().toISOString(),
         }),
       });
