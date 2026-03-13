@@ -155,7 +155,9 @@ const DetalheEventoContratante = () => {
       const status = body?.data?.status ?? body?.status ?? "";
       console.log("[JobStatus] job", jobId, "status:", status);
 
-      if (status === "schedule") {
+      if (status === "unavailable") {
+        setTimelineStep(1);
+      } else if (status === "schedule") {
         setTimelineStep(2);
       } else if (status === "in_progress" || status === "started") {
         setTimelineStep(3);
