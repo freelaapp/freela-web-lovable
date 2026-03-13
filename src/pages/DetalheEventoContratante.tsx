@@ -460,6 +460,11 @@ const DetalheEventoContratante = () => {
         throw new Error(body?.message || "Erro ao enviar avaliação.");
       }
 
+      // Terminate the job after successful feedback
+      await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
+        method: "PATCH",
+      });
+
       toast({ title: "Avaliação enviada!", description: "Obrigado pelo feedback." });
       setShowReviewModal(false);
       setReviewStars(0);
