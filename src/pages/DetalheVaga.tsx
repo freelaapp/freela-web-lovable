@@ -501,7 +501,38 @@ const DetalheVaga = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Popup de sucesso */}
+        {/* Modal de Check-out */}
+        <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-center">Código de Check-out</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-6 py-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Insira o código de 6 dígitos fornecido pelo contratante.
+              </p>
+              <InputOTP maxLength={6} value={checkoutCode} onChange={setCheckoutCode}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+              <Button
+                className="w-full gap-2"
+                onClick={handleCheckoutValidate}
+                disabled={checkoutLoading || checkoutCode.length !== 6}
+              >
+                {checkoutLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                {checkoutLoading ? "Validando..." : "Enviar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
           <DialogContent className="max-w-sm text-center border-emerald-500 bg-emerald-50">
             <div className="flex flex-col items-center gap-4 py-6">
