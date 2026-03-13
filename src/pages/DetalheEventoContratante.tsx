@@ -246,6 +246,7 @@ const DetalheEventoContratante = () => {
       });
 
       console.log("[Payment] created successfully for job", jobId, paymentResult);
+      lastJobIdRef.current = jobId;
 
       // Schedule the job after successful payment creation
       try {
@@ -255,7 +256,10 @@ const DetalheEventoContratante = () => {
         console.error("[Payment] failed to schedule job:", scheduleErr);
       }
 
-      setPixData(paymentResult);
+      // Fetch full payment details after successful creation
+      const fullPayment = await fetchJobPayments(jobId);
+
+      setPixData(fullPayment ?? paymentResult);
       setShowPixModal(true);
     } catch (err: any) {
       console.error("[Payment] error:", err);
