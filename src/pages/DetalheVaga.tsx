@@ -156,22 +156,18 @@ const DetalheVaga = () => {
   // Timeline logic
   const timelineSteps = isAgendada ? agendadaTimelineSteps : defaultTimelineSteps;
 
-  // For agendadas: fixed timeline statuses
-  const getAgendadaTimeline = () => {
-    const isAccepted = candidacyStatus === "accepted" || candidacyStatus === "aceita" || status === "aceita" || status === "accepted";
-    return {
-      aceite: isAccepted,
-      inicio: false, // "em andamento" = current step
-      fim: false,
-      pagamento: false,
-      feedback: false,
-    };
-  };
+  // For agendadas: always aceite=done, inicio=in_progress
+  const getAgendadaTimeline = () => ({
+    aceite: true,
+    inicio: false,
+    fim: false,
+    pagamento: false,
+    feedback: false,
+  });
 
   const getAgendadaStepStatus = (stepKey: string) => {
-    const isAccepted = candidacyStatus === "accepted" || candidacyStatus === "aceita" || status === "aceita" || status === "accepted";
-    if (stepKey === "aceite") return isAccepted ? "done" : "pending";
-    if (stepKey === "inicio") return isAccepted ? "in_progress" : "pending";
+    if (stepKey === "aceite") return "done";
+    if (stepKey === "inicio") return "in_progress";
     return "pending";
   };
 
