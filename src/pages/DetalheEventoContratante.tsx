@@ -305,13 +305,10 @@ const DetalheEventoContratante = () => {
         return;
       }
 
-      const formData = new FormData();
-      formData.append("providerId", providerId);
-      formData.append("jobId", jobId);
-
       const res = await apiFetch(`${API_BASE_URL}/provider/jobs/check-ins/code`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId, jobId }),
       });
 
       const body = await res.json().catch(() => null);
