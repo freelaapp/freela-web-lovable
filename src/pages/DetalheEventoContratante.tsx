@@ -620,6 +620,19 @@ const DetalheEventoContratante = () => {
                           {checkInCode ? "Ver Código" : "Gerar Código"}
                         </Button>
                       )}
+                      {item.key === "termino" && (
+                        <Button
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={handleGerarCodigo}
+                          disabled={checkInLoading}
+                        >
+                          {checkInLoading
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <KeyRound className="w-4 h-4" />}
+                          Check-out
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
