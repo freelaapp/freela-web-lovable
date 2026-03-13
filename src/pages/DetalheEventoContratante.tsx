@@ -78,8 +78,8 @@ const DetalheEventoContratante = () => {
   const [pixCopied, setPixCopied] = useState(false);
   const lastJobIdRef = useRef<string | null>(null);
 
-  // Helper: fetch payment details for a job
-  const fetchJobPayments = async (jobId: string) => {
+  // Helper: fetch payment details for a job, then schedule if successful
+  const fetchJobPayments = async (jobId: string, scheduleAfter = false) => {
     try {
       const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, { method: "GET" });
       const body = await res.json().catch(() => null);
@@ -88,6 +88,17 @@ const DetalheEventoContratante = () => {
       if (paymentInfo) {
         setPixData(prev => ({ ...prev, ...paymentInfo }));
       }
+
+      // Schedule the job after payment details confirmed
+      if (res.ok && scheduleAfter) {
+        try {
+          await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
+          console.log("[Payment] job scheduled successfully", jobId);
+        } catch (scheduleErr: any) {
+          console.error("[Payment] failed to schedule job:", scheduleErr);
+        }
+      }
+
       return paymentInfo;
     } catch (err) {
       console.error("[Payment] Erro ao buscar detalhes do pagamento:", err);
