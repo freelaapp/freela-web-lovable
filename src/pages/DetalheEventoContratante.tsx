@@ -1053,6 +1053,28 @@ const DetalheEventoContratante = () => {
                 </button>
               ))}
             </div>
+            {/* Provider attended */}
+            <div className="w-full space-y-2">
+              <Label>O Freelancer fez o trabalho?</Label>
+              <div className="flex gap-4">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={providerAttendedJob === true ? "default" : "outline"}
+                  onClick={() => setProviderAttendedJob(true)}
+                >
+                  Sim
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={providerAttendedJob === false ? "default" : "outline"}
+                  onClick={() => setProviderAttendedJob(false)}
+                >
+                  Não
+                </Button>
+              </div>
+            </div>
             {/* Comment */}
             <div className="w-full space-y-2">
               <Label htmlFor="review-comment">Comentário</Label>
