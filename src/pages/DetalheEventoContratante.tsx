@@ -78,8 +78,8 @@ const DetalheEventoContratante = () => {
   const [pixCopied, setPixCopied] = useState(false);
   const lastJobIdRef = useRef<string | null>(null);
 
-  // Helper: fetch payment details for a job
-  const fetchJobPayments = async (jobId: string) => {
+  // Helper: fetch payment details for a job, then schedule if successful
+  const fetchJobPayments = async (jobId: string, scheduleAfter = false) => {
     try {
       const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, { method: "GET" });
       const body = await res.json().catch(() => null);
@@ -88,6 +88,17 @@ const DetalheEventoContratante = () => {
       if (paymentInfo) {
         setPixData(prev => ({ ...prev, ...paymentInfo }));
       }
+
+      // Schedule the job after payment details confirmed
+      if (res.ok && scheduleAfter) {
+        try {
+          await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
+          console.log("[Payment] job scheduled successfully", jobId);
+        } catch (scheduleErr: any) {
+          console.error("[Payment] failed to schedule job:", scheduleErr);
+        }
+      }
+
       return paymentInfo;
     } catch (err) {
       console.error("[Payment] Erro ao buscar detalhes do pagamento:", err);
@@ -109,7 +120,7 @@ const DetalheEventoContratante = () => {
       // Fetch full payment details after Pusher notification
       const jobId = data?.jobId || lastJobIdRef.current;
       if (jobId) {
-        await fetchJobPayments(jobId);
+        await fetchJobPayments(jobId, true);
       }
     });
 
@@ -248,16 +259,8 @@ const DetalheEventoContratante = () => {
       console.log("[Payment] created successfully for job", jobId, paymentResult);
       lastJobIdRef.current = jobId;
 
-      // Schedule the job after successful payment creation
-      try {
-        await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
-        console.log("[Payment] job scheduled successfully", jobId);
-      } catch (scheduleErr: any) {
-        console.error("[Payment] failed to schedule job:", scheduleErr);
-      }
-
-      // Fetch full payment details after successful creation
-      const fullPayment = await fetchJobPayments(jobId);
+      // Fetch full payment details and schedule after success
+      const fullPayment = await fetchJobPayments(jobId, true);
 
       setPixData(fullPayment ?? paymentResult);
       setShowPixModal(true);
