@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star, KeyRound, Copy } from "lucide-react";
+import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AppLayout from "@/components/layout/AppLayout";
@@ -60,10 +60,6 @@ const DetalheVaga = () => {
   const [checkinCode, setCheckinCode] = useState("");
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [checkinDone, setCheckinDone] = useState(false);
-  const [checkoutCode, setCheckoutCode] = useState<string | null>(null);
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutCopied, setCheckoutCopied] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -210,37 +206,6 @@ const DetalheVaga = () => {
     }
   };
 
-  const handleGerarCodigoCheckout = async () => {
-    if (checkoutCode) {
-      setShowCheckoutModal(true);
-      return;
-    }
-    const jobId = jobIdFromState || vagaId;
-    if (!providerId || !jobId) {
-      toast.error("Não foi possível identificar os dados. Tente novamente.");
-      return;
-    }
-    setCheckoutLoading(true);
-    try {
-      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-outs/code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, providerId }),
-      });
-      const body = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(body?.message || "Não foi possível gerar o código de check-out.");
-      }
-      const code = body?.data?.code || body?.data || body?.code || "";
-      setCheckoutCode(String(code));
-      setShowCheckoutModal(true);
-    } catch (err: any) {
-      console.error("[DetalheVaga] checkout code error:", err);
-      toast.error(err.message || "Erro ao gerar código. Tente novamente.");
-    } finally {
-      setCheckoutLoading(false);
-    }
-  };
 
   const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
   const agendadaTimeline = {
@@ -446,9 +411,8 @@ const DetalheVaga = () => {
                         </Button>
                       )}
                       {showCheckout && (
-                        <Button size="sm" className="gap-1.5" onClick={handleGerarCodigoCheckout} disabled={checkoutLoading}>
-                          {checkoutLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
-                          {checkoutCode ? "Ver Código" : "Check-out"}
+                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
+                          <ShieldCheck className="w-4 h-4" /> Check-out
                         </Button>
                       )}
                       {showEntrada && (
@@ -514,46 +478,6 @@ const DetalheVaga = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Modal de Check-out */}
-        <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-          <DialogContent className="max-w-xs">
-            <DialogHeader>
-              <DialogTitle className="text-center">Código de Check-out</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col items-center space-y-4 py-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Compartilhe este código com o contratante para confirmar o término do trabalho.
-              </p>
-              <div className="flex justify-center gap-2">
-                {(checkoutCode || "------").split("").map((char, i) => (
-                  <div
-                    key={i}
-                    className="w-11 h-14 rounded-lg bg-muted border border-border flex items-center justify-center text-2xl font-bold font-mono text-foreground"
-                  >
-                    {char}
-                  </div>
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                className="w-full gap-2"
-                onClick={() => {
-                  if (checkoutCode) {
-                    navigator.clipboard.writeText(checkoutCode);
-                    setCheckoutCopied(true);
-                    setTimeout(() => setCheckoutCopied(false), 2000);
-                  }
-                }}
-              >
-                {checkoutCopied ? (
-                  <><CheckCircle className="w-4 h-4 text-success" /> Código copiado!</>
-                ) : (
-                  <><Copy className="w-4 h-4" /> Copiar código</>
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </AppLayout>
   );
