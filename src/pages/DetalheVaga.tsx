@@ -207,7 +207,14 @@ const DetalheVaga = () => {
   };
 
   const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
-  const timeline = isAgendada ? getAgendadaTimeline() : defaultTimeline;
+  const agendadaTimeline = {
+    aceite: true,
+    inicio: checkinDone,
+    fim: false,
+    pagamento: false,
+    feedback: false,
+  };
+  const timeline = isAgendada ? agendadaTimeline : defaultTimeline;
 
   const canConfirm = status === "aceita" && !timeline.inicio;
   const isOpen = status === "aberta" || status === "open";
