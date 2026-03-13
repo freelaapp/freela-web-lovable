@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,6 +78,10 @@ const DetalheEventoContratante = () => {
   const [pixCopied, setPixCopied] = useState(false);
   const [timelineStep, setTimelineStep] = useState(0);
   const lastJobIdRef = useRef<string | null>(null);
+  const [checkInCode, setCheckInCode] = useState<string | null>(null);
+  const [showCheckInModal, setShowCheckInModal] = useState(false);
+  const [checkInLoading, setCheckInLoading] = useState(false);
+  const [checkInCopied, setCheckInCopied] = useState(false);
 
   // Helper: fetch payment details for a job, then schedule if successful
   const fetchJobPayments = async (jobId: string, scheduleAfter = false) => {
@@ -273,6 +277,55 @@ const DetalheEventoContratante = () => {
       toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
       setActionLoadingIds(prev => { const next = new Set(prev); next.delete(candidato.id); return next; });
+    }
+  };
+
+  const handleGerarCodigo = async () => {
+    if (checkInCode) {
+      setShowCheckInModal(true);
+      return;
+    }
+    setCheckInLoading(true);
+    try {
+      const vacancyId = eventoId ?? "";
+      // Fetch jobId
+      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+      const jobsBody = await jobsRes.json().catch(() => null);
+      const jobData = jobsBody?.data ?? jobsBody;
+      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+
+      if (!jobId) {
+        toast({ title: "Erro", description: "Job não encontrado.", variant: "destructive" });
+        return;
+      }
+
+      const providerId = confirmados[0]?.providerId;
+      if (!providerId) {
+        toast({ title: "Erro", description: "Nenhum freelancer confirmado.", variant: "destructive" });
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("providerId", providerId);
+      formData.append("jobId", jobId);
+
+      const res = await apiFetch(`${API_BASE_URL}/provider/jobs/check-ins/code`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.message || "Não foi possível gerar o código.");
+      }
+
+      const code = body?.data?.code || body?.data || body?.code || "";
+      setCheckInCode(String(code));
+      setShowCheckInModal(true);
+    } catch (err: any) {
+      toast({ title: "Erro ao gerar código", description: err.message, variant: "destructive" });
+    } finally {
+      setCheckInLoading(false);
     }
   };
 
@@ -489,6 +542,7 @@ const DetalheEventoContratante = () => {
                 const isInProgress = timelineStep === item.step;
                 const isLast = i === arr.length - 1;
                 const showPaymentBtn = item.key === "pagamento" && isInProgress && confirmados.length > 0;
+                const showCheckInBtn = item.key === "inicio" && isInProgress && confirmados.length > 0;
 
                 return (
                   <div key={item.key} className="relative pb-6 last:pb-0">
@@ -518,6 +572,19 @@ const DetalheEventoContratante = () => {
                             ? <Loader2 className="w-4 h-4 animate-spin" />
                             : <DollarSign className="w-4 h-4" />}
                           Pagar
+                        </Button>
+                      )}
+                      {showCheckInBtn && (
+                        <Button
+                          size="sm"
+                          className="gap-1.5"
+                          disabled={checkInLoading}
+                          onClick={handleGerarCodigo}
+                        >
+                          {checkInLoading
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <KeyRound className="w-4 h-4" />}
+                          {checkInCode ? "Ver Código" : "Gerar Código"}
                         </Button>
                       )}
                     </div>
@@ -708,6 +775,47 @@ const DetalheEventoContratante = () => {
                 após a conclusão do trabalho.
               </p>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal Código Check-in ──────────────────────────────── */}
+      <Dialog open={showCheckInModal} onOpenChange={setShowCheckInModal}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="text-center">Código de Check-in</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4 py-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Compartilhe este código com o freelancer para confirmar o início do trabalho.
+            </p>
+            <div className="flex justify-center gap-2">
+              {(checkInCode || "------").split("").map((char, i) => (
+                <div
+                  key={i}
+                  className="w-11 h-14 rounded-lg bg-muted border border-border flex items-center justify-center text-2xl font-bold font-mono text-foreground"
+                >
+                  {char}
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => {
+                if (checkInCode) {
+                  navigator.clipboard.writeText(checkInCode);
+                  setCheckInCopied(true);
+                  setTimeout(() => setCheckInCopied(false), 2000);
+                }
+              }}
+            >
+              {checkInCopied ? (
+                <><CheckCircle className="w-4 h-4 text-success" /> Código copiado!</>
+              ) : (
+                <><Copy className="w-4 h-4" /> Copiar código</>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
