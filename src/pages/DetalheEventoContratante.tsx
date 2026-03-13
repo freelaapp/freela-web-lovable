@@ -90,11 +90,11 @@ const DetalheEventoContratante = () => {
         setPixData(prev => ({ ...prev, ...paymentInfo }));
       }
 
-      // Schedule the job after payment details confirmed
       if (res.ok && scheduleAfter) {
         try {
           await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
           console.log("[Payment] job scheduled successfully", jobId);
+          setTimelineStep(2);
         } catch (scheduleErr: any) {
           console.error("[Payment] failed to schedule job:", scheduleErr);
         }
