@@ -223,6 +223,15 @@ const DetalheEventoContratante = () => {
       });
 
       console.log("[Payment] created successfully for job", jobId, paymentResult);
+
+      // Schedule the job after successful payment creation
+      try {
+        await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
+        console.log("[Payment] job scheduled successfully", jobId);
+      } catch (scheduleErr: any) {
+        console.error("[Payment] failed to schedule job:", scheduleErr);
+      }
+
       setPixData(paymentResult);
       setShowPixModal(true);
     } catch (err: any) {
