@@ -39,8 +39,10 @@ const DashboardFreelancer = () => {
   const [averageRating, setAverageRating] = useState<string>("--");
   const [vagasDisponiveis, setVagasDisponiveis] = useState<FlattenedVaga[]>([]);
   const [vagasAtivas, setVagasAtivas] = useState<any[]>([]);
+  const [vagasAgendadas, setVagasAgendadas] = useState<any[]>([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
   const [loadingAtivas, setLoadingAtivas] = useState(true);
+  const [loadingAgendadas, setLoadingAgendadas] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,6 +116,35 @@ const DashboardFreelancer = () => {
           setVagasAtivas([]);
         }
         setLoadingAtivas(false);
+
+        // 3b. Get future/scheduled jobs (same logic as active jobs)
+        setLoadingAgendadas(true);
+        const futureRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const futureBody = await futureRes.json().catch(() => null);
+        const futureData = futureBody?.data ?? futureBody;
+        const futureIds: string[] = Array.isArray(futureData)
+          ? futureData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+          : [];
+
+        if (futureIds.length > 0) {
+          const futureDetails = await Promise.all(
+            futureIds.filter(Boolean).map(async (vacId: string) => {
+              try {
+                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
+                  method: "GET", credentials: "include", headers,
+                });
+                const body = await res.json().catch(() => null);
+                return body?.data ?? body ?? null;
+              } catch { return null; }
+            })
+          );
+          setVagasAgendadas(futureDetails.filter(Boolean));
+        } else {
+          setVagasAgendadas([]);
+        }
+        setLoadingAgendadas(false);
 
         // 4. Get filtered vacancies and flatten services
         setLoadingVagas(true);
@@ -211,6 +242,48 @@ const DashboardFreelancer = () => {
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
                       <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">Ativa</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      {vaga.freelancers?.[0]?.assignment && (
+                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobTime && (
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobValue && (
+                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
+                      )}
+                    </div>
+                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(vaga.jobDate)}</p>}
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Vagas Agendadas */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary" /> Vagas Agendadas
+                </CardTitle>
+                <Button variant="ghost" size="sm" className="text-primary text-xs" onClick={() => navigate("/agenda")}>
+                  Ver todos <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {loadingAgendadas ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Carregando vagas agendadas...</p>
+              ) : vagasAgendadas.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga agendada</p>
+              ) : (
+                vagasAgendadas.slice(0, 3).map((vaga: any) => (
+                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary-light text-primary">Agendada</span>
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       {vaga.freelancers?.[0]?.assignment && (
