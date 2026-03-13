@@ -673,13 +673,13 @@ const DetalheEventoContratante = () => {
                         <Button
                           size="sm"
                           className="gap-1.5"
-                          onClick={handleGerarCodigo}
-                          disabled={checkInLoading}
+                          onClick={handleGerarCodigoCheckout}
+                          disabled={checkOutLoading}
                         >
-                          {checkInLoading
+                          {checkOutLoading
                             ? <Loader2 className="w-4 h-4 animate-spin" />
                             : <KeyRound className="w-4 h-4" />}
-                          Check-out
+                          {checkOutCode ? "Ver Código" : "Check-out"}
                         </Button>
                       )}
                     </div>
