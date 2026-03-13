@@ -3,7 +3,8 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
@@ -55,6 +56,10 @@ const DetalheVaga = () => {
   const [loading, setLoading] = useState(true);
   const [providerId, setProviderId] = useState<string | null>(null);
   const [candidacyStatus, setCandidacyStatus] = useState<string | null>(null);
+  const [showCheckinModal, setShowCheckinModal] = useState(false);
+  const [checkinCode, setCheckinCode] = useState("");
+  const [checkinLoading, setCheckinLoading] = useState(false);
+  const [checkinDone, setCheckinDone] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,23 +161,60 @@ const DetalheVaga = () => {
   // Timeline logic
   const timelineSteps = isAgendada ? agendadaTimelineSteps : defaultTimelineSteps;
 
-  // For agendadas: always aceite=done, inicio=in_progress
-  const getAgendadaTimeline = () => ({
-    aceite: true,
-    inicio: false,
-    fim: false,
-    pagamento: false,
-    feedback: false,
-  });
-
+  // For agendadas: timeline depends on checkinDone
   const getAgendadaStepStatus = (stepKey: string) => {
+    if (checkinDone) {
+      if (stepKey === "aceite" || stepKey === "inicio") return "done";
+      if (stepKey === "fim") return "in_progress";
+      return "pending";
+    }
     if (stepKey === "aceite") return "done";
     if (stepKey === "inicio") return "in_progress";
     return "pending";
   };
 
+  const handleCheckinValidate = async () => {
+    if (checkinCode.length !== 6) {
+      toast.error("Digite o código de 6 dígitos.");
+      return;
+    }
+    const jobId = jobIdFromState || vagaId;
+    if (!providerId || !jobId) {
+      toast.error("Não foi possível identificar os dados. Tente novamente.");
+      return;
+    }
+    setCheckinLoading(true);
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-ins/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId, providerId, code: checkinCode }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || "Código inválido. Tente novamente.");
+      }
+      setCheckinDone(true);
+      setShowCheckinModal(false);
+      setCheckinCode("");
+      toast.success("Check-in realizado com sucesso!");
+    } catch (err: any) {
+      console.error("[DetalheVaga] checkin error:", err);
+      toast.error(err.message || "Erro ao validar código. Tente novamente.");
+    } finally {
+      setCheckinLoading(false);
+    }
+  };
+
   const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
-  const timeline = isAgendada ? getAgendadaTimeline() : defaultTimeline;
+  const agendadaTimeline = {
+    aceite: true,
+    inicio: checkinDone,
+    fim: false,
+    pagamento: false,
+    feedback: false,
+  };
+  const timeline = isAgendada ? agendadaTimeline : defaultTimeline;
 
   const canConfirm = status === "aceita" && !timeline.inicio;
   const isOpen = status === "aberta" || status === "open";
@@ -337,7 +379,8 @@ const DetalheVaga = () => {
                 }
 
                 const isInProgress = stepStatus === "in_progress";
-                const showCheckin = isAgendada && step.key === "inicio" && isInProgress;
+                const showCheckin = isAgendada && step.key === "inicio" && isInProgress && !checkinDone;
+                const showCheckout = isAgendada && step.key === "fim" && isInProgress;
 
                 // For non-agendada: existing logic
                 const showEntrada = !isAgendada && step.key === "inicio" && canConfirm;
@@ -362,8 +405,13 @@ const DetalheVaga = () => {
                         </p>
                       </div>
                       {showCheckin && (
-                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
+                        <Button size="sm" className="gap-1.5" onClick={() => { setCheckinCode(""); setShowCheckinModal(true); }}>
                           <ShieldCheck className="w-4 h-4" /> Check-in
+                        </Button>
+                      )}
+                      {showCheckout && (
+                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
+                          <ShieldCheck className="w-4 h-4" /> Check-out
                         </Button>
                       )}
                       {showEntrada && (
@@ -383,6 +431,38 @@ const DetalheVaga = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Modal de Check-in */}
+        <Dialog open={showCheckinModal} onOpenChange={setShowCheckinModal}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-center">Código de Check-in</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-6 py-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Insira o código de 6 dígitos fornecido pelo contratante.
+              </p>
+              <InputOTP maxLength={6} value={checkinCode} onChange={setCheckinCode}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+              <Button
+                className="w-full gap-2"
+                onClick={handleCheckinValidate}
+                disabled={checkinLoading || checkinCode.length !== 6}
+              >
+                {checkinLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                {checkinLoading ? "Validando..." : "Enviar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Popup de sucesso */}
         <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
