@@ -259,16 +259,8 @@ const DetalheEventoContratante = () => {
       console.log("[Payment] created successfully for job", jobId, paymentResult);
       lastJobIdRef.current = jobId;
 
-      // Schedule the job after successful payment creation
-      try {
-        await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
-        console.log("[Payment] job scheduled successfully", jobId);
-      } catch (scheduleErr: any) {
-        console.error("[Payment] failed to schedule job:", scheduleErr);
-      }
-
-      // Fetch full payment details after successful creation
-      const fullPayment = await fetchJobPayments(jobId);
+      // Fetch full payment details and schedule after success
+      const fullPayment = await fetchJobPayments(jobId, true);
 
       setPixData(fullPayment ?? paymentResult);
       setShowPixModal(true);
