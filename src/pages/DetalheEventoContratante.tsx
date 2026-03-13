@@ -1089,7 +1089,7 @@ const DetalheEventoContratante = () => {
             </div>
             <Button
               className="w-full gap-2"
-              disabled={reviewLoading || reviewStars === 0}
+              disabled={reviewLoading || reviewStars === 0 || providerAttendedJob === null}
               onClick={handleEnviarAvaliacao}
             >
               {reviewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
