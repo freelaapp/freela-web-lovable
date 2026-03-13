@@ -76,18 +76,41 @@ const DetalheEventoContratante = () => {
   const [showPixModal, setShowPixModal] = useState(false);
   const [pixData, setPixData] = useState<JobPaymentResponse | null>(null);
   const [pixCopied, setPixCopied] = useState(false);
+  const lastJobIdRef = useRef<string | null>(null);
+
+  // Helper: fetch payment details for a job
+  const fetchJobPayments = async (jobId: string) => {
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, { method: "GET" });
+      const body = await res.json().catch(() => null);
+      console.log("[Payment] GET /jobs/{jobId}/payments:", body);
+      const paymentInfo = body?.data ?? body;
+      if (paymentInfo) {
+        setPixData(prev => ({ ...prev, ...paymentInfo }));
+      }
+      return paymentInfo;
+    } catch (err) {
+      console.error("[Payment] Erro ao buscar detalhes do pagamento:", err);
+    }
+  };
 
   // ── Pusher: listen for payment updates ──────────────────────
   useEffect(() => {
     const pusher = new Pusher("f8d94fc93946ed0f4e0b", { cluster: "sa1" });
     const channel = pusher.subscribe("payments");
 
-    channel.bind("payment.updated", (data: any) => {
+    channel.bind("payment.updated", async (data: any) => {
       console.log("[Pusher] payment.updated", data);
       if (data?.status) {
         setPaymentStatus(prev => ({ ...prev, [data.providerId ?? data.jobId ?? ""]: data.status }));
       }
       toast({ title: "Pagamento atualizado", description: data?.message || `Status: ${data?.status}` });
+
+      // Fetch full payment details after Pusher notification
+      const jobId = data?.jobId || lastJobIdRef.current;
+      if (jobId) {
+        await fetchJobPayments(jobId);
+      }
     });
 
     return () => {
