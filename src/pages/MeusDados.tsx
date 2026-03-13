@@ -139,6 +139,7 @@ const MeusDados = () => {
   const [codigoEnviado, setCodigoEnviado] = useState(false);
   const [codigoOTP, setCodigoOTP] = useState("");
   const [confirmadoDelete, setConfirmadoDelete] = useState(false);
+  const [hasExistingPixKey, setHasExistingPixKey] = useState(false);
 
   // Original snapshots for change detection
   const [origUser, setOrigUser] = useState("");
@@ -312,6 +313,7 @@ const MeusDados = () => {
                 setChavePixType(pt);
                 setChavePix(pk);
                 pixSnap = { chavePixType: pt, chavePix: pk };
+                setHasExistingPixKey(true);
               }
             }
           }
@@ -385,25 +387,53 @@ const MeusDados = () => {
 
       // 2. PUT /providers/pix-keys
       if (hasPixChanges) {
-        const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
-          method: "PUT",
-          credentials: "include",
-          headers: {
-            "Origin-type": ORIGIN_TYPE,
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            key: chavePix,
-            type: chavePixType,
-          }),
-        });
-        if (pixRes.ok) {
-          setOrigPix(currentPixSnap());
-          results.push(true);
+        if (hasExistingPixKey) {
+          // Update existing PIX key
+          const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+              "Origin-type": ORIGIN_TYPE,
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              key: chavePix,
+              type: chavePixType,
+            }),
+          });
+          if (pixRes.ok) {
+            setOrigPix(currentPixSnap());
+            results.push(true);
+          } else {
+            console.error("[MeusDados] Pix update failed:", pixRes.status);
+            results.push(false);
+          }
         } else {
-          console.error("[MeusDados] Pix save failed:", pixRes.status);
-          results.push(false);
+          // Create new PIX key
+          const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Origin-type": ORIGIN_TYPE,
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              key: chavePix,
+              type: chavePixType,
+              createdAt: new Date().toISOString(),
+              providerId: providerId,
+            }),
+          });
+          if (pixRes.ok) {
+            setOrigPix(currentPixSnap());
+            setHasExistingPixKey(true);
+            results.push(true);
+          } else {
+            console.error("[MeusDados] Pix create failed:", pixRes.status);
+            results.push(false);
+          }
         }
       }
 
