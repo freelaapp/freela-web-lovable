@@ -89,6 +89,7 @@ const DetalheEventoContratante = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewStars, setReviewStars] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
+  const [providerAttendedJob, setProviderAttendedJob] = useState<boolean | null>(null);
   const [reviewLoading, setReviewLoading] = useState(false);
 
   // Helper: fetch payment details for a job, then schedule if successful
@@ -449,6 +450,7 @@ const DetalheEventoContratante = () => {
           sender: contractorId,
           receiver: providerId,
           jobId,
+          providerAttendedJob: providerAttendedJob === true,
           createdAt: new Date().toISOString(),
         }),
       });
@@ -462,6 +464,7 @@ const DetalheEventoContratante = () => {
       setShowReviewModal(false);
       setReviewStars(0);
       setReviewComment("");
+      setProviderAttendedJob(null);
     } catch (err: any) {
       toast({ title: "Erro ao enviar avaliação", description: err.message, variant: "destructive" });
     } finally {
@@ -1050,6 +1053,28 @@ const DetalheEventoContratante = () => {
                 </button>
               ))}
             </div>
+            {/* Provider attended */}
+            <div className="w-full space-y-2">
+              <Label>O Freelancer fez o trabalho?</Label>
+              <div className="flex gap-4">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={providerAttendedJob === true ? "default" : "outline"}
+                  onClick={() => setProviderAttendedJob(true)}
+                >
+                  Sim
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={providerAttendedJob === false ? "default" : "outline"}
+                  onClick={() => setProviderAttendedJob(false)}
+                >
+                  Não
+                </Button>
+              </div>
+            </div>
             {/* Comment */}
             <div className="w-full space-y-2">
               <Label htmlFor="review-comment">Comentário</Label>
@@ -1064,7 +1089,7 @@ const DetalheEventoContratante = () => {
             </div>
             <Button
               className="w-full gap-2"
-              disabled={reviewLoading || reviewStars === 0}
+              disabled={reviewLoading || reviewStars === 0 || providerAttendedJob === null}
               onClick={handleEnviarAvaliacao}
             >
               {reviewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
