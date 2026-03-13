@@ -447,7 +447,7 @@ const DetalheVaga = () => {
                         </Button>
                       )}
                       {showCheckout && (
-                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
+                        <Button size="sm" className="gap-1.5" onClick={() => { setCheckoutCode(""); setShowCheckoutModal(true); }}>
                           <ShieldCheck className="w-4 h-4" /> Check-out
                         </Button>
                       )}
