@@ -161,19 +161,49 @@ const DetalheVaga = () => {
   // Timeline logic
   const timelineSteps = isAgendada ? agendadaTimelineSteps : defaultTimelineSteps;
 
-  // For agendadas: always aceite=done, inicio=in_progress
-  const getAgendadaTimeline = () => ({
-    aceite: true,
-    inicio: false,
-    fim: false,
-    pagamento: false,
-    feedback: false,
-  });
-
+  // For agendadas: timeline depends on checkinDone
   const getAgendadaStepStatus = (stepKey: string) => {
+    if (checkinDone) {
+      if (stepKey === "aceite" || stepKey === "inicio") return "done";
+      if (stepKey === "fim") return "in_progress";
+      return "pending";
+    }
     if (stepKey === "aceite") return "done";
     if (stepKey === "inicio") return "in_progress";
     return "pending";
+  };
+
+  const handleCheckinValidate = async () => {
+    if (checkinCode.length !== 6) {
+      toast.error("Digite o código de 6 dígitos.");
+      return;
+    }
+    const jobId = jobIdFromState || vagaId;
+    if (!providerId || !jobId) {
+      toast.error("Não foi possível identificar os dados. Tente novamente.");
+      return;
+    }
+    setCheckinLoading(true);
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-ins/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId, providerId, code: checkinCode }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || "Código inválido. Tente novamente.");
+      }
+      setCheckinDone(true);
+      setShowCheckinModal(false);
+      setCheckinCode("");
+      toast.success("Check-in realizado com sucesso!");
+    } catch (err: any) {
+      console.error("[DetalheVaga] checkin error:", err);
+      toast.error(err.message || "Erro ao validar código. Tente novamente.");
+    } finally {
+      setCheckinLoading(false);
+    }
   };
 
   const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
