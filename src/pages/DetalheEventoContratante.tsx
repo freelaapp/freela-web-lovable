@@ -120,7 +120,7 @@ const DetalheEventoContratante = () => {
       // Fetch full payment details after Pusher notification
       const jobId = data?.jobId || lastJobIdRef.current;
       if (jobId) {
-        await fetchJobPayments(jobId, true);
+        await fetchJobPayments(jobId, false);
       }
     });
 
