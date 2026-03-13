@@ -328,53 +328,6 @@ const DetalheEventoContratante = () => {
           </CardContent>
         </Card>
 
-        {/* Linha do Tempo */}
-        <Card>
-          <CardContent className="p-5">
-            <h3 className="text-sm font-semibold mb-4">Linha do Tempo</h3>
-            <div className="flex items-center justify-between relative">
-              {/* Connecting line */}
-              <div className="absolute top-4 left-0 right-0 h-0.5 bg-muted z-0" />
-              <div
-                className="absolute top-4 left-0 h-0.5 bg-primary z-0 transition-all duration-500"
-                style={{ width: `${Math.min(timelineStep / 4 * 100, 100)}%` }}
-              />
-
-              {[
-                { label: "Contratação", step: 0 },
-                { label: "Pagamento", step: 1 },
-                { label: "Início do trabalho", step: 2 },
-                { label: "Término do trabalho", step: 3 },
-                { label: "Feedback", step: 4 },
-              ].map((item) => {
-                const isDone = timelineStep > item.step;
-                const isCurrent = timelineStep === item.step;
-                return (
-                  <div key={item.step} className="flex flex-col items-center z-10 flex-1">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                        isDone
-                          ? "bg-primary text-primary-foreground"
-                          : isCurrent
-                          ? "bg-primary/20 text-primary border-2 border-primary"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {isDone ? <CheckCircle className="w-4 h-4" /> : item.step + 1}
-                    </div>
-                    <span
-                      className={`text-[10px] mt-1.5 text-center leading-tight max-w-[60px] ${
-                        isDone ? "text-primary font-semibold" : isCurrent ? "text-foreground font-medium" : "text-muted-foreground"
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Freelancers - conditional by status */}
         {(vacancy.status === "open" || vacancy.status === "in hiring") && (
