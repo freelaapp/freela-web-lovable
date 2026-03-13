@@ -542,6 +542,7 @@ const DetalheEventoContratante = () => {
                 const isInProgress = timelineStep === item.step;
                 const isLast = i === arr.length - 1;
                 const showPaymentBtn = item.key === "pagamento" && isInProgress && confirmados.length > 0;
+                const showCheckInBtn = item.key === "inicio" && isInProgress && confirmados.length > 0;
 
                 return (
                   <div key={item.key} className="relative pb-6 last:pb-0">
@@ -571,6 +572,19 @@ const DetalheEventoContratante = () => {
                             ? <Loader2 className="w-4 h-4 animate-spin" />
                             : <DollarSign className="w-4 h-4" />}
                           Pagar
+                        </Button>
+                      )}
+                      {showCheckInBtn && (
+                        <Button
+                          size="sm"
+                          className="gap-1.5"
+                          disabled={checkInLoading}
+                          onClick={handleGerarCodigo}
+                        >
+                          {checkInLoading
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <KeyRound className="w-4 h-4" />}
+                          {checkInCode ? "Ver Código" : "Gerar Código"}
                         </Button>
                       )}
                     </div>
