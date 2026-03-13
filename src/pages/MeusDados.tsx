@@ -139,6 +139,7 @@ const MeusDados = () => {
   const [codigoEnviado, setCodigoEnviado] = useState(false);
   const [codigoOTP, setCodigoOTP] = useState("");
   const [confirmadoDelete, setConfirmadoDelete] = useState(false);
+  const [hasExistingPixKey, setHasExistingPixKey] = useState(false);
 
   // Original snapshots for change detection
   const [origUser, setOrigUser] = useState("");
