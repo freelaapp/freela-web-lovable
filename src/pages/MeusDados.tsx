@@ -313,6 +313,7 @@ const MeusDados = () => {
                 setChavePixType(pt);
                 setChavePix(pk);
                 pixSnap = { chavePixType: pt, chavePix: pk };
+                setHasExistingPixKey(true);
               }
             }
           }
