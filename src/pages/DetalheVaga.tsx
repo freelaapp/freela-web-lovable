@@ -379,7 +379,8 @@ const DetalheVaga = () => {
                 }
 
                 const isInProgress = stepStatus === "in_progress";
-                const showCheckin = isAgendada && step.key === "inicio" && isInProgress;
+                const showCheckin = isAgendada && step.key === "inicio" && isInProgress && !checkinDone;
+                const showCheckout = isAgendada && step.key === "fim" && isInProgress;
 
                 // For non-agendada: existing logic
                 const showEntrada = !isAgendada && step.key === "inicio" && canConfirm;
@@ -404,8 +405,13 @@ const DetalheVaga = () => {
                         </p>
                       </div>
                       {showCheckin && (
-                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
+                        <Button size="sm" className="gap-1.5" onClick={() => { setCheckinCode(""); setShowCheckinModal(true); }}>
                           <ShieldCheck className="w-4 h-4" /> Check-in
+                        </Button>
+                      )}
+                      {showCheckout && (
+                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
+                          <ShieldCheck className="w-4 h-4" /> Check-out
                         </Button>
                       )}
                       {showEntrada && (
