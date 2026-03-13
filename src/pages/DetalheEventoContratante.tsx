@@ -366,6 +366,51 @@ const DetalheEventoContratante = () => {
     }
   };
 
+  const handleGerarCodigoCheckout = async () => {
+    if (checkOutCode) {
+      setShowCheckOutModal(true);
+      return;
+    }
+    setCheckOutLoading(true);
+    try {
+      const vacancyId = eventoId ?? "";
+      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+      const jobsBody = await jobsRes.json().catch(() => null);
+      const jobData = jobsBody?.data ?? jobsBody;
+      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+
+      if (!jobId) {
+        toast({ title: "Erro", description: "Job não encontrado.", variant: "destructive" });
+        return;
+      }
+
+      const providerId = confirmados[0]?.providerId;
+      if (!providerId) {
+        toast({ title: "Erro", description: "Nenhum freelancer confirmado.", variant: "destructive" });
+        return;
+      }
+
+      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-outs/code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId, jobId }),
+      });
+
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.message || "Não foi possível gerar o código de check-out.");
+      }
+
+      const code = body?.data?.code || body?.data || body?.code || "";
+      setCheckOutCode(String(code));
+      setShowCheckOutModal(true);
+    } catch (err: any) {
+      toast({ title: "Erro ao gerar código", description: err.message, variant: "destructive" });
+    } finally {
+      setCheckOutLoading(false);
+    }
+  };
+
   const handleEnviarProposta = () => {
     setPropostaEnviada(true);
     setTimeout(() => {
