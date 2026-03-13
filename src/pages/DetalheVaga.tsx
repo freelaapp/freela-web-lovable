@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star } from "lucide-react";
+import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star, Send } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AppLayout from "@/components/layout/AppLayout";
@@ -64,6 +64,10 @@ const DetalheVaga = () => {
   const [checkoutCode, setCheckoutCode] = useState("");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutDone, setCheckoutDone] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewStars, setReviewStars] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -451,6 +455,11 @@ const DetalheVaga = () => {
                           <ShieldCheck className="w-4 h-4" /> Check-out
                         </Button>
                       )}
+                      {isAgendada && step.key === "feedback" && (
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setShowReviewModal(true)}>
+                          <Star className="w-4 h-4" /> Avaliação
+                        </Button>
+                      )}
                       {showEntrada && (
                         <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
                           <ShieldCheck className="w-4 h-4" /> Confirmar Entrada
@@ -541,6 +550,91 @@ const DetalheVaga = () => {
               </div>
               <h2 className="text-2xl font-bold text-emerald-700">Aplicação Concluída</h2>
               <p className="text-sm text-emerald-600">Sua candidatura foi enviada com sucesso!</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal Avaliação */}
+        <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-center">Avaliar Contratante</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center space-y-4 py-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Como foi a experiência com o contratante?
+              </p>
+              {/* Stars */}
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setReviewStars(s)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={`w-8 h-8 ${s <= reviewStars ? "fill-primary text-primary" : "text-muted-foreground"}`}
+                    />
+                  </button>
+                ))}
+              </div>
+              {/* Comment */}
+              <div className="w-full space-y-2">
+                <label className="text-sm font-medium leading-none">Comentário</label>
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder="Deixe um comentário sobre o contratante..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  maxLength={500}
+                />
+              </div>
+              <Button
+                className="w-full gap-2"
+                disabled={reviewLoading || reviewStars === 0}
+                onClick={async () => {
+                  if (!providerId || !contractorId) {
+                    toast.error("Não foi possível identificar os envolvidos.");
+                    return;
+                  }
+                  const jobId = jobIdFromState || vaga?.id || vagaId;
+                  if (!jobId) {
+                    toast.error("Job não identificado.");
+                    return;
+                  }
+                  setReviewLoading(true);
+                  try {
+                    const res = await apiFetch(`${API_BASE_URL}/contractors/jobs/feedbacks`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        comment: reviewComment.trim(),
+                        star: reviewStars,
+                        sender: providerId,
+                        receiver: contractorId,
+                        jobId,
+                        createdAt: new Date().toISOString(),
+                      }),
+                    });
+                    if (!res.ok) {
+                      const body = await res.json().catch(() => null);
+                      throw new Error(body?.message || "Erro ao enviar avaliação.");
+                    }
+                    toast.success("Avaliação enviada!");
+                    setShowReviewModal(false);
+                    setReviewStars(0);
+                    setReviewComment("");
+                  } catch (err: any) {
+                    toast.error(err.message || "Erro ao enviar avaliação.");
+                  } finally {
+                    setReviewLoading(false);
+                  }
+                }}
+              >
+                {reviewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                Enviar
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
