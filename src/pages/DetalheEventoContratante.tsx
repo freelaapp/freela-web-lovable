@@ -89,6 +89,7 @@ const DetalheEventoContratante = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewStars, setReviewStars] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
+  const [providerAttendedJob, setProviderAttendedJob] = useState<boolean | null>(null);
   const [reviewLoading, setReviewLoading] = useState(false);
 
   // Helper: fetch payment details for a job, then schedule if successful
