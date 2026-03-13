@@ -261,6 +261,48 @@ const DashboardFreelancer = () => {
             </CardContent>
           </Card>
 
+          {/* Vagas Agendadas */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary" /> Vagas Agendadas
+                </CardTitle>
+                <Button variant="ghost" size="sm" className="text-primary text-xs" onClick={() => navigate("/agenda")}>
+                  Ver todos <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {loadingAgendadas ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Carregando vagas agendadas...</p>
+              ) : vagasAgendadas.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga agendada</p>
+              ) : (
+                vagasAgendadas.slice(0, 3).map((vaga: any) => (
+                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary-light text-primary">Agendada</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      {vaga.freelancers?.[0]?.assignment && (
+                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobTime && (
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobValue && (
+                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
+                      )}
+                    </div>
+                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(vaga.jobDate)}</p>}
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
           {/* Vagas Disponíveis */}
           <Card>
             <CardHeader className="pb-3">
