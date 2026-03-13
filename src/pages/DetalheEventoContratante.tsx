@@ -440,7 +440,7 @@ const DetalheEventoContratante = () => {
         return;
       }
 
-      const res = await apiFetch(`${API_BASE_URL}/contractors/jobs/feedbacks`, {
+      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/feedbacks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
