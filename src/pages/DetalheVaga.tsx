@@ -242,6 +242,7 @@ const DetalheVaga = () => {
     }
   };
 
+  const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
   const agendadaTimeline = {
     aceite: true,
     inicio: checkinDone,
