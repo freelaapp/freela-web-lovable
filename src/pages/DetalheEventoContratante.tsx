@@ -76,6 +76,7 @@ const DetalheEventoContratante = () => {
   const [showPixModal, setShowPixModal] = useState(false);
   const [pixData, setPixData] = useState<JobPaymentResponse | null>(null);
   const [pixCopied, setPixCopied] = useState(false);
+  const [timelineStep, setTimelineStep] = useState(0);
   const lastJobIdRef = useRef<string | null>(null);
 
   // Helper: fetch payment details for a job, then schedule if successful
