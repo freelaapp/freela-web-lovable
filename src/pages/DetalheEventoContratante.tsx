@@ -165,6 +165,8 @@ const DetalheEventoContratante = () => {
           responseTime: c.responseTime || "",
           bio: c.bio || c.description || "",
         }));
+        const hasAccepted = mapped.some(c => c.status === "aceito");
+        if (hasAccepted && timelineStep < 1) setTimelineStep(1);
         setCandidatos(mapped);
       })
       .catch(err => console.error("Erro ao buscar candidatos:", err))
