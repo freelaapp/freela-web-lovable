@@ -60,6 +60,10 @@ const DetalheVaga = () => {
   const [checkinCode, setCheckinCode] = useState("");
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [checkinDone, setCheckinDone] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [checkoutCode, setCheckoutCode] = useState("");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutDone, setCheckoutDone] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
