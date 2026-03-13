@@ -39,8 +39,10 @@ const DashboardFreelancer = () => {
   const [averageRating, setAverageRating] = useState<string>("--");
   const [vagasDisponiveis, setVagasDisponiveis] = useState<FlattenedVaga[]>([]);
   const [vagasAtivas, setVagasAtivas] = useState<any[]>([]);
+  const [vagasAgendadas, setVagasAgendadas] = useState<any[]>([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
   const [loadingAtivas, setLoadingAtivas] = useState(true);
+  const [loadingAgendadas, setLoadingAgendadas] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
