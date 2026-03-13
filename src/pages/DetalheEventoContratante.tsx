@@ -280,6 +280,55 @@ const DetalheEventoContratante = () => {
     }
   };
 
+  const handleGerarCodigo = async () => {
+    if (checkInCode) {
+      setShowCheckInModal(true);
+      return;
+    }
+    setCheckInLoading(true);
+    try {
+      const vacancyId = eventoId ?? "";
+      // Fetch jobId
+      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+      const jobsBody = await jobsRes.json().catch(() => null);
+      const jobData = jobsBody?.data ?? jobsBody;
+      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+
+      if (!jobId) {
+        toast({ title: "Erro", description: "Job não encontrado.", variant: "destructive" });
+        return;
+      }
+
+      const providerId = confirmados[0]?.providerId;
+      if (!providerId) {
+        toast({ title: "Erro", description: "Nenhum freelancer confirmado.", variant: "destructive" });
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("providerId", providerId);
+      formData.append("jobId", jobId);
+
+      const res = await apiFetch(`${API_BASE_URL}/provider/jobs/check-ins/code`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.message || "Não foi possível gerar o código.");
+      }
+
+      const code = body?.data?.code || body?.data || body?.code || "";
+      setCheckInCode(String(code));
+      setShowCheckInModal(true);
+    } catch (err: any) {
+      toast({ title: "Erro ao gerar código", description: err.message, variant: "destructive" });
+    } finally {
+      setCheckInLoading(false);
+    }
+  };
+
   const handleEnviarProposta = () => {
     setPropostaEnviada(true);
     setTimeout(() => {
