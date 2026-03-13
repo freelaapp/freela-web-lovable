@@ -364,6 +364,8 @@ export interface JobPaymentResponse {
   qrCodeBase64?: string;
   pixCopyPaste?: string;
   brCode?: string;
+  pixQrCode?: string;
+  pixQrCodeImage?: string;
   value?: number;
   status?: string;
   [key: string]: unknown;
