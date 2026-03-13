@@ -554,6 +554,91 @@ const DetalheVaga = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Modal Avaliação */}
+        <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-center">Avaliar Contratante</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center space-y-4 py-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Como foi a experiência com o contratante?
+              </p>
+              {/* Stars */}
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setReviewStars(s)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={`w-8 h-8 ${s <= reviewStars ? "fill-primary text-primary" : "text-muted-foreground"}`}
+                    />
+                  </button>
+                ))}
+              </div>
+              {/* Comment */}
+              <div className="w-full space-y-2">
+                <label className="text-sm font-medium leading-none">Comentário</label>
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder="Deixe um comentário sobre o contratante..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  maxLength={500}
+                />
+              </div>
+              <Button
+                className="w-full gap-2"
+                disabled={reviewLoading || reviewStars === 0}
+                onClick={async () => {
+                  if (!providerId || !contractorId) {
+                    toast.error("Não foi possível identificar os envolvidos.");
+                    return;
+                  }
+                  const jobId = jobIdFromState || vaga?.id || vagaId;
+                  if (!jobId) {
+                    toast.error("Job não identificado.");
+                    return;
+                  }
+                  setReviewLoading(true);
+                  try {
+                    const res = await apiFetch(`${API_BASE_URL}/contractors/jobs/feedbacks`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        comment: reviewComment.trim(),
+                        star: reviewStars,
+                        sender: providerId,
+                        receiver: contractorId,
+                        jobId,
+                        createdAt: new Date().toISOString(),
+                      }),
+                    });
+                    if (!res.ok) {
+                      const body = await res.json().catch(() => null);
+                      throw new Error(body?.message || "Erro ao enviar avaliação.");
+                    }
+                    toast.success("Avaliação enviada!");
+                    setShowReviewModal(false);
+                    setReviewStars(0);
+                    setReviewComment("");
+                  } catch (err: any) {
+                    toast.error(err.message || "Erro ao enviar avaliação.");
+                  } finally {
+                    setReviewLoading(false);
+                  }
+                }}
+              >
+                {reviewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                Enviar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </AppLayout>
   );
