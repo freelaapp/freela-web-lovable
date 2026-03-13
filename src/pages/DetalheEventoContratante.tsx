@@ -544,16 +544,16 @@ const DetalheEventoContratante = () => {
             <DialogTitle className="text-center">Pagamento via Pix</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center space-y-4 py-4">
-            {/* QR Code */}
-            {pixData?.qrCodeBase64 ? (
+            {/* QR Code Image */}
+            {pixData?.pixQrCodeImage ? (
               <img
-                src={pixData.qrCodeBase64.startsWith("data:") ? pixData.qrCodeBase64 : `data:image/png;base64,${pixData.qrCodeBase64}`}
+                src={pixData.pixQrCodeImage}
                 alt="QR Code Pix"
                 className="w-56 h-56 rounded-xl"
               />
-            ) : pixData?.qrCode ? (
+            ) : pixData?.qrCodeBase64 ? (
               <img
-                src={pixData.qrCode}
+                src={pixData.qrCodeBase64.startsWith("data:") ? pixData.qrCodeBase64 : `data:image/png;base64,${pixData.qrCodeBase64}`}
                 alt="QR Code Pix"
                 className="w-56 h-56 rounded-xl"
               />
@@ -576,18 +576,18 @@ const DetalheEventoContratante = () => {
             )}
 
             {/* Pix Copia e Cola */}
-            {(pixData?.pixCopyPaste || pixData?.brCode) && (
+            {(pixData?.pixQrCode || pixData?.pixCopyPaste || pixData?.brCode) && (
               <div className="w-full space-y-2">
                 <div className="bg-muted rounded-lg p-3">
                   <p className="text-xs text-muted-foreground break-all font-mono">
-                    {pixData.pixCopyPaste || pixData.brCode}
+                    {pixData.pixQrCode || pixData.pixCopyPaste || pixData.brCode}
                   </p>
                 </div>
                 <Button
                   variant="outline"
                   className="w-full gap-2 text-sm"
                   onClick={() => {
-                    navigator.clipboard.writeText(pixData.pixCopyPaste || pixData.brCode || "");
+                    navigator.clipboard.writeText(pixData.pixQrCode || pixData.pixCopyPaste || pixData.brCode || "");
                     setPixCopied(true);
                     setTimeout(() => setPixCopied(false), 2000);
                   }}
