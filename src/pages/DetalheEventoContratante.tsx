@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound, MessageSquare } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,6 +86,10 @@ const DetalheEventoContratante = () => {
   const [showCheckOutModal, setShowCheckOutModal] = useState(false);
   const [checkOutLoading, setCheckOutLoading] = useState(false);
   const [checkOutCopied, setCheckOutCopied] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewStars, setReviewStars] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   // Helper: fetch payment details for a job, then schedule if successful
   const fetchJobPayments = async (jobId: string, scheduleAfter = false) => {
@@ -411,6 +415,60 @@ const DetalheEventoContratante = () => {
     }
   };
 
+  const handleEnviarAvaliacao = async () => {
+    if (reviewStars === 0) {
+      toast({ title: "Selecione as estrelas", description: "Escolha de 1 a 5 estrelas.", variant: "destructive" });
+      return;
+    }
+    setReviewLoading(true);
+    try {
+      const vacancyId = eventoId ?? "";
+      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+      const jobsBody = await jobsRes.json().catch(() => null);
+      const jobData = jobsBody?.data ?? jobsBody;
+      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+
+      if (!jobId) {
+        toast({ title: "Erro", description: "Job não encontrado.", variant: "destructive" });
+        return;
+      }
+
+      const contractorId = vacancy?.contractorId ?? "";
+      const providerId = confirmados[0]?.providerId;
+      if (!providerId) {
+        toast({ title: "Erro", description: "Nenhum freelancer confirmado.", variant: "destructive" });
+        return;
+      }
+
+      const res = await apiFetch(`${API_BASE_URL}/contractors/jobs/feedbacks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          comment: reviewComment.trim(),
+          star: reviewStars,
+          sender: contractorId,
+          receiver: providerId,
+          jobId,
+          createdAt: new Date().toISOString(),
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || "Erro ao enviar avaliação.");
+      }
+
+      toast({ title: "Avaliação enviada!", description: "Obrigado pelo feedback." });
+      setShowReviewModal(false);
+      setReviewStars(0);
+      setReviewComment("");
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar avaliação", description: err.message, variant: "destructive" });
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
   const handleEnviarProposta = () => {
     setPropostaEnviada(true);
     setTimeout(() => {
@@ -670,17 +728,28 @@ const DetalheEventoContratante = () => {
                         </Button>
                       )}
                       {item.key === "termino" && (
-                        <Button
-                          size="sm"
-                          className="gap-1.5"
-                          onClick={handleGerarCodigoCheckout}
-                          disabled={checkOutLoading}
-                        >
-                          {checkOutLoading
-                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : <KeyRound className="w-4 h-4" />}
-                          {checkOutCode ? "Ver Código" : "Check-out"}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={handleGerarCodigoCheckout}
+                            disabled={checkOutLoading}
+                          >
+                            {checkOutLoading
+                              ? <Loader2 className="w-4 h-4 animate-spin" />
+                              : <KeyRound className="w-4 h-4" />}
+                            {checkOutCode ? "Ver Código" : "Check-out"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1.5"
+                            onClick={() => setShowReviewModal(true)}
+                          >
+                            <Star className="w-4 h-4" />
+                            Avaliação
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -951,6 +1020,55 @@ const DetalheEventoContratante = () => {
               ) : (
                 <><Copy className="w-4 h-4" /> Copiar código</>
               )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal Avaliação ──────────────────────────────────────── */}
+      <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">Avaliar Freelancer</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4 py-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Como foi a experiência com o freelancer?
+            </p>
+            {/* Stars */}
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setReviewStars(s)}
+                  className="transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`w-8 h-8 ${s <= reviewStars ? "fill-primary text-primary" : "text-muted-foreground"}`}
+                  />
+                </button>
+              ))}
+            </div>
+            {/* Comment */}
+            <div className="w-full space-y-2">
+              <Label htmlFor="review-comment">Comentário</Label>
+              <textarea
+                id="review-comment"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                placeholder="Deixe um comentário sobre o freelancer..."
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                maxLength={500}
+              />
+            </div>
+            <Button
+              className="w-full gap-2"
+              disabled={reviewLoading || reviewStars === 0}
+              onClick={handleEnviarAvaliacao}
+            >
+              {reviewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Enviar
             </Button>
           </div>
         </DialogContent>
