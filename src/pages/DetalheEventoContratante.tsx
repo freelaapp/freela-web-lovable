@@ -461,9 +461,13 @@ const DetalheEventoContratante = () => {
       }
 
       // Terminate the job after successful feedback
-      await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
+      const terminateRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
         method: "PATCH",
       });
+
+      if (terminateRes.ok) {
+        setTimelineStep(5);
+      }
 
       toast({ title: "Avaliação enviada!", description: "Obrigado pelo feedback." });
       setShowReviewModal(false);
