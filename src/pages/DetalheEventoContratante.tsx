@@ -136,6 +136,37 @@ const DetalheEventoContratante = () => {
     };
   }, [toast]);
 
+  // Helper: fetch job status and update timeline accordingly
+  const fetchJobStatus = async (vacancyId: string) => {
+    try {
+      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+      const jobsBody = await jobsRes.json().catch(() => null);
+      const jobData = jobsBody?.data ?? jobsBody;
+      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+
+      if (!jobId) return; // no job yet — stay at step 0
+
+      const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
+      if (res.status === 404) {
+        // 404 means job is in the first stage still
+        return;
+      }
+      const body = await res.json().catch(() => null);
+      const status = body?.data?.status ?? body?.status ?? "";
+      console.log("[JobStatus] job", jobId, "status:", status);
+
+      if (status === "schedule") {
+        setTimelineStep(2);
+      } else if (status === "in_progress" || status === "started") {
+        setTimelineStep(3);
+      } else if (status === "completed" || status === "done") {
+        setTimelineStep(4);
+      }
+    } catch (err) {
+      console.error("[JobStatus] error fetching job status:", err);
+    }
+  };
+
   useEffect(() => {
     if (!eventoId) return;
 
@@ -148,7 +179,7 @@ const DetalheEventoContratante = () => {
       .catch(err => console.error("Erro ao buscar vaga:", err))
       .finally(() => setLoading(false));
 
-    // Fetch candidacies — sem filtro de status para carregar todos (pendentes, aceitos e recusados)
+    // Fetch candidacies
     setLoadingCandidatos(true);
     apiFetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}`, { method: "GET" })
       .then(r => r.json())
@@ -175,6 +206,9 @@ const DetalheEventoContratante = () => {
       })
       .catch(err => console.error("Erro ao buscar candidatos:", err))
       .finally(() => setLoadingCandidatos(false));
+
+    // Fetch job status to determine timeline position
+    fetchJobStatus(eventoId);
   }, [eventoId]);
 
   if (loading) {
