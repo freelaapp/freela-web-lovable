@@ -328,53 +328,6 @@ const DetalheEventoContratante = () => {
           </CardContent>
         </Card>
 
-        {/* Linha do Tempo */}
-        <Card>
-          <CardContent className="p-5">
-            <h3 className="text-sm font-semibold mb-4">Linha do Tempo</h3>
-            <div className="flex items-center justify-between relative">
-              {/* Connecting line */}
-              <div className="absolute top-4 left-0 right-0 h-0.5 bg-muted z-0" />
-              <div
-                className="absolute top-4 left-0 h-0.5 bg-primary z-0 transition-all duration-500"
-                style={{ width: `${Math.min(timelineStep / 4 * 100, 100)}%` }}
-              />
-
-              {[
-                { label: "Contratação", step: 0 },
-                { label: "Pagamento", step: 1 },
-                { label: "Início do trabalho", step: 2 },
-                { label: "Término do trabalho", step: 3 },
-                { label: "Feedback", step: 4 },
-              ].map((item) => {
-                const isDone = timelineStep > item.step;
-                const isCurrent = timelineStep === item.step;
-                return (
-                  <div key={item.step} className="flex flex-col items-center z-10 flex-1">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                        isDone
-                          ? "bg-primary text-primary-foreground"
-                          : isCurrent
-                          ? "bg-primary/20 text-primary border-2 border-primary"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {isDone ? <CheckCircle className="w-4 h-4" /> : item.step + 1}
-                    </div>
-                    <span
-                      className={`text-[10px] mt-1.5 text-center leading-tight max-w-[60px] ${
-                        isDone ? "text-primary font-semibold" : isCurrent ? "text-foreground font-medium" : "text-muted-foreground"
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Freelancers - conditional by status */}
         {(vacancy.status === "open" || vacancy.status === "in hiring") && (
@@ -517,6 +470,63 @@ const DetalheEventoContratante = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Linha do Tempo */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Linha do Tempo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="relative pl-6">
+              {[
+                { key: "contratacao", label: "Contratação", step: 0 },
+                { key: "pagamento", label: "Pagamento", step: 1 },
+                { key: "inicio", label: "Início do Trabalho", step: 2 },
+                { key: "termino", label: "Término do Trabalho", step: 3 },
+                { key: "feedback", label: "Feedback", step: 4 },
+              ].map((item, i, arr) => {
+                const isDone = timelineStep > item.step;
+                const isInProgress = timelineStep === item.step;
+                const isLast = i === arr.length - 1;
+                const showPaymentBtn = item.key === "pagamento" && isInProgress && confirmados.length > 0;
+
+                return (
+                  <div key={item.key} className="relative pb-6 last:pb-0">
+                    {!isLast && (
+                      <div className={`absolute left-[-16px] top-8 w-0.5 h-[calc(100%-16px)] ${isDone ? "bg-primary" : isInProgress ? "bg-primary/50" : "bg-border"}`} />
+                    )}
+                    <div className={`absolute left-[-22px] top-1 w-3 h-3 rounded-full border-2 ${
+                      isDone ? "bg-primary border-primary" :
+                      isInProgress ? "bg-primary/50 border-primary animate-pulse" :
+                      "bg-background border-border"
+                    }`} />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`text-sm font-semibold ${isDone ? "text-foreground" : isInProgress ? "text-primary" : "text-muted-foreground"}`}>{item.label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {isDone ? "✓ Concluído" : isInProgress ? "🔄 Em andamento" : "Pendente"}
+                        </p>
+                      </div>
+                      {showPaymentBtn && (
+                        <Button
+                          size="sm"
+                          className="gap-1.5"
+                          disabled={actionLoadingIds.has(confirmados[0]?.id)}
+                          onClick={() => confirmados[0] && handlePagamento(confirmados[0])}
+                        >
+                          {actionLoadingIds.has(confirmados[0]?.id)
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <DollarSign className="w-4 h-4" />}
+                          Pagar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dialog Perfil do Freelancer (visão contratante) */}
