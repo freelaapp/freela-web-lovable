@@ -117,6 +117,35 @@ const DashboardFreelancer = () => {
         }
         setLoadingAtivas(false);
 
+        // 3b. Get future/scheduled jobs (same logic as active jobs)
+        setLoadingAgendadas(true);
+        const futureRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const futureBody = await futureRes.json().catch(() => null);
+        const futureData = futureBody?.data ?? futureBody;
+        const futureIds: string[] = Array.isArray(futureData)
+          ? futureData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+          : [];
+
+        if (futureIds.length > 0) {
+          const futureDetails = await Promise.all(
+            futureIds.filter(Boolean).map(async (vacId: string) => {
+              try {
+                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
+                  method: "GET", credentials: "include", headers,
+                });
+                const body = await res.json().catch(() => null);
+                return body?.data ?? body ?? null;
+              } catch { return null; }
+            })
+          );
+          setVagasAgendadas(futureDetails.filter(Boolean));
+        } else {
+          setVagasAgendadas([]);
+        }
+        setLoadingAgendadas(false);
+
         // 4. Get filtered vacancies and flatten services
         setLoadingVagas(true);
         const filteredRes = await fetch(`${API_BASE_URL}/providers/${providerId}/filtered-vacancies`, {
