@@ -464,6 +464,7 @@ const DetalheEventoContratante = () => {
       setShowReviewModal(false);
       setReviewStars(0);
       setReviewComment("");
+      setProviderAttendedJob(null);
     } catch (err: any) {
       toast({ title: "Erro ao enviar avaliação", description: err.message, variant: "destructive" });
     } finally {
