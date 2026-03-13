@@ -455,6 +455,11 @@ const DetalheVaga = () => {
                           <ShieldCheck className="w-4 h-4" /> Check-out
                         </Button>
                       )}
+                      {isAgendada && step.key === "feedback" && (
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setShowReviewModal(true)}>
+                          <Star className="w-4 h-4" /> Avaliação
+                        </Button>
+                      )}
                       {showEntrada && (
                         <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
                           <ShieldCheck className="w-4 h-4" /> Confirmar Entrada
