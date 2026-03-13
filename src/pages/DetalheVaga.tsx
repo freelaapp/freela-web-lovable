@@ -210,7 +210,38 @@ const DetalheVaga = () => {
     }
   };
 
-  const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
+  const handleGerarCodigoCheckout = async () => {
+    if (checkoutCode) {
+      setShowCheckoutModal(true);
+      return;
+    }
+    const jobId = jobIdFromState || vagaId;
+    if (!providerId || !jobId) {
+      toast.error("Não foi possível identificar os dados. Tente novamente.");
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-outs/code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId, providerId }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.message || "Não foi possível gerar o código de check-out.");
+      }
+      const code = body?.data?.code || body?.data || body?.code || "";
+      setCheckoutCode(String(code));
+      setShowCheckoutModal(true);
+    } catch (err: any) {
+      console.error("[DetalheVaga] checkout code error:", err);
+      toast.error(err.message || "Erro ao gerar código. Tente novamente.");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   const agendadaTimeline = {
     aceite: true,
     inicio: checkinDone,
