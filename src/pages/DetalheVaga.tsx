@@ -60,6 +60,10 @@ const DetalheVaga = () => {
   const [checkinCode, setCheckinCode] = useState("");
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [checkinDone, setCheckinDone] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [checkoutCode, setCheckoutCode] = useState("");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutDone, setCheckoutDone] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -206,6 +210,38 @@ const DetalheVaga = () => {
     }
   };
 
+  const handleCheckoutValidate = async () => {
+    if (checkoutCode.length !== 6) {
+      toast.error("Digite o código de 6 dígitos.");
+      return;
+    }
+    const jobId = jobIdFromState || vagaId;
+    if (!providerId || !jobId) {
+      toast.error("Não foi possível identificar os dados. Tente novamente.");
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-outs/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId, providerId, code: checkoutCode }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || "Código inválido. Tente novamente.");
+      }
+      setCheckoutDone(true);
+      setShowCheckoutModal(false);
+      setCheckoutCode("");
+      toast.success("Check-out realizado com sucesso!");
+    } catch (err: any) {
+      console.error("[DetalheVaga] checkout error:", err);
+      toast.error(err.message || "Erro ao validar código. Tente novamente.");
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
   const agendadaTimeline = {
@@ -411,7 +447,7 @@ const DetalheVaga = () => {
                         </Button>
                       )}
                       {showCheckout && (
-                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
+                        <Button size="sm" className="gap-1.5" onClick={() => { setCheckoutCode(""); setShowCheckoutModal(true); }}>
                           <ShieldCheck className="w-4 h-4" /> Check-out
                         </Button>
                       )}
@@ -465,7 +501,38 @@ const DetalheVaga = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Popup de sucesso */}
+        {/* Modal de Check-out */}
+        <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-center">Código de Check-out</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-6 py-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Insira o código de 6 dígitos fornecido pelo contratante.
+              </p>
+              <InputOTP maxLength={6} value={checkoutCode} onChange={setCheckoutCode}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+              <Button
+                className="w-full gap-2"
+                onClick={handleCheckoutValidate}
+                disabled={checkoutLoading || checkoutCode.length !== 6}
+              >
+                {checkoutLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                {checkoutLoading ? "Validando..." : "Enviar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
           <DialogContent className="max-w-sm text-center border-emerald-500 bg-emerald-50">
             <div className="flex flex-col items-center gap-4 py-6">
