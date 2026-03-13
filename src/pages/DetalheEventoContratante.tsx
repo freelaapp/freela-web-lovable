@@ -779,6 +779,47 @@ const DetalheEventoContratante = () => {
         </DialogContent>
       </Dialog>
 
+      {/* ── Modal Código Check-in ──────────────────────────────── */}
+      <Dialog open={showCheckInModal} onOpenChange={setShowCheckInModal}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="text-center">Código de Check-in</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4 py-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Compartilhe este código com o freelancer para confirmar o início do trabalho.
+            </p>
+            <div className="flex justify-center gap-2">
+              {(checkInCode || "------").split("").map((char, i) => (
+                <div
+                  key={i}
+                  className="w-11 h-14 rounded-lg bg-muted border border-border flex items-center justify-center text-2xl font-bold font-mono text-foreground"
+                >
+                  {char}
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => {
+                if (checkInCode) {
+                  navigator.clipboard.writeText(checkInCode);
+                  setCheckInCopied(true);
+                  setTimeout(() => setCheckInCopied(false), 2000);
+                }
+              }}
+            >
+              {checkInCopied ? (
+                <><CheckCircle className="w-4 h-4 text-success" /> Código copiado!</>
+              ) : (
+                <><Copy className="w-4 h-4" /> Copiar código</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </AppLayout>
   );
 };
