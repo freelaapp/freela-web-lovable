@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Ban, Check, X, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
@@ -10,11 +10,19 @@ import { toast } from "sonner";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
-const timelineSteps = [
+const defaultTimelineSteps = [
   { key: "aceite", label: "Aceite da Vaga", icon: CheckCircle },
   { key: "inicio", label: "Início do Trabalho", icon: Clock },
   { key: "fim", label: "Final do Trabalho", icon: CheckCircle },
   { key: "pagamento", label: "Pagamento", icon: DollarSign },
+];
+
+const agendadaTimelineSteps = [
+  { key: "aceite", label: "Aceite da Vaga", icon: CheckCircle },
+  { key: "inicio", label: "Início do Trabalho", icon: Clock },
+  { key: "fim", label: "Final do Trabalho", icon: CheckCircle },
+  { key: "pagamento", label: "Pagamento", icon: DollarSign },
+  { key: "feedback", label: "Feedback", icon: Star },
 ];
 
 const formatDateDDMMYYYY = (dateStr: string): string => {
@@ -33,7 +41,12 @@ const DetalheVaga = () => {
   const { vagaId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const serviceIndex: number = (location.state as any)?.serviceIndex ?? 0;
+  const locState = location.state as any;
+  const serviceIndex: number = locState?.serviceIndex ?? 0;
+  const source: string = locState?.source ?? "";
+  const jobIdFromState: string | undefined = locState?.jobId;
+  const vacancyIdFromState: string | undefined = locState?.vacancyId;
+  const isAgendada = source === "agendadas";
 
   const [applied, setApplied] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -41,31 +54,60 @@ const DetalheVaga = () => {
   const [vaga, setVaga] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [providerId, setProviderId] = useState<string | null>(null);
+  const [candidacyStatus, setCandidacyStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!vagaId) return;
       try {
-        // Fetch vacancy and provider profile in parallel
-        const [vacRes, provRes] = await Promise.all([
-          apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
-          apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
-        ]);
+        if (isAgendada) {
+          // For scheduled jobs: use /jobs/{jobId} and /candidacies/{vacancyId}
+          const actualJobId = jobIdFromState || vagaId;
+          const actualVacancyId = vacancyIdFromState || vagaId;
 
-        const vacBody = await vacRes.json().catch(() => null);
-        const vacData = vacBody?.data ?? vacBody;
-        setVaga(vacData);
+          const [jobRes, candidacyRes, provRes] = await Promise.all([
+            apiFetch(`${API_BASE_URL}/jobs/${actualJobId}`, { method: "GET" }),
+            apiFetch(`${API_BASE_URL}/candidacies/${actualVacancyId}`, { method: "GET" }),
+            apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
+          ]);
 
-        const provBody = await provRes.json().catch(() => null);
-        const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
-        if (provData?.id) setProviderId(provData.id);
+          const jobBody = await jobRes.json().catch(() => null);
+          const jobData = jobBody?.data ?? jobBody;
+          setVaga(jobData);
 
-        // Check if already applied — look in candidacies of this vacancy
-        if (vacData?.candidacies && Array.isArray(vacData.candidacies) && provData?.id) {
-          const alreadyApplied = vacData.candidacies.some(
-            (c: any) => c.providerId === provData.id && c.status !== "rejected"
-          );
-          if (alreadyApplied) setApplied(true);
+          const candidacyBody = await candidacyRes.json().catch(() => null);
+          const candidacyData = candidacyBody?.data ?? candidacyBody;
+          if (candidacyData?.status) {
+            setCandidacyStatus(candidacyData.status);
+          } else if (Array.isArray(candidacyData) && candidacyData.length > 0) {
+            setCandidacyStatus(candidacyData[0]?.status ?? null);
+          }
+
+          const provBody = await provRes.json().catch(() => null);
+          const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
+          if (provData?.id) setProviderId(provData.id);
+          setApplied(true); // Already applied if it's scheduled
+        } else {
+          // Default: fetch vacancy and provider in parallel
+          const [vacRes, provRes] = await Promise.all([
+            apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
+            apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
+          ]);
+
+          const vacBody = await vacRes.json().catch(() => null);
+          const vacData = vacBody?.data ?? vacBody;
+          setVaga(vacData);
+
+          const provBody = await provRes.json().catch(() => null);
+          const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
+          if (provData?.id) setProviderId(provData.id);
+
+          if (vacData?.candidacies && Array.isArray(vacData.candidacies) && provData?.id) {
+            const alreadyApplied = vacData.candidacies.some(
+              (c: any) => c.providerId === provData.id && c.status !== "rejected"
+            );
+            if (alreadyApplied) setApplied(true);
+          }
         }
       } catch (err) {
         console.error("[DetalheVaga] error fetching data:", err);
@@ -111,7 +153,31 @@ const DetalheVaga = () => {
   const clientName = vaga.contractorName || vaga.contractor?.name || vaga.establishment || "--";
   const contractorId = vaga.contractorId || vaga.contractor?.id;
 
-  const timeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
+  // Timeline logic
+  const timelineSteps = isAgendada ? agendadaTimelineSteps : defaultTimelineSteps;
+
+  // For agendadas: fixed timeline statuses
+  const getAgendadaTimeline = () => {
+    const isAccepted = candidacyStatus === "accepted" || candidacyStatus === "aceita" || status === "aceita" || status === "accepted";
+    return {
+      aceite: isAccepted,
+      inicio: false, // "em andamento" = current step
+      fim: false,
+      pagamento: false,
+      feedback: false,
+    };
+  };
+
+  const getAgendadaStepStatus = (stepKey: string) => {
+    const isAccepted = candidacyStatus === "accepted" || candidacyStatus === "aceita" || status === "aceita" || status === "accepted";
+    if (stepKey === "aceite") return isAccepted ? "done" : "pending";
+    if (stepKey === "inicio") return isAccepted ? "in_progress" : "pending";
+    return "pending";
+  };
+
+  const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
+  const timeline = isAgendada ? getAgendadaTimeline() : defaultTimeline;
+
   const canConfirm = status === "aceita" && !timeline.inicio;
   const isOpen = status === "aberta" || status === "open";
 
@@ -157,13 +223,13 @@ const DetalheVaga = () => {
           </button>
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-2xl font-display font-bold">{title}</h1>
-            {isOpen && !applied && (
+            {!isAgendada && isOpen && !applied && (
               <Button size="lg" className="gap-2 text-base" onClick={handleApply} disabled={applying}>
                 {applying ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                 {applying ? "Enviando..." : "Se Aplicar"}
               </Button>
             )}
-            {isOpen && applied && (
+            {!isAgendada && isOpen && applied && (
               <Button
                 size="lg"
                 className="gap-2 text-base bg-emerald-500 text-white cursor-default"
@@ -180,7 +246,7 @@ const DetalheVaga = () => {
             status === "aberta" || status === "open" ? "bg-warning-light text-warning" :
             "bg-muted text-muted-foreground"
           }`}>
-            {status === "concluida" ? "concluída" : status}
+            {isAgendada ? "Agendada" : (status === "concluida" ? "concluída" : status)}
           </span>
         </div>
 
@@ -262,24 +328,48 @@ const DetalheVaga = () => {
           <CardContent>
             <div className="relative pl-6">
               {timelineSteps.map((step, i) => {
-                const done = timeline[step.key as keyof typeof timeline];
                 const isLast = i === timelineSteps.length - 1;
-                const showEntrada = step.key === "inicio" && canConfirm;
-                const canConfirmExit = (status === "aceita" || status === "accepted") && timeline.inicio && !timeline.fim;
-                const showSaida = step.key === "fim" && canConfirmExit;
+
+                let done: boolean;
+                let stepStatus: string;
+                if (isAgendada) {
+                  stepStatus = getAgendadaStepStatus(step.key);
+                  done = stepStatus === "done";
+                } else {
+                  done = !!timeline[step.key as keyof typeof timeline];
+                  stepStatus = done ? "done" : "pending";
+                }
+
+                const isInProgress = stepStatus === "in_progress";
+                const showCheckin = isAgendada && step.key === "inicio" && isInProgress;
+
+                // For non-agendada: existing logic
+                const showEntrada = !isAgendada && step.key === "inicio" && canConfirm;
+                const canConfirmExit = !isAgendada && (status === "aceita" || status === "accepted") && timeline.inicio && !timeline.fim;
+                const showSaida = !isAgendada && step.key === "fim" && canConfirmExit;
+
                 return (
                   <div key={step.key} className="relative pb-6 last:pb-0">
                     {!isLast && (
-                      <div className={`absolute left-[-16px] top-8 w-0.5 h-[calc(100%-16px)] ${done ? "bg-primary" : "bg-border"}`} />
+                      <div className={`absolute left-[-16px] top-8 w-0.5 h-[calc(100%-16px)] ${done ? "bg-primary" : isInProgress ? "bg-primary/50" : "bg-border"}`} />
                     )}
                     <div className={`absolute left-[-22px] top-1 w-3 h-3 rounded-full border-2 ${
-                      done ? "bg-primary border-primary" : "bg-background border-border"
+                      done ? "bg-primary border-primary" :
+                      isInProgress ? "bg-primary/50 border-primary animate-pulse" :
+                      "bg-background border-border"
                     }`} />
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className={`text-sm font-semibold ${done ? "text-foreground" : "text-muted-foreground"}`}>{step.label}</p>
-                        <p className="text-xs text-muted-foreground">{done ? "✓ Concluído" : "Pendente"}</p>
+                        <p className={`text-sm font-semibold ${done ? "text-foreground" : isInProgress ? "text-primary" : "text-muted-foreground"}`}>{step.label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {done ? "✓ Concluído" : isInProgress ? "🔄 Em andamento" : "Pendente"}
+                        </p>
                       </div>
+                      {showCheckin && (
+                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
+                          <ShieldCheck className="w-4 h-4" /> Check-in
+                        </Button>
+                      )}
                       {showEntrada && (
                         <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
                           <ShieldCheck className="w-4 h-4" /> Confirmar Entrada
