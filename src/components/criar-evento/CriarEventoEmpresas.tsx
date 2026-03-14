@@ -195,11 +195,27 @@ const CriarEventoEmpresas = () => {
       }
     }
 
-    const establishment = profile.companyName || profile.establishmentName || profile.fantasyName || profile.name || "";
+    console.log("[CriarEvento] contractor profile completo:", JSON.stringify(profile));
+    const establishment =
+      (profile.companyName as string | undefined)?.trim() ||
+      (profile.corporateReason as string | undefined)?.trim() ||
+      (profile.establishmentName as string | undefined)?.trim() ||
+      (profile.fantasyName as string | undefined)?.trim() ||
+      (profile.name as string | undefined)?.trim() ||
+      "";
     const contractorId = profile.id;
 
     if (!contractorId) {
       toast({ title: "Perfil de contratante não encontrado.", variant: "destructive" });
+      return;
+    }
+
+    if (!establishment) {
+      toast({
+        title: "Nome do estabelecimento não encontrado",
+        description: "Atualize o nome do seu estabelecimento em Meus Dados e tente novamente.",
+        variant: "destructive",
+      });
       return;
     }
 
