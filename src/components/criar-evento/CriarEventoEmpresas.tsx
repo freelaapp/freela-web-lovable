@@ -231,8 +231,8 @@ const CriarEventoEmpresas = () => {
         .map((s) => ({
           quantity: s.quantidade,
           assignment: s.label,
-          jobTime: `${Math.floor(s.effectiveHours)} horas`,
-          jobValue: `R$ ${s.total.toFixed(2).replace(".", ",")}`,
+          jobTime: `${Math.floor(s.effectiveHours)}h`,
+          jobValue: s.total.toFixed(2),
         }));
 
       await createVacancy(
@@ -240,9 +240,7 @@ const CriarEventoEmpresas = () => {
           establishment,
           description: descricaoVaga.trim(),
           jobDate: new Date(dataEvento + "T12:00:00").toISOString(),
-          status: "open",
           contractorId,
-          createdAt: new Date().toISOString(),
           freelancers,
         },
         parsedToken

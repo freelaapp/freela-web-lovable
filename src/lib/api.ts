@@ -268,9 +268,7 @@ export interface CreateVacancyPayload {
   establishment: string;
   description: string;
   jobDate: string;
-  status: string;
   contractorId: string;
-  createdAt: string;
   freelancers: FreelancerEntry[];
 }
 
