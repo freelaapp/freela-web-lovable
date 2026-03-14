@@ -39,8 +39,14 @@ interface FlatVacancy {
   serviceIndex: number;
 }
 
-// TODO: substituir por endpoint real de avaliações pendentes quando disponível na API
-const mockAvaliacoesPendentes: { id: number; freelancer: string; role: string; event: string; date: string }[] = [];
+interface ActiveJob {
+  id: string;
+  status: string;
+  freelancerName?: string;
+  freelancerRole?: string;
+  vacancyTitle?: string;
+  [key: string]: unknown;
+}
 
 const DashboardContratante = () => {
   const navigate = useNavigate();
@@ -49,6 +55,7 @@ const DashboardContratante = () => {
   const [totalVagas, setTotalVagas] = useState(0);
   const [mediaAvaliacao, setMediaAvaliacao] = useState("0");
   const [vacancies, setVacancies] = useState<FlatVacancy[]>([]);
+  const [jobsPendentesAvaliacao, setJobsPendentesAvaliacao] = useState<ActiveJob[]>([]);
 
   useEffect(() => {
     const tokenRaw = localStorage.getItem("authToken");
@@ -140,6 +147,16 @@ const DashboardContratante = () => {
             setMediaAvaliacao((total / fbBody.data.length).toFixed(1));
           }
         } catch (e) { console.error("Erro ao buscar feedbacks:", e); }
+
+        // Jobs pendentes de avaliação — filtra por status "completed"
+        try {
+          const activeJobsRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/active-jobs`, { method: "GET", credentials: "include", headers });
+          const activeJobsBody = await activeJobsRes.json();
+          if (activeJobsRes.ok && Array.isArray(activeJobsBody?.data)) {
+            const pendentes = activeJobsBody.data.filter((job: ActiveJob) => job.status === "completed");
+            setJobsPendentesAvaliacao(pendentes);
+          }
+        } catch (e) { console.error("Erro ao buscar active-jobs:", e); }
       })
       .catch(err => console.error("Erro ao buscar dados do contratante:", err));
   }, []);
@@ -184,7 +201,7 @@ const DashboardContratante = () => {
         </div>
 
         {/* Avaliações Pendentes */}
-        {mockAvaliacoesPendentes.length > 0 && (
+        {jobsPendentesAvaliacao.length > 0 && (
           <Card className="border-warning/30 bg-warning-light/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -192,20 +209,26 @@ const DashboardContratante = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {mockAvaliacoesPendentes.map((av) => (
-                <div key={av.id} className="flex items-center gap-3 p-3 rounded-xl bg-background hover:bg-muted transition-colors cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
-                    {av.freelancer.split(" ").map(n => n[0]).join("")}
+              {jobsPendentesAvaliacao.map((job) => {
+                const nome = job.freelancerName || "Freelancer";
+                const initials = nome.split(" ").slice(0, 2).map((n: string) => n[0]).join("").toUpperCase();
+                return (
+                  <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-background hover:bg-muted transition-colors cursor-pointer">
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
+                      {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{nome}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {[job.freelancerRole, job.vacancyTitle].filter(Boolean).join(" • ")}
+                      </p>
+                    </div>
+                    <Button size="sm" variant="outline" className="shrink-0 text-xs gap-1" onClick={() => navigate("/avaliacoes")}>
+                      Avaliar <ChevronRight className="w-3 h-3" />
+                    </Button>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{av.freelancer}</p>
-                    <p className="text-xs text-muted-foreground">{av.role} • {av.event}</p>
-                  </div>
-                  <Button size="sm" variant="outline" className="shrink-0 text-xs gap-1" onClick={() => navigate("/avaliacoes")}>
-                    Avaliar <ChevronRight className="w-3 h-3" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         )}
