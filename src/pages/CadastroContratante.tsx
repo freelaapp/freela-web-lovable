@@ -24,7 +24,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
-import { getAuthUser } from "@/lib/auth";
+import { apiFetch } from "@/lib/api";
 
 const API_BASE_URL = "https://api.freelaservicos.com.br";
 
@@ -226,33 +226,28 @@ const CadastroContratante = () => {
     setIsLoading(true);
 
     try {
-      // Get auth data
-      const tokenRaw = localStorage.getItem("authToken");
-      if (!tokenRaw) throw new Error("Sessão expirada. Faça login novamente.");
-      const token = JSON.parse(tokenRaw);
-      console.log("[CadastroContratante] token enviado no header Authorization:", token);
-      const authUser = getAuthUser();
-      if (!authUser?.id) throw new Error("Sessão expirada. Faça login novamente.");
-
       // Get viacep data
       const viacep = JSON.parse(localStorage.getItem("viacepData") || "{}");
 
       const fd = new FormData();
 
-      // ViaCEP fields
+      // ViaCEP fields — nomes originais do ViaCEP (backend faz o mapeamento)
       fd.append("ibge", viacep.ibge || "");
       fd.append("gia", viacep.gia || "");
       fd.append("ddd", viacep.ddd || "");
       fd.append("siafi", viacep.siafi || "");
 
-      // Address fields
+      // Address fields — nomes originais do ViaCEP
       fd.append("cep", cep.replace(/\D/g, ""));
-      fd.append("street", rua);
-      fd.append("complement", complemento);
-      fd.append("neighborhood", bairro);
+      fd.append("logradouro", rua);
+      fd.append("complemento", complemento);
+      fd.append("bairro", bairro);
       fd.append("number", numero);
-      fd.append("city", cidade);
+      fd.append("localidade", cidade);
       fd.append("uf", estado);
+
+      // Metadata
+      fd.append("createdAt", new Date().toISOString());
 
       const phoneDigits = telefone.replace(/\D/g, "");
 
@@ -285,13 +280,9 @@ const CadastroContratante = () => {
         }
       }
 
-      const response = await fetch(`${API_BASE_URL}/contractors/`, {
+      const response = await apiFetch(`${API_BASE_URL}/contractors/`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Origin-type": "Web",
-          Authorization: `Bearer ${token}`,
-        },
         body: fd,
       });
 
