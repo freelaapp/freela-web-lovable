@@ -199,13 +199,36 @@ const CriarEventoEmpresas = () => {
     }
 
     console.log("[CriarEvento] contractor profile completo:", JSON.stringify(profile));
-    const establishment =
-      (profile.companyName as string | undefined)?.trim() ||
-      (profile.corporateReason as string | undefined)?.trim() ||
-      (profile.establishmentName as string | undefined)?.trim() ||
-      (profile.fantasyName as string | undefined)?.trim() ||
-      (profile.name as string | undefined)?.trim() ||
-      "";
+
+    // Build establishment from "Local do Evento"
+    let establishment = "";
+    if (noEstabelecimento && profile) {
+      const parts = [
+        profile.street || profile.address,
+        profile.number ? `, ${profile.number}` : "",
+        profile.neighborhood ? ` - ${profile.neighborhood}` : "",
+        profile.city ? `, ${profile.city}` : "",
+        profile.state ? ` - ${profile.state}` : "",
+        profile.cep ? ` • CEP: ${profile.cep}` : "",
+      ];
+      establishment = parts.join("").trim();
+      if (!establishment) {
+        establishment =
+          (profile.establishmentName as string | undefined)?.trim() ||
+          (profile.fantasyName as string | undefined)?.trim() ||
+          (profile.name as string | undefined)?.trim() ||
+          "";
+      }
+    } else {
+      const parts = [
+        endereco.logradouro,
+        endereco.numero ? `, ${endereco.numero}` : "",
+        endereco.cidade ? `, ${endereco.cidade}` : "",
+        endereco.estado ? ` - ${endereco.estado}` : "",
+        endereco.cep ? ` • CEP: ${endereco.cep}` : "",
+      ];
+      establishment = parts.join("").trim();
+    }
     const contractorId = profile.id;
 
     if (!contractorId) {
