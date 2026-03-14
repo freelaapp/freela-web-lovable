@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Eye, Car, Pencil, Play, Image as ImageIconLucide, X, Check, Loader2 } from "lucide-react";
@@ -54,6 +55,7 @@ type Horarios = Record<string, {de: string;ate: string;}>;
 
 const Perfil = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const role = useUserRole();
   const isContratante = role === "contratante";
   const [contractorView, setContractorView] = useState(false);
@@ -652,7 +654,7 @@ const Perfil = () => {
 
         {/* Logout - hidden in contractor view */}
         {!contractorView &&
-        <Button variant="ghost" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 gap-2">
+        <Button variant="ghost" onClick={logout} className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 gap-2">
             <LogOut className="w-4 h-4" /> Sair da conta
           </Button>
         }

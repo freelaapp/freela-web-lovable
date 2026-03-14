@@ -1,44 +1,19 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Home, LayoutDashboard, Calendar, Star, Map, User, CalendarPlus } from "lucide-react";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
 import { useUserRole } from "@/hooks/useUserRole";
-
-const loggedInPaths = [
-  "/dashboard-freelancer",
-  "/dashboard-contratante",
-  "/perfil",
-  "/mensagens",
-  "/agenda",
-  "/historico",
-  "/avaliacoes",
-  "/mapa-vagas",
-  "/criar-evento",
-  "/aceitar-job",
-  "/vaga",
-  "/evento",
-  "/confirmar-servico",
-  "/perfil-contratante",
-  "/avaliacao",
-  "/meus-dados",
-  "/configuracoes",
-  "/ajuda",
-  "/carteira",
-  "/meus-dados-contratante",
-  "/configuracoes-contratante",
-  "/ajuda-contratante",
-];
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const role = useUserRole();
+  const { isAuthenticated } = useAuth();
 
-  const isLoggedIn = useMemo(() => {
-    return loggedInPaths.some(p => location.pathname.startsWith(p));
-  }, [location.pathname]);
+  const isLoggedIn = isAuthenticated;
 
   const publicNavLinks = [
     { href: "/", label: "Início" },
