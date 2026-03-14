@@ -200,23 +200,12 @@ const CadastroContratante = () => {
           e.dataNascimento = "Você deve ter pelo menos 18 anos";
       }
     }
-    if (!cep.replace(/\D/g, "")) e.cep = "CEP é obrigatório";
     if (!rua.trim()) e.rua = "Rua é obrigatória";
     if (!numero.trim()) e.numero = "Número é obrigatório";
     if (!bairro.trim()) e.bairro = "Bairro é obrigatório";
     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
     if (!estado) e.estado = "Estado é obrigatório";
     if (!telefone.replace(/\D/g, "") || telefone.replace(/\D/g, "").length < 10) e.telefone = "Celular inválido";
-
-    // Validate viacepData
-    try {
-      const viacep = JSON.parse(localStorage.getItem("viacepData") || "{}");
-      if (!viacep.ibge || !viacep.gia || !viacep.ddd || !viacep.siafi) {
-        e.cep = "CEP inválido — preencha um CEP válido para buscar os dados";
-      }
-    } catch {
-      e.cep = "CEP inválido — preencha um CEP válido para buscar os dados";
-    }
 
     if (modo === "empresa") {
       if (!ramo) e.ramo = "Ramo é obrigatório";
