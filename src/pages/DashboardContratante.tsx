@@ -39,10 +39,8 @@ interface FlatVacancy {
   serviceIndex: number;
 }
 
-const mockAvaliacoesPendentes = [
-  { id: 1, freelancer: "Carlos Silva", role: "Churrasqueiro", event: "Churrasco de Réveillon", date: "31 Dez 2025" },
-  { id: 2, freelancer: "Juliana Alves", role: "Bartender", event: "Confraternização", date: "20 Dez 2025" },
-];
+// TODO: substituir por endpoint real de avaliações pendentes quando disponível na API
+const mockAvaliacoesPendentes: { id: number; freelancer: string; role: string; event: string; date: string }[] = [];
 
 const DashboardContratante = () => {
   const navigate = useNavigate();
