@@ -249,7 +249,9 @@ export async function getContractorProfile(token: string): Promise<ContractorPro
     throw new Error(body?.message || "Não foi possível carregar o perfil do contratante.");
   }
 
-  const data = body?.data ?? body;
+  // body.data pode ser objeto direto ou array com um item
+  const raw = body?.data ?? body;
+  const data = Array.isArray(raw) ? raw[0] : raw;
   console.log("[getContractorProfile] data resolvido:", JSON.stringify(data));
   return data as ContractorProfile;
 }
