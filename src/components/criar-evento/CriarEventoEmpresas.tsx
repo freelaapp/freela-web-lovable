@@ -54,7 +54,10 @@ const CriarEventoEmpresas = () => {
     try {
       const token = JSON.parse(tokenRaw);
       getContractorProfile(token)
-        .then(setContractorProfile)
+        .then((p) => {
+          console.log("[CriarEvento] profile carregado no mount:", JSON.stringify(p));
+          setContractorProfile(p);
+        })
         .catch((err) => console.error("[CriarEvento] Contractor profile error:", err));
     } catch {
       console.error("[CriarEvento] Failed to parse authToken");
