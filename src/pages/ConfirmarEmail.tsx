@@ -5,10 +5,12 @@ import { ArrowLeft, ArrowRight, Mail, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { confirmEmail, registerUser, generateEmailConfirmationCode } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ConfirmarEmail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { recheckAuth } = useAuth();
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
@@ -102,41 +104,17 @@ const ConfirmarEmail = () => {
       // 5) Sucesso
       onAuthSuccess(result.data);
       localStorage.removeItem("pendingRegisterData");
+      await recheckAuth();
 
       navigate("/escolher-perfil");
     } catch (err: any) {
       const msg = err?.message || "";
 
-      // Se e-mail já cadastrado, tentar verificar se já tem perfil de provider
+      // Se e-mail já cadastrado, o usuário não possui token ainda (cadastro não concluiu).
+      // Redirecionar sem token causaria falso "sessão expirada" no AuthContext.
+      // A ação correta é avisar o usuário para fazer login com a conta existente.
       if (msg === "Este e-mail já está cadastrado.") {
-        try {
-          const tokenRaw = localStorage.getItem("authToken");
-          const token = tokenRaw ? JSON.parse(tokenRaw) : null;
-
-          if (!token) {
-            navigate("/escolher-perfil");
-            return;
-          }
-
-          const provRes = await fetch("https://api.freelaservicos.com.br/users/providers", {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Origin-type": "Web",
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          if (!provRes.ok) {
-            navigate("/escolher-perfil");
-            return;
-          }
-
-          // Provider exists — redirect to freelancer dashboard
-          navigate("/dashboard-freelancer");
-        } catch {
-          navigate("/escolher-perfil");
-        }
+        setError("Este e-mail já possui uma conta. Faça login para continuar.");
         return;
       }
 

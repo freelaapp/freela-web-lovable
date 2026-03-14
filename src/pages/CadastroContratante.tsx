@@ -207,13 +207,16 @@ const CadastroContratante = () => {
     if (!estado) e.estado = "Estado é obrigatório";
     if (!telefone.replace(/\D/g, "") || telefone.replace(/\D/g, "").length < 10) e.telefone = "Celular inválido";
 
-    if (modo === "empresa") {
+    // Campos obrigatórios para empresa OU casa com CNPJ
+    if (modo === "empresa" || (modo === "casa" && tipoDoc === "cnpj")) {
       if (!ramo) e.ramo = "Ramo é obrigatório";
-      if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = "Nome do estabelecimento é obrigatório";
-      if (!fotoFachada) e.fotoFachada = "Foto da fachada é obrigatória";
       if (!responsavelNome.trim()) e.responsavelNome = "Nome do responsável é obrigatório";
       if (!responsavelTelefone.replace(/\D/g, "") || responsavelTelefone.replace(/\D/g, "").length < 10)
         e.responsavelTelefone = "Telefone inválido";
+    }
+    if (modo === "empresa") {
+      if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = "Nome do estabelecimento é obrigatório";
+      if (!fotoFachada) e.fotoFachada = "Foto da fachada é obrigatória";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -269,18 +272,22 @@ const CadastroContratante = () => {
           const interiorBlob = new Blob([interiorBuffer], { type: fotoInterno.type });
           fd.append("establishmentInteriorImage", interiorBlob, fotoInterno.name);
         }
+      } else if (tipoDoc === "cnpj") {
+        // Freela em Casa com CNPJ — API exige companySegment e responsável
+        fd.append("cnpj", documento.replace(/\D/g, ""));
+        fd.append("corporateReason", nomeOuRazao);
+        fd.append("companySegment", ramo);
+        fd.append("nameOperationResponsible", responsavelNome);
+        fd.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
       } else {
-        // Freela em Casa — backend exige os campos abaixo mesmo quando não se aplicam
-        fd.append("cnpj", tipoDoc === "cnpj" ? documento.replace(/\D/g, "") : "");
-        fd.append("corporateReason", tipoDoc === "cnpj" ? nomeOuRazao : "");
-        fd.append("companySegment", "");
-        fd.append("nameOperationResponsible", "");
-        fd.append("phoneOperationResponsible", "");
-
-        if (tipoDoc === "cpf") {
-          fd.append("cpf", documento.replace(/\D/g, ""));
-          if (dataNascimento) fd.append("birthdate", dataNascimento.toISOString());
-        }
+        // Freela em Casa com CPF
+        fd.append("cnpj", "");
+        fd.append("corporateReason", "");
+        fd.append("companySegment", "casa_cpf");
+        fd.append("nameOperationResponsible", nomeOuRazao || "");
+        fd.append("phoneOperationResponsible", telefone.replace(/\D/g, ""));
+        fd.append("cpf", documento.replace(/\D/g, ""));
+        if (dataNascimento) fd.append("birthdate", dataNascimento.toISOString());
       }
 
       const response = await apiFetch(`${API_BASE_URL}/contractors/`, {
@@ -468,6 +475,65 @@ const CadastroContratante = () => {
                     />
                     {errors.nomeOuRazao && <p className="text-sm text-destructive">{errors.nomeOuRazao}</p>}
                   </div>
+                )}
+
+                {/* Ramo + Responsável - obrigatório quando CNPJ no modo casa */}
+                {tipoDoc === "cnpj" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Ramo do Estabelecimento</Label>
+                      <Select value={ramo} onValueChange={setRamo}>
+                        <SelectTrigger className={`h-12 ${errors.ramo ? "border-destructive" : ""}`}>
+                          <SelectValue placeholder="Selecione o ramo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ramosEstabelecimento.map((r) => (
+                            <SelectItem key={r} value={r}>
+                              {r}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.ramo && <p className="text-sm text-destructive">{errors.ramo}</p>}
+                    </div>
+
+                    <div className="border-t border-border pt-5 space-y-4">
+                      <h3 className="text-base font-semibold flex items-center gap-2">
+                        <UserCheck className="w-4 h-4 text-primary" />
+                        Responsável pela Operação
+                      </h3>
+                      <div className="space-y-2">
+                        <Label>Nome e Sobrenome</Label>
+                        <Input
+                          placeholder="Nome completo do responsável"
+                          value={responsavelNome}
+                          onChange={(e) => setResponsavelNome(e.target.value)}
+                          className={`h-12 ${errors.responsavelNome ? "border-destructive" : ""}`}
+                        />
+                        {errors.responsavelNome && (
+                          <p className="text-sm text-destructive">{errors.responsavelNome}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>DDD + Telefone do Responsável</Label>
+                        <Input
+                          placeholder="(00) 00000-0000"
+                          value={responsavelTelefone}
+                          onChange={(e) => {
+                            const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+                            let formatted = d;
+                            if (d.length > 2) formatted = `(${d.slice(0, 2)}) ${d.slice(2)}`;
+                            if (d.length > 7) formatted = `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+                            setResponsavelTelefone(formatted);
+                          }}
+                          className={`h-12 ${errors.responsavelTelefone ? "border-destructive" : ""}`}
+                        />
+                        {errors.responsavelTelefone && (
+                          <p className="text-sm text-destructive">{errors.responsavelTelefone}</p>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {/* Celular */}

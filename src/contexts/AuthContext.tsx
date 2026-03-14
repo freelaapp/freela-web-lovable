@@ -44,12 +44,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (!valid && hadToken) {
       logoutUtil();
-      navigateRef.current("/", { replace: true });
-      toastRef.current({
-        title: "Sessão expirada",
-        description: "Seu login expirou. Faça login novamente para continuar.",
-        variant: "destructive",
-      });
+      // Não redirecionar/exibir alerta se o usuário já estiver em rotas públicas (como cadastro, login)
+      const publicPaths = [
+        "/", 
+        "/login", 
+        "/cadastro", 
+        "/inicio", 
+        "/esqueci-minha-senha",
+        "/escolher-perfil",
+        "/cadastro-contratante",
+        "/cadastro-freelancer",
+        "/confirmar-email"
+      ];
+      if (!publicPaths.includes(window.location.pathname)) {
+        navigateRef.current("/", { replace: true });
+        toastRef.current({
+          title: "Sessão expirada",
+          description: "Seu login expirou. Faça login novamente para continuar.",
+          variant: "destructive",
+        });
+      }
     }
     setIsLoading(false);
   }, []); // stable — no external deps needed thanks to refs
