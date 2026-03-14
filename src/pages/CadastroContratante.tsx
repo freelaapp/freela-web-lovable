@@ -270,13 +270,16 @@ const CadastroContratante = () => {
           fd.append("establishmentInteriorImage", interiorBlob, fotoInterno.name);
         }
       } else {
-        // Freela em Casa
+        // Freela em Casa — backend exige os campos abaixo mesmo quando não se aplicam
+        fd.append("cnpj", tipoDoc === "cnpj" ? documento.replace(/\D/g, "") : "");
+        fd.append("corporateReason", tipoDoc === "cnpj" ? nomeOuRazao : "");
+        fd.append("companySegment", "");
+        fd.append("nameOperationResponsible", "");
+        fd.append("phoneOperationResponsible", "");
+
         if (tipoDoc === "cpf") {
           fd.append("cpf", documento.replace(/\D/g, ""));
           if (dataNascimento) fd.append("birthdate", dataNascimento.toISOString());
-        } else {
-          fd.append("cnpj", documento.replace(/\D/g, ""));
-          fd.append("corporateReason", nomeOuRazao);
         }
       }
 
