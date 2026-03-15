@@ -1,7 +1,12 @@
-import { useState, useRef } from "react";
 import { Minus, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ServicoCardProps {
   label: string;
@@ -15,6 +20,8 @@ interface ServicoCardProps {
   onRemove: () => void;
   pricePerHour: number;
   minHours: number;
+  /** Hora mínima permitida para início (formato "HH:00"). Usado quando o evento é hoje. */
+  horaMinima?: string;
 }
 
 const iconMap: Record<string, string> = {
@@ -58,6 +65,9 @@ const formatHours = (hours: number): string => {
 
 export { calcHours };
 
+/** Gera array de horas fechadas: ["00:00", "01:00", ..., "23:00"] */
+const HORAS = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+
 const ServicoCard = ({
   label,
   icon,
@@ -70,19 +80,27 @@ const ServicoCard = ({
   onRemove,
   pricePerHour,
   minHours,
+  horaMinima,
 }: ServicoCardProps) => {
   const hours = calcHours(horaInicio, horaFim);
   const effectiveHours = Math.max(hours, minHours);
   const valor = pricePerHour * effectiveHours * quantidade;
   const isBelowMin = hours > 0 && hours < minHours;
 
-  const inicioRef = useRef<HTMLInputElement>(null);
-  const fimRef = useRef<HTMLInputElement>(null);
+  // Horas disponíveis para início: todas >= horaMinima (se fornecida)
+  const horasInicio = horaMinima
+    ? HORAS.filter((h) => h >= horaMinima)
+    : HORAS;
 
-  const openPicker = (ref: React.RefObject<HTMLInputElement>) => {
-    ref.current?.showPicker?.();
-    ref.current?.focus();
-  };
+  // Horas disponíveis para fim: apenas horas posteriores à hora de início
+  const horasFim = horaInicio
+    ? HORAS.filter((h) => {
+        const [hi] = horaInicio.split(":").map(Number);
+        const [hf] = h.split(":").map(Number);
+        // Permite wrap-around (ex: início 22h → fim pode ser 01h do dia seguinte)
+        return hf !== hi;
+      })
+    : HORAS;
 
   return (
     <div className={`group relative bg-card border rounded-xl p-3.5 transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300 ${isBelowMin ? "border-destructive/50" : "border-border hover:border-primary/30"}`}>
@@ -136,40 +154,36 @@ const ServicoCard = ({
             <Clock className="w-2.5 h-2.5" /> Horário
           </span>
           <div className="flex items-center gap-1 min-w-0">
-            <div className="relative flex-1 min-w-0">
-              <Input
-                ref={inicioRef}
-                type="time"
-                step="300"
-                value={horaInicio}
-                onChange={(e) => onHoraInicioChange(e.target.value)}
-                className="h-7 text-[11px] px-1 pr-6 rounded-lg min-w-0 w-full"
-              />
-              <button
-                type="button"
-                onClick={() => openPicker(inicioRef)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Clock className="w-3 h-3" />
-              </button>
+            {/* Hora de início */}
+            <div className="flex-1 min-w-0">
+              <Select value={horaInicio} onValueChange={onHoraInicioChange}>
+                <SelectTrigger className="h-7 text-[11px] px-2 rounded-lg w-full">
+                  <SelectValue placeholder="--:--" />
+                </SelectTrigger>
+                <SelectContent>
+                  {horasInicio.map((h) => (
+                    <SelectItem key={h} value={h} className="text-xs">
+                      {h}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <span className="text-muted-foreground text-[10px] shrink-0">às</span>
-            <div className="relative flex-1 min-w-0">
-              <Input
-                ref={fimRef}
-                type="time"
-                step="300"
-                value={horaFim}
-                onChange={(e) => onHoraFimChange(e.target.value)}
-                className="h-7 text-[11px] px-1 pr-6 rounded-lg min-w-0 w-full"
-              />
-              <button
-                type="button"
-                onClick={() => openPicker(fimRef)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Clock className="w-3 h-3" />
-              </button>
+            {/* Hora de fim */}
+            <div className="flex-1 min-w-0">
+              <Select value={horaFim} onValueChange={onHoraFimChange} disabled={!horaInicio}>
+                <SelectTrigger className="h-7 text-[11px] px-2 rounded-lg w-full">
+                  <SelectValue placeholder="--:--" />
+                </SelectTrigger>
+                <SelectContent>
+                  {horasFim.map((h) => (
+                    <SelectItem key={h} value={h} className="text-xs">
+                      {h}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
