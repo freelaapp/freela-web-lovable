@@ -191,7 +191,6 @@ export async function generateEmailConfirmationCode(email: string): Promise<void
     `${API_BASE_URL}/users/generate-email-confirmation-code?email=${encodeURIComponent(email)}`,
     {
       method: "GET",
-      skipAuth: true,
     },
   );
 
