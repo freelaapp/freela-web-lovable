@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Mail, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { confirmEmail, registerUser, generateEmailConfirmationCode } from "@/lib/api";
-import { onAuthSuccess } from "@/lib/auth";
+import { confirmEmail, generateEmailConfirmationCode } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ConfirmarEmail = () => {
@@ -84,7 +83,7 @@ const ConfirmarEmail = () => {
     }
 
     const pendingData = JSON.parse(pendingRaw);
-    if (!pendingData.email || !pendingData.name || !pendingData.password) {
+    if (!pendingData.email) {
       setError("Dados de cadastro não encontrados. Volte para /cadastro.");
       return;
     }
@@ -93,35 +92,21 @@ const ConfirmarEmail = () => {
     setError("");
 
     try {
-      // 3) Confirmar email
+      // Confirmar e-mail (usuário já foi registrado em /cadastro)
       setLoadingMessage("Validando código…");
       await confirmEmail(pendingData.email, fullCode);
 
-      // 4) Registrar usuário
-      setLoadingMessage("Finalizando cadastro…");
-      const result = await registerUser(pendingData);
-
-      // 5) Sucesso
-      onAuthSuccess(result.data);
+      // Código válido — autenticação já ocorreu no cadastro, ir direto para escolher perfil
       localStorage.removeItem("pendingRegisterData");
       await recheckAuth();
 
       navigate("/escolher-perfil");
     } catch (err: any) {
       const msg = err?.message || "";
-
-      // Se e-mail já cadastrado, o usuário não possui token ainda (cadastro não concluiu).
-      // Redirecionar sem token causaria falso "sessão expirada" no AuthContext.
-      // A ação correta é avisar o usuário para fazer login com a conta existente.
-      if (msg === "Este e-mail já está cadastrado.") {
-        setError("Este e-mail já possui uma conta. Faça login para continuar.");
-        return;
-      }
-
       const message =
         err instanceof TypeError
           ? "Falha de conexão. Verifique sua internet e tente novamente."
-          : msg || "Não foi possível concluir seu cadastro. Tente novamente.";
+          : msg || "Código inválido ou expirado. Tente novamente.";
       setError(message);
     } finally {
       setIsLoading(false);

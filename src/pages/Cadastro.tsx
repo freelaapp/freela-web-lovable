@@ -7,7 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle, Phone } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
-import { generateEmailConfirmationCode } from "@/lib/api";
+import { registerUser, generateEmailConfirmationCode } from "@/lib/api";
+import { onAuthSuccess } from "@/lib/auth";
 
 const Cadastro = () => {
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ const Cadastro = () => {
     }
     console.log("[Cadastro] Validação OK, enviando código...");
 
-    // Persistir dados para uso posterior em /users/register
+    // Dados para o registro
     const pendingData = {
       name: formData.nome,
       email: formData.email,
@@ -90,21 +91,29 @@ const Cadastro = () => {
       status: "active",
       createdAt: new Date().toISOString(),
     };
-    localStorage.setItem("pendingRegisterData", JSON.stringify(pendingData));
 
     setIsLoading(true);
     try {
+      // 1) Registrar usuário primeiro (a API exige que o usuário exista
+      //    antes de poder gerar o código de confirmação de e-mail)
+      const result = await registerUser(pendingData);
+      onAuthSuccess(result.data);
+
+      // 2) Agora que o usuário existe, solicitar o envio do código
       await generateEmailConfirmationCode(formData.email);
+
+      // 3) Guardar e-mail para a tela de confirmação usar no reenvio
+      localStorage.setItem("pendingRegisterData", JSON.stringify({ email: formData.email }));
 
       navigate("/confirmar-email");
     } catch (error: any) {
       const message =
         error instanceof TypeError
           ? "Falha de conexão. Verifique sua internet e tente novamente."
-          : error.message || "Não foi possível enviar o código. Tente novamente.";
+          : error.message || "Não foi possível criar a conta. Tente novamente.";
 
       toast({
-        title: "Erro ao enviar código",
+        title: "Erro ao criar conta",
         description: message,
         variant: "destructive",
       });
