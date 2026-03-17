@@ -56,9 +56,6 @@ const Configuracoes = () => {
 
         {/* Privacidade */}
         <div className="space-y-4">
-          <h3 className="text-base font-display font-bold flex items-center gap-2">
-            <Shield className="w-5 h-5 text-primary" /> Privacidade
-          </h3>
           <ToggleRow icon={Globe} label="Perfil público" desc="Contratantes podem encontrar seu perfil" checked={perfilPublico} onChange={setPerfilPublico} />
           <ToggleRow icon={MapPin} label="Mostrar localização aproximada" checked={mostrarLocalizacao} onChange={setMostrarLocalizacao} />
         </div>
