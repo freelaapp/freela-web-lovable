@@ -101,6 +101,7 @@ const App = () => (
             <Route path="/tela-pix" element={<TelaPix />} />
             
             <Route path="/obrigado-contratante" element={<ObrigadoContratante />} />
+            <Route path="/vaga-teste" element={<VagaTeste />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
