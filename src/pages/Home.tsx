@@ -121,9 +121,9 @@ const HeroHome = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden hero-gradient">
+    <section className="relative overflow-hidden hero-gradient pt-16 md:pt-20">
       {/* Full-width Slideshow */}
-      <div className="relative w-full h-[550px] md:h-[600px] lg:h-[700px] xl:h-[80vh]">
+      <div className="relative w-full h-[420px] sm:h-[480px] md:h-[540px] lg:h-[620px] xl:h-[calc(100vh-5rem)] min-h-[420px]">
         {bannerSlides.map((slide, i) => (
           <div
             key={i}
@@ -134,35 +134,36 @@ const HeroHome = () => {
             <img
               src={slide.image}
               alt={slide.headline}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/50 to-secondary/20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-secondary/85 via-secondary/60 to-secondary/25" />
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-secondary/70 to-transparent" />
           </div>
         ))}
 
         {/* Content overlay */}
-        <div className="absolute inset-0 z-20 flex flex-col justify-end pb-8 md:pb-16">
+        <div className="absolute inset-0 z-20 flex items-center">
           <div className="container mx-auto container-padding">
-            <div className="max-w-3xl">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="max-w-3xl pt-6 sm:pt-8 md:pt-0">
+              <div className="flex items-center gap-2 mb-3 md:mb-4">
                 {(() => {
                   const SlideIcon = bannerSlides[active].cta.icon;
-                  return <SlideIcon className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+                  return <SlideIcon className="w-4 h-4 md:w-5 md:h-5 text-primary" />;
                 })()}
-                <span className="text-xs md:text-sm font-bold text-primary uppercase tracking-wider">
+                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-primary uppercase tracking-wider">
                   {bannerSlides[active].cta.label}
                 </span>
               </div>
 
-              <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold text-secondary-foreground mb-2 md:mb-4 leading-tight hero-text-shadow">
+              <h1 className="max-w-2xl text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-secondary-foreground mb-3 md:mb-5 leading-[0.95] hero-text-shadow text-balance">
                 {bannerSlides[active].headline}
               </h1>
 
-              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-secondary-foreground/80 max-w-xl mb-4 md:mb-8">
+              <p className="text-sm sm:text-base md:text-lg text-secondary-foreground/85 max-w-xl mb-5 md:mb-8 text-pretty">
                 Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-8 max-w-xl">
                 <Button size="lg" asChild className="group bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-lg">
                   <Link to={bannerSlides[active].cta.link}>
                     {bannerSlides[active].cta.label}
@@ -176,21 +177,21 @@ const HeroHome = () => {
                   </Link>
                 </Button>
               </div>
-            </div>
 
-            {/* Dots */}
-            <div className="flex items-center gap-3">
-              {bannerSlides.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActive(i)}
-                  className={`rounded-full transition-all duration-300 ${
-                    i === active
-                      ? "w-8 h-3 bg-primary"
-                      : "w-3 h-3 bg-secondary-foreground/50 hover:bg-secondary-foreground/80"
-                  }`}
-                />
-              ))}
+              {/* Dots */}
+              <div className="flex items-center gap-3">
+                {bannerSlides.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActive(i)}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === active
+                        ? "w-8 h-3 bg-primary"
+                        : "w-3 h-3 bg-secondary-foreground/50 hover:bg-secondary-foreground/80"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
