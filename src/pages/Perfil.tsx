@@ -393,14 +393,6 @@ const Perfil = () => {
         }
 
         {/* Profile Card */}
-        {(isContratante ? contractorLoading : freelancerLoading) ? (
-          <Card>
-            <CardContent className="p-6 flex items-center justify-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">Carregando perfil...</span>
-            </CardContent>
-          </Card>
-        ) : (
           <Card>
             <CardContent className="p-6">
               <div className="flex items-start gap-5">
