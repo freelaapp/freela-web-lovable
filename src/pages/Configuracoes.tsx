@@ -37,54 +37,11 @@ const Configuracoes = () => {
               <Bell className="w-5 h-5 text-primary" /> Notificações
             </h3>
             <ToggleRow icon={Briefcase} label="Novas vagas na região" checked={notifNovasVagas} onChange={setNotifNovasVagas} />
-            <ToggleRow icon={MessageSquare} label="Mensagens recebidas" checked={notifMensagens} onChange={setNotifMensagens} />
             <ToggleRow icon={Bell} label="Avaliações recebidas" checked={notifAvaliacoes} onChange={setNotifAvaliacoes} />
             <ToggleRow icon={Bell} label="Pagamentos e recebimentos" checked={notifPagamentos} onChange={setNotifPagamentos} />
             <div className="border-t pt-3 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Canais</p>
               <ToggleRow icon={Mail} label="Receber por e-mail" checked={notifEmail} onChange={setNotifEmail} />
-              <ToggleRow icon={Smartphone} label="Notificações push" checked={notifPush} onChange={setNotifPush} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Privacidade */}
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-bold flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" /> Privacidade
-            </h3>
-            <ToggleRow icon={Globe} label="Perfil público" desc="Contratantes podem encontrar seu perfil" checked={perfilPublico} onChange={setPerfilPublico} />
-            <ToggleRow icon={MapPin} label="Mostrar localização aproximada" checked={mostrarLocalizacao} onChange={setMostrarLocalizacao} />
-          </CardContent>
-        </Card>
-
-        {/* Preferências */}
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-bold flex items-center gap-2">
-              <Globe className="w-5 h-5 text-primary" /> Preferências
-            </h3>
-            <ToggleRow icon={Moon} label="Modo escuro" checked={modoEscuro} onChange={setModoEscuro} />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Raio de busca</p>
-                  <p className="text-xs text-muted-foreground">Vagas até {raioKm}km de distância</p>
-                </div>
-              </div>
-              <select
-                value={raioKm}
-                onChange={(e) => setRaioKm(Number(e.target.value))}
-                className="border rounded-lg px-3 py-1.5 text-sm bg-background"
-              >
-                <option value={10}>10km</option>
-                <option value={20}>20km</option>
-                <option value={30}>30km</option>
-                <option value={50}>50km</option>
-                <option value={100}>100km</option>
-              </select>
             </div>
           </CardContent>
         </Card>
@@ -105,8 +62,6 @@ const Configuracoes = () => {
             </Link>
           </CardContent>
         </Card>
-
-        <Button onClick={handleSave} className="w-full">Salvar Configurações</Button>
       </div>
     </AppLayout>
   );
