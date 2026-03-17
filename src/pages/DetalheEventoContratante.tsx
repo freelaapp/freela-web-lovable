@@ -653,7 +653,7 @@ const DetalheEventoContratante = () => {
                 <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer confirmado</p>
               ) : (
                 confirmados.map((candidato) => (
-                  <div key={candidato.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                  <div key={candidato.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer" onClick={() => setSelectedFreelancer(candidato)}>
                     <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
                       {candidato.avatar}
                     </div>
