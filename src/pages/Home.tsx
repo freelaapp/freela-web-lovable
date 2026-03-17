@@ -95,17 +95,17 @@ const AnimatedCounter = ({ target, suffix = "" }: {target: number;suffix?: strin
 const bannerSlides = [
 {
   image: bannerEmpresas,
-  headline: "seu Bar, Restaurante, Buffet e Empresa de Eventos",
+  headline: "Contrate Freelancers para seu Bar, Restaurante, Buffet e Empresa de Eventos",
   cta: { label: "Contratar para minha Empresa", link: "/inicio?modo=empresas", icon: Building2 }
 },
 {
   image: bannerFesta,
-  headline: "seu Churrasco, Aniversário ou Casamento",
+  headline: "Contrate Freelancers para seu Churrasco, Aniversário ou Casamento",
   cta: { label: "Contratar para Evento em Casa", link: "/inicio?modo=casa", icon: Home }
 },
 {
   image: bannerCorporativo,
-  headline: "eventos Corporativos e grandes operações",
+  headline: "Contrate Freelancers para Eventos Corporativos e Grandes Operações",
   cta: { label: "Quero contratar agora", link: "/cadastro", icon: Briefcase }
 }];
 
