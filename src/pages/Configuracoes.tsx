@@ -137,7 +137,7 @@ const ToggleRow = ({
     <div className="flex items-center gap-3">
       <Icon className="w-4 h-4 text-muted-foreground" />
       <div>
-        
+        <p className="text-sm font-medium">{label}</p>
         {desc && <p className="text-xs text-muted-foreground">{desc}</p>}
       </div>
     </div>
