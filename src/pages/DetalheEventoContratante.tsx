@@ -584,31 +584,36 @@ const DetalheEventoContratante = () => {
                         <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                       {candidato.status === "pendente" ? (
                         <>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-success hover:bg-success/10"
+                          <button
+                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors disabled:opacity-50"
                             disabled={actionLoadingIds.has(candidato.id)}
                             onClick={() => handleAceitar(candidato.id)}
                           >
                             {actionLoadingIds.has(candidato.id)
-                              ? <Loader2 className="w-4 h-4 animate-spin" />
-                              : <UserCheck className="w-4 h-4" />}
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                              ? <Loader2 className="w-4 h-4 animate-spin text-success" />
+                              : <UserCheck className="w-4 h-4 text-success" />}
+                            <span className="text-[10px] font-medium text-success">Aceitar</span>
+                          </button>
+                          <button
+                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/20 transition-colors disabled:opacity-50"
                             disabled={actionLoadingIds.has(candidato.id)}
                             onClick={() => handleRecusar(candidato.id)}
                           >
                             {actionLoadingIds.has(candidato.id)
-                              ? <Loader2 className="w-4 h-4 animate-spin" />
-                              : <UserX className="w-4 h-4" />}
-                          </Button>
+                              ? <Loader2 className="w-4 h-4 animate-spin text-destructive" />
+                              : <UserX className="w-4 h-4 text-destructive" />}
+                            <span className="text-[10px] font-medium text-destructive">Recusar</span>
+                          </button>
+                          <button
+                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                            onClick={() => setSelectedFreelancer(candidato)}
+                          >
+                            <Eye className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
+                          </button>
                         </>
                       ) : candidato.status === "aceito" ? (
                         <>
@@ -625,13 +630,26 @@ const DetalheEventoContratante = () => {
                               : <DollarSign className="w-3 h-3 mr-1" />}
                             Pagamento
                           </Button>
+                          <button
+                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                            onClick={() => setSelectedFreelancer(candidato)}
+                          >
+                            <Eye className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
+                          </button>
                         </>
                       ) : (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
+                        <>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
+                          <button
+                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                            onClick={() => setSelectedFreelancer(candidato)}
+                          >
+                            <Eye className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
+                          </button>
+                        </>
                       )}
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedFreelancer(candidato)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
                 ))
