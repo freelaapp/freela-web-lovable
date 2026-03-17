@@ -121,9 +121,8 @@ const HeroHome = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden hero-gradient pt-16 md:pt-20">
-      {/* Full-width Slideshow */}
-      <div className="relative w-full h-[420px] sm:h-[480px] md:h-[540px] lg:h-[620px] xl:h-[calc(100vh-5rem)] min-h-[420px]">
+    <section className="relative overflow-hidden hero-gradient">
+      <div className="relative w-full min-h-[620px] md:min-h-[680px] lg:min-h-[720px] xl:min-h-[760px]">
         {bannerSlides.map((slide, i) => (
           <div
             key={i}
@@ -136,34 +135,32 @@ const HeroHome = () => {
               alt={slide.headline}
               className="w-full h-full object-cover object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-secondary/85 via-secondary/60 to-secondary/25" />
-            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-secondary/70 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/55 to-secondary/20" />
           </div>
         ))}
 
-        {/* Content overlay */}
-        <div className="absolute inset-0 z-20 flex items-center">
+        <div className="relative z-20 flex min-h-[620px] md:min-h-[680px] lg:min-h-[720px] xl:min-h-[760px] items-end pt-24 md:pt-28 lg:pt-32 pb-8 md:pb-10 lg:pb-12">
           <div className="container mx-auto container-padding">
-            <div className="max-w-3xl pt-6 sm:pt-8 md:pt-0">
+            <div className="max-w-3xl">
               <div className="flex items-center gap-2 mb-3 md:mb-4">
                 {(() => {
                   const SlideIcon = bannerSlides[active].cta.icon;
-                  return <SlideIcon className="w-4 h-4 md:w-5 md:h-5 text-primary" />;
+                  return <SlideIcon className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
                 })()}
-                <span className="text-[11px] sm:text-xs md:text-sm font-bold text-primary uppercase tracking-wider">
+                <span className="text-xs md:text-sm font-bold text-primary uppercase tracking-wider">
                   {bannerSlides[active].cta.label}
                 </span>
               </div>
 
-              <h1 className="max-w-2xl text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-secondary-foreground mb-3 md:mb-5 leading-[0.95] hero-text-shadow text-balance">
+              <h1 className="max-w-2xl text-[1.5rem] sm:text-[1.75rem] md:text-[2rem] lg:text-[2.5rem] xl:text-[3rem] 2xl:text-[3.5rem] font-bold text-secondary-foreground mb-3 md:mb-4 lg:mb-5 leading-[1.1] hero-text-shadow">
                 {bannerSlides[active].headline}
               </h1>
 
-              <p className="text-sm sm:text-base md:text-lg text-secondary-foreground/85 max-w-xl mb-5 md:mb-8 text-pretty">
+              <p className="text-sm md:text-base lg:text-xl text-secondary-foreground/80 max-w-2xl mb-5 md:mb-6 lg:mb-8">
                 Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-8 max-w-xl">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 mb-6 md:mb-10">
                 <Button size="lg" asChild className="group bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-lg">
                   <Link to={bannerSlides[active].cta.link}>
                     {bannerSlides[active].cta.label}
@@ -178,12 +175,12 @@ const HeroHome = () => {
                 </Button>
               </div>
 
-              {/* Dots */}
               <div className="flex items-center gap-3">
                 {bannerSlides.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setActive(i)}
+                    aria-label={`Ir para slide ${i + 1}`}
                     className={`rounded-full transition-all duration-300 ${
                       i === active
                         ? "w-8 h-3 bg-primary"
@@ -196,46 +193,48 @@ const HeroHome = () => {
           </div>
         </div>
       </div>
-
-      {/* Counters & Trust Badges */}
-      <div className="bg-secondary py-8 md:py-12">
-        <div className="container mx-auto container-padding">
-          <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-8">
-            <div className="text-center animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">
-                <AnimatedCounter target={180000} suffix="+" />
-              </p>
-              <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">profissionais cadastrados</p>
-            </div>
-            <div className="text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
-              <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">🇧🇷</p>
-              <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">Presente em todo o Brasil</p>
-            </div>
-            <div className="text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
-              <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">
-                <AnimatedCounter target={50000} suffix="+" />
-              </p>
-              <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">contratações realizadas</p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-4">
-            {[
-              { icon: Shield, label: "Plataforma segura" },
-              { icon: Star, label: "Profissionais avaliados" },
-              { icon: MessageCircle, label: "Suporte ativo" },
-            ].map((b) => (
-              <div key={b.label} className="flex items-center gap-2 bg-secondary-foreground/10 text-secondary-foreground px-4 py-2 rounded-full hover:scale-105 transition-transform duration-300">
-                <b.icon className="w-4 h-4 text-primary" />
-                <span className="text-xs md:text-sm font-bold">{b.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </section>
   );
 };
+
+/* ─── Counters & Trust Badges (separate section) ─── */
+const CountersSection = () => (
+  <section className="bg-secondary py-10 md:py-12 lg:py-14">
+    <div className="container mx-auto container-padding">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 lg:gap-14 mb-8 items-start">
+        <div className="text-center animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">
+            <AnimatedCounter target={180000} suffix="+" />
+          </p>
+          <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">profissionais cadastrados</p>
+        </div>
+        <div className="text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">BR</p>
+          <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">Presente em todo o Brasil</p>
+        </div>
+        <div className="text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
+          <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">
+            <AnimatedCounter target={50000} suffix="+" />
+          </p>
+          <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">contratações realizadas</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-4">
+        {[
+          { icon: Shield, label: "Plataforma segura" },
+          { icon: Star, label: "Profissionais avaliados" },
+          { icon: MessageCircle, label: "Suporte ativo" },
+        ].map((b) => (
+          <div key={b.label} className="flex items-center gap-2 bg-secondary-foreground/10 text-secondary-foreground px-4 py-2 rounded-full hover:scale-105 transition-transform duration-300">
+            <b.icon className="w-4 h-4 text-primary" />
+            <span className="text-xs md:text-sm font-bold">{b.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 /* ═══════════════════════════════════════════════════
    2️⃣  COMO FUNCIONA
