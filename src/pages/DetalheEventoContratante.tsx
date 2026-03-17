@@ -584,7 +584,7 @@ const DetalheEventoContratante = () => {
                         <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                       {candidato.status === "pendente" ? (
                         <>
                           <Button
