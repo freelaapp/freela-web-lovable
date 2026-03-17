@@ -956,6 +956,7 @@ const HomePage = () => {
   return (
     <AppLayout showBottomNav={false}>
       <HeroHome />
+      <CountersSection />
       <OQueEoFreela />
       <HowItWorks />
       <Solutions />
