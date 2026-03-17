@@ -12,14 +12,9 @@ const ConfiguracoesContratante = () => {
   const { toast } = useToast();
 
   const [notifCandidaturas, setNotifCandidaturas] = useState(true);
-  const [notifMensagens, setNotifMensagens] = useState(true);
   const [notifAvaliacoes, setNotifAvaliacoes] = useState(true);
   const [notifPagamentos, setNotifPagamentos] = useState(true);
   const [notifEmail, setNotifEmail] = useState(false);
-  const [notifPush, setNotifPush] = useState(true);
-
-  const [perfilPublico, setPerfilPublico] = useState(true);
-  const [modoEscuro, setModoEscuro] = useState(false);
 
   const handleSave = () => {
     toast({ title: "Configurações salvas", description: "Suas preferências foram atualizadas." });
