@@ -137,13 +137,40 @@ const Header = () => {
                     </Link>
                   </Button>
                 )}
-                <Link
-                  to="/perfil"
-                  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                  title="Meu Perfil"
+                <button
+                  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground relative"
+                  title="Notificações"
                 >
-                  <User className="w-5 h-5" />
-                </Link>
+                  <Bell className="w-5 h-5" />
+                </button>
+                <div className="relative" ref={profileMenuRef}>
+                  <button
+                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    title="Meu Perfil"
+                  >
+                    <User className="w-5 h-5" />
+                  </button>
+                  {isProfileMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-border bg-popover shadow-lg py-1 z-50 animate-fade-in">
+                      <Link
+                        to="/perfil"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                      >
+                        <User className="w-4 h-4" />
+                        Meu Perfil
+                      </Link>
+                      <button
+                        onClick={() => { setIsProfileMenuOpen(false); logout(); }}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors w-full text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sair da conta
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
