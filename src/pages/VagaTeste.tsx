@@ -112,11 +112,11 @@ const VagaTeste = () => {
   const aceitos = confirmados.length;
 
   const handleAceitar = (id: string) => {
-    setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
+    setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as CandidatoStatus } : c));
   };
 
   const handleRecusar = (id: string) => {
-    setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
+    setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as CandidatoStatus } : c));
   };
 
   const timelineStep = 1;
