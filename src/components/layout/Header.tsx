@@ -1,19 +1,32 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, LayoutDashboard, Calendar, Star, Map, User, CalendarPlus } from "lucide-react";
-import { useState, useCallback } from "react";
+import { Menu, X, LayoutDashboard, Calendar, Star, Map, User, CalendarPlus, Bell, LogOut } from "lucide-react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const role = useUserRole();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   const isLoggedIn = isAuthenticated;
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const publicNavLinks = [
     { href: "/", label: "Início" },
@@ -64,22 +77,16 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <Link to="/" className="flex items-center gap-2 hover-scale">
+            <Link
+              to={isLoggedIn ? (role === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer") : "/"}
+              className="flex items-center gap-2 hover-scale"
+            >
               <img
                 src={logoFreela}
                 alt="Freela Serviços"
                 className="h-[52px] md:h-[62px] w-auto object-fill"
               />
             </Link>
-            {isLoggedIn && (
-              <Link
-                to="/"
-                className="ml-2 p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                title="Voltar para Home"
-              >
-                <Home className="w-5 h-5" />
-              </Link>
-            )}
           </div>
 
           {/* Desktop Navigation */}
@@ -130,13 +137,40 @@ const Header = () => {
                     </Link>
                   </Button>
                 )}
-                <Link
-                  to="/perfil"
-                  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                  title="Meu Perfil"
+                <button
+                  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground relative"
+                  title="Notificações"
                 >
-                  <User className="w-5 h-5" />
-                </Link>
+                  <Bell className="w-5 h-5" />
+                </button>
+                <div className="relative" ref={profileMenuRef}>
+                  <button
+                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    title="Meu Perfil"
+                  >
+                    <User className="w-5 h-5" />
+                  </button>
+                  {isProfileMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-border bg-popover shadow-lg py-1 z-50 animate-fade-in">
+                      <Link
+                        to="/perfil"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                      >
+                        <User className="w-4 h-4" />
+                        Meu Perfil
+                      </Link>
+                      <button
+                        onClick={() => { setIsProfileMenuOpen(false); logout(); }}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors w-full text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sair da conta
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -190,14 +224,16 @@ const Header = () => {
                       </Button>
                     )}
                     <Button variant="outline" asChild className="w-full">
-                      <Link to="/" onClick={() => setIsMenuOpen(false)}>
-                        <Home className="w-4 h-4 mr-2" /> Voltar para Home
+                      <Link to="/perfil" onClick={() => setIsMenuOpen(false)}>
+                        <User className="w-4 h-4 mr-2" /> Meu Perfil
                       </Link>
                     </Button>
-                    <Button variant="outline" asChild className="w-full">
-                      <Link to="/perfil" onClick={() => setIsMenuOpen(false)}>
-                        Meu Perfil
-                      </Link>
+                    <Button
+                      variant="outline"
+                      className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+                      onClick={() => { setIsMenuOpen(false); logout(); }}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" /> Sair da conta
                     </Button>
                   </div>
                 </>
