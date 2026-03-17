@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 
 const EsqueciMinhaSenha = () => {

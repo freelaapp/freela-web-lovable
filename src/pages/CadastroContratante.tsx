@@ -22,7 +22,7 @@ import {
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { apiFetch } from "@/lib/api";
 
