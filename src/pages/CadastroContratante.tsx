@@ -21,13 +21,8 @@ import {
 } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
-<<<<<<< HEAD
 import { cn, validateCPF } from "@/lib/utils";
-import logoFreela from "@/assets/logo-freela.png";
-=======
-import { cn } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela-new.png";
->>>>>>> 46e7ec7c509743516055ab21008ffba16bdfbf15
 import { useToast } from "@/hooks/use-toast";
 import { apiFetch } from "@/lib/api";
 
