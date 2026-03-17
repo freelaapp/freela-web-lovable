@@ -654,34 +654,6 @@ const MeusDados = () => {
           </CardContent>
         </Card>
 
-        {/* Serviços Desejados */}
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-bold flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-primary" /> Serviços Desejados
-            </h3>
-            <p className="text-sm text-muted-foreground">Selecione as áreas em que deseja trabalhar.</p>
-            <div className="grid grid-cols-2 gap-2">
-              {areasAtuacao.map((area) => {
-                const selected = areasSelecionadas.includes(area.id);
-                return (
-                  <button
-                    key={area.id}
-                    type="button"
-                    onClick={() => toggleArea(area.id)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                      selected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-foreground border-border hover:border-primary/50"
-                    }`}
-                  >
-                    {area.label}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Endereço */}
         <Card>
