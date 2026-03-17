@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle, Phone } from "lucide-react";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { registerUser, generateEmailConfirmationCode } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
