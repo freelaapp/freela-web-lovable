@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Bell, Shield, Globe, Moon, Smartphone, Mail, MessageSquare, Briefcase, MapPin, FileText } from "lucide-react";
+import { ArrowLeft, Bell, Briefcase, Mail, FileText, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
