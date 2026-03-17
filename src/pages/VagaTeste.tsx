@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, Star, Shield, Eye, UserCheck, UserX, CheckCircle, KeyRound, MessageSquare } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, Star, Shield, Eye, UserCheck, UserX, CheckCircle, KeyRound, MessageCircle, Send, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AppLayout from "@/components/layout/AppLayout";
 import { useState } from "react";
 
@@ -313,49 +314,101 @@ const VagaTeste = () => {
           </CardContent>
         </Card>
 
-        {/* Modal Freelancer */}
-        {selectedFreelancer && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setSelectedFreelancer(null)}>
-            <Card className="w-full max-w-md" onClick={e => e.stopPropagation()}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-lg font-bold">
-                    {selectedFreelancer.avatar}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <CardTitle className="text-lg">{selectedFreelancer.name}</CardTitle>
-                      {selectedFreelancer.verified && <Shield className="w-4 h-4 text-primary fill-primary/20" />}
+        {/* Dialog Perfil do Freelancer (visão contratante) */}
+        <Dialog open={!!selectedFreelancer} onOpenChange={(open) => !open && setSelectedFreelancer(null)}>
+          <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+            {selectedFreelancer && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="sr-only">Perfil do Freelancer</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-5">
+                  {/* Header */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold">
+                      {selectedFreelancer.avatar}
                     </div>
-                    <p className="text-sm text-muted-foreground">{selectedFreelancer.role}</p>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="text-lg font-display font-bold">{selectedFreelancer.name}</h3>
+                        {selectedFreelancer.verified && <Shield className="w-4 h-4 text-primary fill-primary/20" />}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Star className="w-3.5 h-3.5 fill-primary text-primary" />
+                        <span className="text-sm font-medium">{selectedFreelancer.rating}</span>
+                        <span className="text-xs text-muted-foreground">({selectedFreelancer.reviews} avaliações)</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-primary text-primary" />
-                    <span className="text-sm font-medium">{selectedFreelancer.rating}</span>
-                    <span className="text-xs text-muted-foreground">({selectedFreelancer.reviews} avaliações)</span>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: selectedFreelancer.jobs.toString(), label: "Trabalhos" },
+                      { value: selectedFreelancer.rating.toString(), label: "Nota" },
+                      { value: "Rápida", label: "Resposta" },
+                    ].map(s => (
+                      <div key={s.label} className="text-center p-3 rounded-xl bg-muted/50">
+                        <p className="text-sm font-bold text-primary">{s.value}</p>
+                        <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-sm text-muted-foreground">{selectedFreelancer.jobs} jobs realizados</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium mb-1">Sobre</p>
-                  <p className="text-sm text-muted-foreground">{selectedFreelancer.bio}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button className="flex-1 gap-1" size="sm">
-                    <MessageSquare className="w-4 h-4" /> Mensagem
+
+                  {/* Bio */}
+                  <div>
+                    <h4 className="text-sm font-semibold mb-1">Sobre</h4>
+                    <p className="text-sm text-muted-foreground">{selectedFreelancer.bio}</p>
+                  </div>
+
+                  {/* Galeria */}
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">Galeria</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="aspect-square rounded-xl bg-muted/50 flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground">Foto {i}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1 gap-2" onClick={() => { setSelectedFreelancer(null); navigate("/mensagens"); }}>
+                      <MessageCircle className="w-4 h-4" /> Mensagem
+                    </Button>
+                    <Button className="flex-1 gap-2" onClick={() => setSelectedFreelancer(null)}>
+                      <Send className="w-4 h-4" /> Proposta Exclusiva
+                    </Button>
+                  </div>
+
+                  {selectedFreelancer.status === "pendente" && (
+                    <div className="flex gap-2">
+                      <Button
+                        className="flex-1 gap-2 bg-success hover:bg-success/90"
+                        onClick={() => { handleAceitar(selectedFreelancer.id); setSelectedFreelancer(null); }}
+                      >
+                        <UserCheck className="w-4 h-4" /> Aceitar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1 gap-2"
+                        onClick={() => { handleRecusar(selectedFreelancer.id); setSelectedFreelancer(null); }}
+                      >
+                        <UserX className="w-4 h-4" /> Recusar
+                      </Button>
+                    </div>
+                  )}
+
+                  <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.id}`); }}>
+                    <Eye className="w-4 h-4" /> Ver Perfil Completo <ChevronRight className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" className="flex-1" size="sm" onClick={() => setSelectedFreelancer(null)}>
-                    Fechar
-                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
