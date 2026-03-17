@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { loginUser, getContractorProfile } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
@@ -96,7 +96,7 @@ const Login = () => {
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link to="/" className="inline-block mb-8">
-            <img src={logoFreela} alt="Freela Serviços" className="h-12" />
+            <img src={logoFreela} alt="Freela Serviços" className="h-24" />
           </Link>
 
           {/* Header */}
