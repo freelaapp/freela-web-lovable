@@ -247,11 +247,11 @@ const VagaTeste = () => {
                           <DollarSign className="w-3 h-3 mr-1" /> Pagamento
                         </Button>
                         <button
-                          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
+                          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
                           onClick={() => setSelectedFreelancer(candidato)}
                         >
-                          <Eye className="w-4 h-4 text-primary" />
-                          <span className="text-[10px] font-medium text-primary">Ver perfil</span>
+                          <Eye className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
                         </button>
                       </>
                     ) : (
