@@ -181,7 +181,7 @@ const Cadastro = () => {
       <div className="flex-1 flex flex-col justify-center container-padding py-12">
         <div className="w-full max-w-md mx-auto">
           <Link to="/" className="inline-block mb-8">
-            <img src={logoFreela} alt="Freela Serviços" className="h-12" />
+            <img src={logoFreela} alt="Freela Serviços" className="h-24" />
           </Link>
 
           <div className="mb-6">
