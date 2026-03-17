@@ -73,15 +73,15 @@ const Configuracoes = () => {
             <h3 className="text-base font-display font-bold flex items-center gap-2">
               <Globe className="w-5 h-5 text-primary" /> Preferências
             </h3>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Moon className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Modo escuro</p>
-                </div>
-              </div>
-              <Switch checked={modoEscuro} onCheckedChange={setModoEscuro} />
-            </div>
+            
+
+
+
+
+
+
+
+            
             
 
 
