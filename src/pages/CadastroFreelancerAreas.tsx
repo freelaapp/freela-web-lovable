@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { ArrowRight, ArrowLeft, Briefcase, Clock, X, CheckCircle, MapPin } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { ArrowRight, ArrowLeft, Briefcase, Clock, X, CheckCircle } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 import { registerProvider } from "@/lib/api";
@@ -42,7 +39,7 @@ const diasSemana = [
   { key: "dom", label: "Dom" },
 ];
 
-const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}h`);
 
 type Horarios = Record<string, { de: string; ate: string }>;
 
@@ -54,18 +51,14 @@ const CadastroFreelancerAreas = () => {
   const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
   const [diasAtivos, setDiasAtivos] = useState<string[]>([]);
   const [horarios, setHorarios] = useState<Horarios>({
-    seg: { de: "08:00", ate: "18:00" },
-    ter: { de: "08:00", ate: "18:00" },
-    qua: { de: "08:00", ate: "18:00" },
-    qui: { de: "08:00", ate: "18:00" },
-    sex: { de: "08:00", ate: "18:00" },
-    sab: { de: "10:00", ate: "16:00" },
-    dom: { de: "10:00", ate: "14:00" },
+    seg: { de: "08h", ate: "18h" },
+    ter: { de: "08h", ate: "18h" },
+    qua: { de: "08h", ate: "18h" },
+    qui: { de: "08h", ate: "18h" },
+    sex: { de: "08h", ate: "18h" },
+    sab: { de: "10h", ate: "16h" },
+    dom: { de: "10h", ate: "14h" },
   });
-  const [horarioDialog, setHorarioDialog] = useState<string | null>(null);
-  const [tempDe, setTempDe] = useState("");
-  const [tempAte, setTempAte] = useState("");
-  const [mileageRadius, setMileageRadius] = useState(30);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const toggleArea = (id: string) => {
@@ -80,44 +73,50 @@ const CadastroFreelancerAreas = () => {
     );
   };
 
-  const openHorario = (key: string) => {
-    setTempDe(horarios[key]?.de || "08:00");
-    setTempAte(horarios[key]?.ate || "18:00");
-    setHorarioDialog(key);
+  const updateHorario = (key: string, field: "de" | "ate", value: string) => {
+    setHorarios((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], [field]: value },
+    }));
   };
-
-  const saveHorario = () => {
-    if (horarioDialog) {
-      setHorarios((prev) => ({ ...prev, [horarioDialog]: { de: tempDe, ate: tempAte } }));
-      setHorarioDialog(null);
-    }
-  };
-
-  const formatHorario = (key: string) => {
-    const h = horarios[key];
-    if (!h) return "--";
-    return `${h.de.replace(":00", "h")}-${h.ate.replace(":00", "h")}`;
-  };
-
-  const diaLabel = diasSemana.find((d) => d.key === horarioDialog)?.label || "";
 
   const validate = () => {
     const e: Record<string, string> = {};
     if (areasSelecionadas.length === 0) e.areas = "Selecione pelo menos uma área de atuação";
-    if (diasAtivos.length === 0) e.dias = "Selecione pelo menos um dia disponível";
+    if (diasAtivos.length === 0) {
+      e.dias = "Selecione pelo menos um dia disponível";
+    } else {
+      // Validação de 6 horas para cada dia ativo
+      for (const diaKey of diasAtivos) {
+        const h = horarios[diaKey];
+        const hDe = parseInt(h.de.replace("h", ""));
+        const hAte = parseInt(h.ate.replace("h", ""));
+        if (hAte - hDe < 6) {
+          const label = diasSemana.find((d) => d.key === diaKey)?.label;
+          e.dias = `O dia ${label} deve ter no mínimo 6 horas de disponibilidade.`;
+          break;
+        }
+      }
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      if (errors.dias) {
+        toast({
+          title: "Disponibilidade insuficiente",
+          description: errors.dias,
+          variant: "destructive"
+        });
+      }
+      return;
+    }
     setIsLoading(true);
 
     try {
-      // Ensure the token is still valid (refresh silently if needed).
-      // If the session cannot be recovered, recheckAuth redirects to /login
-      // via the global handler — we just bail out here.
       await recheckAuth();
 
       const savedRaw = localStorage.getItem("freelancerFormData");
@@ -147,7 +146,6 @@ const CadastroFreelancerAreas = () => {
       if (saved.fotoBase64) {
         const res = await fetch(saved.fotoBase64);
         const rawBlob = await res.blob();
-        // Preserva o MIME type original (fetch de data:URL pode retornar application/octet-stream)
         const mimeType = saved.fotoType || rawBlob.type || "image/jpeg";
         const blob = rawBlob.type === mimeType ? rawBlob : new Blob([rawBlob], { type: mimeType });
         fd.append("profileImage", blob, saved.fotoName || "profile.jpg");
@@ -161,6 +159,18 @@ const CadastroFreelancerAreas = () => {
       fd.append("cnh", "");
       fd.append("language", "");
       fd.append("desiredJobVacancy", areasLabels);
+
+      // Mapeamento dos horários para o formato do backend (ex: 08:00)
+      const mappedHorarios = Object.entries(horarios).reduce((acc, [key, val]) => {
+        acc[`availability_${key}_from`] = val.de.replace("h", ":00");
+        acc[`availability_${key}_to`] = val.ate.replace("h", ":00");
+        return acc;
+      }, {} as Record<string, string>);
+
+      Object.entries(mappedHorarios).forEach(([k, v]) => fd.append(k, v));
+      
+      fd.append("activeDays", diasAtivos.join(","));
+
       fd.append("emergencyContactName", saved.emergencyContactName || "");
       fd.append("emergencyContactRelationship", saved.emergencyContactRelationship || "");
       fd.append("emergencyContactNumber", saved.emergencyContactNumber || "");
@@ -180,7 +190,7 @@ const CadastroFreelancerAreas = () => {
       fd.append("pixKeyType", saved.tipoChavePix || "");
       fd.append("pixKeyValue", saved.pixKeyValue || "");
       fd.append("phoneMessage", "");
-      fd.append("mileageRadius", String(mileageRadius));
+      fd.append("mileageRadius", "30");
       fd.append("feedbackStars", "0");
 
       await registerProvider(fd);
@@ -209,20 +219,21 @@ const CadastroFreelancerAreas = () => {
 
       {/* Left Side */}
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12 sticky top-0 h-screen">
-        <div className="max-w-lg">
-          <CheckCircle className="w-16 h-16 text-secondary mb-6" />
-          <h2 className="text-3xl font-display font-bold text-secondary mb-4">Última etapa!</h2>
-          <p className="text-secondary/80 text-lg mb-8">
-            Defina suas áreas de atuação e horários disponíveis para receber vagas compatíveis com seu perfil.
-          </p>
-          <ul className="space-y-3">
+        <div className="max-w-xl">
+          <h2 className="text-2xl font-display font-bold text-secondary mb-6 leading-relaxed">
+            Junte-se à comunidade Freela e conecte-se a pessoas e oportunidades na sua região. Uma plataforma criada para facilitar a conexão entre quem quer trabalhar e quem precisa de ajuda de forma simples, rápida e segura.
+          </h2>
+          <ul className="space-y-5">
             {[
-              "Vagas filtradas pelo seu perfil",
-              "Notificações de oportunidades na sua região",
-              "Flexibilidade total de horários",
+              "Cadastro rápido e 100% gratuito",
+              "Tenha acesso a avaliações e histórico dos profissionais",
+              "Conecte-se a oportunidades ou profissionais próximos de você",
+              "Flexibilidade para trabalhar ou contratar quando precisar",
+              "Contratação rápida e sem burocracia",
+              "Suporte dedicado para ajudar sempre que necessário",
             ].map((item) => (
-              <li key={item} className="flex items-center gap-3 text-secondary/90">
-                <CheckCircle className="w-5 h-5 text-secondary" />
+              <li key={item} className="flex items-start gap-4 text-secondary/90 text-lg">
+                <CheckCircle className="w-6 h-6 text-secondary shrink-0 mt-0.5" />
                 <span>{item}</span>
               </li>
             ))}
@@ -231,8 +242,8 @@ const CadastroFreelancerAreas = () => {
       </div>
 
       {/* Right Side */}
-      <div className="flex-1 flex flex-col justify-start container-padding py-12 overflow-y-auto">
-        <div className="w-full max-w-lg mx-auto">
+      <div className="flex-1 flex flex-col justify-start container-padding pl-8 lg:pl-16 py-12 overflow-y-auto">
+        <div className="w-full max-w-2xl mx-auto">
           <Link to="/" className="inline-block mb-8">
             <img src={logoFreela} alt="Freela Serviços" className="h-12" />
           </Link>
@@ -300,85 +311,81 @@ const CadastroFreelancerAreas = () => {
               )}
             </div>
 
-            {/* Disponibilidade - Quadradinhos com relógio */}
-            <div className="border-t border-border pt-6 space-y-4">
+            {/* Disponibilidade - Grid Layout */}
+            <div className="border-t border-border pt-6 space-y-6">
               <div>
                 <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
                   <Clock className="w-5 h-5 text-primary" />
                   Horários Disponíveis
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Clique nos dias para ativar e use o relógio para definir o horário.
+                  Selecione os dias e defina o intervalo de trabalho (mínimo 6h).
                 </p>
               </div>
 
-              <div className="grid grid-cols-7 gap-2">
-                {diasSemana.map((dia) => {
-                  const ativo = diasAtivos.includes(dia.key);
-                  return (
-                    <div key={dia.key} className="flex flex-col items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => toggleDia(dia.key)}
-                        className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
-                          ativo
-                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                            : "bg-muted/50 text-muted-foreground border-transparent hover:border-primary/30"
-                        }`}
-                      >
-                        <span className="text-sm font-bold">{dia.label}</span>
-                        {ativo && (
-                          <span className="text-[10px] mt-0.5 opacity-90">{formatHorario(dia.key)}</span>
-                        )}
-                      </button>
-                      {ativo && (
+              <div className="overflow-x-auto pb-4">
+                <div className="min-w-[550px]">
+                  <div className="grid grid-cols-[40px_repeat(7,1fr)] gap-x-3 gap-y-2 items-center">
+                    {/* Row 1: Days */}
+                    <div /> {/* Empty space for alignment where "Dias" was */}
+                    {diasSemana.map((dia) => {
+                      const ativo = diasAtivos.includes(dia.key);
+                      return (
                         <button
+                          key={dia.key}
                           type="button"
-                          onClick={() => openHorario(dia.key)}
-                          className="w-8 h-8 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center transition-colors"
+                          onClick={() => toggleDia(dia.key)}
+                          className={`aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
+                            ativo
+                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                              : "bg-muted/50 text-muted-foreground border-transparent hover:border-primary/30"
+                          }`}
                         >
-                          <Clock className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-bold">{dia.label}</span>
                         </button>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+
+                    {/* Row 2: "De" */}
+                    <div className="text-sm font-bold text-left text-muted-foreground">De</div>
+                    {diasSemana.map((dia) => (
+                      <div key={`de-${dia.key}`}>
+                        <select
+                          disabled={!diasAtivos.includes(dia.key)}
+                          value={horarios[dia.key].de}
+                          onChange={(e) => updateHorario(dia.key, "de", e.target.value)}
+                          className="w-full bg-background border rounded-md px-1.5 py-1.5 text-[12px] font-medium focus:ring-1 focus:ring-primary outline-none disabled:opacity-20 transition-opacity cursor-pointer"
+                        >
+                          {horasDisponiveis.map((h) => (
+                            <option key={h} value={h}>{h}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+
+                    {/* Row 3: "Até" */}
+                    <div className="text-sm font-bold text-left text-muted-foreground">Até</div>
+                    {diasSemana.map((dia) => (
+                      <div key={`ate-${dia.key}`}>
+                        <select
+                          disabled={!diasAtivos.includes(dia.key)}
+                          value={horarios[dia.key].ate}
+                          onChange={(e) => updateHorario(dia.key, "ate", e.target.value)}
+                          className="w-full bg-background border rounded-md px-1.5 py-1.5 text-[12px] font-medium focus:ring-1 focus:ring-primary outline-none disabled:opacity-20 transition-opacity cursor-pointer"
+                        >
+                          {horasDisponiveis.map((h) => (
+                            <option key={h} value={h}>{h}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
               {errors.dias && <p className="text-sm text-destructive">{errors.dias}</p>}
-            </div>
-
-            {/* Distância máxima para trabalho */}
-            <div className="border-t border-border pt-6 space-y-4">
-              <div>
-                <h3 className="text-lg font-display font-semibold flex items-center gap-2 mb-1">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  Distância máxima para trabalho
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Defina até quantos quilômetros você aceita se deslocar para trabalhar.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Até <span className="text-primary font-bold">{mileageRadius} km</span> da minha casa
-                </Label>
-                <Slider
-                  value={[mileageRadius]}
-                  onValueChange={(v) => setMileageRadius(v[0])}
-                  min={5}
-                  max={100}
-                  step={5}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>5 km</span>
-                  <span>100 km</span>
-                </div>
-                <p className="text-xs text-muted-foreground italic">
-                  Vagas dentro deste raio a partir do seu endereço serão exibidas para você.
-                </p>
-              </div>
+              <p className="text-[11px] text-muted-foreground italic mt-2">
+                * Defina horários apenas para os dias selecionados. Cada intervalo deve ter ao menos 6 horas.
+              </p>
             </div>
 
             <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
@@ -396,35 +403,9 @@ const CadastroFreelancerAreas = () => {
           </form>
         </div>
       </div>
-
-      {/* Dialog de horário */}
-      <Dialog open={!!horarioDialog} onOpenChange={(open) => !open && setHorarioDialog(null)}>
-        <DialogContent className="max-w-xs">
-          <DialogHeader>
-            <DialogTitle>Horário — {diaLabel}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">De</label>
-              <select value={tempDe} onChange={(e) => setTempDe(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
-                {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Até</label>
-              <select value={tempAte} onChange={(e) => setTempAte(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
-                {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setHorarioDialog(null)}>Cancelar</Button>
-            <Button onClick={saveHorario}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
 
 export default CadastroFreelancerAreas;
+

@@ -12,7 +12,7 @@ import { ArrowRight, ArrowLeft, CalendarIcon, Briefcase, CheckCircle, Camera, X,
 import { Switch } from "@/components/ui/switch";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn, validateCPF } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 
@@ -139,7 +139,7 @@ const CadastroFreelancer = () => {
     const e: Record<string, string> = {};
     if (!fotoPerfil) e.fotoPerfil = "Foto de perfil é obrigatória";
     if (!nomeCompleto.trim() || nomeCompleto.trim().length < 3) e.nomeCompleto = "Nome completo é obrigatório (mínimo 3 caracteres)";
-    if (!cpf.replace(/\D/g, "") || cpf.replace(/\D/g, "").length !== 11) e.cpf = "CPF inválido";
+    if (!cpf.replace(/\D/g, "") || !validateCPF(cpf)) e.cpf = "CPF inválido";
     if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
     else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
     if (!sexo) e.sexo = "Sexo é obrigatório";
@@ -149,6 +149,15 @@ const CadastroFreelancer = () => {
     if (!estado) e.estado = "Estado é obrigatório";
     if (!acceptTerms) e.terms = "Você deve aceitar os termos";
     setErrors(e);
+
+    if (Object.keys(e).length > 0) {
+      toast({
+        title: "Campos pendentes ou incorretos",
+        description: Object.values(e).join(", "),
+        variant: "destructive",
+      });
+    }
+
     return Object.keys(e).length === 0;
   };
 
@@ -234,22 +243,24 @@ const CadastroFreelancer = () => {
 
       {/* Left Side - Visual */}
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12 sticky top-0 h-screen">
-        <div className="max-w-lg">
-          <Briefcase className="w-16 h-16 text-secondary mb-6" />
-          <h2 className="text-3xl font-display font-bold text-secondary mb-4">Trabalhe com liberdade</h2>
-          <p className="text-secondary/80 text-lg mb-8">
-            Cadastre-se e receba oportunidades de trabalho em eventos, bares, restaurantes e festas na sua região.
+        <div className="max-w-md">
+          <h2 className="text-3xl font-display font-bold text-secondary mb-4 text-left">
+            Junte-se à comunidade Freela
+          </h2>
+          <p className="text-secondary/80 text-lg mb-8 leading-relaxed text-left">
+            Conecte-se a pessoas e oportunidades na sua região. Uma plataforma criada para facilitar a conexão entre quem quer trabalhar e quem precisa de ajuda de forma simples, rápida e segura.
           </p>
-          <ul className="space-y-3">
+          <ul className="space-y-4">
             {[
-              "Vagas compatíveis com seu perfil automaticamente",
-              "Você escolhe quando e onde trabalhar",
-              "Pagamento garantido após o serviço",
-              "Avaliações que valorizam seu trabalho",
-              "Suporte dedicado ao freelancer",
+              "Cadastro rápido e 100% gratuito",
+              "Tenha acesso a avaliações e histórico dos profissionais",
+              "Conecte-se a oportunidades ou profissionais próximos de você",
+              "Flexibilidade para trabalhar ou contratar quando precisar",
+              "Contratação rápida e sem burocracia",
+              "Suporte dedicado para ajudar sempre que necessário",
             ].map((item) => (
-              <li key={item} className="flex items-center gap-3 text-secondary/90">
-                <CheckCircle className="w-5 h-5 text-secondary" />
+              <li key={item} className="flex items-start gap-3 text-secondary/90 text-base">
+                <CheckCircle className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
                 <span>{item}</span>
               </li>
             ))}

@@ -34,7 +34,10 @@ const Cadastro = () => {
     { label: "Um caractere especial", valid: /[!@#$%^&*(),.?":{}|<>]/.test(formData.password) },
   ];
 
-  const validateForm = () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("[Cadastro] handleSubmit chamado");
+
     const newErrors: Record<string, string> = {};
 
     if (!formData.nome.trim()) {
@@ -70,14 +73,14 @@ const Cadastro = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("[Cadastro] handleSubmit chamado");
-    if (!validateForm()) {
-      console.log("[Cadastro] Validação falhou:", errors);
+    if (Object.keys(newErrors).length > 0) {
+      console.log("[Cadastro] Validação falhou:", newErrors);
+      toast({
+        title: "Campos pendentes ou incorretos",
+        description: Object.values(newErrors).join(", "),
+        variant: "destructive",
+      });
       return;
     }
     console.log("[Cadastro] Validação OK, enviando código...");

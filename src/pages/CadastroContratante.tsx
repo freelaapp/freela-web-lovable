@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn, validateCPF } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 import { apiFetch } from "@/lib/api";
@@ -191,7 +191,7 @@ const CadastroContratante = () => {
       if (!nomeOuRazao.trim()) e.nomeOuRazao = "Razão Social é obrigatória";
     } else {
       if (!documento.replace(/\D/g, "")) e.documento = "Documento é obrigatório";
-      else if (tipoDoc === "cpf" && documento.replace(/\D/g, "").length !== 11) e.documento = "CPF inválido";
+      else if (tipoDoc === "cpf" && !validateCPF(documento)) e.documento = "CPF inválido";
       else if (tipoDoc === "cnpj" && documento.replace(/\D/g, "").length !== 14) e.documento = "CNPJ inválido";
       if (tipoDoc === "cnpj" && !nomeOuRazao.trim()) e.nomeOuRazao = "Razão Social é obrigatória";
       if (isCasaCPF) {
@@ -219,6 +219,15 @@ const CadastroContratante = () => {
       if (!fotoFachada) e.fotoFachada = "Foto da fachada é obrigatória";
     }
     setErrors(e);
+
+    if (Object.keys(e).length > 0) {
+      toast({
+        title: "Campos pendentes ou incorretos",
+        description: Object.values(e).join(", "),
+        variant: "destructive",
+      });
+    }
+
     return Object.keys(e).length === 0;
   };
 
