@@ -36,32 +36,12 @@ const ConfiguracoesContratante = () => {
               <Bell className="w-5 h-5 text-primary" /> Notificações
             </h3>
             <ToggleRow icon={Users} label="Novas candidaturas em vagas" checked={notifCandidaturas} onChange={setNotifCandidaturas} />
-            <ToggleRow icon={MessageSquare} label="Mensagens recebidas" checked={notifMensagens} onChange={setNotifMensagens} />
             <ToggleRow icon={Bell} label="Avaliações recebidas" checked={notifAvaliacoes} onChange={setNotifAvaliacoes} />
             <ToggleRow icon={Bell} label="Pagamentos realizados" checked={notifPagamentos} onChange={setNotifPagamentos} />
             <div className="border-t pt-3 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Canais</p>
               <ToggleRow icon={Mail} label="Receber por e-mail" checked={notifEmail} onChange={setNotifEmail} />
-              <ToggleRow icon={Smartphone} label="Notificações push" checked={notifPush} onChange={setNotifPush} />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-bold flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" /> Privacidade
-            </h3>
-            <ToggleRow icon={Globe} label="Perfil público" desc="Freelancers podem ver seu perfil" checked={perfilPublico} onChange={setPerfilPublico} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-bold flex items-center gap-2">
-              <Globe className="w-5 h-5 text-primary" /> Preferências
-            </h3>
-            <ToggleRow icon={Moon} label="Modo escuro" checked={modoEscuro} onChange={setModoEscuro} />
           </CardContent>
         </Card>
 
