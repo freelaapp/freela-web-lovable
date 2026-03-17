@@ -45,13 +45,13 @@ const Configuracoes = () => {
               <Bell className="w-5 h-5 text-primary" /> Notificações
             </h3>
             <ToggleRow icon={Briefcase} label="Novas vagas na região" checked={notifNovasVagas} onChange={setNotifNovasVagas} />
-            <ToggleRow icon={MessageSquare} label="Mensagens recebidas" checked={notifMensagens} onChange={setNotifMensagens} />
+            
             <ToggleRow icon={Bell} label="Avaliações recebidas" checked={notifAvaliacoes} onChange={setNotifAvaliacoes} />
             <ToggleRow icon={Bell} label="Pagamentos e recebimentos" checked={notifPagamentos} onChange={setNotifPagamentos} />
             <div className="border-t pt-3 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Canais</p>
               <ToggleRow icon={Mail} label="Receber por e-mail" checked={notifEmail} onChange={setNotifEmail} />
-              <ToggleRow icon={Smartphone} label="Notificações push" checked={notifPush} onChange={setNotifPush} />
+              
             </div>
           </CardContent>
         </Card>
