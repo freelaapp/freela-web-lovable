@@ -116,137 +116,124 @@ const HeroHome = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setActive((prev) => (prev + 1) % bannerSlides.length);
-    }, 4000);
+    }, 10000);
     return () => clearInterval(timer);
   }, []);
 
-  const ActiveIcon = bannerSlides[active].cta.icon;
-
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden hero-gradient">
-      {/* BG blobs */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-80 h-80 bg-secondary rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary rounded-full blur-3xl" />
-      </div>
-
-      <div className="container mx-auto container-padding relative z-10 pt-28 pb-20">
-        <div className="max-w-5xl mx-auto text-center">
-          
-
-
-
-
-
-          <h1 className="text-secondary mb-6 hero-text-shadow text-5xl">
-            Milhares de Freelancers disponíveis para{" "}
-            <br className="hidden md:block" />
-            <span className="text-secondary-foreground">
-              {bannerSlides[active].headline}
-            </span>
-          </h1>
-
-          <p className="text-lg md:text-xl text-secondary/80 max-w-2xl mx-auto mb-12">
-            Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
-          </p>
-
-          {/* 3 Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {bannerSlides.map((slide, i) => {
-              const SlideIcon = slide.cta.icon;
-              return (
-                <Link
-                  key={i}
-                  to={slide.cta.link}
-                  onClick={(e) => {e.preventDefault();setActive(i);}}
-                  className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer ${
-                  i === active ?
-                  "ring-4 ring-secondary shadow-lg scale-[1.03]" :
-                  "ring-2 ring-secondary/20 hover:ring-secondary/50 opacity-80 hover:opacity-100"}`
-                  }>
-
-                  <div className="aspect-[16/10] overflow-hidden">
-                    <img
-                      src={slide.image}
-                      alt={slide.headline}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/30 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
-                    <div className="flex items-center gap-2 mb-2">
-                      <SlideIcon className="w-5 h-5 text-primary" />
-                      <span className="text-xs font-bold text-primary uppercase tracking-wide">
-                        {slide.cta.label}
-                      </span>
-                    </div>
-                    <p className="text-sm font-semibold text-secondary-foreground leading-tight">
-                      {slide.headline}
-                    </p>
-                  </div>
-                  {i === active &&
-                  <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
-                      Destaque
-                    </div>
-                  }
-                </Link>);
-
-            })}
+    <section className="relative overflow-hidden hero-gradient">
+      {/* Full-width Slideshow */}
+      <div className="relative w-full h-[85vh] md:h-[75vh]">
+        {bannerSlides.map((slide, i) => (
+          <div
+            key={i}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              i === active ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
+          >
+            <img
+              src={slide.image}
+              alt={slide.headline}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/50 to-secondary/20" />
           </div>
+        ))}
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
-            <Button variant="hero" size="xl" asChild className="group">
-              <Link to={bannerSlides[active].cta.link}>
-                <ActiveIcon className="w-5 h-5" />
-                {bannerSlides[active].cta.label}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button variant="hero-outline" size="xl" asChild>
-              <Link to="/cadastro">
-                <UserPlus className="w-5 h-5" />
-                Quero trabalhar pelo Freela
-              </Link>
-            </Button>
-          </div>
+        {/* Content overlay */}
+        <div className="absolute inset-0 z-20 flex flex-col justify-end pb-8 md:pb-16">
+          <div className="container mx-auto container-padding">
+            <div className="max-w-3xl">
+              <div className="flex items-center gap-2 mb-3">
+                {(() => {
+                  const SlideIcon = bannerSlides[active].cta.icon;
+                  return <SlideIcon className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+                })()}
+                <span className="text-xs md:text-sm font-bold text-primary uppercase tracking-wider">
+                  {bannerSlides[active].cta.label}
+                </span>
+              </div>
 
-        {/* Animated Counters */}
-        <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-12">
-          <div className="text-center animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <p className="font-display text-4xl md:text-5xl font-extrabold text-secondary hero-text-shadow">
-              <AnimatedCounter target={180000} suffix="+" />
-            </p>
-            <p className="text-sm font-semibold text-secondary/90 mt-2 uppercase tracking-wider">profissionais cadastrados</p>
-          </div>
-          <div className="text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
-            <p className="font-display text-4xl md:text-5xl font-extrabold text-secondary hero-text-shadow">🇧🇷</p>
-            <p className="text-sm font-semibold text-secondary/90 mt-2 uppercase tracking-wider">Presente em todo o Brasil</p>
-          </div>
-          <div className="text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
-            <p className="font-display text-4xl md:text-5xl font-extrabold text-secondary hero-text-shadow">
-              <AnimatedCounter target={50000} suffix="+" />
-            </p>
-            <p className="text-sm font-semibold text-secondary/90 mt-2 uppercase tracking-wider">contratações realizadas</p>
-          </div>
-        </div>
+              <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold text-secondary-foreground mb-2 md:mb-4 leading-tight hero-text-shadow">
+                {bannerSlides[active].headline}
+              </h1>
 
-        {/* Trust Badges */}
-        <div className="flex flex-wrap justify-center gap-6">
-          {[
-            { icon: Shield, label: "Plataforma segura" },
-            { icon: Star, label: "Profissionais avaliados" },
-            { icon: MessageCircle, label: "Suporte ativo" }].
-            map((b) =>
-            <div key={b.label} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-5 py-2.5 rounded-full shadow-md hover:scale-105 transition-transform duration-300">
-              <b.icon className="w-5 h-5 text-primary" />
-              <span className="text-sm font-bold">{b.label}</span>
+              <p className="text-sm md:text-lg text-secondary-foreground/80 max-w-xl mb-6 md:mb-8">
+                Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                <Button size="lg" asChild className="group bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-lg">
+                  <Link to={bannerSlides[active].cta.link}>
+                    {bannerSlides[active].cta.label}
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <Button size="lg" asChild className="bg-secondary-foreground text-secondary border-2 border-secondary-foreground font-bold hover:bg-secondary-foreground/90">
+                  <Link to="/cadastro">
+                    <UserPlus className="w-5 h-5" />
+                    Quero trabalhar pelo Freela
+                  </Link>
+                </Button>
+              </div>
             </div>
-            )}
+
+            {/* Dots */}
+            <div className="flex items-center gap-3">
+              {bannerSlides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  className={`rounded-full transition-all duration-300 ${
+                    i === active
+                      ? "w-8 h-3 bg-primary"
+                      : "w-3 h-3 bg-secondary-foreground/50 hover:bg-secondary-foreground/80"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>);
 
+      {/* Counters & Trust Badges */}
+      <div className="bg-secondary py-8 md:py-12">
+        <div className="container mx-auto container-padding">
+          <div className="flex flex-wrap justify-center gap-8 md:gap-14 mb-8">
+            <div className="text-center animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">
+                <AnimatedCounter target={180000} suffix="+" />
+              </p>
+              <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">profissionais cadastrados</p>
+            </div>
+            <div className="text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
+              <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">🇧🇷</p>
+              <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">Presente em todo o Brasil</p>
+            </div>
+            <div className="text-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
+              <p className="font-display text-3xl md:text-5xl font-extrabold text-secondary-foreground">
+                <AnimatedCounter target={50000} suffix="+" />
+              </p>
+              <p className="text-xs md:text-sm font-semibold text-secondary-foreground/70 mt-1 uppercase tracking-wider">contratações realizadas</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            {[
+              { icon: Shield, label: "Plataforma segura" },
+              { icon: Star, label: "Profissionais avaliados" },
+              { icon: MessageCircle, label: "Suporte ativo" },
+            ].map((b) => (
+              <div key={b.label} className="flex items-center gap-2 bg-secondary-foreground/10 text-secondary-foreground px-4 py-2 rounded-full hover:scale-105 transition-transform duration-300">
+                <b.icon className="w-4 h-4 text-primary" />
+                <span className="text-xs md:text-sm font-bold">{b.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 /* ═══════════════════════════════════════════════════
