@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Bell, Shield, Globe, Moon, Smartphone, Mail, MessageSquare, Users, FileText } from "lucide-react";
+import { ArrowLeft, Bell, Users, Mail, FileText, Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
@@ -12,14 +12,9 @@ const ConfiguracoesContratante = () => {
   const { toast } = useToast();
 
   const [notifCandidaturas, setNotifCandidaturas] = useState(true);
-  const [notifMensagens, setNotifMensagens] = useState(true);
   const [notifAvaliacoes, setNotifAvaliacoes] = useState(true);
   const [notifPagamentos, setNotifPagamentos] = useState(true);
   const [notifEmail, setNotifEmail] = useState(false);
-  const [notifPush, setNotifPush] = useState(true);
-
-  const [perfilPublico, setPerfilPublico] = useState(true);
-  const [modoEscuro, setModoEscuro] = useState(false);
 
   const handleSave = () => {
     toast({ title: "Configurações salvas", description: "Suas preferências foram atualizadas." });
@@ -41,32 +36,12 @@ const ConfiguracoesContratante = () => {
               <Bell className="w-5 h-5 text-primary" /> Notificações
             </h3>
             <ToggleRow icon={Users} label="Novas candidaturas em vagas" checked={notifCandidaturas} onChange={setNotifCandidaturas} />
-            <ToggleRow icon={MessageSquare} label="Mensagens recebidas" checked={notifMensagens} onChange={setNotifMensagens} />
             <ToggleRow icon={Bell} label="Avaliações recebidas" checked={notifAvaliacoes} onChange={setNotifAvaliacoes} />
             <ToggleRow icon={Bell} label="Pagamentos realizados" checked={notifPagamentos} onChange={setNotifPagamentos} />
             <div className="border-t pt-3 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Canais</p>
               <ToggleRow icon={Mail} label="Receber por e-mail" checked={notifEmail} onChange={setNotifEmail} />
-              <ToggleRow icon={Smartphone} label="Notificações push" checked={notifPush} onChange={setNotifPush} />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-bold flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" /> Privacidade
-            </h3>
-            <ToggleRow icon={Globe} label="Perfil público" desc="Freelancers podem ver seu perfil" checked={perfilPublico} onChange={setPerfilPublico} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-bold flex items-center gap-2">
-              <Globe className="w-5 h-5 text-primary" /> Preferências
-            </h3>
-            <ToggleRow icon={Moon} label="Modo escuro" checked={modoEscuro} onChange={setModoEscuro} />
           </CardContent>
         </Card>
 
