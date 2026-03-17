@@ -46,7 +46,7 @@ const ConfiguracoesContratante = () => {
             <ToggleRow icon={Bell} label="Pagamentos realizados" checked={notifPagamentos} onChange={setNotifPagamentos} />
             <div className="border-t pt-3 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Canais</p>
-              <ToggleRow icon={Mail} label="Receber por e-mail" checked={notifEmail} onChange={setNotifEmail} />
+              
               <ToggleRow icon={Smartphone} label="Notificações push" checked={notifPush} onChange={setNotifPush} />
             </div>
           </CardContent>
