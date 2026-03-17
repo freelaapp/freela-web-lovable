@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, LayoutDashboard, Calendar, Star, Map, User, CalendarPlus } from "lucide-react";
-import { useState, useCallback } from "react";
+import { Menu, X, LayoutDashboard, Calendar, Star, Map, User, CalendarPlus, Bell, LogOut } from "lucide-react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
