@@ -123,7 +123,7 @@ const HeroHome = () => {
   return (
     <section className="relative overflow-hidden hero-gradient">
       {/* Full-width Slideshow */}
-      <div className="relative w-full min-h-[60vh] md:min-h-[70vh] lg:min-h-[75vh] aspect-[16/10] md:aspect-auto md:h-auto">
+      <div className="relative w-full h-[550px] md:h-[600px] lg:h-[700px] xl:h-[80vh]">
         {bannerSlides.map((slide, i) => (
           <div
             key={i}
