@@ -41,7 +41,7 @@ const ConfiguracoesContratante = () => {
               <Bell className="w-5 h-5 text-primary" /> Notificações
             </h3>
             <ToggleRow icon={Users} label="Novas candidaturas em vagas" checked={notifCandidaturas} onChange={setNotifCandidaturas} />
-            <ToggleRow icon={MessageSquare} label="Mensagens recebidas" checked={notifMensagens} onChange={setNotifMensagens} />
+            
             <ToggleRow icon={Bell} label="Avaliações recebidas" checked={notifAvaliacoes} onChange={setNotifAvaliacoes} />
             <ToggleRow icon={Bell} label="Pagamentos realizados" checked={notifPagamentos} onChange={setNotifPagamentos} />
             <div className="border-t pt-3 space-y-3">
