@@ -74,26 +74,26 @@ const Configuracoes = () => {
               <Globe className="w-5 h-5 text-primary" /> Preferências
             </h3>
             <ToggleRow icon={Moon} label="Modo escuro" checked={modoEscuro} onChange={setModoEscuro} />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Raio de busca</p>
-                  <p className="text-xs text-muted-foreground">Vagas até {raioKm}km de distância</p>
-                </div>
-              </div>
-              <select
-                value={raioKm}
-                onChange={(e) => setRaioKm(Number(e.target.value))}
-                className="border rounded-lg px-3 py-1.5 text-sm bg-background"
-              >
-                <option value={10}>10km</option>
-                <option value={20}>20km</option>
-                <option value={30}>30km</option>
-                <option value={50}>50km</option>
-                <option value={100}>100km</option>
-              </select>
-            </div>
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
           </CardContent>
         </Card>
 
@@ -116,8 +116,8 @@ const Configuracoes = () => {
 
         <Button onClick={handleSave} className="w-full">Salvar Configurações</Button>
       </div>
-    </AppLayout>
-  );
+    </AppLayout>);
+
 };
 
 const ToggleRow = ({
@@ -125,15 +125,15 @@ const ToggleRow = ({
   label,
   desc,
   checked,
-  onChange,
-}: {
-  icon: React.ElementType;
-  label: string;
-  desc?: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) => (
-  <div className="flex items-center justify-between">
+  onChange
+
+
+
+
+
+
+}: {icon: React.ElementType;label: string;desc?: string;checked: boolean;onChange: (v: boolean) => void;}) =>
+<div className="flex items-center justify-between">
     <div className="flex items-center gap-3">
       <Icon className="w-4 h-4 text-muted-foreground" />
       <div>
@@ -142,7 +142,7 @@ const ToggleRow = ({
       </div>
     </div>
     <Switch checked={checked} onCheckedChange={onChange} />
-  </div>
-);
+  </div>;
+
 
 export default Configuracoes;
