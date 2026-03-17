@@ -451,7 +451,6 @@ const Perfil = () => {
               </div>
             </CardContent>
           </Card>
-        )}
 
         {/* Sobre mim - hidden for now */}
 
