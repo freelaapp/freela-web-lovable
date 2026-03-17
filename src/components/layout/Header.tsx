@@ -224,14 +224,16 @@ const Header = () => {
                       </Button>
                     )}
                     <Button variant="outline" asChild className="w-full">
-                      <Link to="/" onClick={() => setIsMenuOpen(false)}>
-                        <Home className="w-4 h-4 mr-2" /> Voltar para Home
+                      <Link to="/perfil" onClick={() => setIsMenuOpen(false)}>
+                        <User className="w-4 h-4 mr-2" /> Meu Perfil
                       </Link>
                     </Button>
-                    <Button variant="outline" asChild className="w-full">
-                      <Link to="/perfil" onClick={() => setIsMenuOpen(false)}>
-                        Meu Perfil
-                      </Link>
+                    <Button
+                      variant="outline"
+                      className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+                      onClick={() => { setIsMenuOpen(false); logout(); }}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" /> Sair da conta
                     </Button>
                   </div>
                 </>
