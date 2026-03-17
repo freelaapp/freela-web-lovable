@@ -271,10 +271,9 @@ const VagaTeste = () => {
                       </>
                     )}
                   </div>
+                </div>
               ))
             )}
-            )}
-          </CardContent>
         </Card>
 
         {/* Linha do Tempo */}
