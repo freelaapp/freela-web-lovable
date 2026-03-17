@@ -222,11 +222,14 @@ const CadastroFreelancerAreas = () => {
 
       {/* Left Side */}
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12 sticky top-0 h-screen">
-        <div className="max-w-xl">
-          <h2 className="text-2xl font-display font-bold text-secondary mb-6 leading-relaxed">
-            Junte-se à comunidade Freela e conecte-se a pessoas e oportunidades na sua região. Uma plataforma criada para facilitar a conexão entre quem quer trabalhar e quem precisa de ajuda de forma simples, rápida e segura.
+        <div className="max-w-md">
+          <h2 className="text-3xl font-display font-bold text-secondary mb-4 text-left">
+            Junte-se à comunidade Freela
           </h2>
-          <ul className="space-y-5">
+          <p className="text-secondary/80 text-lg mb-8 leading-relaxed text-left">
+            Conecte-se a pessoas e oportunidades na sua região. Uma plataforma criada para facilitar a conexão entre quem quer trabalhar e quem precisa de ajuda de forma simples, rápida e segura.
+          </p>
+          <ul className="space-y-4">
             {[
               "Cadastro rápido e 100% gratuito",
               "Tenha acesso a avaliações e histórico dos profissionais",
@@ -235,8 +238,8 @@ const CadastroFreelancerAreas = () => {
               "Contratação rápida e sem burocracia",
               "Suporte dedicado para ajudar sempre que necessário",
             ].map((item) => (
-              <li key={item} className="flex items-start gap-4 text-secondary/90 text-lg">
-                <CheckCircle className="w-6 h-6 text-secondary shrink-0 mt-0.5" />
+              <li key={item} className="flex items-start gap-3 text-secondary/90 text-base">
+                <CheckCircle className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
                 <span>{item}</span>
               </li>
             ))}
