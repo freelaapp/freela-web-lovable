@@ -77,22 +77,16 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <Link to="/" className="flex items-center gap-2 hover-scale">
+            <Link
+              to={isLoggedIn ? (role === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer") : "/"}
+              className="flex items-center gap-2 hover-scale"
+            >
               <img
                 src={logoFreela}
                 alt="Freela Serviços"
                 className="h-[52px] md:h-[62px] w-auto object-fill"
               />
             </Link>
-            {isLoggedIn && (
-              <Link
-                to="/"
-                className="ml-2 p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                title="Voltar para Home"
-              >
-                <Home className="w-5 h-5" />
-              </Link>
-            )}
           </div>
 
           {/* Desktop Navigation */}
