@@ -154,11 +154,11 @@ const HeroHome = () => {
                 </span>
               </div>
 
-              <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold text-secondary-foreground mb-2 md:mb-4 leading-tight hero-text-shadow">
+              <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold text-secondary-foreground mb-2 md:mb-4 leading-tight hero-text-shadow">
                 {bannerSlides[active].headline}
               </h1>
 
-              <p className="text-sm md:text-lg text-secondary-foreground/80 max-w-xl mb-6 md:mb-8">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-secondary-foreground/80 max-w-xl mb-4 md:mb-8">
                 Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
               </p>
 
