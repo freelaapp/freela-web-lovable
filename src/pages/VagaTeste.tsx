@@ -271,11 +271,8 @@ const VagaTeste = () => {
                       </>
                     )}
                   </div>
-                </div>
-                    </Button>
-                  </div>
-                </div>
               ))
+            )}
             )}
           </CardContent>
         </Card>
