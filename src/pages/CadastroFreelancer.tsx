@@ -12,8 +12,13 @@ import { ArrowRight, ArrowLeft, CalendarIcon, Briefcase, CheckCircle, Camera, X,
 import { Switch } from "@/components/ui/switch";
 import { format, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
+<<<<<<< HEAD
 import { cn, validateCPF } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela.png";
+=======
+import { cn } from "@/lib/utils";
+import logoFreela from "@/assets/logo-freela-new.png";
+>>>>>>> 46e7ec7c509743516055ab21008ffba16bdfbf15
 import { useToast } from "@/hooks/use-toast";
 
 const estadosBR = [
@@ -272,7 +277,7 @@ const CadastroFreelancer = () => {
       <div className="flex-1 flex flex-col justify-start container-padding py-12 overflow-y-auto">
         <div className="w-full max-w-lg mx-auto">
           <Link to="/" className="inline-block mb-8">
-            <img src={logoFreela} alt="Freela Serviços" className="h-12" />
+            <img src={logoFreela} alt="Freela Serviços" className="h-24" />
           </Link>
 
           <div className="mb-2">

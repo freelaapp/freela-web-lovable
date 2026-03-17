@@ -47,6 +47,7 @@ import PerfilContratante from "./pages/PerfilContratante";
 import TelaPix from "./pages/TelaPix";
 
 import ObrigadoContratante from "./pages/ObrigadoContratante";
+import VagaTeste from "./pages/VagaTeste";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ const App = () => (
             <Route path="/tela-pix" element={<TelaPix />} />
             
             <Route path="/obrigado-contratante" element={<ObrigadoContratante />} />
+            <Route path="/vagas-teste-contratante" element={<VagaTeste />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

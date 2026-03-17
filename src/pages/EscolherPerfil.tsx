@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Building2, Briefcase, ArrowRight, ArrowLeft } from "lucide-react";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-new.png";
 
 const EscolherPerfil = () => {
   const navigate = useNavigate();

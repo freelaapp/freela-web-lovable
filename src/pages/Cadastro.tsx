@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle, Phone } from "lucide-react";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { registerUser, generateEmailConfirmationCode } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
@@ -157,17 +157,19 @@ const Cadastro = () => {
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12 sticky top-0 h-screen">
         <div className="max-w-lg">
           <h2 className="text-3xl font-display font-bold text-secondary mb-4">
-            Junte-se à maior comunidade de freelancers do Brasil
+            Junte-se à comunidade Freela
           </h2>
           <p className="text-secondary/80 text-lg mb-8">
-            Crie sua conta e comece a conectar-se com profissionais e oportunidades na sua região.
+            Conecte-se a pessoas e oportunidades na sua região. Uma plataforma criada para facilitar a conexão entre quem quer trabalhar e quem precisa de ajuda de forma simples, rápida e segura.
           </p>
           <ul className="space-y-4">
             {[
               "Cadastro rápido e 100% gratuito",
-              "Contrate ou trabalhe com flexibilidade",
-              "Pagamento seguro e garantido",
-              "Suporte dedicado para você",
+              "Tenha acesso a avaliações e histórico dos profissionais",
+              "Conecte-se a oportunidades ou profissionais próximos de você",
+              "Flexibilidade para trabalhar ou contratar quando precisar",
+              "Contratação rápida e sem burocracia",
+              "Suporte dedicado para ajudar sempre que necessário",
             ].map((item) => (
               <li key={item} className="flex items-center gap-3 text-secondary/90">
                 <CheckCircle className="w-5 h-5 text-secondary" />
@@ -182,7 +184,7 @@ const Cadastro = () => {
       <div className="flex-1 flex flex-col justify-center container-padding py-12">
         <div className="w-full max-w-md mx-auto">
           <Link to="/" className="inline-block mb-8">
-            <img src={logoFreela} alt="Freela Serviços" className="h-12" />
+            <img src={logoFreela} alt="Freela Serviços" className="h-24" />
           </Link>
 
           <div className="mb-6">

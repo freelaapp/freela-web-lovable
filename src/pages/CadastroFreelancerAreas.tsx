@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+<<<<<<< HEAD
 import { ArrowRight, ArrowLeft, Briefcase, Clock, X, CheckCircle } from "lucide-react";
 import logoFreela from "@/assets/logo-freela.png";
+=======
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { ArrowRight, ArrowLeft, Briefcase, Clock, X, CheckCircle, MapPin } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import logoFreela from "@/assets/logo-freela-new.png";
+>>>>>>> 46e7ec7c509743516055ab21008ffba16bdfbf15
 import { useToast } from "@/hooks/use-toast";
 import { registerProvider } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -245,7 +253,7 @@ const CadastroFreelancerAreas = () => {
       <div className="flex-1 flex flex-col justify-start container-padding pl-8 lg:pl-16 py-12 overflow-y-auto">
         <div className="w-full max-w-2xl mx-auto">
           <Link to="/" className="inline-block mb-8">
-            <img src={logoFreela} alt="Freela Serviços" className="h-12" />
+            <img src={logoFreela} alt="Freela Serviços" className="h-24" />
           </Link>
 
           <div className="mb-2">

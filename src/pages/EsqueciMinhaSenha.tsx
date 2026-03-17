@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 
 const EsqueciMinhaSenha = () => {
@@ -59,7 +59,7 @@ const EsqueciMinhaSenha = () => {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link to="/" className="inline-block mb-8">
-          <img src={logoFreela} alt="Freela Serviços" className="h-12" />
+          <img src={logoFreela} alt="Freela Serviços" className="h-24" />
         </Link>
 
         {/* Back Link */}

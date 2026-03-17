@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
-import logoFreela from "@/assets/logo-freela.png";
+import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { loginUser, getContractorProfile } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
@@ -96,7 +96,7 @@ const Login = () => {
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link to="/" className="inline-block mb-8">
-            <img src={logoFreela} alt="Freela Serviços" className="h-12" />
+            <img src={logoFreela} alt="Freela Serviços" className="h-24" />
           </Link>
 
           {/* Header */}
@@ -186,11 +186,10 @@ const Login = () => {
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12">
         <div className="max-w-lg text-center">
           <h2 className="text-3xl font-display font-bold text-secondary mb-4">
-            Conecte-se a oportunidades incríveis
+            Bom te ver de volta
           </h2>
           <p className="text-secondary/80 text-lg">
-            Milhares de oportunidades de serviços esperando por você. Entre agora e 
-            encontre os melhores profissionais para seu estabelecimento.
+            Suas oportunidades e conexões estão te esperando. Entre e continue de onde parou.
           </p>
         </div>
       </div>
