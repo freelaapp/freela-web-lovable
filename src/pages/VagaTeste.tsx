@@ -193,43 +193,56 @@ const VagaTeste = () => {
               <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer nesta categoria</p>
             ) : (
               filteredCandidatos.map((candidato) => (
-                <div key={candidato.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
-                    {candidato.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold truncate">{candidato.name}</p>
-                      {candidato.verified && <Shield className="w-3.5 h-3.5 text-primary fill-primary/20" />}
+                <div
+                  key={candidato.id}
+                  className="relative p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  onClick={() => setSelectedFreelancer(candidato)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
+                      {candidato.avatar}
                     </div>
-                    <p className="text-xs text-muted-foreground">{candidato.role}</p>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star className="w-3 h-3 fill-primary text-primary" />
-                      <span className="text-xs font-medium">{candidato.rating}</span>
-                      <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
-                      <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold truncate">{candidato.name}</p>
+                        {candidato.verified && <Shield className="w-3.5 h-3.5 text-primary fill-primary/20" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{candidato.role}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star className="w-3 h-3 fill-primary text-primary" />
+                        <span className="text-xs font-medium">{candidato.rating}</span>
+                        <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
+                        <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{candidato.bio}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{candidato.bio}</p>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+
+                  {/* Action buttons row */}
+                  <div className="flex items-center gap-3 mt-3 ml-15" onClick={(e) => e.stopPropagation()}>
                     {candidato.status === "pendente" ? (
                       <>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-success hover:bg-success/10"
+                        <button
+                          className="flex flex-col items-center gap-1 px-4 py-2.5 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors"
                           onClick={() => handleAceitar(candidato.id)}
                         >
-                          <UserCheck className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          <UserCheck className="w-5 h-5 text-success" />
+                          <span className="text-[10px] font-medium text-success">Aceitar</span>
+                        </button>
+                        <button
+                          className="flex flex-col items-center gap-1 px-4 py-2.5 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/20 transition-colors"
                           onClick={() => handleRecusar(candidato.id)}
                         >
-                          <UserX className="w-4 h-4" />
-                        </Button>
+                          <UserX className="w-5 h-5 text-destructive" />
+                          <span className="text-[10px] font-medium text-destructive">Recusar</span>
+                        </button>
+                        <button
+                          className="flex flex-col items-center gap-1 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
+                          onClick={() => setSelectedFreelancer(candidato)}
+                        >
+                          <Eye className="w-5 h-5 text-primary" />
+                          <span className="text-[10px] font-medium text-primary">Ver perfil</span>
+                        </button>
                       </>
                     ) : candidato.status === "aceito" ? (
                       <>
@@ -237,13 +250,26 @@ const VagaTeste = () => {
                         <Button size="sm" variant="outline" className="h-7 text-xs px-2">
                           <DollarSign className="w-3 h-3 mr-1" /> Pagamento
                         </Button>
+                        <button
+                          className="flex flex-col items-center gap-1 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
+                          onClick={() => setSelectedFreelancer(candidato)}
+                        >
+                          <Eye className="w-5 h-5 text-primary" />
+                          <span className="text-[10px] font-medium text-primary">Ver perfil</span>
+                        </button>
                       </>
                     ) : (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
+                      <>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
+                        <button
+                          className="flex flex-col items-center gap-1 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
+                          onClick={() => setSelectedFreelancer(candidato)}
+                        >
+                          <Eye className="w-5 h-5 text-primary" />
+                          <span className="text-[10px] font-medium text-primary">Ver perfil</span>
+                        </button>
+                      </>
                     )}
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedFreelancer(candidato)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
                   </div>
                 </div>
               ))
