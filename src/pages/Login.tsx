@@ -186,11 +186,10 @@ const Login = () => {
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12">
         <div className="max-w-lg text-center">
           <h2 className="text-3xl font-display font-bold text-secondary mb-4">
-            Conecte-se a oportunidades incríveis
+            Bom te ver de volta
           </h2>
           <p className="text-secondary/80 text-lg">
-            Milhares de oportunidades de serviços esperando por você. Entre agora e 
-            encontre os melhores profissionais para seu estabelecimento.
+            Suas oportunidades e conexões estão te esperando. Entre e continue de onde parou.
           </p>
         </div>
       </div>
