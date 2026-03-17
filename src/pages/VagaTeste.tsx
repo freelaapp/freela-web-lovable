@@ -274,6 +274,7 @@ const VagaTeste = () => {
                 </div>
               ))
             )}
+          </CardContent>
         </Card>
 
         {/* Linha do Tempo */}
