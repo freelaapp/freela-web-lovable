@@ -359,6 +359,19 @@ const Perfil = () => {
     navigate(newRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
   };
 
+  const isPageLoading = isContratante ? contractorLoading : freelancerLoading;
+
+  if (isPageLoading) {
+    return (
+      <AppLayout showFooter={false}>
+        <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 flex flex-col items-center justify-center min-h-[60vh] gap-3">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <span className="text-sm text-muted-foreground font-medium">Carregando perfil...</span>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 space-y-6">
