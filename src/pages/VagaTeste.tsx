@@ -17,7 +17,24 @@ const mockVacancy = {
   status: "open",
 };
 
-const mockCandidatos = [
+type CandidatoStatus = "pendente" | "aceito" | "recusado";
+
+interface MockCandidato {
+  id: string;
+  providerId: string;
+  name: string;
+  avatar: string;
+  role: string;
+  rating: number;
+  reviews: number;
+  jobs: number;
+  verified: boolean;
+  status: CandidatoStatus;
+  price: string;
+  bio: string;
+}
+
+const mockCandidatos: MockCandidato[] = [
   {
     id: "c1",
     providerId: "p1",

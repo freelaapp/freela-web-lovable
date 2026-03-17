@@ -47,6 +47,7 @@ import PerfilContratante from "./pages/PerfilContratante";
 import TelaPix from "./pages/TelaPix";
 
 import ObrigadoContratante from "./pages/ObrigadoContratante";
+import VagaTeste from "./pages/VagaTeste";
 
 const queryClient = new QueryClient();
 
