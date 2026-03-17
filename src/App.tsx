@@ -48,6 +48,7 @@ import TelaPix from "./pages/TelaPix";
 
 import ObrigadoContratante from "./pages/ObrigadoContratante";
 import VagaTeste from "./pages/VagaTeste";
+import VagaFreelancerTeste from "./pages/VagaFreelancerTeste";
 
 const queryClient = new QueryClient();
 
