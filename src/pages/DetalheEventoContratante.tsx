@@ -852,24 +852,12 @@ const DetalheEventoContratante = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 gap-2" onClick={() => { setSelectedFreelancer(null); navigate("/mensagens"); }}>
-                    <MessageCircle className="w-4 h-4" /> Mensagem
-                  </Button>
-                  <Button className="flex-1 gap-2" onClick={() => {
-                    setSelectedFreelancer(null);
-                    navigate(`/criar-evento?para=${encodeURIComponent(selectedFreelancer.name)}`);
-                  }}>
-                    <Send className="w-4 h-4" /> Proposta Exclusiva
-                  </Button>
-                </div>
-
-                {selectedFreelancer.status === "pendente" && (
+                {selectedFreelancer.status === "pendente" ? (
                   <div className="flex gap-2">
                     <Button
                       className="flex-1 gap-2 bg-success hover:bg-success/90"
                       disabled={actionLoadingIds.has(selectedFreelancer.id)}
-                      onClick={() => { handleAceitar(selectedFreelancer.id); setSelectedFreelancer(null); }}
+                      onClick={() => handleAceitar(selectedFreelancer.id)}
                     >
                       {actionLoadingIds.has(selectedFreelancer.id)
                         ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -880,7 +868,7 @@ const DetalheEventoContratante = () => {
                       variant="destructive"
                       className="flex-1 gap-2"
                       disabled={actionLoadingIds.has(selectedFreelancer.id)}
-                      onClick={() => { handleRecusar(selectedFreelancer.id); setSelectedFreelancer(null); }}
+                      onClick={() => handleRecusar(selectedFreelancer.id)}
                     >
                       {actionLoadingIds.has(selectedFreelancer.id)
                         ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -888,7 +876,15 @@ const DetalheEventoContratante = () => {
                       Recusar
                     </Button>
                   </div>
-                )}
+                ) : selectedFreelancer.status === "aceito" ? (
+                  <Button className="w-full gap-2 bg-success hover:bg-success/90 cursor-default" disabled>
+                    <UserCheck className="w-4 h-4" /> Contratado
+                  </Button>
+                ) : selectedFreelancer.status === "recusado" ? (
+                  <Button variant="destructive" className="w-full gap-2 cursor-default" disabled>
+                    <UserX className="w-4 h-4" /> Recusado
+                  </Button>
+                ) : null}
 
                 <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.id}`); }}>
                   <Eye className="w-4 h-4" /> Ver Perfil Completo <ChevronRight className="w-4 h-4" />
