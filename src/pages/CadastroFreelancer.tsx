@@ -261,7 +261,7 @@ const CadastroFreelancer = () => {
       <div className="flex-1 flex flex-col justify-start container-padding py-12 overflow-y-auto">
         <div className="w-full max-w-lg mx-auto">
           <Link to="/" className="inline-block mb-8">
-            <img src={logoFreela} alt="Freela Serviços" className="h-12" />
+            <img src={logoFreela} alt="Freela Serviços" className="h-24" />
           </Link>
 
           <div className="mb-2">
