@@ -123,14 +123,12 @@ const VagaFreelancerTeste = () => {
         </Card>
 
         {/* Contratante */}
-        <Card>
+        <Card
+          className="cursor-pointer hover:ring-1 hover:ring-primary/20 transition-all"
+          onClick={() => navigate(`/perfil-contratante/${vaga.contractorId}`)}
+        >
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Contratante</CardTitle>
-              <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate(`/perfil-contratante/${vaga.contractorId}`)}>
-                Ver perfil <ExternalLink className="w-3 h-3" />
-              </Button>
-            </div>
+            <CardTitle className="text-lg">Contratante</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
@@ -149,6 +147,7 @@ const VagaFreelancerTeste = () => {
                   <span className="text-xs text-muted-foreground ml-1">• {vaga.contractorJobs} eventos</span>
                 </div>
               </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
             </div>
           </CardContent>
         </Card>
