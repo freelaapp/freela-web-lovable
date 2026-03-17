@@ -52,15 +52,15 @@ const CadastroFreelancerAreas = () => {
   const { recheckAuth, userId } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
-  const [diasAtivos, setDiasAtivos] = useState<string[]>([]);
+  const [diasAtivos, setDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex", "sab", "dom"]);
   const [horarios, setHorarios] = useState<Horarios>({
-    seg: { de: "08h", ate: "18h" },
-    ter: { de: "08h", ate: "18h" },
-    qua: { de: "08h", ate: "18h" },
-    qui: { de: "08h", ate: "18h" },
-    sex: { de: "08h", ate: "18h" },
-    sab: { de: "10h", ate: "16h" },
-    dom: { de: "10h", ate: "14h" },
+    seg: { de: "00h", ate: "23h" },
+    ter: { de: "00h", ate: "23h" },
+    qua: { de: "00h", ate: "23h" },
+    qui: { de: "00h", ate: "23h" },
+    sex: { de: "00h", ate: "23h" },
+    sab: { de: "00h", ate: "23h" },
+    dom: { de: "00h", ate: "23h" },
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
