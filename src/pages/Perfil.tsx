@@ -394,8 +394,8 @@ const Perfil = () => {
 
         {/* Profile Card */}
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start gap-5">
+            <CardContent className="p-5">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
                 <div className="relative shrink-0">
                   <button
                     onClick={() => avatarInputRef.current?.click()}
@@ -414,15 +414,15 @@ const Perfil = () => {
                   )}
                 </div>
                 <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <h2 className="text-lg font-display font-bold">
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-center justify-center sm:justify-start gap-1.5">
+                    <h2 className="text-lg font-display font-bold truncate">
                       {isContratante ? (contractorData.name || "Contratante") : (freelancerData.name || "Freelancer")}
                     </h2>
-                    <Shield className="w-4 h-4 text-primary fill-primary/20" />
+                    <Shield className="w-4 h-4 text-primary fill-primary/20 shrink-0" />
                   </div>
-                  <div className="flex items-center gap-1 text-sm text-primary font-medium">
-                    <Star className="w-4 h-4 fill-primary" /> {isContratante ? contractorData.rating : freelancerData.rating}
+                  <div className="flex items-center justify-center sm:justify-start gap-1 text-sm text-primary font-medium flex-wrap">
+                    <Star className="w-4 h-4 fill-primary shrink-0" /> {isContratante ? contractorData.rating : freelancerData.rating}
                     {isContratante && contractorData.segment ? (
                       <>
                         <span className="text-muted-foreground font-normal ml-1">•</span>
@@ -439,9 +439,9 @@ const Perfil = () => {
                       </>
                     ) : null}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground">
                     <MapPin className="w-4 h-4 shrink-0" />
-                    <span>
+                    <span className="truncate">
                       {isContratante
                         ? [contractorData.city, contractorData.uf].filter(Boolean).join(", ") || "Não informado"
                         : [freelancerData.city, freelancerData.uf].filter(Boolean).join(", ") || "Não informado"}
