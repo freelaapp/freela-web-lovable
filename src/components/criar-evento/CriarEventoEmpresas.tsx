@@ -621,7 +621,7 @@ const CriarEventoEmpresas = () => {
 
                 {/* Totais gerais */}
                 <div className="border-t border-border pt-3 space-y-1 text-xs">
-629:                   <div className="flex justify-between font-bold text-sm text-foreground pt-1">
+<div className="flex justify-between font-bold text-sm text-foreground pt-1">
                     <span>Total</span>
                     <span>R$ {valorTotal.toFixed(2).replace(".", ",")}</span>
                   </div>
