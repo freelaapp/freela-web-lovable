@@ -290,7 +290,7 @@ const CriarEvento = () => {
                     Descrição da vaga
                   </Label>
                   <Textarea
-                    placeholder="Descreva detalhes importantes para os freelancers, como: vestimenta, regras, comportamento."
+                    placeholder="Descreva detalhes importantes para os freelancers, como vestimenta, regras e comportamento esperado."
                     value={formData.descricao}
                     onChange={(e) => handleChange("descricao", e.target.value)}
                     className="min-h-[100px]"

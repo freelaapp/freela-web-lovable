@@ -618,7 +618,7 @@ const CriarEventoEmpresas = () => {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-foreground">Descrição da vaga</h2>
-              <p className="text-xs text-muted-foreground">Descreva detalhes importantes para os freelancers, como: vestimenta, regras, comportamento.</p>
+              <p className="text-xs text-muted-foreground">Descreva detalhes importantes para os freelancers, como vestimenta, regras e comportamento esperado.</p>
             </div>
           </div>
           <Textarea
