@@ -562,32 +562,25 @@ const MeusDados = () => {
               <Camera className="w-5 h-5 text-primary" /> Foto de Perfil
             </h3>
             <div className="flex items-center gap-4">
-              {previewFoto ? (
-                <div className="relative">
-                  <img src={previewFoto} alt="Foto de perfil" className="w-24 h-24 rounded-full object-cover border-2 border-primary" />
+              <div className="relative">
+                <EditableAvatar
+                  src={previewFoto}
+                  fallback="?"
+                  size="lg"
+                  onFileSelect={(file) => setProfileImageFile(file)}
+                />
+                {previewFoto && (
                   <button
                     type="button"
                     onClick={() => { setProfileImageFile(null); setProfileImageUrl(null); }}
-                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 z-20"
                   >
                     <X className="w-3 h-3" />
                   </button>
-                </div>
-              ) : (
-                <label className="w-24 h-24 rounded-full border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
-                  <Camera className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground mt-1">Adicionar</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file && file.type.startsWith("image/")) setProfileImageFile(file);
-                    }}
-                  />
-                </label>
-              )}
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">Escolha uma foto profissional e com boa iluminação.</p>
+            </div>
               <p className="text-sm text-muted-foreground">Escolha uma foto profissional e com boa iluminação.</p>
             </div>
           </CardContent>
