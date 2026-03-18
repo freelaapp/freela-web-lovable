@@ -185,6 +185,14 @@ const CriarEventoEmpresas = () => {
         });
         return;
       }
+      if (hours > 12) {
+        toast({
+          title: `Horas excedidas para "${s.label}"`,
+          description: `O limite máximo é de 12h. Você configurou ${hours.toFixed(1)}h.`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     // Validate contractor profile
