@@ -37,9 +37,11 @@ const CriarEventoEmpresas = () => {
   const [dataEvento, setDataEvento] = useState("");
   const [noEstabelecimento, setNoEstabelecimento] = useState(true);
   const [endereco, setEndereco] = useState({
+    cep: "",
     logradouro: "",
     numero: "",
-    cep: "",
+    complemento: "",
+    bairro: "",
     cidade: "",
     estado: "",
   });
@@ -483,6 +485,15 @@ const CriarEventoEmpresas = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">CEP</Label>
+                  <Input
+                    placeholder="00000-000"
+                    value={endereco.cep}
+                    onChange={(e) => setEndereco({ ...endereco, cep: e.target.value })}
+                    className="h-9 rounded-lg text-sm"
+                  />
+                </div>
+                <div className="sm:col-span-2 space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Logradouro</Label>
                   <Input
                     placeholder="Rua, Avenida..."
@@ -503,11 +514,20 @@ const CriarEventoEmpresas = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">CEP</Label>
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Complemento</Label>
                   <Input
-                    placeholder="00000-000"
-                    value={endereco.cep}
-                    onChange={(e) => setEndereco({ ...endereco, cep: e.target.value })}
+                    placeholder="Opcional"
+                    value={endereco.complemento}
+                    onChange={(e) => setEndereco({ ...endereco, complemento: e.target.value })}
+                    className="h-9 rounded-lg text-sm"
+                  />
+                </div>
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Bairro</Label>
+                  <Input
+                    placeholder="Bairro"
+                    value={endereco.bairro}
+                    onChange={(e) => setEndereco({ ...endereco, bairro: e.target.value })}
                     className="h-9 rounded-lg text-sm"
                   />
                 </div>
