@@ -614,7 +614,7 @@ const CriarEventoEmpresas = () => {
                       <p>
                         R$ {s.pricePerHour.toFixed(2).replace(".", ",")}/h × {s.effectiveHours}h × {s.quantidade} pessoa{s.quantidade > 1 ? "s" : ""} = R$ {s.subtotal.toFixed(2).replace(".", ",")}
                       </p>
-                      <p>Taxa de seguro: R$ {s.insurance.toFixed(2).replace(".", ",")} ({s.quantidade} × R$ {INSURANCE_FEE.toFixed(2).replace(".", ",")})</p>
+                      
                     </div>
                   </div>
                 ))}
