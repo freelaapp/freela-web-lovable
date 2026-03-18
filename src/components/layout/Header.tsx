@@ -54,6 +54,9 @@ const Header = () => {
 
   const loggedInNavLinks = role === "contratante" ? contratanteNavLinks : freelancerNavLinks;
 
+  const isLandingPage = location.pathname === "/" || location.pathname === "/inicio";
+  const showPublicNav = !isLoggedIn || isLandingPage;
+
   const isActive = (path: string) => location.pathname === path;
 
   const handleNavClick = useCallback((e: React.MouseEvent, href: string) => {
@@ -93,24 +96,7 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          {isLoggedIn ? (
-            <nav className="hidden lg:flex items-center gap-6">
-              {loggedInNavLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors duration-200 px-3 py-2 rounded-lg ${
-                    isActive(link.href)
-                      ? "text-primary bg-primary-light"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <link.icon className="w-4 h-4" />
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          ) : (
+          {showPublicNav ? (
             <nav className="hidden lg:flex items-center gap-8">
               {publicNavLinks.map((link) => (
                 <Link
@@ -123,6 +109,23 @@ const Header = () => {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          ) : (
+            <nav className="hidden lg:flex items-center gap-6">
+              {loggedInNavLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors duration-200 px-3 py-2 rounded-lg ${
+                    isActive(link.href)
+                      ? "text-primary bg-primary-light"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <link.icon className="w-4 h-4" />
                   {link.label}
                 </Link>
               ))}
