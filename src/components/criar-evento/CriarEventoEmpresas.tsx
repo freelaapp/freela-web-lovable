@@ -100,7 +100,6 @@ const CriarEventoEmpresas = () => {
       const hours = calcHours(s.horaInicio, s.horaFim);
       const effectiveHours = hours > 0 ? Math.max(hours, s.minHours) : 0;
       const subtotal = s.pricePerHour * effectiveHours * s.quantidade;
-      const insurance = INSURANCE_FEE * s.quantidade;
       const commission = subtotal * FREELA_COMMISSION;
       const freelancerValue = s.quantidade > 0 ? (subtotal - commission) / s.quantidade : 0;
       return {
@@ -108,10 +107,9 @@ const CriarEventoEmpresas = () => {
         hours,
         effectiveHours,
         subtotal,
-        insurance,
         commission,
         freelancerValue,
-        total: subtotal + insurance,
+        total: subtotal,
       };
     });
   }, [selectedServices]);
