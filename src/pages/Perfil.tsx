@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Eye, Car, Pencil, Play, Image as ImageIconLucide, X, Check, Loader2 } from "lucide-react";
+import EditableAvatar from "@/components/EditableAvatar";
 import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
