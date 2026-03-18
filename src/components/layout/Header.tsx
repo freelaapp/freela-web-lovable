@@ -134,7 +134,7 @@ const Header = () => {
 
           {/* Desktop Right Side */}
           <div className="hidden lg:flex items-center gap-3">
-            {isLoggedIn ? (
+            {isLoggedIn && !isLandingPage ? (
               <>
                 {role === "contratante" && location.pathname !== "/dashboard-contratante" && (
                   <Button asChild size="sm" className="gap-1.5">
@@ -204,7 +204,7 @@ const Header = () => {
         {isMenuOpen && (
           <div className="lg:hidden py-4 border-t border-border animate-fade-in">
             <nav className="flex flex-col gap-2">
-              {isLoggedIn ? (
+              {isLoggedIn && !isLandingPage ? (
                 <>
                   {loggedInNavLinks.map((link) => (
                     <Link
