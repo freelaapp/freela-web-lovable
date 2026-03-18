@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Calendar, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { servicosPF, FREELA_COMMISSION } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
