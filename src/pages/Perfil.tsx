@@ -147,14 +147,14 @@ const Perfil = () => {
         const token = JSON.parse(tokenRaw);
         const headers = { "Origin-type": "Web", "Authorization": `Bearer ${token}` };
 
-        const [providerRes, userRes] = await Promise.all([
-          fetch("https://api.freelaservicos.com.br/users/providers", {
-            method: "GET", credentials: "include", headers,
-          }),
-          fetch("https://api.freelaservicos.com.br/users/me", {
-            method: "GET", credentials: "include", headers,
-          }),
-        ]);
+         const [providerRes, userRes] = await Promise.all([
+           fetch(`${import.meta.env.VITE_API_BASE_URL}/users/providers`, {
+             method: "GET", credentials: "include", headers,
+           }),
+           fetch(`${import.meta.env.VITE_API_BASE_URL}/users/me`, {
+             method: "GET", credentials: "include", headers,
+           }),
+         ]);
 
         let providerData: any = {};
         if (providerRes.ok) {
@@ -213,7 +213,7 @@ const Perfil = () => {
         if (!tokenRaw) { setContractorLoading(false); return; }
         const token = JSON.parse(tokenRaw);
 
-        const res = await fetch("https://api.freelaservicos.com.br/users/contractors", {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/contractors`, {
           method: "GET",
           credentials: "include",
           headers: { "Origin-type": "Web", "Authorization": `Bearer ${token}` },

@@ -88,8 +88,6 @@ const Cadastro = () => {
       email: formData.email,
       phoneNumber: formData.celular.replace(/\D/g, ""),
       password: formData.password,
-      status: "active",
-      createdAt: new Date().toISOString(),
     };
 
     setIsLoading(true);

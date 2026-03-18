@@ -7,7 +7,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-const API_BASE_URL = "https://api.freelaservicos.com.br";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
 function getAuthToken(): string | null {

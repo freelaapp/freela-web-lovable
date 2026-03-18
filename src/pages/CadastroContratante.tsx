@@ -26,7 +26,7 @@ import logoFreela from "@/assets/logo-freela.png";
 import { useToast } from "@/hooks/use-toast";
 import { apiFetch } from "@/lib/api";
 
-const API_BASE_URL = "https://api.freelaservicos.com.br";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.freelaservicos.com.br";
 
 const ramosEstabelecimento = [
   "Bar",

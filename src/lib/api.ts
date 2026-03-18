@@ -1,6 +1,6 @@
 import { refreshAuthToken, logout } from "@/lib/auth";
 
-const API_BASE_URL = "https://api.freelaservicos.com.br";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.freelaservicos.com.br";
 
 // Trocar para "mobile" quando necessário
 const ORIGIN_TYPE = "Web";
@@ -118,7 +118,7 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...payload, date: new Date().toISOString() }),
+    body: JSON.stringify(payload),
   });
 
   const body = await response.json().catch(() => null);
@@ -147,8 +147,6 @@ interface RegisterPayload {
   email: string;
   phoneNumber: string;
   password: string;
-  status: string;
-  createdAt: string;
 }
 
 interface RegisterResponse {
@@ -158,6 +156,7 @@ interface RegisterResponse {
 }
 
 export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
+  console.log("[register] payload enviado:", JSON.stringify(payload));
   const response = await apiFetch(`${API_BASE_URL}/users/register`, {
     method: "POST",
     skipAuth: true,
@@ -168,6 +167,7 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
   });
 
   const body = await response.json().catch(() => null);
+  console.log("[register] status:", response.status, "body:", JSON.stringify(body));
 
   if (response.status === 409) {
     throw new Error("Este e-mail já está cadastrado.");
