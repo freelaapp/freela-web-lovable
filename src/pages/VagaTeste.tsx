@@ -356,12 +356,30 @@ const VagaTeste = () => {
                     ))}
                   </div>
 
-                  {/* Bio */}
+                  {/* Últimas Avaliações */}
                   <div>
-                    <h4 className="text-sm font-semibold mb-1">Sobre</h4>
-                    <p className="text-sm text-muted-foreground">{selectedFreelancer.bio}</p>
+                    <h4 className="text-sm font-semibold mb-2">Últimas Avaliações</h4>
+                    <div className="space-y-2">
+                      {[
+                        { author: "Buffet Elegance", rating: 5, comment: "Excelente profissional, muito pontual e dedicado.", date: "10/03/2026" },
+                        { author: "Casa de Festas Solar", rating: 4, comment: "Bom trabalho, atencioso com os convidados.", date: "25/02/2026" },
+                        { author: "Restaurante Bella Vista", rating: 5, comment: "Super recomendo! Muito profissional.", date: "12/02/2026" },
+                      ].map((review, i) => (
+                        <div key={i} className="p-3 rounded-xl bg-muted/50 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-semibold">{review.author}</p>
+                            <span className="text-[10px] text-muted-foreground">{review.date}</span>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: 5 }).map((_, s) => (
+                              <Star key={s} className={`w-3 h-3 ${s < review.rating ? "fill-primary text-primary" : "text-muted-foreground/30"}`} />
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{review.comment}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-
 
                   {/* Accept / Reject */}
                   {selectedFreelancer.status === "pendente" ? (
