@@ -621,15 +621,7 @@ const CriarEventoEmpresas = () => {
 
                 {/* Totais gerais */}
                 <div className="border-t border-border pt-3 space-y-1 text-xs">
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Subtotal serviços</span>
-                    <span>R$ {totalSubtotal.toFixed(2).replace(".", ",")}</span>
-                  </div>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Taxa de seguro</span>
-                    <span>R$ {totalInsurance.toFixed(2).replace(".", ",")}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-sm text-foreground pt-1">
+629:                   <div className="flex justify-between font-bold text-sm text-foreground pt-1">
                     <span>Total</span>
                     <span>R$ {valorTotal.toFixed(2).replace(".", ",")}</span>
                   </div>
