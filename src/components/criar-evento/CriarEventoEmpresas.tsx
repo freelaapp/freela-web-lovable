@@ -37,9 +37,11 @@ const CriarEventoEmpresas = () => {
   const [dataEvento, setDataEvento] = useState("");
   const [noEstabelecimento, setNoEstabelecimento] = useState(true);
   const [endereco, setEndereco] = useState({
+    cep: "",
     logradouro: "",
     numero: "",
-    cep: "",
+    complemento: "",
+    bairro: "",
     cidade: "",
     estado: "",
   });
