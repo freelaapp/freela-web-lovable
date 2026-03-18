@@ -376,25 +376,22 @@ const DetalheVaga = () => {
         </Card>
 
         {/* Contratante */}
-        <Card>
+        <Card
+          className="cursor-pointer hover:ring-1 hover:ring-primary/20 transition-all"
+          onClick={() => contractorId && navigate(`/perfil-contratante/${contractorId}`)}
+        >
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Contratante</CardTitle>
-              {contractorId && (
-                <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate(`/perfil-contratante/${contractorId}`)}>
-                  Ver perfil <ExternalLink className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
+            <CardTitle className="text-lg">Contratante</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden border-2 border-primary/20">
                 <User className="w-7 h-7 text-muted-foreground" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-semibold">{clientName}</p>
               </div>
+              {contractorId && <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />}
             </div>
           </CardContent>
         </Card>

@@ -55,15 +55,15 @@ const CadastroFreelancerAreas = () => {
   const { recheckAuth, userId } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
-  const [diasAtivos, setDiasAtivos] = useState<string[]>([]);
+  const [diasAtivos, setDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex", "sab", "dom"]);
   const [horarios, setHorarios] = useState<Horarios>({
-    seg: { de: "08h", ate: "18h" },
-    ter: { de: "08h", ate: "18h" },
-    qua: { de: "08h", ate: "18h" },
-    qui: { de: "08h", ate: "18h" },
-    sex: { de: "08h", ate: "18h" },
-    sab: { de: "10h", ate: "16h" },
-    dom: { de: "10h", ate: "14h" },
+    seg: { de: "00h", ate: "23h" },
+    ter: { de: "00h", ate: "23h" },
+    qua: { de: "00h", ate: "23h" },
+    qui: { de: "00h", ate: "23h" },
+    sex: { de: "00h", ate: "23h" },
+    sab: { de: "00h", ate: "23h" },
+    dom: { de: "00h", ate: "23h" },
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -226,11 +226,14 @@ const CadastroFreelancerAreas = () => {
 
       {/* Left Side */}
       <div className="hidden lg:flex flex-1 hero-gradient items-center justify-center p-12 sticky top-0 h-screen">
-        <div className="max-w-xl">
-          <h2 className="text-2xl font-display font-bold text-secondary mb-6 leading-relaxed">
-            Junte-se à comunidade Freela e conecte-se a pessoas e oportunidades na sua região. Uma plataforma criada para facilitar a conexão entre quem quer trabalhar e quem precisa de ajuda de forma simples, rápida e segura.
+        <div className="max-w-md">
+          <h2 className="text-3xl font-display font-bold text-secondary mb-4 text-left">
+            Junte-se à comunidade Freela
           </h2>
-          <ul className="space-y-5">
+          <p className="text-secondary/80 text-lg mb-8 leading-relaxed text-left">
+            Conecte-se a pessoas e oportunidades na sua região. Uma plataforma criada para facilitar a conexão entre quem quer trabalhar e quem precisa de ajuda de forma simples, rápida e segura.
+          </p>
+          <ul className="space-y-4">
             {[
               "Cadastro rápido e 100% gratuito",
               "Tenha acesso a avaliações e histórico dos profissionais",
@@ -239,8 +242,8 @@ const CadastroFreelancerAreas = () => {
               "Contratação rápida e sem burocracia",
               "Suporte dedicado para ajudar sempre que necessário",
             ].map((item) => (
-              <li key={item} className="flex items-start gap-4 text-secondary/90 text-lg">
-                <CheckCircle className="w-6 h-6 text-secondary shrink-0 mt-0.5" />
+              <li key={item} className="flex items-start gap-3 text-secondary/90 text-base">
+                <CheckCircle className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
                 <span>{item}</span>
               </li>
             ))}
