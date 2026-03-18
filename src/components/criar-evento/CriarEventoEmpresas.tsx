@@ -41,6 +41,7 @@ const CriarEventoEmpresas = () => {
     logradouro: "",
     numero: "",
     complemento: "",
+    referencia: "",
     bairro: "",
     cidade: "",
     estado: "",
@@ -562,6 +563,15 @@ const CriarEventoEmpresas = () => {
                     placeholder="Opcional"
                     value={endereco.complemento}
                     onChange={(e) => setEndereco({ ...endereco, complemento: e.target.value })}
+                    className="h-9 rounded-lg text-sm"
+                  />
+                </div>
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Referência</Label>
+                  <Input
+                    placeholder="Próximo a..."
+                    value={endereco.referencia}
+                    onChange={(e) => setEndereco({ ...endereco, referencia: e.target.value })}
                     className="h-9 rounded-lg text-sm"
                   />
                 </div>
