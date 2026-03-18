@@ -103,7 +103,7 @@ const ServicoCard = ({
     : HORAS;
 
   return (
-    <div className={`group relative bg-card border rounded-xl p-3.5 transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300 ${isBelowMin ? "border-destructive/50" : "border-border hover:border-primary/30"}`}>
+    <div className={`group relative bg-card border rounded-xl p-3.5 transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300 ${isBelowMin || isAboveMax ? "border-destructive/50" : "border-border hover:border-primary/30"}`}>
       {/* Remove button */}
       <button
         type="button"
