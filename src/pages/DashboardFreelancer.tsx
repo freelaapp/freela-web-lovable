@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Briefcase, DollarSign, Star, Clock, ChevronRight, MapPin, CheckCircle, Calendar } from "lucide-react";
+import { Briefcase, DollarSign, Star, Clock, ChevronRight, MapPin, CheckCircle, Calendar, Hourglass } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
