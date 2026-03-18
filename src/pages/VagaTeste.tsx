@@ -196,45 +196,46 @@ const VagaTeste = () => {
               filteredCandidatos.map((candidato) => (
                 <div
                   key={candidato.id}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                   onClick={() => setSelectedFreelancer(candidato)}
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
-                    {candidato.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0 mr-2">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold truncate">{candidato.name}</p>
-                      {candidato.verified && <Shield className="w-3.5 h-3.5 text-primary fill-primary/20" />}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
+                      {candidato.avatar}
                     </div>
-                    <p className="text-xs text-muted-foreground">{candidato.role}</p>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Star className="w-3 h-3 fill-primary text-primary" />
-                      <span className="text-xs font-medium">{candidato.rating}</span>
-                      <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
-                      <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold truncate">{candidato.name}</p>
+                        {candidato.verified && <Shield className="w-3.5 h-3.5 text-primary fill-primary/20" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{candidato.role}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Star className="w-3 h-3 fill-primary text-primary" />
+                        <span className="text-xs font-medium">{candidato.rating}</span>
+                        <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
+                        <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1 max-w-[280px]">{candidato.bio}</p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-end gap-2 shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
                     {candidato.status === "pendente" ? (
                       <>
                         <button
-                          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors"
+                          className="flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors"
                           onClick={() => handleAceitar(candidato.id)}
                         >
                           <UserCheck className="w-4 h-4 text-success" />
                           <span className="text-[10px] font-medium text-success">Aceitar</span>
                         </button>
                         <button
-                          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/20 transition-colors"
+                          className="flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/20 transition-colors"
                           onClick={() => handleRecusar(candidato.id)}
                         >
                           <UserX className="w-4 h-4 text-destructive" />
                           <span className="text-[10px] font-medium text-destructive">Recusar</span>
                         </button>
                         <button
-                          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                          className="flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
                           onClick={() => setSelectedFreelancer(candidato)}
                         >
                           <Eye className="w-4 h-4 text-muted-foreground" />
@@ -248,7 +249,7 @@ const VagaTeste = () => {
                           <DollarSign className="w-3 h-3 mr-1" /> Pagamento
                         </Button>
                         <button
-                          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                          className="flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
                           onClick={() => setSelectedFreelancer(candidato)}
                         >
                           <Eye className="w-4 h-4 text-muted-foreground" />
@@ -259,7 +260,7 @@ const VagaTeste = () => {
                       <>
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
                         <button
-                          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                          className="flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
                           onClick={() => setSelectedFreelancer(candidato)}
                         >
                           <Eye className="w-4 h-4 text-muted-foreground" />
