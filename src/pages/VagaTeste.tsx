@@ -362,17 +362,6 @@ const VagaTeste = () => {
                     <p className="text-sm text-muted-foreground">{selectedFreelancer.bio}</p>
                   </div>
 
-                  {/* Galeria */}
-                  <div>
-                    <h4 className="text-sm font-semibold mb-2">Galeria</h4>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="aspect-square rounded-xl bg-muted/50 flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground">Foto {i}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
 
                   {/* Accept / Reject */}
                   {selectedFreelancer.status === "pendente" ? (
