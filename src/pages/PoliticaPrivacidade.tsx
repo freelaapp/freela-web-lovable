@@ -1,18 +1,22 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AppLayout from "@/components/layout/AppLayout";
 
 const PoliticaPrivacidade = () => {
+  const navigate = useNavigate();
+
   return (
     <AppLayout showBottomNav={false}>
       <div className="min-h-screen bg-background pt-24 pb-20">
         <div className="container mx-auto container-padding max-w-4xl">
-          <Button variant="ghost" asChild className="mb-6">
-            <Link to="/cadastro">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar ao cadastro
-            </Link>
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate(-1)} 
+            className="mb-6"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
           </Button>
 
           <article className="prose prose-neutral max-w-none [&_h1]:text-2xl [&_h1]:md:text-3xl [&_h1]:font-display [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-10 [&_h2]:text-xl [&_h2]:md:text-2xl [&_h2]:font-display [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:mt-8 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-6 [&_p]:text-muted-foreground [&_p]:leading-relaxed [&_p]:mb-4 [&_li]:text-muted-foreground [&_li]:leading-relaxed [&_ul]:mb-4 [&_ul]:space-y-2">
