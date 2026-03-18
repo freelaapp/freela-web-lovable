@@ -204,7 +204,7 @@ const Header = () => {
         {isMenuOpen && (
           <div className="lg:hidden py-4 border-t border-border animate-fade-in">
             <nav className="flex flex-col gap-2">
-              {isLoggedIn ? (
+              {isLoggedIn && !isLandingPage ? (
                 <>
                   {loggedInNavLinks.map((link) => (
                     <Link
