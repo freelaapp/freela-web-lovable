@@ -45,15 +45,14 @@ export const calcularValorTotal = (
   pricePerHour: number,
   hours: number,
   professionals: number,
-  insuranceFee: number = INSURANCE_FEE
+  insuranceFee: number = 0
 ): { subtotal: number; commission: number; insurance: number; total: number; freelancerValue: number } => {
   const subtotal = pricePerHour * hours * professionals;
   const commission = subtotal * FREELA_COMMISSION;
-  const insurance = insuranceFee * professionals;
-  const total = subtotal + insurance;
+  const total = subtotal;
   const freelancerValue = (subtotal - commission) / professionals;
   
-  return { subtotal, commission, insurance, total, freelancerValue };
+  return { subtotal, commission, insurance: 0, total, freelancerValue };
 };
 
 export type ServicoPF = typeof servicosPF[number];
