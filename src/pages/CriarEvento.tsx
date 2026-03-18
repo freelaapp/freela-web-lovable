@@ -197,7 +197,7 @@ const CriarEvento = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {[2, 3, 4, 5, 6, 7, 8, 10, 12].map((num) => (
+                      {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(num => num >= minHours && num <= 12).map((num) => (
                         <SelectItem key={num} value={num.toString()}>
                           {num} horas
                         </SelectItem>
