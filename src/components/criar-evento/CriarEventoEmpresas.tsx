@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Calendar, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { servicosPF, FREELA_COMMISSION, INSURANCE_FEE } from "@/lib/services";
+import { servicosPF, FREELA_COMMISSION } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
 import ServicoCard, { getServiceIcon, calcHours } from "./ServicoCard";
 
@@ -100,7 +100,6 @@ const CriarEventoEmpresas = () => {
       const hours = calcHours(s.horaInicio, s.horaFim);
       const effectiveHours = hours > 0 ? Math.max(hours, s.minHours) : 0;
       const subtotal = s.pricePerHour * effectiveHours * s.quantidade;
-      const insurance = INSURANCE_FEE * s.quantidade;
       const commission = subtotal * FREELA_COMMISSION;
       const freelancerValue = s.quantidade > 0 ? (subtotal - commission) / s.quantidade : 0;
       return {
@@ -108,10 +107,9 @@ const CriarEventoEmpresas = () => {
         hours,
         effectiveHours,
         subtotal,
-        insurance,
         commission,
         freelancerValue,
-        total: subtotal + insurance,
+        total: subtotal,
       };
     });
   }, [selectedServices]);
@@ -120,9 +118,6 @@ const CriarEventoEmpresas = () => {
     return servicePricing.reduce((sum, s) => sum + s.total, 0);
   }, [servicePricing]);
 
-  const totalInsurance = useMemo(() => {
-    return servicePricing.reduce((sum, s) => sum + s.insurance, 0);
-  }, [servicePricing]);
 
   const totalSubtotal = useMemo(() => {
     return servicePricing.reduce((sum, s) => sum + s.subtotal, 0);
@@ -619,22 +614,14 @@ const CriarEventoEmpresas = () => {
                       <p>
                         R$ {s.pricePerHour.toFixed(2).replace(".", ",")}/h × {s.effectiveHours}h × {s.quantidade} pessoa{s.quantidade > 1 ? "s" : ""} = R$ {s.subtotal.toFixed(2).replace(".", ",")}
                       </p>
-                      <p>Taxa de seguro: R$ {s.insurance.toFixed(2).replace(".", ",")} ({s.quantidade} × R$ {INSURANCE_FEE.toFixed(2).replace(".", ",")})</p>
+                      
                     </div>
                   </div>
                 ))}
 
                 {/* Totais gerais */}
                 <div className="border-t border-border pt-3 space-y-1 text-xs">
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Subtotal serviços</span>
-                    <span>R$ {totalSubtotal.toFixed(2).replace(".", ",")}</span>
-                  </div>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Taxa de seguro</span>
-                    <span>R$ {totalInsurance.toFixed(2).replace(".", ",")}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-sm text-foreground pt-1">
+629:                   <div className="flex justify-between font-bold text-sm text-foreground pt-1">
                     <span>Total</span>
                     <span>R$ {valorTotal.toFixed(2).replace(".", ",")}</span>
                   </div>

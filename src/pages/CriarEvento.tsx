@@ -51,8 +51,7 @@ const CriarEvento = () => {
     return calcularValorTotal(
       servicoSelecionado.pricePerHour,
       hours,
-      formData.quantidade,
-      servicoSelecionado.insuranceFee
+      formData.quantidade
     );
   }, [servicoSelecionado, formData.horas, formData.quantidade, minHours]);
 
@@ -279,7 +278,6 @@ const CriarEvento = () => {
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <p>{formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {Math.max(formData.horas, minHours)} horas</p>
-                      <p>Taxa de seguro: R$ {valorCalculado.insurance.toFixed(2).replace(".", ",")}</p>
                       <p className="text-xs">Freelancer recebe: R$ {valorCalculado.freelancerValue.toFixed(2).replace(".", ",")} cada</p>
                     </div>
                   </div>
