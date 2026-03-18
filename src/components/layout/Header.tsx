@@ -11,9 +11,12 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const role = useUserRole();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  const isLoggedIn = isAuthenticated;
+  // Heuristic: if we have a token in localStorage, we are likely logged in.
+  // This avoids the "flicker" of showing public nav while auth is still loading on mount.
+  const hasAuthToken = !!localStorage.getItem("authToken");
+  const isLoggedIn = isAuthenticated || (isLoading && hasAuthToken);
 
   const publicNavLinks = [
     { href: "/", label: "Início" },

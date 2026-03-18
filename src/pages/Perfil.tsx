@@ -49,7 +49,7 @@ const diasSemana = [
 { key: "dom", label: "Dom" }];
 
 
-const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}h`);
 
 type Horarios = Record<string, {de: string;ate: string;}>;
 
@@ -67,13 +67,13 @@ const Perfil = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [diasAtivos, setDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex"]);
   const [horarios, setHorarios] = useState<Horarios>({
-    seg: { de: "08:00", ate: "20:00" },
-    ter: { de: "08:00", ate: "20:00" },
-    qua: { de: "08:00", ate: "20:00" },
-    qui: { de: "08:00", ate: "20:00" },
-    sex: { de: "08:00", ate: "20:00" },
-    sab: { de: "10:00", ate: "16:00" },
-    dom: { de: "10:00", ate: "14:00" }
+    seg: { de: "08h", ate: "20h" },
+    ter: { de: "08h", ate: "20h" },
+    qua: { de: "08h", ate: "20h" },
+    qui: { de: "08h", ate: "20h" },
+    sex: { de: "08h", ate: "20h" },
+    sab: { de: "10h", ate: "16h" },
+    dom: { de: "10h", ate: "14h" }
   });
   const [horarioDialog, setHorarioDialog] = useState<string | null>(null);
   const [tempDe, setTempDe] = useState("");
@@ -285,8 +285,8 @@ const Perfil = () => {
   };
 
   const openHorario = (key: string) => {
-    setTempDe(horarios[key]?.de || "08:00");
-    setTempAte(horarios[key]?.ate || "18:00");
+    setTempDe(horarios[key]?.de || "08h");
+    setTempAte(horarios[key]?.ate || "18h");
     setHorarioDialog(key);
   };
 
@@ -347,7 +347,7 @@ const Perfil = () => {
   const formatHorario = (key: string) => {
     const h = horarios[key];
     if (!h) return "--";
-    return `${h.de.replace(":00", "h")}-${h.ate.replace(":00", "h")}`;
+    return `${h.de}-${h.ate}`;
   };
 
   const diaLabel = diasSemana.find((d) => d.key === horarioDialog)?.label || "";

@@ -57,7 +57,7 @@ const diasSemana = [
   { key: "Dom", label: "Dom" },
 ];
 
-const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}h`);
 
 type Horarios = Record<string, { de: string; ate: string }>;
 
@@ -71,16 +71,16 @@ const PerfilFreelancer = () => {
   const [editingAvailability, setEditingAvailability] = useState(false);
   const [selectedDays, setSelectedDays] = useState<string[]>([...freelancerData.availability]);
   const [horarios, setHorarios] = useState<Horarios>(
-    freelancerData.availability.reduce((acc, day) => ({ ...acc, [day]: { de: "08:00", ate: "18:00" } }), {} as Horarios)
+    freelancerData.availability.reduce((acc, day) => ({ ...acc, [day]: { de: "08h", ate: "18h" } }), {} as Horarios)
   );
   const [savedDays, setSavedDays] = useState<string[]>([...freelancerData.availability]);
   const [savedHorarios, setSavedHorarios] = useState<Horarios>(
-    freelancerData.availability.reduce((acc, day) => ({ ...acc, [day]: { de: "08:00", ate: "18:00" } }), {} as Horarios)
+    freelancerData.availability.reduce((acc, day) => ({ ...acc, [day]: { de: "08h", ate: "18h" } }), {} as Horarios)
   );
 
   const [horarioDialog, setHorarioDialog] = useState<string | null>(null);
-  const [tempDe, setTempDe] = useState("08:00");
-  const [tempAte, setTempAte] = useState("18:00");
+  const [tempDe, setTempDe] = useState("08h");
+  const [tempAte, setTempAte] = useState("18h");
 
   // Services editing
   const allServices = [
@@ -100,7 +100,7 @@ const PerfilFreelancer = () => {
   };
 
   const openHorario = (day: string) => {
-    const h = horarios[day] || { de: "08:00", ate: "18:00" };
+    const h = horarios[day] || { de: "08h", ate: "18h" };
     setTempDe(h.de);
     setTempAte(h.ate);
     setHorarioDialog(day);
@@ -336,7 +336,7 @@ const PerfilFreelancer = () => {
                   </span>
                   {savedDays.includes(key) && savedHorarios[key] && (
                     <span className="text-[8px] text-muted-foreground leading-tight">
-                      {savedHorarios[key].de.replace(":00", "h")}-{savedHorarios[key].ate.replace(":00", "h")}
+                      {savedHorarios[key].de}-{savedHorarios[key].ate}
                     </span>
                   )}
                 </div>
@@ -360,7 +360,7 @@ const PerfilFreelancer = () => {
                         {label}
                         {ativo && horarios[key] && (
                           <span className="text-[7px] mt-0.5 opacity-80">
-                            {horarios[key].de.replace(":00", "")}-{horarios[key].ate.replace(":00", "")}
+                            {horarios[key].de}-{horarios[key].ate}
                           </span>
                         )}
                       </button>

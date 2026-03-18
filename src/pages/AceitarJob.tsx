@@ -27,7 +27,7 @@ const jobMock = {
     foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
   },
   data: "15 de Fevereiro de 2026",
-  horario: "14:00",
+  horario: "14h",
   duracao: "6 horas",
   endereco: "Rua das Flores, 123 - Jardim Paulista, São Paulo - SP",
   valorFreelancer: 480.00,

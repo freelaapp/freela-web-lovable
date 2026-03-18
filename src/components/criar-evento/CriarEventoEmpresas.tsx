@@ -136,7 +136,7 @@ const CriarEventoEmpresas = () => {
    * Hora mínima permitida para início do serviço.
    * Regra: quando o evento é hoje, a abertura de vaga deve ser
    * no mínimo 1 hora depois do horário atual.
-   * Retorna string "HH:00" ou undefined (sem restrição) se o evento não for hoje.
+   * Retorna string "XXh" ou undefined (sem restrição) se o evento não for hoje.
    */
   const horaMinima = useMemo((): string | undefined => {
     if (!dataEvento) return undefined;
@@ -146,7 +146,7 @@ const CriarEventoEmpresas = () => {
     // Hora atual + 1h, arredondada para cima para hora cheia
     const minHour = hoje.getHours() + 1;
     const capped = Math.min(minHour, 23);
-    return `${String(capped).padStart(2, "0")}:00`;
+    return `${String(capped).padStart(2, "0")}h`;
   }, [dataEvento]);
 
   const handleSubmit = async (e: React.FormEvent) => {

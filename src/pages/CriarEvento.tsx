@@ -14,6 +14,8 @@ import { servicosPF, calcularValorTotal } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
 import CriarEventoEmpresas from "@/components/criar-evento/CriarEventoEmpresas";
 
+const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}h`);
+
 const CriarEvento = () => {
   const { isFreelaCasa, mode } = useMode();
   const userRole = useUserRole();
@@ -225,14 +227,21 @@ const CriarEvento = () => {
                       <Clock className="w-4 h-4" />
                       Horário de início
                     </Label>
-                    <Input
-                      id="horario"
-                      type="time"
+                    <Select
                       value={formData.horario}
-                      onChange={(e) => handleChange("horario", e.target.value)}
-                      className="h-12"
-                      required
-                    />
+                      onValueChange={(value) => handleChange("horario", value)}
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Selecione o horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {horasDisponiveis.map((h) => (
+                          <SelectItem key={h} value={h}>
+                            {h}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

@@ -50,23 +50,21 @@ export const getServiceIcon = (id: string) => iconMap[id] || "👤";
 
 const calcHours = (inicio: string, fim: string): number => {
   if (!inicio || !fim) return 0;
-  const [h1, m1] = inicio.split(":").map(Number);
-  const [h2, m2] = fim.split(":").map(Number);
-  let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-  if (diff <= 0) diff += 24 * 60;
-  return diff / 60;
+  const h1 = parseInt(inicio.replace("h", ""));
+  const h2 = parseInt(fim.replace("h", ""));
+  let diff = h2 - h1;
+  if (diff <= 0) diff += 24;
+  return diff;
 };
 
 const formatHours = (hours: number): string => {
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
-  return m > 0 ? `${h}:${String(m).padStart(2, "0")}h` : `${h}h`;
+  return `${hours}h`;
 };
 
 export { calcHours };
 
-/** Gera array de horas fechadas: ["00:00", "01:00", ..., "23:00"] */
-const HORAS = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+/** Gera array de horas fechadas: ["00h", "01h", ..., "23h"] */
+const HORAS = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}h`);
 
 const ServicoCard = ({
   label,
@@ -95,8 +93,8 @@ const ServicoCard = ({
   // Horas disponíveis para fim: apenas horas posteriores à hora de início
   const horasFim = horaInicio
     ? HORAS.filter((h) => {
-        const [hi] = horaInicio.split(":").map(Number);
-        const [hf] = h.split(":").map(Number);
+        const hi = parseInt(horaInicio.replace("h", ""));
+        const hf = parseInt(h.replace("h", ""));
         // Permite wrap-around (ex: início 22h → fim pode ser 01h do dia seguinte)
         return hf !== hi;
       })
