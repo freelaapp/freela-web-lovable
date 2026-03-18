@@ -563,20 +563,20 @@ const Perfil = () => {
               }
               </div>
               {!editingAvailability ?
-            <div className="grid grid-cols-7 gap-1 sm:gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
                   {diasSemana.map((dia) => {
                 const ativo = diasAtivos.includes(dia.key);
                 return (
-                  <div key={dia.key} className="flex flex-col items-center gap-0.5">
+                  <div key={dia.key} className="flex flex-col items-center gap-0.5 snap-start">
                         <span
-                      className={`w-full aspect-square rounded-lg sm:rounded-xl flex flex-col items-center justify-center text-xs sm:text-sm font-bold ${
+                      className={`w-14 h-14 sm:w-auto sm:h-auto sm:aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-bold shrink-0 ${
                       ativo ?
                       "bg-primary text-primary-foreground" :
                       "bg-muted/50 text-muted-foreground"}`
                       }>
                           {dia.label}
                           {ativo &&
-                      <span className="text-[8px] sm:text-[10px] mt-0.5 opacity-90 leading-tight">{formatHorario(dia.key)}</span>
+                      <span className="text-[9px] sm:text-[10px] mt-0.5 opacity-90 leading-tight whitespace-nowrap">{formatHorario(dia.key)}</span>
                       }
                         </span>
                       </div>);
