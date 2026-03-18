@@ -47,7 +47,7 @@ const CriarEvento = () => {
 
   const valorCalculado = useMemo(() => {
     if (!servicoSelecionado) return null;
-    const hours = Math.min(Math.max(formData.horas, minHours), 12);
+    const hours = Math.max(formData.horas, minHours);
     return calcularValorTotal(
       servicoSelecionado.pricePerHour,
       hours,
@@ -197,7 +197,7 @@ const CriarEvento = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((num) => (
+                      {[2, 3, 4, 5, 6, 7, 8, 10, 12].map((num) => (
                         <SelectItem key={num} value={num.toString()}>
                           {num} horas
                         </SelectItem>
@@ -272,11 +272,6 @@ const CriarEvento = () => {
                     {formData.horas < minHours && (
                       <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
                         ⚠️ Jornada mínima de {minHours}h para {servicoSelecionado.label}. O cálculo considera {minHours}h.
-                      </p>
-                    )}
-                    {formData.horas > 12 && (
-                      <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
-                        ⚠️ Jornada máxima de 12h. O cálculo considera 12h.
                       </p>
                     )}
                     <div className="text-4xl font-display font-bold text-primary">
