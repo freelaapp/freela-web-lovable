@@ -41,6 +41,7 @@ const CriarEventoEmpresas = () => {
     logradouro: "",
     numero: "",
     complemento: "",
+    referencia: "",
     bairro: "",
     cidade: "",
     estado: "",
