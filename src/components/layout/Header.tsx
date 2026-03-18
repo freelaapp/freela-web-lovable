@@ -134,7 +134,7 @@ const Header = () => {
 
           {/* Desktop Right Side */}
           <div className="hidden lg:flex items-center gap-3">
-            {isLoggedIn ? (
+            {isLoggedIn && !isLandingPage ? (
               <>
                 {role === "contratante" && location.pathname !== "/dashboard-contratante" && (
                   <Button asChild size="sm" className="gap-1.5">
