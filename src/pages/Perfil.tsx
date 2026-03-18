@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Eye, Car, Pencil, Play, Image as ImageIconLucide, X, Check, Loader2 } from "lucide-react";
+import EditableAvatar from "@/components/EditableAvatar";
 import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -399,23 +400,16 @@ const Perfil = () => {
             <CardContent className="p-5">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
                 <div className="relative shrink-0">
-                  <button
-                    onClick={() => avatarInputRef.current?.click()}
-                    className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold group overflow-hidden">
-                    {(isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl)) ? (
-                      <img src={(isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl))!} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span>{isContratante ? (contractorData.name?.[0] || "C") : (freelancerData.name?.[0] || "F")}</span>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                      <Camera className="w-5 h-5 text-white" />
-                    </div>
-                  </button>
+                  <EditableAvatar
+                    src={isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl)}
+                    fallback={isContratante ? (contractorData.name?.[0] || "C") : (freelancerData.name?.[0] || "F")}
+                    size="md"
+                    onFileSelect={(file) => setAvatarUrl(URL.createObjectURL(file))}
+                  />
                   {!isContratante && (
                     <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
                   )}
                 </div>
-                <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                 <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex items-center justify-center sm:justify-start gap-1.5">
                     <h2 className="text-lg font-display font-bold truncate">
