@@ -80,10 +80,12 @@ const ServicoCard = ({
   minHours,
   horaMinima,
 }: ServicoCardProps) => {
+  const MAX_HOURS = 12;
   const hours = calcHours(horaInicio, horaFim);
   const effectiveHours = Math.max(hours, minHours);
   const valor = pricePerHour * effectiveHours * quantidade;
   const isBelowMin = hours > 0 && hours < minHours;
+  const isAboveMax = hours > MAX_HOURS;
 
   // Horas disponíveis para início: todas >= horaMinima (se fornecida)
   const horasInicio = horaMinima
