@@ -527,9 +527,14 @@ const CriarEventoEmpresas = () => {
                   <Input
                     placeholder="00000-000"
                     value={endereco.cep}
-                    onChange={(e) => setEndereco({ ...endereco, cep: e.target.value })}
+                    onChange={(e) => handleCepChange(e.target.value)}
                     className="h-9 rounded-lg text-sm"
                   />
+                  {cepLoading && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Buscando endereço...
+                    </p>
+                  )}
                 </div>
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Logradouro</Label>
