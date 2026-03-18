@@ -586,7 +586,7 @@ const Perfil = () => {
                 </div> :
 
             <div className="space-y-3">
-                  <div className="grid grid-cols-7 gap-2">
+                  <div className="grid grid-cols-7 gap-1 sm:gap-2">
                     {diasSemana.map((dia) => {
                   const ativo = diasAtivos.includes(dia.key);
                   return (
