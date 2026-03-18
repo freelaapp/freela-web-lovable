@@ -17,6 +17,8 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 
+const API_BASE_URL = import.meta.env.API_BASE_URL;
+
 // ── Helpers ──────────────────────────────────────────────────
 const maskCEP = (v: string) => {
   const d = v.replace(/\D/g, "").slice(0, 8);
@@ -322,7 +324,7 @@ const MeusDadosContratante = () => {
           return;
         }
 
-        const res = await fetch(`https://api.freelaservicos.com.br/users/contractors`, {
+        const res = await fetch(`${API_BASE_URL}/users/contractors`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -424,7 +426,7 @@ const MeusDadosContratante = () => {
 
         // Fetch user info from /users/me
         try {
-          const userRes = await fetch("https://api.freelaservicos.com.br/users/me", {
+          const userRes = await fetch(`${API_BASE_URL}/users/me`, {
             method: "GET",
             credentials: "include",
             headers: {
@@ -549,7 +551,7 @@ const MeusDadosContratante = () => {
           if (internoFile) formData.append("establishmentInteriorImage", internoFile);
         }
 
-        const res = await fetch("https://api.freelaservicos.com.br/contractors/", {
+        const res = await fetch(`${API_BASE_URL}/contractors/`, {
           method: "PUT",
           credentials: "include",
           headers: {
@@ -573,7 +575,7 @@ const MeusDadosContratante = () => {
 
       // 2. Update user info if changed
       if (hasUserChanges && userId) {
-        const userRes = await fetch("https://api.freelaservicos.com.br/users", {
+        const userRes = await fetch(`${API_BASE_URL}/users`, {
           method: "PUT",
           credentials: "include",
           headers: {

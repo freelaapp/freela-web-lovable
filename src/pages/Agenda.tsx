@@ -10,7 +10,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
 import VagaCard from "@/components/dashboard-contratante/VagaCard";
 
-const API_BASE_URL = "https://api.freelaservicos.com.br";
+const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 const statusOrder: Record<string, number> = {
   open: 0,

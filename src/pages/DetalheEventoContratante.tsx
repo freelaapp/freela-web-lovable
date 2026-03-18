@@ -11,7 +11,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, type JobPaymentResponse } from "@/lib/api";
 import Pusher from "pusher-js";
 
-const API_BASE_URL = "https://api.freelaservicos.com.br";
+const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 interface VacancyDetail {
   id: string;

@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 
-const API_BASE_URL = "https://api.freelaservicos.com.br";
+const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 // Format date string to DD-MM-YYYY
 const formatDateDDMMYYYY = (dateStr: string): string => {

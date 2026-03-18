@@ -1,6 +1,6 @@
 import { refreshAuthToken, logout } from "@/lib/auth";
 
-const API_BASE_URL = "https://api.freelaservicos.com.br";
+const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 // Trocar para "mobile" quando necessário
 const ORIGIN_TYPE = "Web";

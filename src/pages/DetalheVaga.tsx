@@ -9,7 +9,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 
-const API_BASE_URL = "https://api.freelaservicos.com.br";
+const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 const defaultTimelineSteps = [
   { key: "aceite", label: "Aceite da Vaga", icon: CheckCircle },

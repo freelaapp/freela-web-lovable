@@ -11,6 +11,8 @@ import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
 import { useUserRole, setUserRole } from "@/hooks/useUserRole";
 
+const API_BASE_URL = import.meta.env.API_BASE_URL;
+
 type ContractorType = "empresas" | "casa_cnpj" | "casa_cpf";
 
 const bufferToDataUrl = (img: any): string | null => {
@@ -148,10 +150,10 @@ const Perfil = () => {
         const headers = { "Origin-type": "Web", "Authorization": `Bearer ${token}` };
 
         const [providerRes, userRes] = await Promise.all([
-          fetch("https://api.freelaservicos.com.br/users/providers", {
+          fetch(`${API_BASE_URL}/users/providers`, {
             method: "GET", credentials: "include", headers,
           }),
-          fetch("https://api.freelaservicos.com.br/users/me", {
+          fetch(`${API_BASE_URL}/users/me`, {
             method: "GET", credentials: "include", headers,
           }),
         ]);
@@ -213,7 +215,7 @@ const Perfil = () => {
         if (!tokenRaw) { setContractorLoading(false); return; }
         const token = JSON.parse(tokenRaw);
 
-        const res = await fetch("https://api.freelaservicos.com.br/users/contractors", {
+        const res = await fetch(`${API_BASE_URL}/users/contractors`, {
           method: "GET",
           credentials: "include",
           headers: { "Origin-type": "Web", "Authorization": `Bearer ${token}` },
