@@ -45,9 +45,47 @@ const CriarEventoEmpresas = () => {
     cidade: "",
     estado: "",
   });
+  const [cepLoading, setCepLoading] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const maskCEP = (v: string) => {
+    const d = v.replace(/\D/g, "").slice(0, 8);
+    return d.replace(/(\d{5})(\d)/, "$1-$2");
+  };
+
+  const buscarCep = useCallback(async (digits: string) => {
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setEndereco((prev) => ({
+          ...prev,
+          logradouro: data.logradouro || "",
+          bairro: data.bairro || "",
+          cidade: data.localidade || "",
+          estado: data.uf || "",
+          complemento: data.complemento || prev.complemento,
+        }));
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setCepLoading(false);
+    }
+  }, []);
+
+  const handleCepChange = (value: string) => {
+    const masked = maskCEP(value);
+    setEndereco((prev) => ({ ...prev, cep: masked }));
+    const digits = value.replace(/\D/g, "");
+    if (digits.length === 8) {
+      buscarCep(digits);
+    }
+  };
 
   // Fetch contractor profile on mount
   useEffect(() => {
