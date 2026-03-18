@@ -196,6 +196,13 @@ const ServicoCard = ({
         </p>
       )}
 
+      {/* Max hours warning */}
+      {isAboveMax && (
+        <p className="mt-2 text-[11px] text-destructive font-medium">
+          *O limite máximo é de {MAX_HOURS}h
+        </p>
+      )}
+
       {/* Footer - cálculo */}
       <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between">
         <div className="text-xs text-muted-foreground">
