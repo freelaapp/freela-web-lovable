@@ -563,25 +563,23 @@ const Perfil = () => {
               }
               </div>
               {!editingAvailability ?
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2">
                   {diasSemana.map((dia) => {
                 const ativo = diasAtivos.includes(dia.key);
                 return (
                   <div key={dia.key} className="flex flex-col items-center gap-0.5">
                         <span
-                      className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-bold ${
+                      className={`w-full aspect-square rounded-lg sm:rounded-xl flex flex-col items-center justify-center text-xs sm:text-sm font-bold ${
                       ativo ?
                       "bg-primary text-primary-foreground" :
                       "bg-muted/50 text-muted-foreground"}`
                       }>
-
                           {dia.label}
                           {ativo &&
-                      <span className="text-[10px] mt-0.5 opacity-90">{formatHorario(dia.key)}</span>
+                      <span className="text-[8px] sm:text-[10px] mt-0.5 opacity-90 leading-tight">{formatHorario(dia.key)}</span>
                       }
                         </span>
                       </div>);
-
               })}
                 </div> :
 
