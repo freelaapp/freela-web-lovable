@@ -581,8 +581,6 @@ const MeusDados = () => {
               </div>
               <p className="text-sm text-muted-foreground">Escolha uma foto profissional e com boa iluminação.</p>
             </div>
-              <p className="text-sm text-muted-foreground">Escolha uma foto profissional e com boa iluminação.</p>
-            </div>
           </CardContent>
         </Card>
 
