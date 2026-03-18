@@ -51,8 +51,7 @@ const CriarEvento = () => {
     return calcularValorTotal(
       servicoSelecionado.pricePerHour,
       hours,
-      formData.quantidade,
-      servicoSelecionado.insuranceFee
+      formData.quantidade
     );
   }, [servicoSelecionado, formData.horas, formData.quantidade, minHours]);
 
