@@ -615,7 +615,7 @@ const PartnersCards = () =>
 
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Card Prospera */}
-        <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-400/5 to-transparent rounded-2xl border border-emerald-500/20 p-8 md:p-10 flex flex-col">
+        <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-400/5 to-transparent rounded-2xl border border-emerald-500/20 p-8 md:p-10 flex flex-col hidden">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-full mb-6 self-start">
             <Zap className="w-4 h-4" />
             <span className="text-sm font-bold">Parceiro oficial</span>
@@ -662,28 +662,28 @@ const PartnersCards = () =>
             Aprimore suas habilidades com cursos dos melhores parceiros do setor de hospitalidade e destaque-se no mercado.
           </p>
 
-          <div className="space-y-4 mb-8 flex-1">
-            {[
-          { emoji: "🍺", name: "Bares SP", desc: "Coquetelaria, gestão de bares e tendências do mercado.", link: "https://baressp.com.br/cursos-online/" },
-          { emoji: "🥃", name: "Diageo Bar Academy", desc: "Certificação internacional em mixologia e atendimento premium.", link: "https://www.diageobaracademy.com/pt-br/home/learning-for-life" },
-          { emoji: "📊", name: "Sebrae", desc: "Gestão financeira, marketing e formalização para empresários.", link: "https://sebrae.com.br/sites/PortalSebrae" }].
-          map((partner) =>
-          <div key={partner.name} className="flex items-start gap-4 bg-card rounded-xl p-4 border border-border group hover:border-blue-500/30 transition-colors">
-                <span className="text-2xl flex-shrink-0">{partner.emoji}</span>
-                <div className="flex-1">
-                  <h5 className="font-bold text-foreground text-sm mb-1">{partner.name}</h5>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{partner.desc}</p>
-                </div>
-                <a href={partner.link} target="_blank" rel="noopener noreferrer">
-                  <Button variant="ghost" size="sm" className="flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10 text-xs">
-                    Saber mais
-                    <ArrowRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </a>
-              </div>
-          )}
-          </div>
+<div className="grid grid-cols-3 gap-4 mb-8">
+  {[
+    { emoji: "🍺", name: "Bares SP", desc: "Coquetelaria, gestão de bares e tendências do mercado.", link: "https://baressp.com.br/cursos-online/" },
+    { emoji: "🥃", name: "Diageo Bar Academy", desc: "Certificação internacional em mixologia e atendimento premium.", link: "https://www.diageobaracademy.com/pt-br/home/learning-for-life" },
+    { emoji: "📊", name: "Sebrae", desc: "Gestão financeira, marketing e formalização para empresários.", link: "https://sebrae.com.br/sites/PortalSebrae" }].
+    map((partner) =>
+      <div key={partner.name} className="bg-card rounded-xl p-4 border border-border group hover:border-blue-500/30 transition-colors min-h-[250px] flex flex-col">
+        <span className="text-2xl flex-shrink-0">{partner.emoji}</span>
+        <div className="flex-1">
+          <h5 className="font-bold text-foreground text-sm mb-1">{partner.name}</h5>
+          <p className="text-xs text-muted-foreground leading-relaxed">{partner.desc}</p>
         </div>
+        <a href={partner.link} target="_blank" rel="noopener noreferrer">
+          <Button variant="ghost" size="sm" className="mt-3 flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10 text-xs">
+            Saber mais
+            <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
+        </a>
+      </div>
+    )}
+  </div>
+</div>
       </div>
     </div>
   </section>;
