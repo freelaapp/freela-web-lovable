@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { createVacancy, getContractorProfile, type ContractorProfile } from "@/lib/api";
@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Calendar, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { servicosPF, FREELA_COMMISSION } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
@@ -45,9 +45,47 @@ const CriarEventoEmpresas = () => {
     cidade: "",
     estado: "",
   });
+  const [cepLoading, setCepLoading] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const maskCEP = (v: string) => {
+    const d = v.replace(/\D/g, "").slice(0, 8);
+    return d.replace(/(\d{5})(\d)/, "$1-$2");
+  };
+
+  const buscarCep = useCallback(async (digits: string) => {
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setEndereco((prev) => ({
+          ...prev,
+          logradouro: data.logradouro || "",
+          bairro: data.bairro || "",
+          cidade: data.localidade || "",
+          estado: data.uf || "",
+          complemento: data.complemento || prev.complemento,
+        }));
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setCepLoading(false);
+    }
+  }, []);
+
+  const handleCepChange = (value: string) => {
+    const masked = maskCEP(value);
+    setEndereco((prev) => ({ ...prev, cep: masked }));
+    const digits = value.replace(/\D/g, "");
+    if (digits.length === 8) {
+      buscarCep(digits);
+    }
+  };
 
   // Fetch contractor profile on mount
   useEffect(() => {
@@ -489,9 +527,14 @@ const CriarEventoEmpresas = () => {
                   <Input
                     placeholder="00000-000"
                     value={endereco.cep}
-                    onChange={(e) => setEndereco({ ...endereco, cep: e.target.value })}
+                    onChange={(e) => handleCepChange(e.target.value)}
                     className="h-9 rounded-lg text-sm"
                   />
+                  {cepLoading && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Buscando endereço...
+                    </p>
+                  )}
                 </div>
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Logradouro</Label>
