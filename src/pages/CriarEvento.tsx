@@ -47,7 +47,7 @@ const CriarEvento = () => {
 
   const valorCalculado = useMemo(() => {
     if (!servicoSelecionado) return null;
-    const hours = Math.max(formData.horas, minHours);
+    const hours = Math.min(Math.max(formData.horas, minHours), 12);
     return calcularValorTotal(
       servicoSelecionado.pricePerHour,
       hours,
