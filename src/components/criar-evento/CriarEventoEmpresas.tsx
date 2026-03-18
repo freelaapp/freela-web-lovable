@@ -118,9 +118,6 @@ const CriarEventoEmpresas = () => {
     return servicePricing.reduce((sum, s) => sum + s.total, 0);
   }, [servicePricing]);
 
-  const totalInsurance = useMemo(() => {
-    return servicePricing.reduce((sum, s) => sum + s.insurance, 0);
-  }, [servicePricing]);
 
   const totalSubtotal = useMemo(() => {
     return servicePricing.reduce((sum, s) => sum + s.subtotal, 0);
