@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trash2, AlertTriangle, Wallet, Phone, User, MapPin, Loader2, Camera, X, Briefcase } from "lucide-react";
+import EditableAvatar from "@/components/EditableAvatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNavigate } from "react-router-dom";
