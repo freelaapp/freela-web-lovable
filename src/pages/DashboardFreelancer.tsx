@@ -47,6 +47,7 @@ const DashboardFreelancer = () => {
   const [loadingPendentes, setLoadingPendentes] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const [userNameLoading, setUserNameLoading] = useState<boolean>(true);
+  const [jobsThisMonth, setJobsThisMonth] = useState<number>(0);
 
    useEffect(() => {
      const fetchData = async () => {
@@ -115,13 +116,13 @@ const DashboardFreelancer = () => {
 
          // 3. Get active jobs (IDs) then fetch details
          setLoadingAtivas(true);
-         const activeRes = await fetch(`${API_BASE_URL}/providers/${providerId}/active-jobs`, {
+         const activeJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/active-jobs`, {
            method: "GET", credentials: "include", headers,
          });
-         const activeBody = await activeRes.json().catch(() => null);
-         const activeData = activeBody?.data ?? activeBody;
-         const activeIds: string[] = Array.isArray(activeData)
-           ? activeData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+         const activeJobsBody = await activeJobsRes.json().catch(() => null);
+         const activeJobsData = activeJobsBody?.data ?? activeJobsBody;
+         const activeIds: string[] = Array.isArray(activeJobsData)
+           ? activeJobsData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
            : [];
 
          if (activeIds.length > 0) {
@@ -144,18 +145,18 @@ const DashboardFreelancer = () => {
 
          // 3b. Get future/scheduled jobs (same logic as active jobs)
          setLoadingAgendadas(true);
-         const futureRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
+         const futureJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
            method: "GET", credentials: "include", headers,
          });
-         const futureBody = await futureRes.json().catch(() => null);
-         const futureData = futureBody?.data ?? futureBody;
-         const futureIds: string[] = Array.isArray(futureData)
-           ? futureData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+         const futureJobsBody = await futureJobsRes.json().catch(() => null);
+         const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
+         const futureIds: string[] = Array.isArray(futureJobsData)
+           ? futureJobsData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
            : [];
 
          if (futureIds.length > 0) {
            // Keep raw items to preserve jobId mapping
-           const rawFutureItems = Array.isArray(futureData) ? futureData : [];
+           const rawFutureItems = Array.isArray(futureJobsData) ? futureJobsData : [];
            const futureDetails = await Promise.all(
              futureIds.filter(Boolean).map(async (vacId: string, idx: number) => {
                try {
@@ -179,6 +180,44 @@ const DashboardFreelancer = () => {
            setVagasAgendadas([]);
          }
          setLoadingAgendadas(false);
+
+         // Count jobs for current month from both active and future jobs
+         let currentMonthJobs = 0;
+         const currentDate = new Date();
+         const currentMonth = currentDate.getMonth(); // 0-11
+         const currentYear = currentDate.getFullYear();
+
+         // Check active jobs
+         if (Array.isArray(activeJobsData)) {
+           activeJobsData.forEach((job: any) => {
+             if (job.jobDate) {
+               const jobDate = new Date(job.jobDate);
+               if (
+                 jobDate.getMonth() === currentMonth &&
+                 jobDate.getFullYear() === currentYear
+               ) {
+                 currentMonthJobs++;
+               }
+             }
+           });
+         }
+
+         // Check future jobs
+         if (Array.isArray(futureJobsData)) {
+           futureJobsData.forEach((job: any) => {
+             if (job.jobDate) {
+               const jobDate = new Date(job.jobDate);
+               if (
+                 jobDate.getMonth() === currentMonth &&
+                 jobDate.getFullYear() === currentYear
+               ) {
+                 currentMonthJobs++;
+               }
+             }
+           });
+         }
+
+         setJobsThisMonth(currentMonthJobs);
 
          // 4. Get filtered vacancies and flatten services
          setLoadingVagas(true);
@@ -238,11 +277,11 @@ const DashboardFreelancer = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-3">
-          {[
-            { icon: DollarSign, label: "Ganhos do mês", value: "R$ 3.650", color: "text-success", bg: "bg-success-light", path: "/carteira" },
-            { icon: Briefcase, label: "Jobs este mês", value: "8", color: "text-primary", bg: "bg-primary-light", path: "/agenda" },
-            { icon: Star, label: "Avaliação", value: averageRating, color: "text-warning", bg: "bg-warning-light", path: "/avaliacoes" },
-          ].map((stat) => (
+           {[
+             { icon: DollarSign, label: "Ganhos do mês", value: "R$ 3.650", color: "text-success", bg: "bg-success-light", path: "/carteira" },
+             { icon: Briefcase, label: "Jobs este mês", value: jobsThisMonth.toString(), color: "text-primary", bg: "bg-primary-light", path: "/agenda" },
+             { icon: Star, label: "Avaliação", value: averageRating, color: "text-warning", bg: "bg-warning-light", path: "/avaliacoes" },
+           ].map((stat) => (
             <Link key={stat.label} to={stat.path} className="block">
               <Card className="hover:bg-muted/50 transition-colors h-full">
                 <CardContent className="p-4">
