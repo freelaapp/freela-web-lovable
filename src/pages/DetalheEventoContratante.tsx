@@ -92,27 +92,21 @@ const DetalheEventoContratante = () => {
   const [providerAttendedJob, setProviderAttendedJob] = useState<boolean | null>(null);
   const [reviewLoading, setReviewLoading] = useState(false);
 
-  // Helper: fetch payment details for a job, then schedule if successful
-  const fetchJobPayments = async (jobId: string, scheduleAfter = false) => {
+  // Helper: fetch payment details for a job (no auto-schedule)
+  const fetchJobPayments = async (jobId: string) => {
     try {
       const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, { method: "GET" });
       const body = await res.json().catch(() => null);
       console.log("[Payment] GET /jobs/{jobId}/payments:", body);
       const paymentInfo = body?.data ?? body;
       if (paymentInfo) {
-        setPixData(prev => ({ ...prev, ...paymentInfo }));
+        setPixData(prev => {
+          const merged = { ...prev, ...paymentInfo };
+          if (!merged.pixQrCode && prev?.pixQrCode) merged.pixQrCode = prev.pixQrCode;
+          if (!merged.pixQrCodeImage && prev?.pixQrCodeImage) merged.pixQrCodeImage = prev.pixQrCodeImage;
+          return merged;
+        });
       }
-
-      if (res.ok && scheduleAfter) {
-        try {
-          await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
-          console.log("[Payment] job scheduled successfully", jobId);
-          setTimelineStep(2);
-        } catch (scheduleErr: any) {
-          console.error("[Payment] failed to schedule job:", scheduleErr);
-        }
-      }
-
       return paymentInfo;
     } catch (err) {
       console.error("[Payment] Erro ao buscar detalhes do pagamento:", err);
@@ -131,10 +125,26 @@ const DetalheEventoContratante = () => {
       }
       toast({ title: "Pagamento atualizado", description: data?.message || `Status: ${data?.status}` });
 
-      // Fetch full payment details after Pusher notification
       const jobId = data?.jobId || lastJobIdRef.current;
       if (jobId) {
-        await fetchJobPayments(jobId, false);
+        await fetchJobPayments(jobId);
+
+        // Payment confirmed → now schedule the job
+        try {
+          const jobRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
+          const jobBody = await jobRes.json().catch(() => null);
+          const paid = jobBody?.data?.paid ?? jobBody?.paid;
+          console.log("[Pusher] job paid status:", paid);
+
+          if (paid === true) {
+            await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
+            console.log("[Pusher] job scheduled after payment confirmation");
+            setTimelineStep(2);
+            toast({ title: "Job agendado", description: "Pagamento confirmado e job agendado com sucesso!" });
+          }
+        } catch (scheduleErr: any) {
+          console.error("[Pusher] failed to check/schedule job:", scheduleErr);
+        }
       }
     });
 
@@ -297,26 +307,30 @@ const DetalheEventoContratante = () => {
         return;
       }
 
-      // Fetch provider PIX key
-      const providerData = await getProviderDetails(providerId);
-      const pixKeyValue = providerData?.pixKeyValue ?? "";
+      // Fetch provider PIX key ID (UUID)
+      const pixKeysRes = await apiFetch(`${API_BASE_URL}/providers/${providerId}/pix-keys`, { method: "GET" });
+      const pixKeysBody = await pixKeysRes.json().catch(() => null);
+      const pixKeysData = pixKeysBody?.data ?? pixKeysBody;
+      const pixKeyRecord = Array.isArray(pixKeysData) ? pixKeysData[0] : pixKeysData;
+      const pixKeyId = pixKeyRecord?.id ?? "";
 
       const paymentResult = await createJobPayment(jobId, {
         vacancyId,
         contractorId,
         providerId,
-        providerPixKeyId: pixKeyValue,
+        providerPixKeyId: pixKeyId,
         method: "pix",
       });
 
-      console.log("[Payment] created successfully for job", jobId, paymentResult);
+      console.log("[Payment] POST result:", JSON.stringify(paymentResult));
       lastJobIdRef.current = jobId;
 
-      // Fetch full payment details and schedule after success
-      const fullPayment = await fetchJobPayments(jobId, true);
-
-      setPixData(fullPayment ?? paymentResult);
+      // Store POST result immediately (has pixQrCode & pixQrCodeImage)
+      setPixData(paymentResult);
       setShowPixModal(true);
+
+      // Fetch extra payment info but do NOT schedule — wait for payment confirmation via Pusher
+      fetchJobPayments(jobId);
     } catch (err: any) {
       console.error("[Payment] error:", err);
       toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
