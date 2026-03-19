@@ -66,156 +66,164 @@ const DashboardFreelancer = () => {
              setUserName(userBody.data.name);
            } else if (userBody?.name) {
              setUserName(userBody.name);
+           } else {
+             // Fallback if name not found in expected places
+             setUserName("Usuário");
            }
          } catch (userError) {
            console.warn("[DashboardFreelancer] Failed to fetch user name:", userError);
+           setUserName("Usuário"); // Fallback on error
+         } finally {
+           setUserNameLoading(false); // Always stop loading for user name
          }
 
          // 1. Get provider profile (id + services/areas)
          const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
            method: "GET", credentials: "include", headers,
          });
-        const provBody = await provRes.json().catch(() => null);
-        const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
-        const providerId = provData?.id ?? provBody?.id;
-        if (!providerId) return;
+         const provBody = await provRes.json().catch(() => null);
+         const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
+         const providerId = provData?.id ?? provBody?.id;
+         if (!providerId) return;
 
-        // Extract freelancer's service areas from profile (desiredJobVacancy)
-        const providerServices: string[] = [];
-        const rawServices = provData?.desiredJobVacancy ?? [];
-        if (Array.isArray(rawServices)) {
-          rawServices.forEach((s: any) => {
-            if (typeof s === "string") providerServices.push(s.toLowerCase().trim());
-            else if (s?.name) providerServices.push(s.name.toLowerCase().trim());
-            else if (s?.assignment) providerServices.push(s.assignment.toLowerCase().trim());
-          });
-        }
+         // Extract freelancer's service areas from profile (desiredJobVacancy)
+         const providerServices: string[] = [];
+         const rawServices = provData?.desiredJobVacancy ?? [];
+         if (Array.isArray(rawServices)) {
+           rawServices.forEach((s: any) => {
+             if (typeof s === "string") providerServices.push(s.toLowerCase().trim());
+             else if (s?.name) providerServices.push(s.name.toLowerCase().trim());
+             else if (s?.assignment) providerServices.push(s.assignment.toLowerCase().trim());
+           });
+         }
 
-        // 2. Get feedbacks
-        const fbRes = await fetch(`${API_BASE_URL}/providers/${providerId}/jobs/feedbacks`, {
-          method: "GET", credentials: "include", headers,
-        });
-        const fbBody = await fbRes.json().catch(() => null);
-        const feedbacks = fbBody?.data ?? fbBody;
+         // 2. Get feedbacks
+         const fbRes = await fetch(`${API_BASE_URL}/providers/${providerId}/jobs/feedbacks`, {
+           method: "GET", credentials: "include", headers,
+         });
+         const fbBody = await fbRes.json().catch(() => null);
+         const feedbacks = fbBody?.data ?? fbBody;
 
-        if (Array.isArray(feedbacks) && feedbacks.length > 0) {
-          const avg = feedbacks.reduce((sum: number, f: any) => sum + (f.rating ?? f.score ?? 0), 0) / feedbacks.length;
-          setAverageRating(avg.toFixed(1));
-        } else if (typeof feedbacks === "number") {
-          setAverageRating(feedbacks.toFixed(1));
-        } else if (typeof fbBody?.data === "number") {
-          setAverageRating(fbBody.data.toFixed(1));
-        }
+         if (Array.isArray(feedbacks) && feedbacks.length > 0) {
+           const avg = feedbacks.reduce((sum: number, f: any) => sum + (f.rating ?? f.score ?? 0), 0) / feedbacks.length;
+           setAverageRating(avg.toFixed(1));
+         } else if (typeof feedbacks === "number") {
+           setAverageRating(feedbacks.toFixed(1));
+         } else if (typeof fbBody?.data === "number") {
+           setAverageRating(fbBody.data.toFixed(1));
+         }
 
-        // 3. Get active jobs (IDs) then fetch details
-        setLoadingAtivas(true);
-        const activeRes = await fetch(`${API_BASE_URL}/providers/${providerId}/active-jobs`, {
-          method: "GET", credentials: "include", headers,
-        });
-        const activeBody = await activeRes.json().catch(() => null);
-        const activeData = activeBody?.data ?? activeBody;
-        const activeIds: string[] = Array.isArray(activeData)
-          ? activeData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
-          : [];
+         // 3. Get active jobs (IDs) then fetch details
+         setLoadingAtivas(true);
+         const activeRes = await fetch(`${API_BASE_URL}/providers/${providerId}/active-jobs`, {
+           method: "GET", credentials: "include", headers,
+         });
+         const activeBody = await activeRes.json().catch(() => null);
+         const activeData = activeBody?.data ?? activeBody;
+         const activeIds: string[] = Array.isArray(activeData)
+           ? activeData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+           : [];
 
-        if (activeIds.length > 0) {
-          const activeDetails = await Promise.all(
-            activeIds.filter(Boolean).map(async (vacId: string) => {
-              try {
-                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
-                  method: "GET", credentials: "include", headers,
-                });
-                const body = await res.json().catch(() => null);
-                return body?.data ?? body ?? null;
-              } catch { return null; }
-            })
-          );
-          setVagasAtivas(activeDetails.filter(Boolean));
-        } else {
-          setVagasAtivas([]);
-        }
-        setLoadingAtivas(false);
+         if (activeIds.length > 0) {
+           const activeDetails = await Promise.all(
+             activeIds.filter(Boolean).map(async (vacId: string) => {
+               try {
+                 const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
+                   method: "GET", credentials: "include", headers,
+                 });
+                 const body = await res.json().catch(() => null);
+                 return body?.data ?? body ?? null;
+               } catch { return null; }
+             })
+           );
+           setVagasAtivas(activeDetails.filter(Boolean));
+         } else {
+           setVagasAtivas([]);
+         }
+         setLoadingAtivas(false);
 
-        // 3b. Get future/scheduled jobs (same logic as active jobs)
-        setLoadingAgendadas(true);
-        const futureRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
-          method: "GET", credentials: "include", headers,
-        });
-        const futureBody = await futureRes.json().catch(() => null);
-        const futureData = futureBody?.data ?? futureBody;
-        const futureIds: string[] = Array.isArray(futureData)
-          ? futureData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
-          : [];
+         // 3b. Get future/scheduled jobs (same logic as active jobs)
+         setLoadingAgendadas(true);
+         const futureRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
+           method: "GET", credentials: "include", headers,
+         });
+         const futureBody = await futureRes.json().catch(() => null);
+         const futureData = futureBody?.data ?? futureBody;
+         const futureIds: string[] = Array.isArray(futureData)
+           ? futureData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+           : [];
 
-        if (futureIds.length > 0) {
-          // Keep raw items to preserve jobId mapping
-          const rawFutureItems = Array.isArray(futureData) ? futureData : [];
-          const futureDetails = await Promise.all(
-            futureIds.filter(Boolean).map(async (vacId: string, idx: number) => {
-              try {
-                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
-                  method: "GET", credentials: "include", headers,
-                });
-                const body = await res.json().catch(() => null);
-                const detail = body?.data ?? body ?? null;
-                if (detail) {
-                  // Attach jobId from the raw future-jobs response
-                  const rawItem = rawFutureItems[idx];
-                  detail._jobId = rawItem?.jobId ?? rawItem?.id ?? vacId;
-                  detail._vacancyId = vacId;
-                }
-                return detail;
-              } catch { return null; }
-            })
-          );
-          setVagasAgendadas(futureDetails.filter(Boolean));
-        } else {
-          setVagasAgendadas([]);
-        }
-        setLoadingAgendadas(false);
+         if (futureIds.length > 0) {
+           // Keep raw items to preserve jobId mapping
+           const rawFutureItems = Array.isArray(futureData) ? futureData : [];
+           const futureDetails = await Promise.all(
+             futureIds.filter(Boolean).map(async (vacId: string, idx: number) => {
+               try {
+                 const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
+                   method: "GET", credentials: "include", headers,
+                 });
+                 const body = await res.json().catch(() => null);
+                 const detail = body?.data ?? body ?? null;
+                 if (detail) {
+                   // Attach jobId from the raw future-jobs response
+                   const rawItem = rawFutureItems[idx];
+                   detail._jobId = rawItem?.jobId ?? rawItem?.id ?? vacId;
+                   detail._vacancyId = vacId;
+                 }
+                 return detail;
+               } catch { return null; }
+             })
+           );
+           setVagasAgendadas(futureDetails.filter(Boolean));
+         } else {
+           setVagasAgendadas([]);
+         }
+         setLoadingAgendadas(false);
 
-        // 4. Get filtered vacancies and flatten services
-        setLoadingVagas(true);
-        const filteredRes = await fetch(`${API_BASE_URL}/providers/${providerId}/filtered-vacancies`, {
-          method: "GET", credentials: "include", headers,
-        });
-        const filteredBody = await filteredRes.json().catch(() => null);
-        const filteredData = filteredBody?.data ?? filteredBody;
-        const vacancies = Array.isArray(filteredData) ? filteredData : [];
+         // 4. Get filtered vacancies and flatten services
+         setLoadingVagas(true);
+         const filteredRes = await fetch(`${API_BASE_URL}/providers/${providerId}/filtered-vacancies`, {
+           method: "GET", credentials: "include", headers,
+         });
+         const filteredBody = await filteredRes.json().catch(() => null);
+         const filteredData = filteredBody?.data ?? filteredBody;
+         const vacancies = Array.isArray(filteredData) ? filteredData : [];
 
-        // Flatten: each service inside each vacancy becomes a card
-        // Filter by matching assignment with provider's profile services
-        const flattened: FlattenedVaga[] = [];
-        vacancies.forEach((vacancy: any) => {
-          const services = vacancy.services ?? vacancy.freelancers ?? [];
-          if (Array.isArray(services)) {
-            services.forEach((svc: any, idx: number) => {
-              if (svc.assignment) {
-                flattened.push({
-                  vacancyId: vacancy.id,
-                  serviceIndex: idx,
-                  assignment: svc.assignment,
-                  jobTime: svc.jobTime || "--",
-                  jobValue: svc.jobValue || "--",
-                  jobDate: vacancy.jobDate || "--",
-                  establishment: vacancy.establishment || vacancy.description || "",
-                  status: vacancy.status || "aberta",
-                  quantity: svc.quantity || 1,
-                });
-              }
-            });
-          }
-        });
+         // Flatten: each service inside each vacancy becomes a card
+         // Filter by matching assignment with provider's profile services
+         const flattened: FlattenedVaga[] = [];
+         vacancies.forEach((vacancy: any) => {
+           const services = vacancy.services ?? vacancy.freelancers ?? [];
+           if (Array.isArray(services)) {
+             services.forEach((svc: any, idx: number) => {
+               if (svc.assignment) {
+                 flattened.push({
+                   vacancyId: vacancy.id,
+                   serviceIndex: idx,
+                   assignment: svc.assignment,
+                   jobTime: svc.jobTime || "--",
+                   jobValue: svc.jobValue || "--",
+                   jobDate: vacancy.jobDate || "--",
+                   establishment: vacancy.establishment || vacancy.description || "",
+                   status: vacancy.status || "aberta",
+                   quantity: svc.quantity || 1,
+                 });
+               }
+             });
+           }
+         });
 
-        setVagasDisponiveis(flattened);
-      } catch (err) {
-        console.error("[DashboardFreelancer] error fetching data:", err);
-      } finally {
-        setLoadingVagas(false);
-      }
-    };
-    fetchData();
-  }, []);
+         setVagasDisponiveis(flattened);
+       } catch (err) {
+         console.error("[DashboardFreelancer] error fetching data:", err);
+         // Ensure userNameLoading is false even if we error out before reaching the user fetch finally block
+         setUserNameLoading(false);
+       } finally {
+         setLoadingVagas(false);
+       }
+     };
+     fetchData();
+   }, []);
 
   return (
     <AppLayout showFooter={false}>
