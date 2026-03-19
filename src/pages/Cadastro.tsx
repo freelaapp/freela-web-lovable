@@ -133,7 +133,9 @@ const Cadastro = () => {
   };
 
   const handleChange = (field: string, value: string) => {
-    if (field === "celular") {
+    if (field === "email") {
+      value = value.toLowerCase();
+    } else if (field === "celular") {
       value = formatCelular(value);
     }
     setFormData((prev) => ({ ...prev, [field]: value }));
