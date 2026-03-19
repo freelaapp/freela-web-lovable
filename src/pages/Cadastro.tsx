@@ -106,7 +106,7 @@ const Cadastro = () => {
       await generateEmailConfirmationCode(formData.email);
 
       // 3) Guardar e-mail para a tela de confirmação usar no reenvio
-      localStorage.setItem("pendingRegisterData", JSON.stringify({ email: formData.email }));
+      localStorage.setItem("pendingRegisterData", JSON.stringify({ email: formData.email, phoneNumber: formData.celular.replace(/\D/g, "") }));
 
       navigate("/confirmar-email");
     } catch (error: any) {
