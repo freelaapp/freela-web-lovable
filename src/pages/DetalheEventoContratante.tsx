@@ -13,6 +13,11 @@ import Pusher from "pusher-js";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
+interface VacancyService {
+  assignment: string;
+  quantity: number;
+}
+
 interface VacancyDetail {
   id: string;
   establishment: string;
@@ -24,6 +29,7 @@ interface VacancyDetail {
   jobValue: string;
   status: string;
   contractorId: string;
+  services?: VacancyService[];
 }
 
 const statusLabels: Record<string, string> = {
@@ -188,6 +194,17 @@ const DetalheEventoContratante = () => {
     }
   };
 
+  // Helpers para verificação de limites por serviço
+  const getServiceLimit = (assignment: string): number => {
+    if (!vacancy?.services) return vacancy?.quantity ?? 1;
+    const svc = vacancy.services.find(s => s.assignment === assignment);
+    return svc?.quantity ?? vacancy.quantity ?? 1;
+  };
+
+  const getAcceptedCountForAssignment = (assignment: string): number => {
+    return candidatos.filter(c => c.status === "aceito" && c.role === assignment).length;
+  };
+
   useEffect(() => {
     if (!eventoId) return;
 
@@ -195,7 +212,21 @@ const DetalheEventoContratante = () => {
     apiFetch(`${API_BASE_URL}/vacancies/${eventoId}`, { method: "GET" })
       .then(r => r.json())
       .then(body => {
-        if (body?.data) setVacancy(body.data);
+        if (body?.data) {
+          const v = body.data as VacancyDetail;
+          // Normalizar: se não tem services, criar array com assignment/quantity
+          if (!v.services && v.assignment) {
+            v.services = [{ assignment: v.assignment, quantity: v.quantity ?? 1 }];
+          }
+          // Garantir que services tenha fallbacks
+          if (v.services) {
+            v.services = v.services.map(s => ({
+              assignment: s.assignment || v.assignment || "Sem título",
+              quantity: s.quantity ?? v.quantity ?? 1,
+            }));
+          }
+          setVacancy(v);
+        }
       })
       .catch(err => console.error("Erro ao buscar vaga:", err))
       .finally(() => setLoading(false));
@@ -259,7 +290,19 @@ const DetalheEventoContratante = () => {
     } catch { return vacancy.jobDate; }
   })();
 
-  const handleAceitar = async (id: string) => {
+  const handleAceitar = async (id: string, assignment: string) => {
+    const limit = getServiceLimit(assignment);
+    const accepted = getAcceptedCountForAssignment(assignment);
+
+    if (accepted >= limit) {
+      toast({
+        title: "Limite atingido",
+        description: `Já foram aceitos ${limit} freelancers para a função ${assignment}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setActionLoadingIds(prev => new Set(prev).add(id));
     try {
       const result = await acceptCandidacy(id);
@@ -601,11 +644,11 @@ const DetalheEventoContratante = () => {
                     <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                       {candidato.status === "pendente" ? (
                         <>
-                          <button
-                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors disabled:opacity-50"
-                            disabled={actionLoadingIds.has(candidato.id)}
-                            onClick={() => handleAceitar(candidato.id)}
-                          >
+                           <button
+                             className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors disabled:opacity-50"
+                             disabled={actionLoadingIds.has(candidato.id) || getAcceptedCountForAssignment(candidato.role) >= getServiceLimit(candidato.role)}
+                             onClick={() => handleAceitar(candidato.id, candidato.role)}
+                           >
                             {actionLoadingIds.has(candidato.id)
                               ? <Loader2 className="w-4 h-4 animate-spin text-success" />
                               : <UserCheck className="w-4 h-4 text-success" />}
@@ -870,8 +913,8 @@ const DetalheEventoContratante = () => {
                   <div className="flex gap-2">
                     <Button
                       className="flex-1 gap-2 bg-success hover:bg-success/90"
-                      disabled={actionLoadingIds.has(selectedFreelancer.id)}
-                      onClick={() => handleAceitar(selectedFreelancer.id)}
+                      disabled={actionLoadingIds.has(selectedFreelancer.id) || getAcceptedCountForAssignment(selectedFreelancer.role) >= getServiceLimit(selectedFreelancer.role)}
+                      onClick={() => handleAceitar(selectedFreelancer.id, selectedFreelancer.role)}
                     >
                       {actionLoadingIds.has(selectedFreelancer.id)
                         ? <Loader2 className="w-4 h-4 animate-spin" />
