@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, LayoutDashboard, Calendar, Star, Map, User, CalendarPlus, Bell, LogOut } from "lucide-react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
-import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
@@ -12,13 +11,10 @@ const Header = () => {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const role = useUserRole();
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { isAuthenticated, isLoading, role, logout } = useAuth();
 
-  // Heuristic: if we have a token in localStorage, we are likely logged in.
-  // This avoids the "flicker" of showing public nav while auth is still loading on mount.
-  const hasAuthToken = !!localStorage.getItem("authToken");
-  const isLoggedIn = isAuthenticated || (isLoading && hasAuthToken);
+  // Simplified: rely solely on auth state
+  const isLoggedIn = isAuthenticated;
 
   // Close profile menu on outside click
   useEffect(() => {

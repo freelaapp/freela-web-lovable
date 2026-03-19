@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, AlertCircle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AppLayout from "@/components/layout/AppLayout";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -95,7 +95,7 @@ const FeedbackItem = ({ fb, contractorId, onClick }: { fb: Feedback; contractorI
 
 const Avaliacoes = () => {
   const navigate = useNavigate();
-  const role = useUserRole();
+  const { role } = useAuth();
   const isContratante = role === "contratante";
 
   const [recebidasApi, setRecebidasApi] = useState<Feedback[]>([]);

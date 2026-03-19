@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Clock, MapPin, Users, Briefcase, ArrowRight, Calculator, Home, Info, FileText, AlertCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useMode } from "@/contexts/ModeContext";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 import { servicosPF, calcularValorTotal } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
 import CriarEventoEmpresas from "@/components/criar-evento/CriarEventoEmpresas";
@@ -18,8 +18,8 @@ const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padSt
 
 const CriarEvento = () => {
   const { isFreelaCasa, mode } = useMode();
-  const userRole = useUserRole();
-  const isEmpresasMode = !isFreelaCasa || userRole === "contratante";
+  const { role } = useAuth();
+  const isEmpresasMode = !isFreelaCasa || role === "contratante";
   const [searchParams] = useSearchParams();
   const freelancerExclusivo = searchParams.get("para");
   const { toast } = useToast();

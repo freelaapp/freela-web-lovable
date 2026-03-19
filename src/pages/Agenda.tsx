@@ -5,7 +5,7 @@ import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, History, Star, Do
 import { Calendar } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { useToast } from "@/hooks/use-toast";
 import VagaCard from "@/components/dashboard-contratante/VagaCard";
@@ -63,7 +63,7 @@ const mockHistoricoFreelancer = [
 
 const Agenda = () => {
   const navigate = useNavigate();
-  const role = useUserRole();
+  const { role } = useAuth();
   const { toast } = useToast();
   const isContratante = role === "contratante";
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);

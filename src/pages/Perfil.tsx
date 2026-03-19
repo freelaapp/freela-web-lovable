@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
-import { useUserRole, setUserRole } from "@/hooks/useUserRole";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -58,8 +57,7 @@ type Horarios = Record<string, {de: string;ate: string;}>;
 
 const Perfil = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  const role = useUserRole();
+  const { logout, role } = useAuth();
   const isContratante = role === "contratante";
   const [contractorView, setContractorView] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -358,7 +356,8 @@ const Perfil = () => {
 
   const switchRole = () => {
     const newRole = isContratante ? "freelancer" : "contratante";
-    setUserRole(newRole);
+    const { setRole } = useAuth();
+    setRole(newRole);
     navigate(newRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
   };
 

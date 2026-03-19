@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ShieldCheck, CheckCircle, Copy, Eye } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 const ConfirmarServico = () => {
   const { vagaId } = useParams();
   const navigate = useNavigate();
-  const role = useUserRole();
+  const { role } = useAuth();
   const { toast } = useToast();
   const isContratante = role === "contratante";
 

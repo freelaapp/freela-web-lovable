@@ -8,7 +8,7 @@ import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { loginUser, getContractorProfile } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
-import { setUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -58,7 +58,10 @@ const Login = () => {
       } catch {
         detectedRole = "freelancer";
       }
-      setUserRole(detectedRole);
+      
+      // Update role in context instead of localStorage directly
+      const { setRole } = useAuth();
+      setRole(detectedRole);
 
       toast({
         title: "Login realizado!",

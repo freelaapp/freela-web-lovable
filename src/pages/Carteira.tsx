@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Freelancer mocks
 const ganhosFreelancerMock = [
@@ -54,7 +54,7 @@ const historicoContratanteMock = [
 const Carteira = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const role = useUserRole();
+  const { role } = useAuth();
   const isContratante = role === "contratante";
 
   const [filtroInicio, setFiltroInicio] = useState("");

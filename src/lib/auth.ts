@@ -26,8 +26,15 @@ export function onAuthSuccess(newAuthToken: string): void {
   // 2. Decode JWT
   const decoded = decodeJwt(newAuthToken);
 
-  // 3. Save minimal user
-  localStorage.setItem("authUser", JSON.stringify({ id: decoded.id }));
+  // 3. Save user (id and role if available)
+  const userData: { id: string; role?: "freelancer" | "contratante" } = { id: decoded.id };
+  if (decoded.role) {
+    // Ensure role is one of the expected values
+    if (decoded.role === "freelancer" || decoded.role === "contratante") {
+      userData.role = decoded.role;
+    }
+  }
+  localStorage.setItem("authUser", JSON.stringify(userData));
 
   // 4. Save absolute expiration time
   const expirationTime = decoded.exp * 1000;
@@ -122,8 +129,8 @@ export async function initializeAuth(): Promise<boolean> {
   return true;
 }
 
-/** Get the current auth user id, or null */
-export function getAuthUser(): { id: string } | null {
+/** Get the current auth user (id and role if available), or null */
+export function getAuthUser(): { id: string; role?: "freelancer" | "contratante" } | null {
   const raw = localStorage.getItem("authUser");
   if (!raw) return null;
   try {

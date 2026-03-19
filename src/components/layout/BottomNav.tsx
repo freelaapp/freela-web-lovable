@@ -1,10 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, Search, MessageCircle, User, Calendar, Star } from "lucide-react";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 
 const BottomNav = () => {
   const location = useLocation();
-  const role = useUserRole();
+  const { role } = useAuth();
 
   const freelancerTabs = [
     { href: "/", icon: Home, label: "Início" },

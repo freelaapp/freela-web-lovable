@@ -8,6 +8,8 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   userId: string | null;
+  role: "freelancer" | "contratante" | null;
+  setRole: (role: "freelancer" | "contratante" | null) => void;
   logout: () => void;
   recheckAuth: () => Promise<void>;
 }
@@ -16,6 +18,8 @@ const AuthContext = createContext<AuthContextValue>({
   isAuthenticated: false,
   isLoading: true,
   userId: null,
+  role: null,
+  setRole: () => {},
   logout: () => {},
   recheckAuth: async () => {},
 });
@@ -26,6 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [role, setRole] = useState<"freelancer" | "contratante" | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -40,7 +45,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const hadToken = !!localStorage.getItem("authToken");
     const valid = await initializeAuth();
     setIsAuthenticated(valid);
-    setUserId(valid ? (getAuthUser()?.id ?? null) : null);
+    const authUser = getAuthUser();
+    setUserId(valid ? (authUser?.id ?? null) : null);
+    setRole(valid ? (authUser?.role ?? null) : null);
 
     if (!valid && hadToken) {
       logoutUtil();
@@ -76,6 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logoutUtil();
       setIsAuthenticated(false);
       setUserId(null);
+      setRole(null);
       navigateRef.current("/", { replace: true });
       toastRef.current({
         title: "Sessão expirada",
@@ -98,6 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logoutUtil();
     setIsAuthenticated(false);
     setUserId(null);
+    setRole(null);
     navigate("/login", { replace: true });
   }, [navigate]);
 
@@ -107,6 +116,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         isLoading,
         userId,
+        role,
+        setRole,
         logout: handleLogout,
         recheckAuth: checkAuth,
       }}
