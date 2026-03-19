@@ -34,7 +34,7 @@ const EsqueciMinhaSenha = () => {
     if (!validateEmail()) return;
 
     setIsLoading(true);
-    
+
     setTimeout(() => {
       setIsLoading(false);
       setIsSuccess(true);
@@ -129,7 +129,7 @@ const EsqueciMinhaSenha = () => {
             <h2 className="text-2xl font-display font-bold mb-3">Verifique seu email</h2>
             <p className="text-muted-foreground mb-6">
               Enviamos as instruções de recuperação para{" "}
-              <span className="font-medium text-foreground">{email}</span>
+              <span className="font-medium text-foreground">{email.toLowerCase()}</span>
             </p>
             <p className="text-sm text-muted-foreground mb-8">
               Não recebeu o email? Verifique a pasta de spam ou{" "}

@@ -86,9 +86,10 @@ const Cadastro = () => {
     console.log("[Cadastro] Validação OK, enviando código...");
 
     // Dados para o registro
+    const emailNormalizado = formData.email.toLowerCase().trim();
     const pendingData = {
       name: formData.nome,
-      email: formData.email,
+      email: emailNormalizado,
       phoneNumber: formData.celular.replace(/\D/g, ""),
       password: formData.password,
       status: "active",
@@ -103,10 +104,10 @@ const Cadastro = () => {
       onAuthSuccess(result.data);
 
       // 2) Agora que o usuário existe, solicitar o envio do código
-      await generateEmailConfirmationCode(formData.email);
+      await generateEmailConfirmationCode(emailNormalizado);
 
       // 3) Guardar e-mail para a tela de confirmação usar no reenvio
-      localStorage.setItem("pendingRegisterData", JSON.stringify({ email: formData.email, phoneNumber: formData.celular.replace(/\D/g, "") }));
+      localStorage.setItem("pendingRegisterData", JSON.stringify({ email: emailNormalizado, phoneNumber: formData.celular.replace(/\D/g, "") }));
 
       navigate("/confirmar-email");
     } catch (error: any) {

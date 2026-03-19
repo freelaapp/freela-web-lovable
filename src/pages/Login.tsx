@@ -47,7 +47,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const result = await loginUser({ email, password });
+      const result = await loginUser({ email: email.toLowerCase().trim(), password });
       onAuthSuccess(result.data);
 
       // Get role from authUser (populated by onAuthSuccess from JWT)
