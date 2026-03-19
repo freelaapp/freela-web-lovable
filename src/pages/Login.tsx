@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
-import { loginUser, getContractorProfile } from "@/lib/api";
-import { onAuthSuccess } from "@/lib/auth";
+import { loginUser } from "@/lib/api";
+import { onAuthSuccess, getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
@@ -18,6 +18,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { toast } = useToast();
+  const { setRole } = useAuth();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -49,18 +50,11 @@ const Login = () => {
       const result = await loginUser({ email, password });
       onAuthSuccess(result.data);
 
-      // Detect role by trying to fetch contractor profile
-      let detectedRole: "contratante" | "freelancer" = "freelancer";
-      try {
-        const token = JSON.parse(localStorage.getItem("authToken") || '""');
-        await getContractorProfile(token);
-        detectedRole = "contratante";
-      } catch {
-        detectedRole = "freelancer";
-      }
-      
-      // Update role in context instead of localStorage directly
-      const { setRole } = useAuth();
+      // Get role from authUser (populated by onAuthSuccess from JWT)
+      const authUser = getAuthUser();
+      const detectedRole = authUser?.role === "contratante" ? "contratante" : "freelancer";
+
+      // Update role in context
       setRole(detectedRole);
 
       toast({
@@ -68,11 +62,13 @@ const Login = () => {
         description: "Bem-vindo de volta à Freela.",
       });
       navigate(detectedRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message =
         err instanceof TypeError
           ? "Falha de conexão. Verifique sua internet e tente novamente."
-          : err.message || "E-mail ou senha inválidos. Tente novamente.";
+          : err instanceof Error
+          ? err.message || "E-mail ou senha inválidos. Tente novamente."
+          : "E-mail ou senha inválidos. Tente novamente.";
       toast({
         title: "Erro no login",
         description: message,
