@@ -100,7 +100,14 @@ const DetalheEventoContratante = () => {
       console.log("[Payment] GET /jobs/{jobId}/payments:", body);
       const paymentInfo = body?.data ?? body;
       if (paymentInfo) {
-        setPixData(prev => ({ ...prev, ...paymentInfo }));
+        // Merge but don't overwrite existing fields with null/undefined
+        setPixData(prev => {
+          const merged = { ...prev, ...paymentInfo };
+          // Preserve POST fields if GET returns null/undefined for them
+          if (!merged.pixQrCode && prev?.pixQrCode) merged.pixQrCode = prev.pixQrCode;
+          if (!merged.pixQrCodeImage && prev?.pixQrCodeImage) merged.pixQrCodeImage = prev.pixQrCodeImage;
+          return merged;
+        });
       }
 
       if (res.ok && scheduleAfter) {
