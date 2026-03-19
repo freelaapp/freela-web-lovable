@@ -47,7 +47,7 @@ const Login = () => {
 
     try {
       const result = await loginUser({ email, password });
-      onAuthSuccess(result.data);
+      onAuthSuccess(result.accessToken, result.refreshToken);
 
       // Detect role by trying to fetch contractor profile
       let detectedRole: "contratante" | "freelancer" = "freelancer";

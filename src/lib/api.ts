@@ -104,11 +104,17 @@ interface LoginPayload {
   password: string;
 }
 
+interface LoginApiResponse {
+  data: {
+    accessToken: string;
+    refreshToken: string;
+  };
+}
+
+// Formato normalizado retornado por loginUser
 interface LoginResponse {
-  success: boolean;
-  message: string;
-  data: string; // accessToken
-  status: number;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
@@ -121,7 +127,7 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
     body: JSON.stringify(payload),
   });
 
-  const body = await response.json().catch(() => null);
+  const body: LoginApiResponse | null = await response.json().catch(() => null);
 
   if (response.status === 401) {
     throw new Error("Credenciais incorretas.");
@@ -132,14 +138,18 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
+    const errBody = body as unknown as { message?: string } | null;
+    throw new Error(errBody?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
   }
 
-  if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
+  const accessToken = body?.data?.accessToken;
+  const refreshToken = body?.data?.refreshToken;
+
+  if (!accessToken || typeof accessToken !== "string") {
+    throw new Error("Não foi possível entrar. Verifique seus dados e tente novamente.");
   }
 
-  return body as LoginResponse;
+  return { accessToken, refreshToken: refreshToken ?? "" };
 }
 
 interface RegisterPayload {
@@ -149,10 +159,19 @@ interface RegisterPayload {
   password: string;
 }
 
+interface RegisterApiResponse {
+  data: {
+    accessToken: string;
+    refreshToken?: string;
+  } | string; // compatibilidade com formato legado
+  success?: boolean;
+  message?: string;
+}
+
+// Formato normalizado retornado por registerUser
 interface RegisterResponse {
-  success: boolean;
-  message: string;
-  data: string; // accessToken
+  accessToken: string;
+  refreshToken: string;
 }
 
 export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
@@ -166,7 +185,7 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
     body: JSON.stringify(payload),
   });
 
-  const body = await response.json().catch(() => null);
+  const body: RegisterApiResponse | null = await response.json().catch(() => null);
   console.log("[register] status:", response.status, "body:", JSON.stringify(body));
 
   if (response.status === 409) {
@@ -174,16 +193,29 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível criar sua conta. Tente novamente.");
+    const errBody = body as { message?: string } | null;
+    throw new Error(errBody?.message || "Não foi possível criar sua conta. Tente novamente.");
   }
 
-  if (!body?.success || !body?.data || typeof body.data !== "string") {
+  // Suporte a formato novo: { data: { accessToken, refreshToken } }
+  // e formato legado: { data: "token_string" }
+  let accessToken: string | undefined;
+  let refreshToken = "";
+
+  if (body?.data && typeof body.data === "object") {
+    accessToken = body.data.accessToken;
+    refreshToken = body.data.refreshToken ?? "";
+  } else if (body?.data && typeof body.data === "string") {
+    accessToken = body.data;
+  }
+
+  if (!accessToken) {
     throw new Error(body?.message || "Resposta inesperada do servidor.");
   }
 
-  console.log("[register] status:", response.status, "message:", body.message);
+  console.log("[register] sucesso, accessToken obtido");
 
-  return body as RegisterResponse;
+  return { accessToken, refreshToken };
 }
 
 export async function generateEmailConfirmationCode(email: string): Promise<void> {

@@ -95,7 +95,7 @@ const Cadastro = () => {
       // 1) Registrar usuário primeiro (a API exige que o usuário exista
       //    antes de poder gerar o código de confirmação de e-mail)
       const result = await registerUser(pendingData);
-      onAuthSuccess(result.data);
+      onAuthSuccess(result.accessToken, result.refreshToken);
 
       // 2) Agora que o usuário existe, solicitar o envio do código
       await generateEmailConfirmationCode(formData.email);
