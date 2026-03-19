@@ -125,10 +125,26 @@ const DetalheEventoContratante = () => {
       }
       toast({ title: "Pagamento atualizado", description: data?.message || `Status: ${data?.status}` });
 
-      // Fetch full payment details after Pusher notification
       const jobId = data?.jobId || lastJobIdRef.current;
       if (jobId) {
-        await fetchJobPayments(jobId, false);
+        await fetchJobPayments(jobId);
+
+        // Payment confirmed → now schedule the job
+        try {
+          const jobRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
+          const jobBody = await jobRes.json().catch(() => null);
+          const paid = jobBody?.data?.paid ?? jobBody?.paid;
+          console.log("[Pusher] job paid status:", paid);
+
+          if (paid === true) {
+            await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
+            console.log("[Pusher] job scheduled after payment confirmation");
+            setTimelineStep(2);
+            toast({ title: "Job agendado", description: "Pagamento confirmado e job agendado com sucesso!" });
+          }
+        } catch (scheduleErr: any) {
+          console.error("[Pusher] failed to check/schedule job:", scheduleErr);
+        }
       }
     });
 
