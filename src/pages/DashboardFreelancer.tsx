@@ -45,19 +45,36 @@ const DashboardFreelancer = () => {
   const [loadingAtivas, setLoadingAtivas] = useState(true);
   const [loadingAgendadas, setLoadingAgendadas] = useState(true);
   const [loadingPendentes, setLoadingPendentes] = useState(false);
+  const [userName, setUserName] = useState<string>("");
+  const [userNameLoading, setUserNameLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const tokenRaw = localStorage.getItem("authToken");
-        if (!tokenRaw) return;
-        const token = JSON.parse(tokenRaw);
-        const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
+   useEffect(() => {
+     const fetchData = async () => {
+       try {
+         const tokenRaw = localStorage.getItem("authToken");
+         if (!tokenRaw) return;
+         const token = JSON.parse(tokenRaw);
+         const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
 
-        // 1. Get provider profile (id + services/areas)
-        const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
-          method: "GET", credentials: "include", headers,
-        });
+         // Fetch user name from /users/me
+         try {
+           const userRes = await fetch(`${API_BASE_URL}/users/me`, {
+             method: "GET", credentials: "include", headers,
+           });
+           const userBody = await userRes.json().catch(() => null);
+           if (userRes.ok && userBody?.data?.name) {
+             setUserName(userBody.data.name);
+           } else if (userBody?.name) {
+             setUserName(userBody.name);
+           }
+         } catch (userError) {
+           console.warn("[DashboardFreelancer] Failed to fetch user name:", userError);
+         }
+
+         // 1. Get provider profile (id + services/areas)
+         const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
+           method: "GET", credentials: "include", headers,
+         });
         const provBody = await provRes.json().catch(() => null);
         const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
         const providerId = provData?.id ?? provBody?.id;
@@ -203,11 +220,13 @@ const DashboardFreelancer = () => {
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 space-y-6">
-        {/* Greeting */}
-        <div>
-          <h1 className="text-2xl font-display font-bold">Olá, Carlos! 👋</h1>
-          <p className="text-muted-foreground text-sm mt-1">Aqui está o resumo dos seus trabalhos</p>
-        </div>
+         {/* Greeting */}
+         <div>
+           <h1 className="text-2xl font-display font-bold">
+             Olá, {userNameLoading ? "..." : userName || "Usuário"}! 👋
+           </h1>
+           <p className="text-muted-foreground text-sm mt-1">Aqui está o resumo dos seus trabalhos</p>
+         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-3">
