@@ -297,15 +297,18 @@ const DetalheEventoContratante = () => {
         return;
       }
 
-      // Fetch provider PIX key
-      const providerData = await getProviderDetails(providerId);
-      const pixKeyValue = providerData?.pixKeyValue ?? "";
+      // Fetch provider PIX key ID (UUID)
+      const pixKeysRes = await apiFetch(`${API_BASE_URL}/providers/${providerId}/pix-keys`, { method: "GET" });
+      const pixKeysBody = await pixKeysRes.json().catch(() => null);
+      const pixKeysData = pixKeysBody?.data ?? pixKeysBody;
+      const pixKeyRecord = Array.isArray(pixKeysData) ? pixKeysData[0] : pixKeysData;
+      const pixKeyId = pixKeyRecord?.id ?? "";
 
       const paymentResult = await createJobPayment(jobId, {
         vacancyId,
         contractorId,
         providerId,
-        providerPixKeyId: pixKeyValue,
+        providerPixKeyId: pixKeyId,
         method: "pix",
       });
 
