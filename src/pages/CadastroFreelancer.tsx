@@ -147,6 +147,21 @@ const CadastroFreelancer = () => {
     if (!numero.trim()) e.numero = "Número do endereço é obrigatório";
     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
     if (!estado) e.estado = "Estado é obrigatório";
+
+    // Validar contato de emergência: telefone não pode ser igual ao do usuário
+    if (contatoEmergTelefone) {
+      try {
+        const pendingData = JSON.parse(localStorage.getItem("pendingRegisterData") || "{}");
+        const userPhone = pendingData.phoneNumber || "";
+        const emergPhone = contatoEmergTelefone.replace(/\D/g, "");
+        if (userPhone && emergPhone && userPhone === emergPhone) {
+          e.contatoEmergTelefone = "O número do contato de emergência não pode ser o mesmo que o seu";
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+
     if (!acceptTerms) e.terms = "Você deve aceitar os termos";
     setErrors(e);
 
