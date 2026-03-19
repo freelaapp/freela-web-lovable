@@ -308,7 +308,7 @@ const DetalheEventoContratante = () => {
         vacancyId,
         contractorId,
         providerId,
-        providerPixKeyId: pixKeyValue,
+        providerPixKeyId: pixKeyId,
         method: "pix",
       });
 
