@@ -312,14 +312,15 @@ const DetalheEventoContratante = () => {
         method: "pix",
       });
 
-      console.log("[Payment] created successfully for job", jobId, paymentResult);
+      console.log("[Payment] POST result:", JSON.stringify(paymentResult));
       lastJobIdRef.current = jobId;
 
-      // Fetch full payment details and schedule after success
-      const fullPayment = await fetchJobPayments(jobId, true);
-
-      setPixData(fullPayment ?? paymentResult);
+      // Store POST result immediately (has pixQrCode & pixQrCodeImage)
+      setPixData(paymentResult);
       setShowPixModal(true);
+
+      // Schedule job in background, merge any extra info but preserve POST fields
+      fetchJobPayments(jobId, true);
     } catch (err: any) {
       console.error("[Payment] error:", err);
       toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
