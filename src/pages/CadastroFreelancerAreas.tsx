@@ -166,16 +166,14 @@ const CadastroFreelancerAreas = () => {
       fd.append("language", "");
       fd.append("desiredJobVacancy", areasLabels);
 
-      // Mapeamento dos horários para o formato do backend (ex: 08:00)
-      const mappedHorarios = Object.entries(horarios).reduce((acc, [key, val]) => {
-        acc[`availability_${key}_from`] = val.de.replace("h", ":00");
-        acc[`availability_${key}_to`] = val.ate.replace("h", ":00");
-        return acc;
-      }, {} as Record<string, string>);
-
-      Object.entries(mappedHorarios).forEach(([k, v]) => fd.append(k, v));
-      
-      fd.append("activeDays", diasAtivos.join(","));
+      // TODO: Enviar posteriormente
+      // const mappedHorarios = Object.entries(horarios).reduce((acc, [key, val]) => {
+      //   acc[`availability_${key}_from`] = val.de.replace("h", ":00");
+      //   acc[`availability_${key}_to`] = val.ate.replace("h", ":00");
+      //   return acc;
+      // }, {} as Record<string, string>);
+      // Object.entries(mappedHorarios).forEach(([k, v]) => fd.append(k, v));
+      // fd.append("activeDays", diasAtivos.join(","));
 
       fd.append("emergencyContactName", saved.emergencyContactName || "");
       fd.append("emergencyContactRelationship", saved.emergencyContactRelationship || "");
