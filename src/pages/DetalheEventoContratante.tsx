@@ -100,7 +100,14 @@ const DetalheEventoContratante = () => {
       console.log("[Payment] GET /jobs/{jobId}/payments:", body);
       const paymentInfo = body?.data ?? body;
       if (paymentInfo) {
-        setPixData(prev => ({ ...prev, ...paymentInfo }));
+        // Merge but don't overwrite existing fields with null/undefined
+        setPixData(prev => {
+          const merged = { ...prev, ...paymentInfo };
+          // Preserve POST fields if GET returns null/undefined for them
+          if (!merged.pixQrCode && prev?.pixQrCode) merged.pixQrCode = prev.pixQrCode;
+          if (!merged.pixQrCodeImage && prev?.pixQrCodeImage) merged.pixQrCodeImage = prev.pixQrCodeImage;
+          return merged;
+        });
       }
 
       if (res.ok && scheduleAfter) {
@@ -312,14 +319,15 @@ const DetalheEventoContratante = () => {
         method: "pix",
       });
 
-      console.log("[Payment] created successfully for job", jobId, paymentResult);
+      console.log("[Payment] POST result:", JSON.stringify(paymentResult));
       lastJobIdRef.current = jobId;
 
-      // Fetch full payment details and schedule after success
-      const fullPayment = await fetchJobPayments(jobId, true);
-
-      setPixData(fullPayment ?? paymentResult);
+      // Store POST result immediately (has pixQrCode & pixQrCodeImage)
+      setPixData(paymentResult);
       setShowPixModal(true);
+
+      // Schedule job in background, merge any extra info but preserve POST fields
+      fetchJobPayments(jobId, true);
     } catch (err: any) {
       console.error("[Payment] error:", err);
       toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
