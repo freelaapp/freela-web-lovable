@@ -329,8 +329,8 @@ const DetalheEventoContratante = () => {
       setPixData(paymentResult);
       setShowPixModal(true);
 
-      // Schedule job in background, merge any extra info but preserve POST fields
-      fetchJobPayments(jobId, true);
+      // Fetch extra payment info but do NOT schedule — wait for payment confirmation via Pusher
+      fetchJobPayments(jobId);
     } catch (err: any) {
       console.error("[Payment] error:", err);
       toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
