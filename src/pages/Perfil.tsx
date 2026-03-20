@@ -133,7 +133,8 @@ const Perfil = () => {
     city: string;
     uf: string;
     desiredJobVacancy: string;
-  }>({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "" });
+    isPCD: boolean;
+  }>({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "", isPCD: false });
 
   // Fetch freelancer profile
   useEffect(() => {
@@ -192,6 +193,7 @@ const Perfil = () => {
           city: providerData.city || "",
           uf: providerData.uf || "",
           desiredJobVacancy: djv,
+          isPCD: !!providerData.deficiency,
         });
       } catch (err) {
         console.error("[Perfil] freelancer fetch error:", err);
@@ -405,9 +407,9 @@ const Perfil = () => {
                     size="md"
                     onFileSelect={(file) => setAvatarUrl(URL.createObjectURL(file))}
                   />
-                  {!isContratante && (
-                    <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
-                  )}
+                   {!isContratante && freelancerData.isPCD && (
+                     <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
+                   )}
                 </div>
                 <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex items-center justify-center sm:justify-start gap-1.5">

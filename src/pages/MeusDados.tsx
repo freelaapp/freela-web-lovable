@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trash2, AlertTriangle, Wallet, Phone, User, MapPin, Loader2, Camera, X, Briefcase } from "lucide-react";
 import EditableAvatar from "@/components/EditableAvatar";
+import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNavigate } from "react-router-dom";
@@ -558,23 +559,26 @@ const MeusDados = () => {
               <Camera className="w-5 h-5 text-primary" /> Foto de Perfil
             </h3>
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <EditableAvatar
-                  src={previewFoto}
-                  fallback="?"
-                  size="lg"
-                  onFileSelect={(file) => setProfileImageFile(file)}
-                />
-                {previewFoto && (
-                  <button
-                    type="button"
-                    onClick={() => { setProfileImageFile(null); setProfileImageUrl(null); }}
-                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 z-20"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
+               <div className="relative">
+                 <EditableAvatar
+                   src={previewFoto}
+                   fallback="?"
+                   size="lg"
+                   onFileSelect={(file) => setProfileImageFile(file)}
+                 />
+                 {isPCD && (
+                   <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
+                 )}
+                 {previewFoto && (
+                   <button
+                     type="button"
+                     onClick={() => { setProfileImageFile(null); setProfileImageUrl(null); }}
+                     className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 z-20"
+                   >
+                     <X className="w-3 h-3" />
+                   </button>
+                 )}
+               </div>
               <p className="text-sm text-muted-foreground">Escolha uma foto profissional e com boa iluminação.</p>
             </div>
           </CardContent>
