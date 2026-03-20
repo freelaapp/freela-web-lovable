@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { getAuthUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,6 +114,7 @@ const getInitialPhone = () => {
 const CadastroContratante = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { loginSuccess } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [modo, setModo] = useState<"casa" | "empresa">("casa");
   const [telefone, setTelefone] = useState(getInitialPhone);
@@ -323,6 +326,12 @@ const CadastroContratante = () => {
       localStorage.removeItem("viacepData");
 
       toast({ title: "Cadastro realizado!", description: "Bem-vindo à Freela." });
+      // Sincroniza o AuthContext com o role correto antes de navegar,
+      // garantindo que o Header e dashboards renderizem como contratante.
+      // Usa getAuthUser() para ler o id diretamente do localStorage,
+      // pois userId do contexto pode ser null se o usuário ainda não passou pelo checkAuth.
+      const authUser = getAuthUser();
+      loginSuccess(authUser?.id ?? "", "contratante");
       navigate("/dashboard-contratante");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro inesperado. Tente novamente.";

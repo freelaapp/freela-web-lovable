@@ -9,7 +9,14 @@ interface AuthContextValue {
   isLoading: boolean;
   userId: string | null;
   role: "freelancer" | "contratante" | null;
+  /**
+   * @deprecated Prefira `loginSuccess()` para login/cadastro ou `recheckAuth()` para sincronizar
+   * após operações externas. Uso direto de `setRole` pode desincronizar `isAuthenticated` e `userId`.
+   * Mantido apenas para troca de role em perfis com múltiplos roles (ex: Perfil.tsx/switchRole).
+   */
   setRole: (role: "freelancer" | "contratante" | null) => void;
+  /** Atualiza o estado de autenticação atomicamente após um login bem-sucedido */
+  loginSuccess: (userId: string, role: "freelancer" | "contratante") => void;
   logout: () => void;
   recheckAuth: () => Promise<void>;
 }
@@ -20,6 +27,7 @@ const AuthContext = createContext<AuthContextValue>({
   userId: null,
   role: null,
   setRole: () => {},
+  loginSuccess: () => {},
   logout: () => {},
   recheckAuth: async () => {},
 });
@@ -110,6 +118,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     navigate("/login", { replace: true });
   }, [navigate]);
 
+  /** Atualiza o estado de autenticação atomicamente após login bem-sucedido.
+   *  Evita a necessidade de re-executar checkAuth() e elimina a janela
+   *  onde isAuthenticated permanece false após o navigate(). */
+  const handleLoginSuccess = useCallback((newUserId: string, newRole: "freelancer" | "contratante") => {
+    setUserId(newUserId);
+    setRole(newRole);
+    setIsAuthenticated(true);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -118,6 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         userId,
         role,
         setRole,
+        loginSuccess: handleLoginSuccess,
         logout: handleLogout,
         recheckAuth: checkAuth,
       }}

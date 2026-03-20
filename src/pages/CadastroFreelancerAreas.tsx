@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { registerProvider } from "@/lib/api";
+import { getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
 const areasAtuacao = [
@@ -52,7 +53,7 @@ type Horarios = Record<string, { de: string; ate: string }>;
 const CadastroFreelancerAreas = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { recheckAuth, userId } = useAuth();
+  const { recheckAuth, userId, loginSuccess } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [areasSelecionadas, setAreasSelecionadas] = useState<string[]>([]);
   const [diasAtivos, setDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex", "sab", "dom"]);
@@ -203,6 +204,10 @@ const CadastroFreelancerAreas = () => {
       localStorage.removeItem("freelancerViacepData");
 
       toast({ title: "Cadastro finalizado!", description: "Seu perfil está completo. Bem-vindo à Freela!" });
+      // Sincroniza o AuthContext com o role correto antes de navegar,
+      // garantindo que o Header renderize como freelancer imediatamente.
+      const authUser = getAuthUser();
+      loginSuccess(authUser?.id ?? "", "freelancer");
       navigate("/dashboard-freelancer");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Tente novamente.";

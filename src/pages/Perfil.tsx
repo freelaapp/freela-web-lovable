@@ -57,7 +57,7 @@ type Horarios = Record<string, {de: string;ate: string;}>;
 
 const Perfil = () => {
   const navigate = useNavigate();
-  const { logout, role } = useAuth();
+  const { logout, role, setRole } = useAuth();
   const isContratante = role === "contratante";
   const [contractorView, setContractorView] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -358,7 +358,6 @@ const Perfil = () => {
 
   const switchRole = () => {
     const newRole = isContratante ? "freelancer" : "contratante";
-    const { setRole } = useAuth();
     setRole(newRole);
     navigate(newRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
   };

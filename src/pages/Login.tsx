@@ -18,7 +18,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { toast } = useToast();
-  const { setRole } = useAuth();
+  const { loginSuccess } = useAuth();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -54,8 +54,8 @@ const Login = () => {
       const authUser = getAuthUser();
       const detectedRole = authUser?.role === "contratante" ? "contratante" : "freelancer";
 
-      // Update role in context
-      setRole(detectedRole);
+      // Atualiza isAuthenticated + userId + role atomicamente no contexto
+      loginSuccess(authUser?.id ?? "", detectedRole);
 
       toast({
         title: "Login realizado!",

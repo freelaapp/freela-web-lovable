@@ -80,6 +80,8 @@ export function logout(): void {
   localStorage.removeItem("authToken");
   localStorage.removeItem("authUser");
   localStorage.removeItem("authTokenExpirationTime");
+  // Remove persisted role to prevent state leaking to the next login session
+  localStorage.removeItem("userRole");
 }
 
 /**
@@ -113,13 +115,25 @@ export async function initializeAuth(): Promise<boolean> {
     if (!parsed?.id) {
       const token = JSON.parse(tokenRaw);
       const decoded = decodeJwt(token);
-      localStorage.setItem("authUser", JSON.stringify({ id: decoded.id }));
+      // Preserve existing role if present, to avoid losing it when only id was missing
+      const preservedRole = parsed?.role ?? undefined;
+      const userData: { id: string; role?: "freelancer" | "contratante" } = { id: decoded.id };
+      if (preservedRole === "freelancer" || preservedRole === "contratante") {
+        userData.role = preservedRole;
+      } else if (decoded.role === "freelancer" || decoded.role === "contratante") {
+        userData.role = decoded.role as "freelancer" | "contratante";
+      }
+      localStorage.setItem("authUser", JSON.stringify(userData));
     }
   } catch {
     try {
       const token = JSON.parse(tokenRaw);
       const decoded = decodeJwt(token);
-      localStorage.setItem("authUser", JSON.stringify({ id: decoded.id }));
+      const userData: { id: string; role?: "freelancer" | "contratante" } = { id: decoded.id };
+      if (decoded.role === "freelancer" || decoded.role === "contratante") {
+        userData.role = decoded.role as "freelancer" | "contratante";
+      }
+      localStorage.setItem("authUser", JSON.stringify(userData));
     } catch {
       logout();
       return false;
