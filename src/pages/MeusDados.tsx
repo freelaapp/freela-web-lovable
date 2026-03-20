@@ -6,14 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Trash2, AlertTriangle, Wallet, Phone, User, MapPin, Loader2, Camera, X, Briefcase, Calendar } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle, Wallet, Phone, User, MapPin, Loader2, Camera, X, Briefcase } from "lucide-react";
 import EditableAvatar from "@/components/EditableAvatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { WheelPicker, WheelPickerWrapper } from "@ncdai/react-wheel-picker";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -143,81 +142,11 @@ const MeusDados = () => {
   const [confirmadoDelete, setConfirmadoDelete] = useState(false);
   const [hasExistingPixKey, setHasExistingPixKey] = useState(false);
 
-  // Date picker states
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pickerDay, setPickerDay] = useState<string | number>("1");
-  const [pickerMonth, setPickerMonth] = useState<string | number>("1");
-  const [pickerYear, setPickerYear] = useState<string | number>("2000");
-
   // Original snapshots for change detection
   const [origUser, setOrigUser] = useState("");
   const [origPix, setOrigPix] = useState("");
   const [origProvider, setOrigProvider] = useState("");
   const [origProfileImage, setOrigProfileImage] = useState<string | null>(null);
-
-  // Date picker helper functions
-  const generateDays = () => {
-    return Array.from({ length: 31 }, (_, i) => ({
-      value: String(i + 1),
-      label: String(i + 1).padStart(2, "0"),
-    }));
-  };
-
-  const generateMonths = () => {
-    const months = [
-      "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-      "Jul", "Ago", "Set", "Out", "Nov", "Dez"
-    ];
-    return months.map((label, i) => ({
-      value: String(i + 1),
-      label,
-    }));
-  };
-
-  const generateYears = () => {
-    const currentYear = new Date().getFullYear();
-    const startYear = 1900;
-    const years = [];
-    for (let y = currentYear; y >= startYear; y--) {
-      years.push({
-        value: String(y),
-        label: String(y),
-      });
-    }
-    return years;
-  };
-
-  const initializePickerFromDate = (dateStr: string) => {
-    if (!dateStr) {
-      setPickerDay(1);
-      setPickerMonth(1);
-      setPickerYear(2000);
-      return;
-    }
-    const date = new Date(dateStr + "T00:00:00");
-    if (isNaN(date.getTime())) {
-      setPickerDay(1);
-      setPickerMonth(1);
-      setPickerYear(2000);
-      return;
-    }
-    setPickerDay(date.getDate());
-    setPickerMonth(date.getMonth() + 1);
-    setPickerYear(date.getFullYear());
-  };
-
-  const openDatePicker = () => {
-    initializePickerFromDate(dataNascimento);
-    setShowDatePicker(true);
-  };
-
-  const confirmDateSelection = () => {
-    const day = String(pickerDay).padStart(2, "0");
-    const month = String(pickerMonth).padStart(2, "0");
-    const newDate = `${pickerYear}-${month}-${day}`;
-    setDataNascimento(newDate);
-    setShowDatePicker(false);
-  };
 
   const currentUserSnap = useCallback((): string => snap({ nome, email, telefone } as UserSnapshot), [nome, email, telefone]);
   const currentPixSnap = useCallback((): string => snap({ chavePixType, chavePix } as PixSnapshot), [chavePixType, chavePix]);
@@ -689,15 +618,7 @@ const MeusDados = () => {
             </div>
             <div className="space-y-2">
               <Label>Data de Nascimento</Label>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={openDatePicker}
-                className="w-full justify-start text-left font-normal"
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                {dataNascimento ? new Date(dataNascimento + "T00:00:00").toLocaleDateString("pt-BR") : "Selecione a data"}
-              </Button>
+              <Input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Sexo</Label>
@@ -950,47 +871,9 @@ const MeusDados = () => {
               </DialogFooter>
             </>
           )}
-        </DialogContent>
+         </DialogContent>
        </Dialog>
-
-      {/* Dialog Date Picker com WheelPicker */}
-      <Dialog open={showDatePicker} onOpenChange={setShowDatePicker}>
-        <DialogContent className="max-w-sm p-0 overflow-hidden">
-          <DialogHeader className="px-4 pt-4 pb-0">
-            <DialogTitle>Selecione a Data de Nascimento</DialogTitle>
-          </DialogHeader>
-          <div className="p-4">
-          <WheelPickerWrapper className="flex justify-center gap-2">
-            <WheelPicker
-              options={generateDays()}
-              value={pickerDay}
-              onValueChange={setPickerDay}
-              visibleCount={5}
-              infinite={false}
-            />
-            <WheelPicker
-              options={generateMonths()}
-              value={pickerMonth}
-              onValueChange={setPickerMonth}
-              visibleCount={5}
-              infinite={false}
-            />
-            <WheelPicker
-              options={generateYears()}
-              value={pickerYear}
-              onValueChange={setPickerYear}
-              visibleCount={5}
-              infinite={false}
-            />
-          </WheelPickerWrapper>
-          </div>
-          <DialogFooter className="px-4 py-4 gap-2">
-            <Button variant="outline" onClick={() => setShowDatePicker(false)}>Cancelar</Button>
-            <Button onClick={confirmDateSelection}>Confirmar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </AppLayout>
+     </AppLayout>
   );
 };
 
