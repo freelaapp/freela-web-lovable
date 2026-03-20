@@ -238,73 +238,84 @@ const MeusDados = () => {
           cep: "", rua: "", complemento: "", bairro: "", numero: "", cidade: "", estado: "",
         };
 
-        if (provRes.ok) {
-          const provBody = await provRes.json();
-          const rawProv = provBody?.data ?? provBody;
-          const prov = Array.isArray(rawProv) ? rawProv[0] ?? {} : rawProv;
+         if (provRes.ok) {
+           const provBody = await provRes.json();
+           const rawProv = provBody?.data ?? provBody;
+           const prov = Array.isArray(rawProv) ? rawProv[0] ?? {} : rawProv;
 
-          pId = prov.id ?? "";
-          setProviderId(pId);
-          setCpf(prov.cpf ?? "");
+           pId = prov.id ?? "";
+           setProviderId(pId);
+           setCpf(prov.cpf ?? "");
 
-          const bd = prov.birthdate ? prov.birthdate.split("T")[0] : "";
-          setDataNascimento(bd);
-          const g = prov.gender ?? "";
-          setSexo(g);
-          const pcd = !!prov.deficiency;
-          setIsPCD(pcd);
+           const bd = prov.birthdate ? prov.birthdate.split("T")[0] : "";
+           setDataNascimento(bd);
+           const g = prov.gender ?? "";
+           setSexo(g);
+           const pcd = !!prov.deficiency;
+           setIsPCD(pcd);
 
-          // Profile image
-          const imgUrl = bufferToDataUrl(prov.profileImage);
-          if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
+           // Profile image
+           const imgUrl = bufferToDataUrl(prov.profileImage);
+           if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
 
-          // Desired job vacancy
-          const djv = prov.desiredJobVacancy ?? "";
-          const areas = parseAreasFromApi(djv);
-          setAreasSelecionadas(areas);
+           // Desired job vacancy
+           const djv = prov.desiredJobVacancy ?? "";
+           const areas = parseAreasFromApi(djv);
+           setAreasSelecionadas(areas);
 
-          // Address
-          const cepVal = prov.cep ? maskCEP(prov.cep) : "";
-          setCep(cepVal);
-          setRua(prov.street ?? "");
-          setComplemento(prov.complement ?? "");
-          setBairro(prov.neighborhood ?? "");
-          setNumero(prov.number ?? "");
-          setCidade(prov.city ?? "");
-          setEstado(prov.uf ?? "");
+           // Address
+           const cepVal = prov.cep ? maskCEP(prov.cep) : "";
+           setCep(cepVal);
+           setRua(prov.street ?? "");
+           setComplemento(prov.complement ?? "");
+           setBairro(prov.neighborhood ?? "");
+           setNumero(prov.number ?? "");
+           setCidade(prov.city ?? "");
+           setEstado(prov.uf ?? "");
 
-          // ViaCEP meta from API
-          if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
-            setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
-          }
+           // ViaCEP meta from API
+           if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
+             setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
+           }
 
-          // Emergency contact
-          const ecn = prov.emergencyContactName ?? "";
-          const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
-          const ecr = prov.emergencyContactRelationship ?? "";
-          setContatoEmergNome(ecn);
-          setContatoEmergTelefone(ect);
-          setContatoEmergParentesco(ecr);
+           // Emergency contact
+           const ecn = prov.emergencyContactName ?? "";
+           const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
+           const ecr = prov.emergencyContactRelationship ?? "";
+           setContatoEmergNome(ecn);
+           setContatoEmergTelefone(ect);
+           setContatoEmergParentesco(ecr);
 
-          const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
-          pSnap = {
-            dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
-            contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
-            cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
-            bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
-            cidade: prov.city ?? "", estado: prov.uf ?? "",
-          };
-        }
-         setOrigProvider(snap(pSnap));
+           const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
+           pSnap = {
+             dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
+             contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
+             cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
+             bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
+             cidade: prov.city ?? "", estado: prov.uf ?? "",
+           };
 
-         // PIX - pegar da resposta de /users/providers
-         const pixTypeFromProvider = prov.pixKeyType ?? "";
-         const pixValueFromProvider = prov.pixKeyValue ?? "";
-         setChavePixType(pixTypeFromProvider);
-         setChavePix(pixValueFromProvider);
-         const pixSnapInit: PixSnapshot = { chavePixType: pixTypeFromProvider, chavePix: pixValueFromProvider };
-         setOrigPix(snap(pixSnapInit));
-         setHasExistingPixKey(!!pixValueFromProvider);
+            // PIX - pegar da resposta de /users/providers
+            const rawPixType = prov.pixKeyType ?? "";
+            const rawPixValue = prov.pixKeyValue ?? "";
+            
+            // Normalizar tipo de PIX para corresponder aos valores do Select
+            const normalizePixType = (type: string): string => {
+              const typeLower = type.toLowerCase();
+              if (typeLower === "cpf" || typeLower === "cnpj") return typeLower;
+              if (typeLower === "email" || typeLower === "e-mail") return "email";
+              if (typeLower === "phone" || typeLower === "telefone" || typeLower === "celular") return "telefone";
+              if (typeLower === "random" || typeLower === "aleatoria" || typeLower === "aleatório") return "aleatoria";
+              return typeLower;
+            };
+            
+            const normalizedPixType = normalizePixType(rawPixType);
+            setChavePixType(normalizedPixType);
+            setChavePix(rawPixValue);
+            const pixSnapInit: PixSnapshot = { chavePixType: normalizedPixType, chavePix: rawPixValue };
+            setOrigPix(snap(pixSnapInit));
+            setHasExistingPixKey(!!rawPixValue);
+         }
       } catch (err) {
         console.error("[MeusDados] erro ao carregar dados:", err);
       } finally {
