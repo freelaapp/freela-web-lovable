@@ -558,13 +558,13 @@ const Perfil = () => {
               }
               </div>
               {!editingAvailability ?
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+            <div className="grid grid-cols-2 sm:grid-cols-7 gap-2 sm:gap-3">
                   {diasSemana.map((dia) => {
                 const ativo = diasAtivos.includes(dia.key);
                 return (
-                  <div key={dia.key} className="flex flex-col items-center gap-0.5 snap-start">
+                  <div key={dia.key} className="flex flex-col items-center gap-1">
                         <span
-                      className={`w-14 h-14 sm:w-auto sm:h-auto sm:aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-bold shrink-0 ${
+                      className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-bold shrink-0 ${
                       ativo ?
                       "bg-primary text-primary-foreground" :
                       "bg-muted/50 text-muted-foreground"}`
@@ -575,8 +575,8 @@ const Perfil = () => {
                       }
                         </span>
                       </div>);
-              })}
-                </div> :
+                })}
+                  </div> :
 
             <div className="space-y-3">
                   <div className="grid grid-cols-7 gap-1 sm:gap-2">
@@ -659,22 +659,24 @@ const Perfil = () => {
 
       {/* Dialog de horário */}
       <Dialog open={!!horarioDialog} onOpenChange={(open) => !open && setHorarioDialog(null)}>
-        <DialogContent className="max-w-xs">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Horário — {diaLabel}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">De</label>
-              <select value={tempDe} onChange={(e) => setTempDe(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
-                {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Até</label>
-              <select value={tempAte} onChange={(e) => setTempAte(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
-                {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
+          <div className="space-y-4 py-6">
+            <div className="grid grid-cols-2 gap-8 max-w-2xl mx-auto w-full">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">De</label>
+                <select value={tempDe} onChange={(e) => setTempDe(e.target.value)} className="w-full border rounded-lg px-4 py-3 text-sm bg-background">
+                  {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Até</label>
+                <select value={tempAte} onChange={(e) => setTempAte(e.target.value)} className="w-full border rounded-lg px-4 py-3 text-sm bg-background">
+                  {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
             </div>
           </div>
           <DialogFooter className="gap-2">
