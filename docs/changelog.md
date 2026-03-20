@@ -6,6 +6,18 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-20
+### Fixed
+- **[P1] `src/lib/api.ts`** — Tratamento assimétrico de resposta em `getContractorById()` e `getContractorProfile()`. API pode retornar `{ data: [{ id, ... }] }` (array) ou `{ data: { id, ... } }` (objeto), mas funções retornavam array inteiro sem extrair o primeiro item, causando crashes no código consumidor. Corrigido implementando validação `Array.isArray(raw) ? raw[0] : raw` em ambas as funções.
+
+### Added
+- **Validação simétrica de resposta** em `getContractorById` e `getContractorProfile` — suporta ambos os formatos de resposta API (array ou objeto).
+
+### Notes
+- Build compila sem erros
+- Testes: 14/14 passando
+- QA Verdict: **APPROVED** — P1 corrigido, pronto para deploy
+
 ## [0.3.0] - 2026-03-20
 ### Fixed
 - **[P1] `Login.tsx`** — Contratantes eram redirecionados para `/dashboard-freelancer` ao fazer login. Corrigido implementando função `detectUserRole()` que verifica perfil de contratante via `GET /users/contractors` e redireciona corretamente.
