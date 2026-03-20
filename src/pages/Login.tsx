@@ -6,9 +6,57 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
-import { loginUser } from "@/lib/api";
+import { loginUser, apiFetch, SessionExpiredError } from "@/lib/api";
 import { onAuthSuccess, getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
+
+/**
+ * Detects user role by checking if they have a contractor profile.
+ * Returns "contratante" if profile exists, "freelancer" otherwise.
+ * Always returns a valid role (never throws).
+ */
+export async function detectUserRole(): Promise<"freelancer" | "contratante"> {
+  try {
+    const response = await apiFetch(`${import.meta.env.API_BASE_URL}/users/contractors`, {
+      method: "GET",
+    });
+
+    // Token expired during role detection - propagate to login handler
+    if (response.status === 401) {
+      throw new SessionExpiredError();
+    }
+
+    // Server error - graceful fallback to freelancer
+    if (!response.ok) {
+      console.warn(`[detectUserRole] Contractor check failed: ${response.status}`);
+      return "freelancer";
+    }
+
+    const body = await response.json().catch(() => null);
+
+    // Validate response structure
+    if (!body?.success) {
+      return "freelancer";
+    }
+
+    const data = body?.data;
+
+    // Check if data is a valid profile: non-empty array OR non-null object
+    const hasValidProfile =
+      (Array.isArray(data) && data.length > 0) ||
+      (typeof data === "object" && data !== null && !Array.isArray(data));
+
+    return hasValidProfile ? "contratante" : "freelancer";
+  } catch (err) {
+    // SessionExpiredError propagates - will be caught by handleSubmit
+    if (err instanceof SessionExpiredError) {
+      throw err;
+    }
+    // Network error or other - graceful fallback
+    console.error("[detectUserRole] Error detecting role:", err);
+    return "freelancer";
+  }
+}
 
 const Login = () => {
   const navigate = useNavigate();
@@ -50,9 +98,11 @@ const Login = () => {
       const result = await loginUser({ email: email.toLowerCase().trim(), password });
       onAuthSuccess(result.data);
 
-      // Get role from authUser (populated by onAuthSuccess from JWT)
+      // Get auth user info
       const authUser = getAuthUser();
-      const detectedRole = authUser?.role === "contratante" ? "contratante" : "freelancer";
+
+      // Detect user role by checking contractor profile
+      const detectedRole = await detectUserRole();
 
       // Atualiza isAuthenticated + userId + role atomicamente no contexto
       loginSuccess(authUser?.id ?? "", detectedRole);
@@ -66,6 +116,8 @@ const Login = () => {
       const message =
         err instanceof TypeError
           ? "Falha de conexão. Verifique sua internet e tente novamente."
+          : err instanceof SessionExpiredError
+          ? "Sua sessão expirou. Faça login novamente."
           : err instanceof Error
           ? err.message || "E-mail ou senha inválidos. Tente novamente."
           : "E-mail ou senha inválidos. Tente novamente.";
