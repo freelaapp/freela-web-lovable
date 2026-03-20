@@ -20,6 +20,7 @@ interface FlatService {
   assignment: string;
   jobTime: string;
   jobValue: string;
+  value: number; // valor numérico extraído
   jobDate: string;
   establishment: string;
   status: string;
@@ -94,6 +95,16 @@ const MapaVagas = () => {
         const vacBody = await vacRes.json();
         const vacancies = Array.isArray(vacBody?.data) ? vacBody.data : [];
 
+        // Função para converter valor monetário para número
+        const parseMoney = (val: any): number => {
+          if (typeof val === 'number') return Math.round(val);
+          if (typeof val !== 'string') return 0;
+          // Remove tudo exceto dígitos, vírgulas e pontos
+          const cleaned = val.replace(/[^\d,.]/g, '').replace(',', '.');
+          const num = parseFloat(cleaned);
+          return isNaN(num) ? 0 : Math.round(num);
+        };
+
         // Flatten services (mesma lógica do DashboardFreelancer)
         const flattened: FlatService[] = [];
         vacancies.forEach((vacancy: any) => {
@@ -114,17 +125,17 @@ const MapaVagas = () => {
                   hours = 8;
                 }
 
-                // Extrair valor numérico de jobValue (ex: "R$ 120" -> 120)
+                // Extrair valor numérico de jobValue
                 const jobValueStr = svc.jobValue || "";
-                const valueMatch = jobValueStr.replace(/[^\d]/g, "");
-                const value = valueMatch ? parseInt(valueMatch) : 0;
+                const value = parseMoney(jobValueStr);
 
                 flattened.push({
                   id: `${vacancy.id}-${idx}`,
                   vacancyId: vacancy.id,
                   assignment: svc.assignment,
                   jobTime: jobTimeStr,
-                  jobValue: svc.jobValue || "--",
+                  jobValue: jobValueStr || "--",
+                  value: value,
                   jobDate: vacancy.jobDate || "",
                   establishment: vacancy.establishment || vacancy.description || "",
                   status: vacancy.status || "aberta",
@@ -177,19 +188,12 @@ const MapaVagas = () => {
     return 8; // valor padrão
   };
 
-  // Função para extrair valor numérico
-  const extractValue = (jobValue: string): number => {
-    const valueMatch = jobValue.replace(/[^\d]/g, "");
-    return valueMatch ? parseInt(valueMatch) : 0;
-  };
-
   // Filtrar vagas
   const filteredVagas = useMemo(() => {
     return apiServices.filter(v => {
       if (v.distance! > radius) return false;
       if (selectedRole !== "Todos" && v.assignment !== selectedRole) return false;
-      const value = extractValue(v.jobValue);
-      if (value < minValue) return false;
+      if (v.value < minValue) return false;
       const hours = extractHours(v.jobTime);
       if (hours > maxHours) return false;
       if (selectedDate !== "Todos") {
