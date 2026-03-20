@@ -295,31 +295,16 @@ const MeusDados = () => {
             cidade: prov.city ?? "", estado: prov.uf ?? "",
           };
         }
-        setOrigProvider(snap(pSnap));
+         setOrigProvider(snap(pSnap));
 
-        // PIX
-        let pixSnap: PixSnapshot = { chavePixType: "", chavePix: "" };
-        if (pId) {
-          const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
-            method: "GET", credentials: "include", headers,
-          });
-          if (pixRes.ok) {
-            const pixBody = await pixRes.json();
-            const pixList = pixBody?.data ?? pixBody;
-            if (Array.isArray(pixList)) {
-              const myPix = pixList.find((p: any) => p.providerId === pId);
-              if (myPix) {
-                const pt = myPix.type ?? "";
-                const pk = myPix.key ?? "";
-                setChavePixType(pt);
-                setChavePix(pk);
-                pixSnap = { chavePixType: pt, chavePix: pk };
-                setHasExistingPixKey(true);
-              }
-            }
-          }
-        }
-        setOrigPix(snap(pixSnap));
+         // PIX - pegar da resposta de /users/providers
+         const pixTypeFromProvider = prov.pixKeyType ?? "";
+         const pixValueFromProvider = prov.pixKeyValue ?? "";
+         setChavePixType(pixTypeFromProvider);
+         setChavePix(pixValueFromProvider);
+         const pixSnapInit: PixSnapshot = { chavePixType: pixTypeFromProvider, chavePix: pixValueFromProvider };
+         setOrigPix(snap(pixSnapInit));
+         setHasExistingPixKey(!!pixValueFromProvider);
       } catch (err) {
         console.error("[MeusDados] erro ao carregar dados:", err);
       } finally {
