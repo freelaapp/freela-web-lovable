@@ -8,58 +8,8 @@ import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { useToast } from "@/hooks/use-toast";
-import VagaCard from "@/components/dashboard-contratante/VagaCard";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
-
-const statusOrder: Record<string, number> = {
-  open: 0,
-  "in hiring": 1,
-  closed: 2,
-  removed: 3,
-};
-
-// Freelancer mocks
-const mockVagasFreelancer = [
-  { id: 1, title: "Churrasco - Aniversário 30 anos", client: "Ana Oliveira", date: "22 Fev 2026", dateObj: new Date(2026, 1, 22), time: "14h - 22h", location: "São Paulo, SP", status: "aceita", value: "R$ 650" },
-  { id: 2, title: "Bartender - Evento Corporativo", client: "Tech Corp", date: "28 Fev 2026", dateObj: new Date(2026, 1, 28), time: "18h - 00h", location: "Campinas, SP", status: "aceita", value: "R$ 1.200" },
-  { id: 3, title: "Garçom - Casamento", client: "Maria Santos", date: "08 Mar 2026", dateObj: new Date(2026, 2, 8), time: "16h - 23h", location: "Guarulhos, SP", status: "executado", value: "R$ 800" },
-  { id: 4, title: "Churrasco - Confraternização", client: "Empresa X", date: "15 Mar 2026", dateObj: new Date(2026, 2, 15), time: "12h - 18h", location: "São Paulo, SP", status: "aceita", value: "R$ 900" },
-  { id: 5, title: "Garçom - Festa de Empresa", client: "Corp ABC", date: "10 Fev 2026", dateObj: new Date(2026, 1, 10), time: "19h - 02h", location: "São Paulo, SP", status: "executado", value: "R$ 550" },
-];
-
-interface VacancyService {
-  assignment: string;
-  quantity?: number;
-  [key: string]: unknown;
-}
-
-interface RawVacancy {
-  id: string;
-  jobDate: string;
-  status: string;
-  services?: VacancyService[];
-  assignment?: string;
-  quantity?: number;
-  [key: string]: unknown;
-}
-
-interface FlatVacancy {
-  id: string;
-  assignment: string;
-  quantity: number;
-  jobDate: string;
-  status: string;
-  serviceIndex: number;
-}
-
-const mockHistoricoFreelancer = [
-  { id: 101, title: "Churrasco - Réveillon", client: "Pedro Costa", date: "31 Dez 2025", location: "São Paulo, SP", value: "R$ 2.000", rating: 5.0 },
-  { id: 102, title: "Bartender - Formatura", client: "Faculdade ABC", date: "20 Dez 2025", location: "Santo André, SP", value: "R$ 1.500", rating: 4.8 },
-  { id: 103, title: "Garçom - Casamento", client: "João e Maria", date: "10 Dez 2025", location: "Campinas, SP", value: "R$ 900", rating: 4.9 },
-  { id: 104, title: "Churrasco - Aniversário", client: "Carla Lima", date: "28 Nov 2025", location: "Guarulhos, SP", value: "R$ 750", rating: 5.0 },
-  { id: 105, title: "Bartender - Evento Corporativo", client: "StartupX", date: "15 Nov 2025", location: "São Paulo, SP", value: "R$ 1.200", rating: 4.7 },
-];
 
 const Agenda = () => {
   const navigate = useNavigate();
@@ -68,12 +18,133 @@ const Agenda = () => {
   const isContratante = role === "contratante";
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [expandedEvento, setExpandedEvento] = useState<number | null>(null);
-  const [apiVacancies, setApiVacancies] = useState<FlatVacancy[]>([]);
-  const [loadingVacancies, setLoadingVacancies] = useState(false);
+  
+  // State for freelancer data
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [providerId, setProviderId] = useState<string | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  
+  // Stats for freelancer
+  const [vagasFinalizadas, setVagasFinalizadas] = useState(0); // Completed jobs in current month
+  const [concluidos, setConcluidos] = useState(0); // All completed jobs
+  const [totalGanho, setTotalGanho] = useState("R$ 0,00");
+  const [mediaAvaliacao, setMediaAvaliacao] = useState("--");
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  // Fetch real vacancies for contratante
+  // Fetch freelancer's provider ID and history data
+  useEffect(() => {
+    if (isContratante) return;
+    
+    const fetchFreelancerData = async () => {
+      try {
+        setLoadingHistory(true);
+        setLoadingStats(true);
+        
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) return;
+        const token = JSON.parse(tokenRaw);
+        const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
+
+        // 1. Get provider profile (id)
+        const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const provBody = await provRes.json().catch(() => null);
+        const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
+        const providerIdFromRes = provData?.id ?? provBody?.id;
+        
+        if (!providerIdFromRes) return;
+        setProviderId(providerIdFromRes);
+
+        // 2. Get feedbacks for rating (same logic as dashboard-freelancer)
+        const fbRes = await fetch(`${API_BASE_URL}/providers/${providerIdFromRes}/jobs/feedbacks`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const fbBody = await fbRes.json().catch(() => null);
+        const feedbacks = fbBody?.data ?? fbBody;
+
+        if (Array.isArray(feedbacks) && feedbacks.length > 0) {
+          const avg = feedbacks.reduce((sum: number, f: any) => sum + (f.rating ?? f.score ?? 0), 0) / feedbacks.length;
+          setMediaAvaliacao(avg.toFixed(1));
+        } else if (typeof feedbacks === "number") {
+          setMediaAvaliacao(feedbacks.toFixed(1));
+        } else if (typeof fbBody?.data === "number") {
+          setMediaAvaliacao(fbBody.data.toFixed(1));
+        }
+
+        // 3. Get history data (jobs) for the agenda
+        const currentDate = new Date();
+        const month = currentDate.getMonth() + 1; // 1-12
+        const year = currentDate.getFullYear();
+        
+        const historyRes = await fetch(`${API_BASE_URL}/providers/${providerIdFromRes}/agenda?month=${month}&year=${year}`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const historyBody = await historyRes.json().catch(() => null);
+        const historyDataFromRes = historyBody?.data ?? historyBody;
+        
+        if (Array.isArray(historyDataFromRes)) {
+          setHistoryData(historyDataFromRes);
+          
+          // Calculate stats based on requirements
+          let concluidosCount = 0;
+          let finalizadasCount = 0;
+          let totalGanhoValue = 0;
+          
+          historyDataFromRes.forEach((historyItem: any) => {
+            const jobs = historyItem.jobs || [];
+            
+            // Check if historyItem.jobDate is in current month for "vagas finalizadas"
+            const historyJobDate = historyItem.jobDate ? new Date(historyItem.jobDate) : null;
+            const isCurrentMonth = historyJobDate && 
+              historyJobDate.getMonth() === currentDate.getMonth() && 
+              historyJobDate.getFullYear() === currentDate.getFullYear();
+            
+            jobs.forEach((job: any) => {
+              if (job.jobStatus === "completed") {
+                concluidosCount++;
+                
+                // For "vagas finalizadas": only count if parent history is in current month
+                if (isCurrentMonth) {
+                  finalizadasCount++;
+                }
+                
+                // For "total ganho": sum all jobValues
+                const jobValue = parseFloat((job.jobValue || "0").replace(/[^\d,-]/g, "").replace(",", "."));
+                if (!isNaN(jobValue)) {
+                  totalGanhoValue += jobValue;
+                }
+              }
+            });
+          });
+          
+          setConcluidos(concluidosCount);
+          setVagasFinalizadas(finalizadasCount);
+          setTotalGanho(`R$ ${totalGanhoValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar dados do freelancer:", err);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar dados da agenda. Tente novamente mais tarde.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingHistory(false);
+        setLoadingStats(false);
+      }
+    };
+
+    fetchFreelancerData();
+  }, [isContratante]);
+
+  // Fetch real vacancies for contratante (keeping existing logic)
+  const [apiVacancies, setApiVacancies] = useState<any[]>([]);
+  const [loadingVacancies, setLoadingVacancies] = useState(false);
+  
   useEffect(() => {
     if (!isContratante) return;
+    
     const fetchVacancies = async () => {
       try {
         setLoadingVacancies(true);
@@ -92,10 +163,10 @@ const Agenda = () => {
         // Get vacancies
         const vRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, { method: "GET", credentials: "include", headers });
         const vBody = await vRes.json();
-        const rawVacancies: RawVacancy[] = Array.isArray(vBody?.data) ? vBody.data : [];
+        const rawVacancies = Array.isArray(vBody?.data) ? vBody.data : [];
 
-        // Flatten services (same logic as DashboardContratante)
-        const flattened: FlatVacancy[] = [];
+        // Flatten services (same logic as before)
+        const flattened = [];
         for (const v of rawVacancies) {
           if (Array.isArray(v.services) && v.services.length > 0) {
             v.services.forEach((s, idx) => {
@@ -120,8 +191,6 @@ const Agenda = () => {
           }
         }
 
-        // Sort: open → in hiring → closed → removed
-        flattened.sort((a, b) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99));
         setApiVacancies(flattened);
       } catch (err) {
         console.error("Erro ao buscar vagas:", err);
@@ -129,27 +198,42 @@ const Agenda = () => {
         setLoadingVacancies(false);
       }
     };
+    
     fetchVacancies();
   }, [isContratante]);
 
-  // Build contratante items with dateObj for calendar
+  // Process data for display
   const contratanteItems = apiVacancies.map(v => ({
     ...v,
     dateObj: new Date(v.jobDate),
   }));
-
-  const freelancerItems = mockVagasFreelancer;
+  
+  // For freelancer, create flattened items from history data
+  const freelancerItems = historyData.flatMap((historyItem: any) => {
+    const jobs = historyItem.jobs || [];
+    return jobs.map((job: any, index: number) => ({
+      ...job,
+      historyItem, // Keep reference to parent for shared data
+      id: `${historyItem.id}-${index}`, // Unique ID for each job
+      dateObj: new Date(historyItem.jobDate), // Use history date for calendar filtering
+      client: historyItem.client || "Cliente",
+      value: job.jobValue || "R$ 0,00",
+      status: job.jobStatus,
+    }));
+  }));
+  
   const items = isContratante ? contratanteItems : freelancerItems;
 
+  // Statistics for contratante (keeping existing logic)
   const vagasAbertas = isContratante ? apiVacancies.filter(v => v.status === "open" || v.status === "in hiring") : [];
   const vagasPreenchidas = isContratante ? apiVacancies.filter(v => v.status === "closed") : [];
   const vagasConcluidas = isContratante ? apiVacancies.filter(v => v.status === "removed") : [];
 
   const pendentes = items.filter(v =>
-    isContratante ? (v.status === "open" || v.status === "in hiring") : (v.status === "aceita")
+    isContratante ? (v.status === "open" || v.status === "in hiring") : (v.status === "accepted")
   );
   const finalizados = items.filter(v =>
-    isContratante ? (v.status === "closed" || v.status === "removed") : (v.status === "executado")
+    isContratante ? (v.status === "closed" || v.status === "removed") : (v.status === "completed")
   );
 
   const pendenteDates = pendentes.map(v => v.dateObj);
@@ -164,38 +248,6 @@ const Agenda = () => {
     ? `${isContratante ? "Eventos" : "Vagas"} em ${selectedDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}`
     : isContratante ? "Todos os Eventos" : "Todas as Vagas";
 
-  const totalGanhoHistorico = "R$ 6.350";
-  const mediaAvaliacao = "4.9";
-
-
-  const FreelancerItemCard = ({ item }: { item: typeof freelancerItems[0] }) => {
-    const isFinalizado = item.status === "executado" || item.status === "finalizado";
-    return (
-      <div
-        className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-        onClick={() => navigate(`/vaga/${item.id}`)}
-      >
-        <div className={`w-10 h-10 rounded-xl ${isFinalizado ? "bg-green-100 dark:bg-green-900/30" : "bg-primary-light"} flex items-center justify-center shrink-0`}>
-          {isFinalizado ? <CheckCircle className="w-5 h-5 text-green-600" /> : <CalendarIcon className="w-5 h-5 text-primary" />}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate">{item.title}</p>
-          <p className="text-xs text-muted-foreground">{item.client} • {item.date}</p>
-          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-            <Clock className="w-3 h-3" /> {item.time} • <MapPin className="w-3 h-3" /> {item.location}
-          </p>
-        </div>
-        <div className="text-right shrink-0 flex flex-col items-end gap-1">
-          <p className={`text-sm font-bold ${isFinalizado ? "text-green-600" : "text-primary"}`}>{item.value}</p>
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${isFinalizado ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-primary-light text-primary"}`}>
-            {item.status}
-          </span>
-        </div>
-      </div>
-    );
-  };
-
-
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-6xl mx-auto pb-8 space-y-6">
@@ -207,7 +259,6 @@ const Agenda = () => {
         </div>
 
         {/* Stats */}
-        {/* Stats + Calendar row */}
         {isContratante ? (
           <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-4 items-stretch">
             <div className="flex flex-col gap-3">
@@ -245,7 +296,7 @@ const Agenda = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  className="pointer-events-auto w-full"
+                  className="pointer-events-auto w-full [&_table]:w-full [&_th]:w-full [&_td]:w-full [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
                   modifiers={{
                     aceita: pendenteDates,
                     executado: finalizadoDates,
@@ -253,11 +304,6 @@ const Agenda = () => {
                   modifiersClassNames={{
                     aceita: "bg-primary/20 text-primary font-bold rounded-full",
                     executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
-                  }}
-                  classNames={{
-                    cell: "w-full h-10",
-                    head_cell: "w-full",
-                    day: "w-full h-10",
                   }}
                 />
               </CardContent>
@@ -291,7 +337,7 @@ const Agenda = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  className="pointer-events-auto w-full"
+                  className="pointer-events-auto w-full [&_table]:w-full [&_th]:w-full [&_td]:w-full [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
                   modifiers={{
                     aceita: pendenteDates,
                     executado: finalizadoDates,
@@ -300,12 +346,40 @@ const Agenda = () => {
                     aceita: "bg-primary/20 text-primary font-bold rounded-full",
                     executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
                   }}
-                  classNames={{
-                    cell: "w-full h-10",
-                    head_cell: "w-full",
-                    day: "w-full h-10",
-                  }}
                 />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Stats for freelancer - replace the old stats section */}
+        {!isContratante && (
+          <div className="grid grid-cols-3 gap-4">
+            <Card className="flex-1">
+              <CardContent className="p-4 text-center h-full flex flex-col items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
+                  <History className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-xl font-bold font-display">{concluidos}</p>
+                <p className="text-xs text-muted-foreground">Concluídos</p>
+              </CardContent>
+            </Card>
+            <Card className="flex-1">
+              <CardContent className="p-4 text-center h-full flex flex-col items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                </div>
+                <p className="text-xl font-bold font-display">{totalGanho}</p>
+                <p className="text-xs text-muted-foreground">Total Ganho</p>
+              </CardContent>
+            </Card>
+            <Card className="flex-1">
+              <CardContent className="p-4 text-center h-full flex flex-col items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
+                  <Star className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-xl font-bold font-display">{mediaAvaliacao}</p>
+                <p className="text-xs text-muted-foreground">Avaliação</p>
               </CardContent>
             </Card>
           </div>
@@ -324,25 +398,58 @@ const Agenda = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-3 max-h-[400px] overflow-y-auto">
-            {loadingVacancies && isContratante ? (
-              <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-            ) : listaItens.length > 0 ? (
-              isContratante ? (
-                (listaItens as typeof contratanteItems).map((item, idx) => (
+            {isContratante ? (
+              loadingVacancies ? (
+                <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+              ) : listaItens.length > 0 ? (
+                (listaItens as any[]).map((item, idx) => (
                   <VagaCard key={`${item.id}-${item.serviceIndex ?? idx}`} id={String(item.id)} assignment={item.assignment} quantity={item.quantity} jobDate={item.jobDate} status={item.status} serviceIndex={item.serviceIndex} />
                 ))
               ) : (
-                (listaItens as typeof freelancerItems).map(item => <FreelancerItemCard key={item.id} item={item} />)
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  {isContratante ? "Nenhum evento nessa data" : "Nenhuma vaga nessa data"}
+                </p>
               )
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-6">
-                {isContratante ? "Nenhum evento nessa data" : "Nenhuma vaga nessa data"}
-              </p>
+              loadingHistory || loadingStats ? (
+                <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+              ) : listaItens.length > 0 ? (
+                (listaItens as any[]).map(item => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                    onClick={() => navigate(`/vaga/${item.historyItem.id}`)}
+                  >
+                    <div className={`w-10 h-10 rounded-xl ${item.status === "completed" ? "bg-green-100 dark:bg-green-900/30" : "bg-primary-light"} flex items-center justify-center shrink-0`}>
+                      {item.status === "completed" ? <CheckCircle className="w-5 h-5 text-green-600" /> : <CalendarIcon className="w-5 h-5 text-primary" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{item.assignment || item.title || "Trabalho"}</p>
+                      <p className="text-xs text-muted-foreground">{item.historyItem.client || "Cliente"} • {item.historyItem.jobDate?.split("T")[0] || ""}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Clock className="w-3 h-3" /> {item.jobTime || "--"} • <MapPin className="w-3 h-3" /> {item.historyItem.location || ""}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                      <p className={`text-sm font-bold ${item.status === "completed" ? "text-green-600" : "text-primary"}`}>
+                        {item.jobValue || "R$ 0,00"}
+                      </p>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${item.status === "completed" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-primary-light text-primary"}`}>
+                        {item.status === "completed" ? "Concluído" : item.status === "accepted" ? "Aceita" : "Pendente"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Nenhuma vaga nessa data
+                </p>
+              )
             )}
           </CardContent>
         </Card>
 
-        {/* Histórico - only for freelancer */}
+        {/* Histórico - only for freelancer (keeping existing logic but with real data) */}
         {!isContratante && (
           <div className="space-y-4">
             <h2 className="text-xl font-display font-bold flex items-center gap-2">
@@ -354,7 +461,7 @@ const Agenda = () => {
                   <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center mx-auto mb-2">
                     <History className="w-5 h-5 text-primary" />
                   </div>
-                  <p className="text-xl font-bold font-display">{mockHistoricoFreelancer.length}</p>
+                  <p className="text-xl font-bold font-display">{concluidos}</p>
                   <p className="text-xs text-muted-foreground">Concluídos</p>
                 </CardContent>
               </Card>
@@ -363,7 +470,7 @@ const Agenda = () => {
                   <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
                     <DollarSign className="w-5 h-5 text-green-600" />
                   </div>
-                  <p className="text-xl font-bold font-display">{totalGanhoHistorico}</p>
+                  <p className="text-xl font-bold font-display">{totalGanho}</p>
                   <p className="text-xs text-muted-foreground">Total Ganho</p>
                 </CardContent>
               </Card>
@@ -379,22 +486,22 @@ const Agenda = () => {
             </div>
             <Card>
               <CardContent className="p-4 space-y-3">
-                {mockHistoricoFreelancer.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                {historyData.map((historyItem: any) => (
+                  <div key={historyItem.id} className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
                     <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
                       <CalendarIcon className="w-5 h-5 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.client} • {item.date}</p>
+                      <p className="text-sm font-semibold truncate">{historyItem.title || "Trabalho"}</p>
+                      <p className="text-xs text-muted-foreground">{historyItem.client || "Cliente"} • {historyItem.jobDate?.split("T")[0] || ""}</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3 h-3" /> {item.location}
+                        <MapPin className="w-3 h-3" /> {historyItem.location || ""}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-green-600">{item.value}</p>
+                      <p className="text-sm font-bold text-green-600">{historyItem.value || "R$ 0,00"}</p>
                       <span className="flex items-center justify-end gap-0.5 text-[10px] text-primary font-medium mt-0.5">
-                        <Star className="w-3 h-3 fill-primary" /> {item.rating}
+                        <Star className="w-3 h-3 fill-primary" /> {historyItem.rating || 0}
                       </span>
                     </div>
                   </div>
