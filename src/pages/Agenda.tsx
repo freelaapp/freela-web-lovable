@@ -245,7 +245,7 @@ const Agenda = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  className="pointer-events-auto w-full [&_table]:w-full [&_th]:w-full [&_td]:w-full [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
+                  className="pointer-events-auto w-full"
                   modifiers={{
                     aceita: pendenteDates,
                     executado: finalizadoDates,
@@ -253,6 +253,11 @@ const Agenda = () => {
                   modifiersClassNames={{
                     aceita: "bg-primary/20 text-primary font-bold rounded-full",
                     executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
+                  }}
+                  classNames={{
+                    cell: "w-full h-10",
+                    head_cell: "w-full",
+                    day: "w-full h-10",
                   }}
                 />
               </CardContent>
@@ -286,7 +291,7 @@ const Agenda = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  className="pointer-events-auto w-full [&_table]:w-full [&_th]:w-full [&_td]:w-full [&_.rdp-cell]:w-full [&_.rdp-head_cell]:w-full [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
+                  className="pointer-events-auto w-full"
                   modifiers={{
                     aceita: pendenteDates,
                     executado: finalizadoDates,
@@ -294,6 +299,11 @@ const Agenda = () => {
                   modifiersClassNames={{
                     aceita: "bg-primary/20 text-primary font-bold rounded-full",
                     executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
+                  }}
+                  classNames={{
+                    cell: "w-full h-10",
+                    head_cell: "w-full",
+                    day: "w-full h-10",
                   }}
                 />
               </CardContent>
