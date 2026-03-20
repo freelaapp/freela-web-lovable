@@ -32,6 +32,14 @@ interface Feedback {
   vacancyId?: string;
 }
 
+interface PendingFeedback {
+  id: string;
+  title: string;
+  client: string;
+  date: string;
+  location: string;
+}
+
 const renderStars = (rating: number) => (
   <div className="flex gap-0.5">
     {[1, 2, 3, 4, 5].map(i => (
@@ -39,45 +47,6 @@ const renderStars = (rating: number) => (
     ))}
   </div>
 );
-
-// Freelancer mock data
-const freelancerPendentes = [
-  { id: 1, title: "Churrasco - Réveillon", client: "Pedro Costa", date: "31 Dez 2025", location: "São Paulo, SP" },
-  { id: 2, title: "Bartender - Formatura", client: "Faculdade ABC", date: "20 Dez 2025", location: "Santo André, SP" },
-];
-
-const freelancerRecebidas = [
-  { id: 1, client: "Ana Oliveira", date: "31 Dez 2025", rating: 5, comment: "Carlos foi impecável! Super pontual e muito profissional." },
-  { id: 2, client: "Tech Corp", date: "20 Dez 2025", rating: 5, comment: "Ótimo profissional, recomendo a todos." },
-  { id: 3, client: "Maria Santos", date: "10 Dez 2025", rating: 4, comment: "Muito bom, apenas chegou um pouco atrasado." },
-];
-
-const freelancerFeitas = [
-  { id: 4, name: "Restaurante Sabor & Arte", date: "31 Dez 2025", rating: 4, comment: "Boa estrutura, equipe organizada." },
-  { id: 5, name: "Buffet Estrela", date: "20 Dez 2025", rating: 5, comment: "Excelente local para trabalhar!" },
-  { id: 6, name: "Bar do João", date: "10 Dez 2025", rating: 3, comment: "Ambiente ok, mas a cozinha poderia ser mais limpa." },
-];
-
-// Contratante mock data
-const contratantePendentes = [
-  { id: 1, title: "Churrasco - Réveillon", client: "Carlos Silva (Churrasqueiro)", date: "31 Dez 2025", location: "São Paulo, SP" },
-  { id: 2, title: "Bartender - Aniversário", client: "Juliana Alves (Bartender)", date: "22 Fev 2026", location: "Jundiaí, SP" },
-];
-
-const contratanteFeitas = [
-  { id: 4, name: "Carlos Silva - Churrasqueiro", date: "31 Dez 2025", rating: 5, comment: "Profissional excepcional, cuidou de tudo com perfeição." },
-  { id: 5, name: "Juliana Alves - Bartender", date: "20 Dez 2025", rating: 5, comment: "Drinks incríveis, super profissional!" },
-  { id: 6, name: "Pedro Lima - Garçom", date: "10 Dez 2025", rating: 4, comment: "Bom profissional, pontual e educado." },
-];
-
-function formatDate(dateStr: string): string {
-  try {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
-  } catch {
-    return dateStr;
-  }
-}
 
 const FeedbackItem = ({ fb, contractorId, onClick }: { fb: Feedback; contractorId?: string; onClick?: () => void }) => (
   <div
@@ -93,19 +62,133 @@ const FeedbackItem = ({ fb, contractorId, onClick }: { fb: Feedback; contractorI
   </div>
 );
 
+function formatDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
 const Avaliacoes = () => {
   const navigate = useNavigate();
   const { role } = useAuth();
   const isContratante = role === "contratante";
 
+  // Estados para freelancer
+  const [pendingFeedbacks, setPendingFeedbacks] = useState<PendingFeedback[]>([]);
+  const [jobsFeedbacks, setJobsFeedbacks] = useState<Feedback[]>([]);
+  const [givenFeedbacks, setGivenFeedbacks] = useState<Feedback[]>([]);
+  const [loadingPending, setLoadingPending] = useState(false);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+  const [loadingGiven, setLoadingGiven] = useState(false);
+  
+  // Estados para contratante (já existentes)
   const [recebidasApi, setRecebidasApi] = useState<Feedback[]>([]);
   const [feitasApi, setFeitasApi] = useState<Feedback[]>([]);
   const [loadingRecebidas, setLoadingRecebidas] = useState(false);
   const [loadingFeitas, setLoadingFeitas] = useState(false);
+  
   const [showAllModal, setShowAllModal] = useState(false);
   const [showAllFeitasModal, setShowAllFeitasModal] = useState(false);
   const [contractorId, setContractorId] = useState<string>("");
+  const [providerId, setProviderId] = useState<string>("");
 
+  // Buscar dados do freelancer
+  useEffect(() => {
+    if (isContratante) return;
+
+    const fetchFreelancerData = async () => {
+      try {
+        const token = getAuthToken();
+        if (!token) return;
+
+        const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
+
+        // 1. Get provider id
+        const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const provBody = await provRes.json();
+        const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
+        const pId = provData?.id ?? provBody?.id;
+        if (!pId) return;
+        setProviderId(pId);
+
+        // 2. Fetch all feedback endpoints in parallel
+        setLoadingPending(true);
+        setLoadingJobs(true);
+        setLoadingGiven(true);
+
+        const [pendingRes, jobsRes, givenRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/providers/${pId}/feedbacks/pending`, {
+            method: "GET", credentials: "include", headers,
+          }),
+          fetch(`${API_BASE_URL}/providers/${pId}/jobs/feedbacks`, {
+            method: "GET", credentials: "include", headers,
+          }),
+          fetch(`${API_BASE_URL}/providers/${pId}/feedbacks/given`, {
+            method: "GET", credentials: "include", headers,
+          }),
+        ]);
+
+        // 3. Process pending feedbacks
+        const pendingBody = await pendingRes.json();
+        const pendingData = pendingBody?.data ?? pendingBody;
+        const pendingList: PendingFeedback[] = Array.isArray(pendingData) ? pendingData.map((item: any) => ({
+          id: item.id ?? String(item.vacancyId ?? Math.random()),
+          title: item.title || item.assignment || "Vaga",
+          client: item.client || item.establishment || "Cliente",
+          date: item.date || item.jobDate || "",
+          location: item.location || item.address || "",
+        })) : [];
+        setPendingFeedbacks(pendingList);
+
+        // 4. Process jobs/feedbacks (received)
+        const jobsBody = await jobsRes.json();
+        const jobsData = jobsBody?.data ?? jobsBody;
+        const jobsList: Feedback[] = Array.isArray(jobsData) ? jobsData.map((item: any) => ({
+          id: item.id ?? String(item.feedbackId ?? Math.random()),
+          comment: item.comment || "",
+          star: item.star ?? item.rating ?? 0,
+          sender: item.sender ?? "",
+          receiver: item.receiver ?? pId,
+          jobId: item.jobId ?? item.job?.id ?? "",
+          createdAt: item.createdAt || item.created_at || "",
+        })) : [];
+        setJobsFeedbacks(jobsList);
+
+        // 5. Process given feedbacks
+        const givenBody = await givenRes.json();
+        const givenData = givenBody?.data ?? givenBody;
+        const givenList: Feedback[] = Array.isArray(givenData) ? givenData.map((item: any) => ({
+          id: item.id ?? String(item.feedbackId ?? Math.random()),
+          comment: item.comment || "",
+          star: item.star ?? item.rating ?? 0,
+          sender: item.sender ?? "",
+          receiver: item.receiver ?? "",
+          jobId: item.jobId ?? item.job?.id ?? "",
+          createdAt: item.createdAt || item.created_at || "",
+        })) : [];
+        setGivenFeedbacks(givenList);
+
+      } catch (err) {
+        console.error("Erro ao buscar feedbacks do freelancer:", err);
+        setPendingFeedbacks([]);
+        setJobsFeedbacks([]);
+        setGivenFeedbacks([]);
+      } finally {
+        setLoadingPending(false);
+        setLoadingJobs(false);
+        setLoadingGiven(false);
+      }
+    };
+
+    fetchFreelancerData();
+  }, [isContratante]);
+
+  // Buscar dados do contratante (mantido)
   useEffect(() => {
     if (!isContratante) return;
 
@@ -201,11 +284,12 @@ const Avaliacoes = () => {
     fetchFeedbacks();
   }, [isContratante]);
 
-  const pendentes = isContratante ? contratantePendentes : freelancerPendentes;
-  const recebidas = isContratante ? null : freelancerRecebidas; // null = use API for contratante
-  const feitas = isContratante ? contratanteFeitas : freelancerFeitas;
-
-  const recebidasToShow = isContratante ? recebidasApi.slice(0, 4) : freelancerRecebidas;
+  // Dados para exibição
+  const pendentes = isContratante ? [] : pendingFeedbacks; // Contratante não tem pendentes nessa rota
+  const recebidasToShow = isContratante ? recebidasApi.slice(0, 4) : jobsFeedbacks;
+  const feitasToShow = isContratante ? feitasApi.slice(0, 4) : givenFeedbacks;
+  const allRecebidas = isContratante ? recebidasApi : jobsFeedbacks;
+  const allFeitas = isContratante ? feitasApi : givenFeedbacks;
 
   const navigateToFeedback = (fb: Feedback, type: "recebida" | "feita") => {
     navigate(`/avaliacao/${fb.id}`, {
@@ -223,26 +307,33 @@ const Avaliacoes = () => {
           </p>
         </div>
 
-        {pendentes.length > 0 && (
+        {/* Bloco: Avalie seus últimos serviços (Pendentes) - apenas freelancer */}
+        {!isContratante && (
           <Card className="border-warning/30 bg-warning-light/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-warning" />
-                {isContratante ? "Avalie seus freelancers" : "Avalie seus últimos serviços"}
+                Avalie seus últimos serviços
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {pendentes.map((s) => (
-                <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-background hover:bg-muted transition-colors cursor-pointer">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{s.title}</p>
-                    <p className="text-xs text-muted-foreground">{s.client} • {s.date}</p>
+              {loadingPending ? (
+                <p className="text-sm text-muted-foreground">Carregando...</p>
+              ) : pendingFeedbacks.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum serviço pendente de avaliação</p>
+              ) : (
+                pendingFeedbacks.map((s) => (
+                  <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-background hover:bg-muted transition-colors cursor-pointer">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{s.title}</p>
+                      <p className="text-xs text-muted-foreground">{s.client} • {s.date}</p>
+                    </div>
+                    <Button size="sm" variant="outline" className="shrink-0 text-xs gap-1">
+                      Avaliar <ChevronRight className="w-3 h-3" />
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline" className="shrink-0 text-xs gap-1">
-                    Avaliar <ChevronRight className="w-3 h-3" />
-                  </Button>
-                </div>
-              ))}
+                ))
+              )}
             </CardContent>
           </Card>
         )}
@@ -255,6 +346,11 @@ const Avaliacoes = () => {
                   <Star className="w-5 h-5 text-primary" /> Recebidas
                 </CardTitle>
                 {isContratante && recebidasApi.length > 4 && (
+                  <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => setShowAllModal(true)}>
+                    Ver todas
+                  </Button>
+                )}
+                {!isContratante && jobsFeedbacks.length > 4 && (
                   <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => setShowAllModal(true)}>
                     Ver todas
                   </Button>
@@ -273,20 +369,15 @@ const Avaliacoes = () => {
                   ))
                 )
               ) : (
-                (recebidas ?? []).map(av => (
-                  <div
-                    key={av.id}
-                    className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
-                    onClick={() => navigate(`/avaliacao/${av.id}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">{av.client}</p>
-                      {renderStars(av.rating)}
-                    </div>
-                    <p className="text-xs text-muted-foreground">{av.date}</p>
-                    <p className="text-sm text-foreground/80">"{av.comment}"</p>
-                  </div>
-                ))
+                loadingJobs ? (
+                  <p className="text-sm text-muted-foreground">Carregando...</p>
+                ) : jobsFeedbacks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sem avaliações</p>
+                ) : (
+                  recebidasToShow.map(fb => (
+                    <FeedbackItem key={fb.id} fb={fb} onClick={() => navigateToFeedback(fb, "recebida")} />
+                  ))
+                )
               )}
             </CardContent>
           </Card>
@@ -303,6 +394,11 @@ const Avaliacoes = () => {
                     Ver todas
                   </Button>
                 )}
+                {!isContratante && givenFeedbacks.length > 4 && (
+                  <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => setShowAllFeitasModal(true)}>
+                    Ver todas
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -312,25 +408,20 @@ const Avaliacoes = () => {
                 ) : feitasApi.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Sem avaliações</p>
                 ) : (
-                  feitasApi.slice(0, 4).map(fb => (
+                  feitasToShow.map(fb => (
                     <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "feita")} />
                   ))
                 )
               ) : (
-                feitas.map(av => (
-                  <div
-                    key={av.id}
-                    className="p-3 rounded-xl bg-muted/50 space-y-1.5 cursor-pointer hover:bg-muted transition-colors"
-                    onClick={() => navigate(`/avaliacao/${av.id}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">{av.name}</p>
-                      {renderStars(av.rating)}
-                    </div>
-                    <p className="text-xs text-muted-foreground">{av.date}</p>
-                    <p className="text-sm text-foreground/80">"{av.comment}"</p>
-                  </div>
-                ))
+                loadingGiven ? (
+                  <p className="text-sm text-muted-foreground">Carregando...</p>
+                ) : givenFeedbacks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sem avaliações</p>
+                ) : (
+                  feitasToShow.map(fb => (
+                    <FeedbackItem key={fb.id} fb={fb} onClick={() => navigateToFeedback(fb, "feita")} />
+                  ))
+                )
               )}
             </CardContent>
           </Card>
@@ -346,12 +437,13 @@ const Avaliacoes = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            {recebidasApi.map(fb => (
+            {allRecebidas.map(fb => (
               <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "recebida")} />
             ))}
           </div>
         </DialogContent>
       </Dialog>
+
       {/* Modal Ver Todas Feitas */}
       <Dialog open={showAllFeitasModal} onOpenChange={setShowAllFeitasModal}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
@@ -361,7 +453,7 @@ const Avaliacoes = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            {feitasApi.map(fb => (
+            {allFeitas.map(fb => (
               <FeedbackItem key={fb.id} fb={fb} contractorId={contractorId} onClick={() => navigateToFeedback(fb, "feita")} />
             ))}
           </div>
