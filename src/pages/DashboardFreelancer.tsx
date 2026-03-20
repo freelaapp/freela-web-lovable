@@ -48,6 +48,8 @@ const DashboardFreelancer = () => {
   const [userName, setUserName] = useState<string>("");
   const [userNameLoading, setUserNameLoading] = useState<boolean>(true);
   const [jobsThisMonth, setJobsThisMonth] = useState<number>(0);
+  const [monthlyEarnings, setMonthlyEarnings] = useState<string>("--");
+  const [loadingEarnings, setLoadingEarnings] = useState(false);
 
    useEffect(() => {
      const fetchData = async () => {
@@ -84,10 +86,10 @@ const DashboardFreelancer = () => {
          });
          const provBody = await provRes.json().catch(() => null);
          const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
-         const providerId = provData?.id ?? provBody?.id;
-         if (!providerId) return;
+          const providerId = provData?.id ?? provBody?.id;
+          if (!providerId) return;
 
-         // Extract freelancer's service areas from profile (desiredJobVacancy)
+          // Extract freelancer's service areas from profile (desiredJobVacancy)
          const providerServices: string[] = [];
          const rawServices = provData?.desiredJobVacancy ?? [];
          if (Array.isArray(rawServices)) {
@@ -253,9 +255,35 @@ const DashboardFreelancer = () => {
            });
          }
 
-         setJobsThisMonth(currentMonthJobs);
+          setJobsThisMonth(currentMonthJobs);
 
-         // 4. Get filtered vacancies and flatten services
+          // 3d. Get monthly earnings (current month from system date)
+          setLoadingEarnings(true);
+          const earningsNow = new Date();
+          const earningsMonth = earningsNow.getMonth() + 1; // 1-12
+          const earningsYear = earningsNow.getFullYear();
+          
+          try {
+            const earningsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/monthly-earnings?month=${earningsMonth}&year=${earningsYear}`, {
+              method: "GET", credentials: "include", headers,
+            });
+            const earningsBody = await earningsRes.json().catch(() => null);
+            
+            // Extract totalAll from data.summary
+            const totalAll = earningsBody?.data?.summary?.totalAll;
+            if (typeof totalAll === "number") {
+              setMonthlyEarnings(`R$ ${totalAll.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+            } else {
+              setMonthlyEarnings("R$ 0,00");
+            }
+          } catch (err) {
+            console.error("[DashboardFreelancer] Error fetching monthly earnings:", err);
+            setMonthlyEarnings("R$ 0,00");
+          } finally {
+            setLoadingEarnings(false);
+          }
+
+          // 4. Get filtered vacancies and flatten services
          setLoadingVagas(true);
          const filteredRes = await fetch(`${API_BASE_URL}/providers/${providerId}/filtered-vacancies`, {
            method: "GET", credentials: "include", headers,
@@ -311,13 +339,13 @@ const DashboardFreelancer = () => {
            <p className="text-muted-foreground text-sm mt-1">Aqui está o resumo dos seus trabalhos</p>
          </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-3">
-           {[
-             { icon: DollarSign, label: "Ganhos do mês", value: "R$ 3.650", color: "text-success", bg: "bg-success-light", path: "/carteira" },
-             { icon: Briefcase, label: "Jobs este mês", value: jobsThisMonth.toString(), color: "text-primary", bg: "bg-primary-light", path: "/agenda" },
-             { icon: Star, label: "Avaliação", value: averageRating, color: "text-warning", bg: "bg-warning-light", path: "/avaliacoes" },
-           ].map((stat) => (
+         {/* Stats Grid */}
+         <div className="grid grid-cols-3 gap-3">
+            {[
+              { icon: DollarSign, label: "Ganhos do mês", value: loadingEarnings ? "..." : monthlyEarnings, color: "text-success", bg: "bg-success-light", path: "/carteira" },
+              { icon: Briefcase, label: "Jobs este mês", value: jobsThisMonth.toString(), color: "text-primary", bg: "bg-primary-light", path: "/agenda" },
+              { icon: Star, label: "Avaliação", value: averageRating, color: "text-warning", bg: "bg-warning-light", path: "/avaliacoes" },
+            ].map((stat) => (
             <Link key={stat.label} to={stat.path} className="block">
               <Card className="hover:bg-muted/50 transition-colors h-full">
                 <CardContent className="p-4">
