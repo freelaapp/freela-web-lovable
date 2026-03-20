@@ -6,6 +6,24 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-03-20
+### Fixed
+- **[P1] `src/pages/ConfiguracoesContratante.tsx`** — Campos faltantes em `SettingsState` causavam dessincronização com `ContractorSettings` da API. `notifMensagens` e `notifEmail` não existiam na interface local, impedindo sincronização correta de preferências do contratante. Corrigido expandindo `SettingsState` de 6 para 7 campos, adicionando interface `DEFAULT_SETTINGS` e implementando handlers centralizados com `handleToggle()`.
+
+### Added
+- **`SettingsState` interface** — 7 campos agora sincronizados com `ContractorSettings` API: `notifCandidaturas`, `notifMensagens`, `notifAvaliacoes`, `notifPagamentos`, `notifEmail`, `notifPush`, `perfilPublico`
+- **`DEFAULT_SETTINGS` object** — valores iniciais para todos os campos
+- **Toggles para `notifMensagens` e `notifEmail`** — UI agora renderiza todos os canais de notificação
+- **`handleToggle()` handler** — gerenciamento centralizado de estado com tipagem segura (`keyof SettingsState`)
+- **Todo: Integração com API** — comentários deixados para integração com `getContractorSettings()` e `updateContractorSettings()` quando endpoints estiverem prontos
+
+### Notes
+- Build compila sem erros — 3431 módulos transformados com sucesso
+- Testes: 14/14 passando — zero regressões
+- TypeScript: sem erros de tipo
+- Lint: arquivos modificados limpos (sem novos erros)
+- QA Verdict: **APPROVED** — P1 corrigido, pronto para deploy
+
 ## [0.4.0] - 2026-03-20
 ### Fixed
 - **[P1] `src/lib/api.ts`** — Tratamento assimétrico de resposta em `getContractorById()` e `getContractorProfile()`. API pode retornar `{ data: [{ id, ... }] }` (array) ou `{ data: { id, ... } }` (objeto), mas funções retornavam array inteiro sem extrair o primeiro item, causando crashes no código consumidor. Corrigido implementando validação `Array.isArray(raw) ? raw[0] : raw` em ambas as funções.
