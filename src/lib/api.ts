@@ -405,3 +405,106 @@ export async function createVacancy(payload: CreateVacancyPayload, token: string
     throw new Error(body?.message || "Não foi possível criar a vaga. Tente novamente.");
   }
 }
+
+// ── Contractor by ID (public profile) ─────────────────────────
+export interface PublicContractorProfile {
+  id: string;
+  cnpj: string | null;
+  corporateReason: string | null;
+  companyName: string | null;
+  companySegment: string | null;
+  cpf: string | null;
+  birthdate: string | null;
+  cep: string;
+  street: string;
+  complement: string | null;
+  neighborhood: string;
+  number: string;
+  city: string;
+  uf: string;
+  profileImage: string | null;
+  establishmentFacadeImage: string | null;
+  establishmentInteriorImage: string | null;
+  feedbackStars: number;
+  nameOperationResponsible: string | null;
+  phoneOperationResponsible: string | null;
+  createdAt: string;
+  userId: string;
+}
+
+export async function getContractorById(contractorId: string): Promise<PublicContractorProfile> {
+  const response = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}`, {
+    method: "GET",
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível carregar o perfil do contratante.");
+  }
+
+  const raw = body?.data ?? body;
+  const data = Array.isArray(raw) ? raw[0] : raw;
+  return data as PublicContractorProfile;
+}
+
+// ── Contractor Settings ─────────────────────────────────────────
+export interface ContractorSettings {
+  id: string;
+  contractorId: string;
+  notifCandidaturas: boolean;
+  notifMensagens: boolean;
+  notifAvaliacoes: boolean;
+  notifPagamentos: boolean;
+  notifEmail: boolean;
+  notifPush: boolean;
+  perfilPublico: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertSettingsPayload {
+  notifCandidaturas?: boolean;
+  notifMensagens?: boolean;
+  notifAvaliacoes?: boolean;
+  notifPagamentos?: boolean;
+  notifEmail?: boolean;
+  notifPush?: boolean;
+  perfilPublico?: boolean;
+}
+
+export async function getContractorSettings(contractorId: string): Promise<ContractorSettings> {
+  const response = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}/settings`, {
+    method: "GET",
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível carregar as configurações.");
+  }
+
+  const raw = body?.data ?? body;
+  const data = Array.isArray(raw) ? raw[0] : raw;
+  return data as ContractorSettings;
+}
+
+export async function updateContractorSettings(contractorId: string, settings: UpsertSettingsPayload): Promise<ContractorSettings> {
+  const response = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}/settings`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(settings),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível salvar as configurações.");
+  }
+
+  const raw = body?.data ?? body;
+  const data = Array.isArray(raw) ? raw[0] : raw;
+  return data as ContractorSettings;
+}
