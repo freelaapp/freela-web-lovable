@@ -145,9 +145,9 @@ const MeusDados = () => {
 
   // Date picker states
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pickerDay, setPickerDay] = useState("1");
-  const [pickerMonth, setPickerMonth] = useState("1");
-  const [pickerYear, setPickerYear] = useState("2000");
+  const [pickerDay, setPickerDay] = useState<string | number>("1");
+  const [pickerMonth, setPickerMonth] = useState<string | number>("1");
+  const [pickerYear, setPickerYear] = useState<string | number>("2000");
 
   // Original snapshots for change detection
   const [origUser, setOrigUser] = useState("");
@@ -189,21 +189,21 @@ const MeusDados = () => {
 
   const initializePickerFromDate = (dateStr: string) => {
     if (!dateStr) {
-      setPickerDay("1");
-      setPickerMonth("1");
-      setPickerYear("2000");
+      setPickerDay(1);
+      setPickerMonth(1);
+      setPickerYear(2000);
       return;
     }
     const date = new Date(dateStr + "T00:00:00");
     if (isNaN(date.getTime())) {
-      setPickerDay("1");
-      setPickerMonth("1");
-      setPickerYear("2000");
+      setPickerDay(1);
+      setPickerMonth(1);
+      setPickerYear(2000);
       return;
     }
-    setPickerDay(String(date.getDate()));
-    setPickerMonth(String(date.getMonth() + 1));
-    setPickerYear(String(date.getFullYear()));
+    setPickerDay(date.getDate());
+    setPickerMonth(date.getMonth() + 1);
+    setPickerYear(date.getFullYear());
   };
 
   const openDatePicker = () => {
@@ -212,8 +212,8 @@ const MeusDados = () => {
   };
 
   const confirmDateSelection = () => {
-    const day = pickerDay.padStart(2, "0");
-    const month = pickerMonth.padStart(2, "0");
+    const day = String(pickerDay).padStart(2, "0");
+    const month = String(pickerMonth).padStart(2, "0");
     const newDate = `${pickerYear}-${month}-${day}`;
     setDataNascimento(newDate);
     setShowDatePicker(false);
@@ -950,6 +950,44 @@ const MeusDados = () => {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+       </Dialog>
+
+      {/* Dialog Date Picker com WheelPicker */}
+      <Dialog open={showDatePicker} onOpenChange={setShowDatePicker}>
+        <DialogContent className="max-w-sm p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-4 pb-0">
+            <DialogTitle>Selecione a Data de Nascimento</DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+          <WheelPickerWrapper className="flex justify-center gap-2">
+            <WheelPicker
+              options={generateDays()}
+              value={pickerDay}
+              onValueChange={setPickerDay}
+              visibleCount={5}
+              infinite={false}
+            />
+            <WheelPicker
+              options={generateMonths()}
+              value={pickerMonth}
+              onValueChange={setPickerMonth}
+              visibleCount={5}
+              infinite={false}
+            />
+            <WheelPicker
+              options={generateYears()}
+              value={pickerYear}
+              onValueChange={setPickerYear}
+              visibleCount={5}
+              infinite={false}
+            />
+          </WheelPickerWrapper>
+          </div>
+          <DialogFooter className="px-4 py-4 gap-2">
+            <Button variant="outline" onClick={() => setShowDatePicker(false)}>Cancelar</Button>
+            <Button onClick={confirmDateSelection}>Confirmar</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </AppLayout>
