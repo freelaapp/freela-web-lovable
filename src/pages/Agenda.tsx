@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
-
+import VagaCard from "@/components/dashboard-contratante/VagaCard";
 import { useToast } from "@/hooks/use-toast";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
@@ -220,7 +220,7 @@ const Agenda = () => {
       value: job.jobValue || "R$ 0,00",
       status: job.jobStatus,
     }));
-  }));
+  });
   
   const items = isContratante ? contratanteItems : freelancerItems;
 

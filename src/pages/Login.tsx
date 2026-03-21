@@ -203,9 +203,9 @@ const Login = () => {
               )}
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full h-12" 
+            <Button
+              type="submit"
+              className="w-full h-12"
               size="lg"
               disabled={isLoading}
             >
@@ -221,6 +221,16 @@ const Login = () => {
                 </span>
               )}
             </Button>
+
+            {/* Forgot Password Link */}
+            <div className="text-center mt-4">
+              <Link
+                to="/esqueci-minha-senha"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
           </form>
 
           {/* Register Link */}

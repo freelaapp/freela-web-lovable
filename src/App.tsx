@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import EsqueciMinhaSenha from "./pages/EsqueciMinhaSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import CriarEvento from "./pages/CriarEvento";
 import Freelancers from "./pages/Freelancers";
 import AceitarJob from "./pages/AceitarJob";
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/esqueci-minha-senha" element={<EsqueciMinhaSenha />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/criar-evento" element={<CriarEvento />} />
             <Route path="/freelancers" element={<Freelancers />} />
             <Route path="/aceitar-job/:jobId" element={<AceitarJob />} />

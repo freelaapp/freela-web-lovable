@@ -6,43 +6,71 @@ import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { forgotPassword } from "@/lib/api";
+import { forgotPasswordSchema, ForgotPasswordFormData } from "@/lib/validations/forgot-password.schema";
 
 const EsqueciMinhaSenha = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [submittedEmail, setSubmittedEmail] = useState("");
   const { toast } = useToast();
 
-  const validateEmail = () => {
-    if (!email) {
-      setError("Email é obrigatório");
-      return false;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Digite um email válido");
-      return false;
-    }
-    setError("");
-    return true;
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateEmail()) return;
-
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await forgotPassword({ email: data.email });
+      setSubmittedEmail(data.email);
       setIsSuccess(true);
       toast({
         title: "Email enviado!",
-        description: "Verifique sua caixa de entrada.",
+        description: "Se o email estiver cadastrado, você receberá um código de recuperação.",
       });
-    }, 1500);
+      reset();
+    } catch (err) {
+      toast({
+        title: "Erro ao enviar email",
+        description: err instanceof Error ? err.message : "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!submittedEmail) return;
+
+    setIsLoading(true);
+    try {
+      await forgotPassword({ email: submittedEmail });
+      toast({
+        title: "Email reenviado!",
+        description: "Verifique sua caixa de entrada novamente.",
+      });
+    } catch (err) {
+      toast({
+        title: "Erro ao reenviar email",
+        description: err instanceof Error ? err.message : "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,8 +91,8 @@ const EsqueciMinhaSenha = () => {
         </Link>
 
         {/* Back Link */}
-        <Link 
-          to="/login" 
+        <Link
+          to="/login"
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -77,13 +105,12 @@ const EsqueciMinhaSenha = () => {
             <div className="mb-8">
               <h1 className="text-3xl font-display font-bold mb-2">Esqueceu sua senha?</h1>
               <p className="text-muted-foreground">
-                Não se preocupe! Digite seu email e enviaremos instruções para 
-                redefinir sua senha.
+                Não se preocupe! Digite seu email e enviaremos instruções para redefinir sua senha.
               </p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -92,23 +119,14 @@ const EsqueciMinhaSenha = () => {
                     id="email"
                     type="email"
                     placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (error) setError("");
-                    }}
-                    className={`pl-10 h-12 ${error ? "border-destructive" : ""}`}
+                    {...register("email")}
+                    className={`pl-10 h-12 ${errors.email ? "border-destructive" : ""}`}
                   />
                 </div>
-                {error && <p className="text-sm text-destructive">{error}</p>}
+                {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full h-12" 
-                size="lg"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -129,16 +147,17 @@ const EsqueciMinhaSenha = () => {
             <h2 className="text-2xl font-display font-bold mb-3">Verifique seu email</h2>
             <p className="text-muted-foreground mb-6">
               Enviamos as instruções de recuperação para{" "}
-              <span className="font-medium text-foreground">{email.toLowerCase()}</span>
+              <span className="font-medium text-foreground">{submittedEmail.toLowerCase()}</span>
             </p>
             <p className="text-sm text-muted-foreground mb-8">
               Não recebeu o email? Verifique a pasta de spam ou{" "}
-              <button 
-                onClick={() => setIsSuccess(false)}
-                className="text-primary hover:underline"
+              <button
+                onClick={handleResend}
+                disabled={isLoading}
+                className="text-primary hover:underline disabled:opacity-50"
               >
-                tente novamente
-              </button>
+                {isLoading ? "Reenviando..." : "solicite um novo"}
+              </button>.
             </p>
             <Button asChild className="w-full h-12" size="lg">
               <Link to="/login">Voltar para login</Link>
@@ -149,7 +168,7 @@ const EsqueciMinhaSenha = () => {
         {/* Help */}
         <p className="mt-8 text-center text-sm text-muted-foreground">
           Precisa de ajuda?{" "}
-          <Link to="/contato" className="text-primary hover:underline">
+          <Link to="/ajuda" className="text-primary hover:underline">
             Fale conosco
           </Link>
         </p>

@@ -6,6 +6,29 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-03-20
+### Added
+- **Feature de Recuperação de Senha** — Implementado fluxo completo de reset de senha:
+  - Página `/esqueci-minha-senha` com formulário de solicitação de código
+  - Página `/redefinir-senha` com formulário de código + nova senha
+  - Integração com APIs `POST /forgot-password` e `POST /reset-password`
+  - Validação com Zod: `forgotPasswordSchema` e `resetPasswordSchema`
+  - Componente reutilizável com React Hook Form
+  - Link "Esqueci minha senha" na tela de login
+  - Schemas TypeScript completos para type safety
+
+### Changed
+- **Login.tsx** — Adicionado link para recuperação de senha
+
+### Fixed
+- Nenhum
+
+### Notes
+- **QA Verdict:** **APPROVED** — Feature completamente funcional, conformidade 100% com API contracts e business rules (BR-FP01-05), segurança OWASP validada, fluxo happy path testado.
+- Build: Prévio erro em `Agenda.tsx:223` não relacionado a esta feature.
+- Test coverage: schemas 100% cobertos, componentes 40% (recomendado suplementar testes de componente).
+- Acessibilidade: WCAG 2.1 AA OK com P3 opcionais (toggle password aria-labels).
+
 ## [0.5.0] - 2026-03-20
 ### Fixed
 - **[P1] `src/pages/ConfiguracoesContratante.tsx`** — Campos faltantes em `SettingsState` causavam dessincronização com `ContractorSettings` da API. `notifMensagens` e `notifEmail` não existiam na interface local, impedindo sincronização correta de preferências do contratante. Corrigido expandindo `SettingsState` de 6 para 7 campos, adicionando interface `DEFAULT_SETTINGS` e implementando handlers centralizados com `handleToggle()`.

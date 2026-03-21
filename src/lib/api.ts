@@ -508,3 +508,88 @@ export async function updateContractorSettings(contractorId: string, settings: U
   const data = Array.isArray(raw) ? raw[0] : raw;
   return data as ContractorSettings;
 }
+
+// ── Password Recovery ───────────────────────────────────────────
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Solicita código de recuperação de senha.
+ * IMPORTANTE: Resposta genérica — não revela se o email existe (BR-FP04).
+ */
+export async function forgotPassword(payload: ForgotPasswordPayload): Promise<ForgotPasswordResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/forgot-password`, {
+    method: "POST",
+    skipAuth: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email: payload.email.toLowerCase().trim() }),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  // Mesmo se email não existir, API retorna 200 com mensagem genérica
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível solicitar a recuperação. Tente novamente.");
+  }
+
+  if (!body?.success) {
+    throw new Error(body?.message || "Não foi possível solicitar a recuperação. Tente novamente.");
+  }
+
+  return body as ForgotPasswordResponse;
+}
+
+export interface ResetPasswordPayload {
+  email: string;
+  code: string;
+  password: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Redefine a senha usando código de recuperação válido.
+ * @throws 401 se o código for inválido ou expirado
+ */
+export async function resetPassword(payload: ResetPasswordPayload): Promise<ResetPasswordResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/reset-password`, {
+    method: "POST",
+    skipAuth: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: payload.email.toLowerCase().trim(),
+      code: payload.code.trim(),
+      password: payload.password,
+    }),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (response.status === 401) {
+    throw new Error("Código inválido ou expirado. Solicite um novo código.");
+  }
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível redefinir a senha. Tente novamente.");
+  }
+
+  if (!body?.success) {
+    throw new Error(body?.message || "Não foi possível redefinir a senha. Tente novamente.");
+  }
+
+  return body as ResetPasswordResponse;
+}
