@@ -17,11 +17,13 @@ const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 type ContractorType = "empresas" | "casa_cnpj" | "casa_cpf";
 
-const bufferToDataUrl = (img: any): string | null => {
+const bufferToDataUrl = (img: Record<string, unknown> | string | null): string | null => {
   if (!img) return null;
   if (typeof img === "string") return img;
-  if (img.type === "Buffer" && Array.isArray(img.data)) {
-    const bytes = new Uint8Array(img.data);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((img as any).type === "Buffer" && Array.isArray((img as any).data)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bytes = new Uint8Array((img as any).data);
     let binary = "";
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     return `data:image/jpeg;base64,${btoa(binary)}`;
@@ -138,6 +140,7 @@ const Perfil = () => {
     desiredJobVacancy: string;
     isPCD: boolean;
   }>({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "", isPCD: false });
+  const [providerId, setProviderId] = useState<string>("");
 
   // Fetch freelancer profile
   useEffect(() => {
@@ -161,11 +164,16 @@ const Perfil = () => {
           }),
         ]);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let providerData: any = {};
         if (providerRes.ok) {
           const pBody = await providerRes.json();
           const raw = pBody?.data ?? pBody;
           providerData = Array.isArray(raw) ? raw[0] ?? {} : raw;
+          
+          if (providerData.id) {
+            setProviderId(providerData.id);
+          }
         }
 
         let userName = "";
@@ -387,7 +395,7 @@ const Perfil = () => {
       }
 
       setSavingAvailability(true);
-      await updateProviderAvailability({
+      await updateProviderAvailability(providerId, {
         diasAtivos,
         horarios,
       });

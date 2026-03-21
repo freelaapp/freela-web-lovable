@@ -209,15 +209,17 @@ describe('Disponibilidade de Horários — Validações', () => {
       expect(method).toBe('PATCH');
     });
 
-    it('✅ deve usar endpoint /users/providers', () => {
-      const endpoint = '/users/providers';
-      expect(endpoint).toBe('/users/providers');
+    it('✅ deve usar endpoint /providers/{providerId}/availability', () => {
+      const providerId = 'test-provider-id';
+      const endpoint = `/providers/${providerId}/availability`;
+      expect(endpoint).toBe('/providers/test-provider-id/availability');
     });
 
-    it('❌ não deve incluir ID na URL (JWT inference)', () => {
-      const endpoint = '/users/providers';
-      const hasIdParam = endpoint.includes(':id') || endpoint.includes('{id}');
-      expect(hasIdParam).toBe(false);
+    it('✅ deve incluir ID na URL', () => {
+      const providerId = 'test-provider-id';
+      const endpoint = `/providers/${providerId}/availability`;
+      const hasIdParam = endpoint.includes('test-provider-id');
+      expect(hasIdParam).toBe(true);
     });
 
     it('✅ deve incluir header Authorization', () => {

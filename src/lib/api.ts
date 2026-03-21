@@ -105,10 +105,8 @@ interface LoginPayload {
 }
 
 interface LoginResponse {
-  success: boolean;
-  message: string;
-  data: string; // accessToken
-  status: number;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
@@ -118,10 +116,11 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...payload, date: new Date().toISOString() }),
+    body: JSON.stringify(payload),
   });
 
-  const body = await response.json().catch(() => null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const body: any = await response.json().catch(() => null);
 
   if (response.status === 401) {
     throw new Error("Credenciais incorretas.");
@@ -135,11 +134,15 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
     throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
   }
 
-  if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
+  // Robust token extraction: handle { data: { accessToken } } or { accessToken }
+  const accessToken = body?.data?.accessToken ?? body?.accessToken;
+  const refreshToken = body?.data?.refreshToken ?? body?.refreshToken;
+
+  if (!accessToken || typeof accessToken !== "string") {
+    throw new Error("Não foi possível entrar. Verifique seus dados e tente novamente.");
   }
 
-  return body as LoginResponse;
+  return { accessToken, refreshToken: refreshToken ?? "" };
 }
 
 interface RegisterPayload {
@@ -152,12 +155,12 @@ interface RegisterPayload {
 }
 
 interface RegisterResponse {
-  success: boolean;
-  message: string;
-  data: string; // accessToken
+  accessToken: string;
+  refreshToken: string;
 }
 
 export async function registerUser(payload: RegisterPayload): Promise<RegisterResponse> {
+  console.log("[register] payload enviado:", JSON.stringify(payload));
   const response = await apiFetch(`${API_BASE_URL}/users/register`, {
     method: "POST",
     skipAuth: true,
@@ -167,7 +170,9 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
     body: JSON.stringify(payload),
   });
 
-  const body = await response.json().catch(() => null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const body: any = await response.json().catch(() => null);
+  console.log("[register] status:", response.status, "body:", JSON.stringify(body));
 
   if (response.status === 409) {
     throw new Error("Este e-mail já está cadastrado.");
@@ -177,13 +182,26 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
     throw new Error(body?.message || "Não foi possível criar sua conta. Tente novamente.");
   }
 
-  if (!body?.success || !body?.data || typeof body.data !== "string") {
+  // Robust token extraction: handle { data: { accessToken } } or { accessToken } or legacy format
+  let accessToken: string | undefined;
+  let refreshToken = "";
+
+  if (body?.data && typeof body.data === "object") {
+    accessToken = body.data.accessToken;
+    refreshToken = body.data.refreshToken ?? "";
+  } else if (body?.data && typeof body.data === "string") {
+    accessToken = body.data;
+  } else if (body?.accessToken) {
+    accessToken = body.accessToken;
+    refreshToken = body.refreshToken ?? "";
+  }
+
+  if (!accessToken) {
     throw new Error(body?.message || "Resposta inesperada do servidor.");
   }
 
-  console.log("[register] status:", response.status, "message:", body.message);
 
-  return body as RegisterResponse;
+  return { accessToken, refreshToken };
 }
 
 export async function generateEmailConfirmationCode(email: string): Promise<void> {
@@ -614,14 +632,16 @@ export interface UpdateProviderAvailabilityResponse {
 
 /**
  * Atualiza a disponibilidade de horários do freelancer.
+ * @param providerId ID do provedor/freelancer
  * @param payload Dias ativos e horários para cada dia
  * @returns Confirmação da atualização
  * @throws Error se validação falhar ou houver problema na persistência
  */
 export async function updateProviderAvailability(
+  providerId: string,
   payload: UpdateProviderAvailabilityPayload,
 ): Promise<UpdateProviderAvailabilityResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
+  const response = await apiFetch(`${API_BASE_URL}/providers/${providerId}/availability`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
