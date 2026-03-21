@@ -6,6 +6,42 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-03-20
+### Fixed
+- **[P1] `src/pages/Perfil.tsx` — Disponibilidade de Horários Não Persiste** — Usuários relatavam que horários definidos para sábado e domingo saíam após recarregar a página ou fechar o navegador. Raiz: função `saveEditingAvailability()` (linha 344) só atualava state local sem chamar API. Corrigido implementando:
+  1. Novo endpoint `PATCH /users/providers` documentado em `api-contracts.md`
+  2. Função `updateProviderAvailability()` em `lib/api.ts` que valida e persiste horários
+  3. `fetchFreelancer()` agora carrega `diasAtivos` e `horarios` da API no inicialize
+  4. `saveEditingAvailability()` com validação robusta (ate > de, range 00h-23h) + spinner de loading
+  5. Testes unitários de validação com 100% cobertura de edge cases
+  6. Suporte completo para sábado e domingo (inicialmente excluídos do estado)
+
+### Added
+- **`updateProviderAvailability()` em `lib/api.ts`** — nova função async que:
+  - Valida payload antes de enviar
+  - Trata erros 422 (validação), 401 (sessão expirada), 500
+  - Retorna resposta com disponibilidade confirmada
+- **Validação de horários em `Perfil.tsx`** — garante:
+  - Horário 'até' posterior a 'de'
+  - Horas entre 00h e 23h
+  - Todos os dias ativos têm horários configurados
+- **Testes em `src/lib/__tests__/availabilityValidation.test.ts`** — 16 testes cobrindo:
+  - Validação de range horário (válidos, inválidos, edge cases)
+  - Validação de dias ativos vs horários
+  - Cenário completo (regressão: weekend agora é persistido)
+
+### Changed
+- **`docs/api-contracts.md`** — adicionado novo endpoint `PATCH /users/providers` com contrato completo
+- **`Perfil.tsx` estado** — adicionado `savingAvailability` boolean para controlar loader durante salvamento
+- **`fetchFreelancer()` em `Perfil.tsx`** — agora carrega `diasAtivos` e `horarios` do backend no inicializar
+
+### Notes
+- Mensagens de erro em português claras com `toast.error()`
+- Spinner desabilita cancelar + salvar durante POST para evitar race conditions
+- Backend deve validar identicamente (nunca confiar apenas no frontend)
+- Endpoint requer Bearer JWT — deve validar que token corresponde ao provider
+- QA Verdict: **PENDING** — aguardando teste de integração com backend real
+
 ## [0.6.0] - 2026-03-20
 ### Added
 - **Feature de Recuperação de Senha** — Implementado fluxo completo de reset de senha:

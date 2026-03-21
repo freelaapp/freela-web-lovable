@@ -593,3 +593,59 @@ export async function resetPassword(payload: ResetPasswordPayload): Promise<Rese
 
   return body as ResetPasswordResponse;
 }
+
+// ── Provider Availability ────────────────────────────────────
+
+export interface ProviderAvailability {
+  diasAtivos: string[];
+  horarios: Record<string, { de: string; ate: string }>;
+}
+
+export interface UpdateProviderAvailabilityPayload {
+  diasAtivos: string[];
+  horarios: Record<string, { de: string; ate: string }>;
+}
+
+export interface UpdateProviderAvailabilityResponse {
+  success: boolean;
+  message: string;
+  data?: ProviderAvailability;
+}
+
+/**
+ * Atualiza a disponibilidade de horários do freelancer.
+ * @param payload Dias ativos e horários para cada dia
+ * @returns Confirmação da atualização
+ * @throws Error se validação falhar ou houver problema na persistência
+ */
+export async function updateProviderAvailability(
+  payload: UpdateProviderAvailabilityPayload,
+): Promise<UpdateProviderAvailabilityResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (response.status === 422) {
+    throw new Error(body?.message || 'Validação de horários falhou. Verifique se "até" é posterior a "de".');
+  }
+
+  if (response.status === 401) {
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+
+  if (!response.ok) {
+    throw new Error(body?.message || 'Não foi possível atualizar a disponibilidade. Tente novamente.');
+  }
+
+  if (!body?.success) {
+    throw new Error(body?.message || 'Falha ao atualizar disponibilidade.');
+  }
+
+  return body as UpdateProviderAvailabilityResponse;
+}

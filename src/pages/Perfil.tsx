@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
+import { updateProviderAvailability } from "@/lib/api";
+import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -88,6 +90,7 @@ const Perfil = () => {
 
   // Availability editing
   const [editingAvailability, setEditingAvailability] = useState(false);
+  const [savingAvailability, setSavingAvailability] = useState(false);
   const [savedDiasAtivos, setSavedDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex"]);
   const [savedHorarios, setSavedHorarios] = useState<Horarios>({ ...horarios });
 
@@ -173,6 +176,16 @@ const Perfil = () => {
         }
 
         const avatar = bufferToDataUrl(providerData.profileImage);
+
+        // Carregar disponibilidade de horários da API
+        if (providerData.diasAtivos) {
+          setDiasAtivos(providerData.diasAtivos);
+          setSavedDiasAtivos(providerData.diasAtivos);
+        }
+        if (providerData.horarios) {
+          setHorarios(providerData.horarios);
+          setSavedHorarios(providerData.horarios);
+        }
 
         // Parse desiredJobVacancy into service chips
         const djv = providerData.desiredJobVacancy || "";
@@ -341,10 +354,55 @@ const Perfil = () => {
     setHorarios({ ...savedHorarios });
     setEditingAvailability(false);
   };
-  const saveEditingAvailability = () => {
-    setSavedDiasAtivos([...diasAtivos]);
-    setSavedHorarios({ ...horarios });
-    setEditingAvailability(false);
+
+  /**
+   * Valida horários e persiste no backend
+   * Validações:
+   * - 'ate' deve ser posterior a 'de'
+   * - Formato correto de hora (HHh)
+   */
+  const saveEditingAvailability = async () => {
+    try {
+      // Validar todos os dias ativos têm horários válidos
+      for (const dia of diasAtivos) {
+        const h = horarios[dia];
+        if (!h) {
+          toast.error(`Dia ${dia} está ativo mas não tem horário configurado.`);
+          return;
+        }
+
+        // Extrair apenas os dígitos para comparação numérica
+        const deNum = parseInt(h.de.replace('h', ''));
+        const ateNum = parseInt(h.ate.replace('h', ''));
+
+        if (ateNum <= deNum) {
+          toast.error(`Horário inválido para ${dia}: "até" não pode ser menor ou igual a "de"`);
+          return;
+        }
+
+        if (deNum < 0 || deNum > 23 || ateNum < 0 || ateNum > 23) {
+          toast.error(`Horas devem estar entre 00h e 23h`);
+          return;
+        }
+      }
+
+      setSavingAvailability(true);
+      await updateProviderAvailability({
+        diasAtivos,
+        horarios,
+      });
+
+      // Atualizar estado salvo com novos valores
+      setSavedDiasAtivos([...diasAtivos]);
+      setSavedHorarios({ ...horarios });
+      setEditingAvailability(false);
+      toast.success("Disponibilidade atualizada com sucesso!");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao salvar disponibilidade";
+      toast.error(message);
+    } finally {
+      setSavingAvailability(false);
+    }
   };
 
   const formatHorario = (key: string) => {
@@ -610,14 +668,22 @@ const Perfil = () => {
 
                 })}
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={cancelEditingAvailability}>
-                      <X className="w-3.5 h-3.5 mr-1" /> Cancelar
-                    </Button>
-                    <Button size="sm" className="flex-1 text-xs" onClick={saveEditingAvailability}>
-                      <Check className="w-3.5 h-3.5 mr-1" /> Salvar
-                    </Button>
-                  </div>
+                   <div className="flex gap-2">
+                     <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={cancelEditingAvailability} disabled={savingAvailability}>
+                       <X className="w-3.5 h-3.5 mr-1" /> Cancelar
+                     </Button>
+                     <Button size="sm" className="flex-1 text-xs" onClick={saveEditingAvailability} disabled={savingAvailability}>
+                       {savingAvailability ? (
+                         <>
+                           <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> Salvando
+                         </>
+                       ) : (
+                         <>
+                           <Check className="w-3.5 h-3.5 mr-1" /> Salvar
+                         </>
+                       )}
+                     </Button>
+                   </div>
                 </div>
             }
             </CardContent>

@@ -136,6 +136,66 @@
 
 ---
 
+### Providers (Freelancers)
+
+#### PATCH `/users/providers`
+**Descrição:** Atualiza disponibilidade de horários do freelancer
+**Headers:** Authorization Required (Bearer JWT)
+**Autenticação:** Valida que o token corresponde ao provider autenticado
+**Request:**
+```json
+{
+  "diasAtivos": ["seg", "ter", "qua", "qui", "sex", "sab", "dom"],
+  "horarios": {
+    "seg": { "de": "08h", "ate": "20h" },
+    "ter": { "de": "08h", "ate": "20h" },
+    "qua": { "de": "08h", "ate": "20h" },
+    "qui": { "de": "08h", "ate": "20h" },
+    "sex": { "de": "08h", "ate": "20h" },
+    "sab": { "de": "10h", "ate": "16h" },
+    "dom": { "de": "10h", "ate": "14h" }
+  }
+}
+```
+
+**Response 200:**
+```json
+{
+  "success": true,
+  "message": "Disponibilidade atualizada com sucesso",
+  "data": {
+    "diasAtivos": ["seg", "ter", "qua", "qui", "sex", "sab", "dom"],
+    "horarios": { ... }
+  }
+}
+```
+
+**Response 422 (Validação):**
+```json
+{
+  "success": false,
+  "message": "Validação falhou",
+  "errors": [
+    {
+      "field": "horarios.seg.ate",
+      "message": "Horário 'até' não pode ser menor ou igual a 'de'"
+    }
+  ]
+}
+```
+
+**Response 401:** Token inválido/expirado
+**Response 500:** Erro interno do servidor
+
+**Validações:**
+- Todos os horários devem ter `ate > de` (horário até deve ser posterior ao de)
+- Formato de hora: `HHh` (ex: `08h`, `20h`)
+- Horas devem estar entre `00h` e `23h`
+- `diasAtivos` pode estar vazio (usuário indisponível)
+- Se um dia está em `diasAtivos`, deve ter entrada em `horarios`
+
+---
+
 ## Paginação (Padrão Geral)
 Quando aplicável, endpoints de lista usam:
 ```
