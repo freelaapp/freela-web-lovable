@@ -86,7 +86,7 @@
 
 ### Recuperação de Senha *(Novo)*
 
-#### POST `/forgot-password`
+#### POST `/users/forgot-password`
 **Descrição:** Solicita código de recuperação de senha
 **Headers:** Nenhum (acesso público)
 **Request:**
@@ -110,7 +110,7 @@
 - O token expira em 15 minutos (BR-FP01)
 - Se o usuário solicitar novamente, tokens anteriores são invalidados (BR-FP03)
 
-#### POST `/reset-password`
+#### POST `/users/reset-password`
 **Descrição:** Redefine a senha usando código de recuperação
 **Headers:** Nenhum (acesso público)
 **Request:**

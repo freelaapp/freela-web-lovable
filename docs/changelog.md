@@ -6,6 +6,20 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-03-20
+### Fixed
+- **[P1] `docs/api-contracts.md` — Endpoints de recuperação de senha incorretos** — Endpoints documentados como `/forgot-password` e `/reset-password` estavam desalinhados com a API real que usa prefixo `/users/`. Corrigidos para `/users/forgot-password` e `/users/reset-password`.
+
+### Changed
+- **`docs/api-contracts.md`** — endpoints de recuperação de senha atualizados:
+  - `/forgot-password` → `/users/forgot-password`
+  - `/reset-password` → `/users/reset-password`
+- **`src/lib/api.ts:528`** — endpoint `forgotPassword()` atualizado de `/forgot-password` para `/users/forgot-password`
+- **`src/lib/api.ts:567`** — endpoint `resetPassword()` atualizado de `/reset-password` para `/users/reset-password`
+
+### Notes
+- Base URL confirmada correta: `https://api.freela.com.br`
+
 ## [0.8.0] - 2026-03-20
 ### Fixed
 - **[P0] `src/pages/Perfil.tsx` — Persistência de Disponibilidade de Horários** — Usuários relatavam que a disponibilidade de horários (especialmente sábado e domingo) não era salva após recarregar a página. Raiz: a função `saveEditingAvailability()` atualizava apenas state local sem persistir no backend. Corrigido com integração completa com novo endpoint `PATCH /users/providers`.

@@ -525,7 +525,7 @@ export interface ForgotPasswordResponse {
  * IMPORTANTE: Resposta genérica — não revela se o email existe (BR-FP04).
  */
 export async function forgotPassword(payload: ForgotPasswordPayload): Promise<ForgotPasswordResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/forgot-password`, {
+  const response = await apiFetch(`${API_BASE_URL}/users/forgot-password`, {
     method: "POST",
     skipAuth: true,
     headers: {
@@ -564,7 +564,7 @@ export interface ResetPasswordResponse {
  * @throws 401 se o código for inválido ou expirado
  */
 export async function resetPassword(payload: ResetPasswordPayload): Promise<ResetPasswordResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/reset-password`, {
+  const response = await apiFetch(`${API_BASE_URL}/users/reset-password`, {
     method: "POST",
     skipAuth: true,
     headers: {
