@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/lib/api";
 
 // Freelancer mocks
 const ganhosFreelancerMock = [
@@ -59,12 +60,68 @@ const Carteira = () => {
 
   const [filtroInicio, setFiltroInicio] = useState("");
   const [filtroFim, setFiltroFim] = useState("");
+  const [totalPending, setTotalPending] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Freelancer values
+  // Fetch totalPending from monthly-earnings endpoint
+  useEffect(() => {
+    const fetchTotalPending = async () => {
+      try {
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) return;
+        const token = JSON.parse(tokenRaw);
+        
+        // Fetch provider profile to get providerId
+        const provRes = await apiFetch(`${import.meta.env.API_BASE_URL}/users/providers`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const provBody = await provRes.json();
+        const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
+        const providerId = provData?.id ?? provBody?.id;
+        
+        if (!providerId) {
+          setTotalPending(0);
+          setLoading(false);
+          return;
+        }
+
+        // Get current month and year
+        const now = new Date();
+        const month = now.getMonth() + 1; // 1-12
+        const year = now.getFullYear();
+
+        // Fetch monthly earnings
+        const earningsRes = await apiFetch(
+          `${import.meta.env.API_BASE_URL}/providers/${providerId}/monthly-earnings?month=${month}&year=${year}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        const earningsBody = await earningsRes.json();
+        
+        // Extract totalPending from data.summary
+        const totalPendingValue = earningsBody?.data?.summary?.totalPending;
+        if (typeof totalPendingValue === "number") {
+          setTotalPending(totalPendingValue);
+        } else {
+          setTotalPending(0);
+        }
+      } catch (err) {
+        console.error("[Carteira] Error fetching totalPending:", err);
+        setTotalPending(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTotalPending();
+  }, [role]); // Re-fetch when role changes
+
+  // Freelancer values (keeping mocks for other values)
   const saldoALiberarFreelancer = 480;
   const totalPagoFreelancer = 1800;
 
-  // Contratante values
+  // Contratante values (keeping mocks for other values)
   const totalGastoContratante = 4600;
   const valorALiberarContratante = 1950;
 
@@ -81,31 +138,31 @@ const Carteira = () => {
           <h1 className="text-xl font-display font-bold">Carteira</h1>
         </div>
 
-        {/* Saldos */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Clock className="w-5 h-5 text-secondary mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">Pagamentos futuros</p>
-              <p className="text-xl font-bold text-secondary">
-                R$ {(isContratante ? valorALiberarContratante : saldoALiberarFreelancer).toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              {isContratante ? (
-                <TrendingDown className="w-5 h-5 text-destructive mx-auto mb-1" />
-              ) : (
-                <TrendingUp className="w-5 h-5 text-primary mx-auto mb-1" />
-              )}
-              <p className="text-xs text-muted-foreground">{isContratante ? "Total gasto" : "Total recebido"}</p>
-              <p className={`text-xl font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
-                R$ {(isContratante ? totalGastoContratante : totalPagoFreelancer).toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Saldos */}
+          <div className="grid grid-cols-2 gap-3">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Clock className="w-5 h-5 text-secondary mx-auto mb-1" />
+                <p className="text-xs text-muted-foreground">Pagamentos futuros</p>
+                <p className="text-xl font-bold text-secondary">
+                  R$ {loading ? "..." : totalPending.toFixed(2)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                {isContratante ? (
+                  <TrendingDown className="w-5 h-5 text-destructive mx-auto mb-1" />
+                ) : (
+                  <TrendingUp className="w-5 h-5 text-primary mx-auto mb-1" />
+                )}
+                <p className="text-xs text-muted-foreground">{isContratante ? "Total gasto" : "Total recebido"}</p>
+                <p className={`text-xl font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
+                  R$ {(isContratante ? totalGastoContratante : totalPagoFreelancer).toFixed(2)}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
         {/* Gráfico */}
         <Card>
