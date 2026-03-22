@@ -236,33 +236,76 @@ const DetalheEventoContratante = () => {
       .catch(err => console.error("Erro ao buscar vaga:", err))
       .finally(() => setLoading(false));
 
-    // Fetch candidacies
-    setLoadingCandidatos(true);
-    apiFetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}`, { method: "GET" })
-      .then(r => r.json())
-      .then(body => {
-        const list = Array.isArray(body?.data) ? body.data : [];
-        const mapped: Candidato[] = list.map((c: any) => ({
-          id: c.id || "",
-          providerId: c.providerId || "",
-          name: c.providerName || c.name || "Freelancer",
-          avatar: (c.providerName || c.name || "FL").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
-          role: c.assignment || c.role || "",
-          rating: c.rating ?? 0,
-          reviews: c.reviews ?? 0,
-          jobs: c.jobs ?? 0,
-          verified: c.verified ?? false,
-          status: c.status === "accepted" ? "aceito" : c.status === "rejected" ? "recusado" : "pendente",
-          price: c.price || c.jobValue || "",
-          responseTime: c.responseTime || "",
-          bio: c.bio || c.description || "",
-        }));
-        const hasAccepted = mapped.some(c => c.status === "aceito");
-        if (hasAccepted && timelineStep < 1) setTimelineStep(1);
-        setCandidatos(mapped);
-      })
-      .catch(err => console.error("Erro ao buscar candidatos:", err))
-      .finally(() => setLoadingCandidatos(false));
+     // Fetch candidacies
+     setLoadingCandidatos(true);
+     apiFetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${eventoId}`, { method: "GET" })
+       .then(r => r.json())
+       .then(async (body) => {
+         try {
+           const list = Array.isArray(body?.data) ? body.data : [];
+           
+           // For each candidacy, fetch provider and then user details
+           const candidatePromises = list.map(async (c: any) => {
+             try {
+               // Fetch provider details
+               const providerRes = await apiFetch(`${API_BASE_URL}/providers/${c.providerId}`, { method: "GET" });
+               const providerBody = await providerRes.json();
+               const providerData = providerBody?.data || providerBody;
+               
+               // Fetch user details
+               const userRes = await apiFetch(`${API_BASE_URL}/users/${providerData.userId}`, { method: "GET" });
+               const userBody = await userRes.json();
+               const userData = userBody?.data || userBody;
+               
+               return {
+                 ...c,
+                 providerData,
+                 userData
+               };
+             } catch (err) {
+               console.error(`Erro ao buscar dados para candidato ${c.id}:`, err);
+               return { ...c, providerData: null, userData: null };
+             }
+           });
+           
+           const enrichedCandidates = await Promise.all(candidatePromises);
+           
+           // Map to Candidato objects
+           const mapped: Candidato[] = enrichedCandidates.map((c: any) => {
+             const providerData = c.providerData || {};
+             const userData = c.userData || {};
+             
+             return {
+               id: c.id || "",
+               providerId: c.providerId || "",
+               name: userData.name || c.providerName || c.name || "Freelancer",
+               avatar: (userData.name || c.providerName || c.name || "FL")
+                 .split(" ")
+                 .map((w: string) => w[0])
+                 .join("")
+                 .slice(0, 2)
+                 .toUpperCase(),
+               role: c.assignment || c.role || "",
+               rating: providerData.feedbackStars ?? c.rating ?? 0,
+               reviews: c.reviews ?? 0,
+               jobs: c.jobs ?? 0,
+               verified: c.verified ?? false,
+               status: c.status === "accepted" ? "aceito" : c.status === "rejected" ? "recusado" : "pendente",
+               price: c.price || c.jobValue || "",
+               responseTime: c.responseTime || "",
+               bio: c.bio || c.description || "",
+             };
+           });
+           
+           const hasAccepted = mapped.some(c => c.status === "aceito");
+           if (hasAccepted && timelineStep < 1) setTimelineStep(1);
+           setCandidatos(mapped);
+         } catch (err) {
+           console.error("Erro ao processar candidatos:", err);
+         }
+       })
+       .catch(err => console.error("Erro ao buscar candidatos:", err))
+       .finally(() => setLoadingCandidatos(false));
 
     // Fetch job status to determine timeline position
     fetchJobStatus(eventoId);
