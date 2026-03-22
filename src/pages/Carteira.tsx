@@ -61,6 +61,7 @@ const Carteira = () => {
   const [filtroInicio, setFiltroInicio] = useState("");
   const [filtroFim, setFiltroFim] = useState("");
   const [totalPending, setTotalPending] = useState(0);
+  const [totalConfirmed, setTotalConfirmed] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Fetch totalPending from monthly-earnings endpoint
@@ -99,12 +100,21 @@ const Carteira = () => {
         );
         const earningsBody = await earningsRes.json();
         
-        // Extract totalPending from data.summary
-        const totalPendingValue = earningsBody?.data?.summary?.totalPending;
+        // Extract totalPending and totalConfirmed from data.summary
+        const summary = earningsBody?.data?.summary;
+        const totalPendingValue = summary?.totalPending;
+        const totalConfirmedValue = summary?.totalConfirmed;
+        
         if (typeof totalPendingValue === "number") {
           setTotalPending(totalPendingValue);
         } else {
           setTotalPending(0);
+        }
+        
+        if (typeof totalConfirmedValue === "number") {
+          setTotalConfirmed(totalConfirmedValue);
+        } else {
+          setTotalConfirmed(0);
         }
       } catch (err) {
         console.error("[Carteira] Error fetching totalPending:", err);
@@ -158,7 +168,7 @@ const Carteira = () => {
                 )}
                 <p className="text-xs text-muted-foreground">{isContratante ? "Total gasto" : "Total recebido"}</p>
                 <p className={`text-xl font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
-                  R$ {(isContratante ? totalGastoContratante : totalPagoFreelancer).toFixed(2)}
+                  R$ {loading ? "..." : (isContratante ? totalGastoContratante : totalConfirmed).toFixed(2)}
                 </p>
               </CardContent>
             </Card>
