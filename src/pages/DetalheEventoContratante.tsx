@@ -16,6 +16,9 @@ const API_BASE_URL = import.meta.env.API_BASE_URL;
 interface VacancyService {
   assignment: string;
   quantity: number;
+  jobTime: string;
+  jobValue: string;
+  jobId?: string;
 }
 
 interface VacancyDetail {
@@ -214,17 +217,19 @@ const DetalheEventoContratante = () => {
       .then(body => {
         if (body?.data) {
           const v = body.data as VacancyDetail;
-          // Normalizar: se não tem services, criar array com assignment/quantity
-          if (!v.services && v.assignment) {
-            v.services = [{ assignment: v.assignment, quantity: v.quantity ?? 1 }];
-          }
-          // Garantir que services tenha fallbacks
-          if (v.services) {
-            v.services = v.services.map(s => ({
-              assignment: s.assignment || v.assignment || "Sem título",
-              quantity: s.quantity ?? v.quantity ?? 1,
-            }));
-          }
+           // Normalizar: se não tem services, criar array com assignment/quantity
+           if (!v.services && v.assignment) {
+             v.services = [{ assignment: v.assignment, quantity: v.quantity ?? 1, jobTime: "--", jobValue: "--" }];
+           }
+           // Garantir que services tenha fallbacks
+           if (v.services) {
+             v.services = v.services.map(s => ({
+               assignment: s.assignment || v.assignment || "Sem título",
+               quantity: s.quantity ?? v.quantity ?? 1,
+               jobTime: s.jobTime || "--",
+               jobValue: s.jobValue || "--",
+             }));
+           }
           setVacancy(v);
         }
       })
@@ -286,7 +291,7 @@ const DetalheEventoContratante = () => {
 
   const formattedDate = (() => {
     try {
-      return new Date(vacancy.jobDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+      return new Date(vacancy.jobDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
     } catch { return vacancy.jobDate; }
   })();
 
@@ -554,41 +559,85 @@ const DetalheEventoContratante = () => {
 
   return (
     <AppLayout showFooter={false}>
-      <div className="pt-20 lg:pt-24 px-4 max-w-3xl mx-auto pb-8 space-y-6">
-        {/* Header */}
-        <div>
-          <button onClick={() => navigate(-1)} className="text-sm text-primary flex items-center gap-1 mb-2 hover:underline">
-            ← Voltar
-          </button>
-          <h1 className="text-2xl font-display font-bold">{vacancy.establishment}</h1>
-          <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
-            statusStyles[vacancy.status] || "bg-muted text-muted-foreground"
-          }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
-        </div>
+       <div className="pt-20 lg:pt-24 px-4 max-w-3xl mx-auto pb-8 space-y-6">
+         {/* Header */}
+         <div>
+           <button onClick={() => navigate(-1)} className="text-sm text-primary flex items-center gap-1 mb-2 hover:underline">
+             ← Voltar
+           </button>
+           <h1 className="text-2xl font-display font-bold">
+             {vacancy.services?.[0]?.assignment || vacancy.assignment || "Vaga"}
+           </h1>
+           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
+             statusStyles[vacancy.status] || "bg-muted text-muted-foreground"
+           }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
+         </div>
 
-        {/* Detalhes */}
-        <Card>
-          <CardContent className="p-5">
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { icon: Calendar, value: formattedDate, label: "Data", color: "text-primary" },
-                { icon: Clock, value: vacancy.jobTime, label: "Duração", color: "text-primary" },
-                { icon: DollarSign, value: vacancy.jobValue, label: "Valor/pessoa", color: "text-success" },
-                { icon: Briefcase, value: vacancy.assignment, label: "Função", color: "text-primary" },
-                { icon: Users, value: `${vacancy.quantity}`, label: "Freelancers", color: "text-accent" },
-                { icon: Briefcase, value: vacancy.establishment, label: "Local", color: "text-primary" },
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
-                  <item.icon className={`w-5 h-5 ${item.color}`} />
-                  <div>
-                    <p className="text-xs font-bold truncate max-w-[100px]">{item.value}</p>
-                    <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+         {/* Detalhes - Services Cards */}
+         {vacancy.services && vacancy.services.length > 0 ? (
+           <>
+             {vacancy.services.map((service, serviceIndex) => (
+               <Card key={serviceIndex} className="mb-4">
+                 <CardContent className="p-5">
+                   <div className="grid grid-cols-3 gap-3">
+                     {[
+                       { icon: Calendar, value: formattedDate, label: "Data", color: "text-primary" },
+                       { icon: Clock, value: service.jobTime, label: "Duração", color: "text-primary" },
+                       { icon: DollarSign, value: service.jobValue, label: "Valor/pessoa", color: "text-success" },
+                       { icon: Users, value: `${service.quantity}`, label: "Freelancers", color: "text-accent" },
+                       { icon: MapPin, value: vacancy.establishment, label: "Local", color: "text-primary" },
+                     ].map((item, i) => (
+                       <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
+                         <item.icon className={`w-5 h-5 ${item.color}`} />
+                         <div>
+                           {item.label === "Valor/pessoa" && (
+                             <p className="text-xs font-bold truncate max-w-[100px]">
+                               R$ {parseFloat(item.value).toFixed(2).replace('.', ',')}
+                             </p>
+                           )}
+                           {item.label !== "Valor/pessoa" && (
+                             <p className="text-xs font-bold truncate max-w-[100px]">{item.value}</p>
+                           )}
+                           <p className="text-[10px] text-muted-foreground">{item.label}</p>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 </CardContent>
+               </Card>
+             ))}
+           </>
+         ) : (
+           {/* Fallback to original layout if no services */}
+           <Card>
+             <CardContent className="p-5">
+               <div className="grid grid-cols-3 gap-3">
+                 {[
+                   { icon: Calendar, value: formattedDate, label: "Data", color: "text-primary" },
+                   { icon: Clock, value: vacancy.jobTime, label: "Duração", color: "text-primary" },
+                   { icon: DollarSign, value: vacancy.jobValue, label: "Valor/pessoa", color: "text-success" },
+                   { icon: Users, value: `${vacancy.quantity}`, label: "Freelancers", color: "text-accent" },
+                   { icon: MapPin, value: vacancy.establishment, label: "Local", color: "text-primary" },
+                 ].map((item, i) => (
+                   <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
+                     <item.icon className={`w-5 h-5 ${item.color}`} />
+                     <div>
+                       {item.label === "Valor/pessoa" && (
+                         <p className="text-xs font-bold truncate max-w-[100px]">
+                           R$ {parseFloat(item.value).toFixed(2).replace('.', ',')}
+                         </p>
+                       )}
+                       {item.label !== "Valor/pessoa" && (
+                         <p className="text-xs font-bold truncate max-w-[100px]">{item.value}</p>
+                       )}
+                       <p className="text-[10px] text-muted-foreground">{item.label}</p>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             </CardContent>
+           </Card>
+         )}
 
 
         {/* Freelancers - conditional by status */}
