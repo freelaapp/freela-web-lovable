@@ -967,19 +967,17 @@ const DetalheEventoContratante = () => {
                   </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { value: selectedFreelancer.jobs.toString(), label: "Trabalhos" },
-                    { value: selectedFreelancer.rating.toString(), label: "Nota" },
-                    { value: selectedFreelancer.responseTime, label: "Resposta" },
-                  ].map(s => (
-                    <div key={s.label} className="text-center p-3 rounded-xl bg-muted/50">
-                      <p className="text-sm font-bold text-primary">{s.value}</p>
-                      <p className="text-[10px] text-muted-foreground">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
+                 {/* Stats */}
+                 <div className="grid grid-cols-1 gap-2">
+                   {[
+                     { value: selectedFreelancer.jobs.toString(), label: "Trabalhos" },
+                   ].map(s => (
+                     <div key={s.label} className="text-center p-3 rounded-xl bg-muted/50">
+                       <p className="text-sm font-bold text-primary">{s.value}</p>
+                       <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                     </div>
+                   ))}
+                 </div>
 
                 {/* Bio */}
                 <div>
