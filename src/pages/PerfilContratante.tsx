@@ -6,36 +6,76 @@ import AppLayout from "@/components/layout/AppLayout";
 import { useEffect, useState } from "react";
 import { getContractorById, PublicContractorProfile } from "@/lib/api";
 
+const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
 
 const PerfilContratante = () => {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<PublicContractorProfile | null>(null);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState<string | null>(null);
+   const [profile, setProfile] = useState<PublicContractorProfile | null>(null);
+   const [reviews, setReviews] = useState<any[]>([]);
+   const [loadingReviews, setLoadingReviews] = useState(false);
 
-  useEffect(() => {
-    if (!clientId) {
-      setError("ID do contratante não fornecido.");
-      setLoading(false);
-      return;
-    }
+   useEffect(() => {
+     if (!clientId) {
+       setError("ID do contratante não fornecido.");
+       setLoading(false);
+       return;
+     }
 
-    const fetchProfile = async () => {
-      try {
-        const data = await getContractorById(clientId);
-        setProfile(data);
-      } catch (err) {
-        console.error("[PerfilContratante] Erro ao buscar perfil:", err);
-        setError("Não foi possível carregar o perfil. Tente novamente.");
-      } finally {
-        setLoading(false);
-      }
-    };
+     const fetchProfile = async () => {
+       try {
+         const data = await getContractorById(clientId);
+         setProfile(data);
+       } catch (err) {
+         console.error("[PerfilContratante] Erro ao buscar perfil:", err);
+         setError("Não foi possível carregar o perfil. Tente novamente.");
+       } finally {
+         setLoading(false);
+       }
+     };
 
-    fetchProfile();
-  }, [clientId]);
+     const fetchReviews = async () => {
+       if (!clientId) return;
+       setLoadingReviews(true);
+       try {
+         const tokenRaw = localStorage.getItem("authToken");
+         const headers: any = { "Content-Type": "application/json" };
+         if (tokenRaw) {
+           const token = JSON.parse(tokenRaw);
+           headers.Authorization = `Bearer ${token}`;
+           headers["Origin-type"] = "Web";
+         }
+
+         const res = await fetch(`${API_BASE_URL}/contractors/${clientId}/jobs/feedbacks`, {
+           method: "GET",
+           credentials: "include",
+           headers,
+         });
+
+         if (res.ok) {
+           const body = await res.json().catch(() => null);
+           const data = body?.data ?? body;
+           const reviewsArray = Array.isArray(data) ? data : [];
+           // Últimas 3 avaliações (mais recentes primeiro)
+           setReviews(reviewsArray.slice(0, 3));
+         } else {
+           console.warn("[PerfilContratante] Failed to fetch reviews:", res.status);
+           setReviews([]);
+         }
+       } catch (err) {
+         console.error("[PerfilContratante] Erro ao buscar avaliações:", err);
+         setReviews([]);
+       } finally {
+         setLoadingReviews(false);
+       }
+     };
+
+     fetchProfile();
+     fetchReviews();
+   }, [clientId]);
 
   const renderStars = (rating: number) => (
     <div className="flex gap-0.5">
@@ -131,9 +171,8 @@ const PerfilContratante = () => {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 justify-center sm:justify-start">
-              <h2 className="text-xl font-display font-bold">{displayName}</h2>
-              {profile.feedbackStars >= 4 && <Shield className="w-5 h-5 text-primary fill-primary/20" />}
-            </div>
+               <h2 className="text-xl font-display font-bold">{displayName}</h2>
+             </div>
             <div className="flex items-center gap-2 mt-1 justify-center sm:justify-start">
               {isPJ ? (
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -227,15 +266,38 @@ const PerfilContratante = () => {
         <Card>
           <CardContent className="p-5">
             <h3 className="font-display font-semibold text-base mb-3">Avaliação</h3>
-            <div className="flex items-center gap-3">
-              <div className="text-3xl font-bold font-display text-primary">
-                {profile.feedbackStars.toFixed(1)}
-              </div>
-              <div>
-                {renderStars(profile.feedbackStars)}
-                <p className="text-xs text-muted-foreground mt-1">Baseado em avaliações</p>
-              </div>
-            </div>
+             <div className="flex items-center gap-3 mb-3">
+               <div className="text-3xl font-bold font-display text-primary">
+                 {profile.feedbackStars.toFixed(1)}
+               </div>
+               <div>
+                 {renderStars(profile.feedbackStars)}
+               </div>
+             </div>
+             {/* Lista das últimas 3 avaliações */}
+             {loadingReviews ? (
+               <p className="text-sm text-muted-foreground">Carregando avaliações...</p>
+             ) : reviews.length > 0 ? (
+               <div className="space-y-3">
+                 {reviews.map((review, idx) => {
+                   const rating = review.rating || review.score || 0;
+                   const comment = review.comment || review.text || "";
+                   const date = review.createdAt ? new Date(review.createdAt).toLocaleDateString('pt-BR') : "";
+                   return (
+                     <div key={idx} className="border-b border-border pb-3 last:border-0">
+                       <div className="flex items-center gap-1 mb-1">
+                         {renderStars(rating)}
+                         <span className="text-xs font-medium">{rating.toFixed(1)}</span>
+                       </div>
+                       {comment && <p className="text-sm">{comment}</p>}
+                       {date && <p className="text-xs text-muted-foreground mt-1">{date}</p>}
+                     </div>
+                   );
+                 })}
+               </div>
+             ) : (
+               <p className="text-sm text-muted-foreground">Nenhuma avaliação recebida ainda.</p>
+             )}
           </CardContent>
         </Card>
       </div>

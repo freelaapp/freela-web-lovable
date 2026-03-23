@@ -197,25 +197,8 @@ const DetalheVaga = () => {
          if (contractorData) {
            const feedbackStars = contractorData.feedbackStars ?? 0;
            setContractorFeedback(feedbackStars);
-
-           // Fetch user name using userId
-           const userId = contractorData.userId;
-           console.log("[DetalheVaga] userId from contractor:", userId);
-           if (userId) {
-             try {
-               const userRes = await apiFetch(`${API_BASE_URL}/users/${userId}`, { headers });
-               const userBody = await userRes.json().catch(() => null);
-               const userData = userBody?.data ?? userBody;
-               console.log("[DetalheVaga] User data:", userData);
-               if (userData?.name) {
-                 setContractorName(userData.name);
-               } else if (userData?.fullName) {
-                 setContractorName(userData.fullName);
-               }
-             } catch (userErr) {
-               console.warn("[DetalheVaga] Failed to fetch user name:", userErr);
-             }
-           }
+           const companyName = contractorData.companyName || contractorData.name || "--";
+           setContractorName(companyName);
          }
        } catch (err) {
          console.error("[DetalheVaga] Error fetching contractor data:", err);
