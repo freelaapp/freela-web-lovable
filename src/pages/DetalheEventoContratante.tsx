@@ -650,9 +650,9 @@ const DetalheEventoContratante = () => {
                </Card>
              ))}
            </>
-         ) : (
-           {/* Fallback to original layout if no services */}
-           <Card>
+          ) : (
+            /* Fallback to original layout if no services */
+            <Card>
              <CardContent className="p-5">
                <div className="grid grid-cols-3 gap-3">
                  {[
