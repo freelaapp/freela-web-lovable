@@ -97,10 +97,14 @@ const DetalheVaga = () => {
    const [contractorFeedback, setContractorFeedback] = useState<number>(0);
    const [loadingContractor, setLoadingContractor] = useState(true);
 
-   useEffect(() => {
-     const fetchData = async () => {
-       if (!vagaId) return;
-       try {
+    useEffect(() => {
+      const fetchData = async () => {
+        if (!vagaId) return;
+        // Se a vaga veio da seção de Vagas Pendentes, já está aplicada
+        if (source === "pendentes") {
+          setApplied(true);
+        }
+        try {
          if (isAgendada) {
            // For scheduled jobs: use /jobs/{jobId} and /candidacies/{vacancyId}
            const actualJobId = jobIdFromState || vagaId;

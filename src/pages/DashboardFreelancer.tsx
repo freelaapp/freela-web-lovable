@@ -519,8 +519,8 @@ const DashboardFreelancer = () => {
                    const jobTime = service.jobTime || "--";
                    const jobValue = service.jobValue || "--";
                    const jobDate = vaga.jobDate || "--";
-                   return (
-                    <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`)}>
+                    return (
+                     <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`, { state: { source: 'pendentes' } })}>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold truncate">{assignment}</p>
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-warning-light text-warning">Pendente</span>
