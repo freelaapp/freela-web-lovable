@@ -188,7 +188,7 @@ const DetalheVaga = () => {
          }
 
          // Fetch contractor by ID
-         const contractorRes = await apiFetch(`${API_BASE_URL}/users/contractors/${contractorId}`, { headers });
+         const contractorRes = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}`, { headers });
          const contractorBody = await contractorRes.json().catch(() => null);
          const contractorData = contractorBody?.data ?? contractorBody;
 
