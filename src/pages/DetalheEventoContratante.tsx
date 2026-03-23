@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, type JobPaymentResponse } from "@/lib/api";
 import Pusher from "pusher-js";
+import { formatCurrency } from "@/lib/formatters";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
