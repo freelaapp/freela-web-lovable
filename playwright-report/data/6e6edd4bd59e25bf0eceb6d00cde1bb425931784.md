@@ -1,0 +1,541 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "Freela Serviços" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img "Freela Serviços" [ref=e9]
+        - navigation [ref=e10]:
+          - link "Início" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "O que é o Freela" [ref=e12] [cursor=pointer]:
+            - /url: /#o-que-e
+          - link "Como funciona" [ref=e13] [cursor=pointer]:
+            - /url: /#como-funciona
+          - link "Parcerias" [ref=e14] [cursor=pointer]:
+            - /url: /#parcerias
+          - link "Dúvidas" [ref=e15] [cursor=pointer]:
+            - /url: /#duvidas
+        - generic [ref=e16]:
+          - link "Entrar" [ref=e17] [cursor=pointer]:
+            - /url: /login
+          - link "Cadastre-se" [ref=e18] [cursor=pointer]:
+            - /url: /cadastro
+    - main [ref=e19]:
+      - generic [ref=e21]:
+        - img "Contrate Freelancers para seu Bar, Restaurante, Buffet e Empresa de Eventos" [ref=e23]
+        - img "Contrate Freelancers para seu Churrasco, Aniversário ou Casamento" [ref=e26]
+        - img "Contrate Freelancers para Eventos Corporativos e Grandes Operações" [ref=e29]
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - img [ref=e35]
+            - generic [ref=e39]: Contratar para minha Empresa
+          - heading "Contrate Freelancers para seu Bar, Restaurante, Buffet e Empresa de Eventos" [level=1] [ref=e40]
+          - paragraph [ref=e41]: Conectamos você a profissionais qualificados em todo o Brasil. Rápido, seguro e sem burocracia.
+          - generic [ref=e42]:
+            - link "Contratar para minha Empresa" [ref=e43] [cursor=pointer]:
+              - /url: /inicio?modo=empresas
+              - text: Contratar para minha Empresa
+              - img
+            - link "Quero trabalhar pelo Freela" [ref=e44] [cursor=pointer]:
+              - /url: /cadastro
+              - img
+              - text: Quero trabalhar pelo Freela
+          - generic [ref=e45]:
+            - button "Ir para slide 1" [ref=e46] [cursor=pointer]
+            - button "Ir para slide 2" [ref=e47] [cursor=pointer]
+            - button "Ir para slide 3" [ref=e48] [cursor=pointer]
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - paragraph [ref=e53]:
+              - generic [ref=e54]: 0+
+            - paragraph [ref=e55]: profissionais cadastrados
+          - generic [ref=e56]:
+            - paragraph [ref=e57]: BR
+            - paragraph [ref=e58]: Presente em todo o Brasil
+          - generic [ref=e59]:
+            - paragraph [ref=e60]:
+              - generic [ref=e61]: 0+
+            - paragraph [ref=e62]: contratações realizadas
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - img [ref=e65]
+            - generic [ref=e67]: Plataforma segura
+          - generic [ref=e68]:
+            - img [ref=e69]
+            - generic [ref=e71]: Profissionais avaliados
+          - generic [ref=e72]:
+            - img [ref=e73]
+            - generic [ref=e75]: Suporte ativo
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - generic [ref=e79]: Conheça o Freela
+          - heading "O jeito mais seguro e organizado de contratar profissionais." [level=2] [ref=e80]
+          - paragraph [ref=e81]: Conectamos você a profissionais qualificados para empresas e eventos particulares em todo o Brasil — sem custo adicional.
+        - generic [ref=e83]:
+          - paragraph [ref=e84]: O Freela é uma plataforma que conecta contratantes a profissionais qualificados de forma rápida, segura e organizada.
+          - paragraph [ref=e85]: Seja para reforçar a equipe do seu negócio ou para seu evento em casa, você encontra profissionais prontos para trabalhar em poucos cliques.
+          - generic [ref=e86]:
+            - paragraph [ref=e87]: Você não paga nada a mais por contratar pelo Freela.
+            - paragraph [ref=e88]: O valor é o valor de mercado. Sem taxas escondidas. Sem surpresas.
+            - paragraph [ref=e89]: A plataforma apenas organiza, facilita e dá segurança à contratação.
+        - generic [ref=e90]:
+          - generic [ref=e91]:
+            - img [ref=e93]
+            - heading "Sem custo adicional" [level=5] [ref=e96]
+            - paragraph [ref=e97]: Você paga o valor de mercado. Sem taxas escondidas.
+          - generic [ref=e98]:
+            - img [ref=e100]
+            - heading "Profissionais avaliados" [level=5] [ref=e102]
+            - paragraph [ref=e103]: Cadastrados e avaliados por quem já contratou.
+          - generic [ref=e104]:
+            - img [ref=e106]
+            - heading "Processo rápido e digital" [level=5] [ref=e108]
+            - paragraph [ref=e109]: Encontre e contrate em poucos cliques.
+          - generic [ref=e110]:
+            - img [ref=e112]
+            - heading "Presença nacional" [level=5] [ref=e115]
+            - paragraph [ref=e116]: Profissionais disponíveis em todo o Brasil.
+          - generic [ref=e117]:
+            - img [ref=e119]
+            - heading "Suporte da plataforma" [level=5] [ref=e121]
+            - paragraph [ref=e122]: Apoio do início ao fim da contratação.
+        - generic [ref=e124]:
+          - paragraph [ref=e125]: Contratar da forma tradicional pode gerar desorganização, insegurança e perda de tempo.
+          - paragraph [ref=e126]: Com o Freela, você mantém controle, clareza e praticidade — pagando exatamente o que pagaria no mercado.
+        - generic [ref=e127]:
+          - link "Contratar para Empresa" [ref=e128] [cursor=pointer]:
+            - /url: /inicio?modo=empresas
+            - img
+            - text: Contratar para Empresa
+            - img
+          - link "Contratar para Evento em Casa" [ref=e129] [cursor=pointer]:
+            - /url: /inicio?modo=casa
+            - img
+            - text: Contratar para Evento em Casa
+            - img
+      - generic [ref=e131]:
+        - generic [ref=e132]:
+          - generic [ref=e133]: Simples e rápido
+          - heading "Como funciona?" [level=2] [ref=e134]
+          - paragraph [ref=e135]: Seja para contratar ou trabalhar, o processo é rápido e descomplicado.
+        - generic [ref=e136]:
+          - generic [ref=e137]:
+            - generic [ref=e138]:
+              - img [ref=e140]
+              - heading "Para Contratantes" [level=4] [ref=e144]
+            - generic [ref=e145]:
+              - generic [ref=e146]:
+                - generic [ref=e147]:
+                  - img [ref=e148]
+                  - generic [ref=e151]: "01"
+                - generic [ref=e152]:
+                  - heading "Publique sua necessidade" [level=5] [ref=e153]
+                  - paragraph [ref=e154]: Informe o tipo de profissional que precisa, data e local.
+              - generic [ref=e155]:
+                - generic [ref=e156]:
+                  - img [ref=e157]
+                  - generic [ref=e162]: "02"
+                - generic [ref=e163]:
+                  - heading "Receba candidatos qualificados" [level=5] [ref=e164]
+                  - paragraph [ref=e165]: Profissionais avaliados se candidatam à sua vaga.
+              - generic [ref=e166]:
+                - generic [ref=e167]:
+                  - img [ref=e168]
+                  - generic [ref=e171]: "03"
+                - generic [ref=e172]:
+                  - heading "Confirme e acompanhe" [level=5] [ref=e173]
+                  - paragraph [ref=e174]: Escolha o melhor e gerencie tudo pelo app.
+            - link "Contratar Agora" [ref=e175] [cursor=pointer]:
+              - /url: /cadastro
+              - text: Contratar Agora
+              - img
+          - generic [ref=e176]:
+            - generic [ref=e177]:
+              - img [ref=e179]
+              - heading "Para Freelancers" [level=4] [ref=e182]
+            - generic [ref=e183]:
+              - generic [ref=e184]:
+                - generic [ref=e185]:
+                  - img [ref=e186]
+                  - generic [ref=e189]: "01"
+                - generic [ref=e190]:
+                  - heading "Cadastre-se gratuitamente" [level=5] [ref=e191]
+                  - paragraph [ref=e192]: Crie seu perfil e mostre suas habilidades.
+              - generic [ref=e193]:
+                - generic [ref=e194]:
+                  - img [ref=e195]
+                  - generic [ref=e198]: "02"
+                - generic [ref=e199]:
+                  - heading "Receba oportunidades" [level=5] [ref=e200]
+                  - paragraph [ref=e201]: Oportunidades na sua região chegam até você.
+              - generic [ref=e202]:
+                - generic [ref=e203]:
+                  - img [ref=e204]
+                  - generic [ref=e207]: "03"
+                - generic [ref=e208]:
+                  - heading "Trabalhe e receba" [level=5] [ref=e209]
+                  - paragraph [ref=e210]: Aceite serviços e receba pelas oportunidades.
+            - link "Quero me cadastrar" [ref=e211] [cursor=pointer]:
+              - /url: /cadastro
+              - text: Quero me cadastrar
+              - img
+      - generic [ref=e213]:
+        - generic [ref=e214]:
+          - generic [ref=e215]: Soluções
+          - heading "Nossas Soluções" [level=2] [ref=e216]
+        - generic [ref=e217]:
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - img [ref=e221]
+              - heading "Freela para Empresas" [level=3] [ref=e225]
+            - paragraph [ref=e226]: Equipe extra para bares, restaurantes, eventos corporativos e grandes operações.
+            - generic [ref=e227]:
+              - generic [ref=e228]:
+                - img [ref=e229]
+                - generic [ref=e232]: Garçons
+              - generic [ref=e233]:
+                - img [ref=e234]
+                - generic [ref=e236]: Bartenders
+              - generic [ref=e237]:
+                - img [ref=e238]
+                - generic [ref=e240]: Cozinheiros
+              - generic [ref=e241]:
+                - img [ref=e242]
+                - generic [ref=e247]: Auxiliares
+              - generic [ref=e248]:
+                - img [ref=e249]
+                - generic [ref=e254]: Caixa
+              - generic [ref=e255]:
+                - img [ref=e256]
+                - generic [ref=e259]: Recepção
+              - generic [ref=e260]:
+                - img [ref=e261]
+                - generic [ref=e264]: Produção de eventos
+            - link "Conhecer Freela para Empresas" [ref=e265] [cursor=pointer]:
+              - /url: /inicio?modo=empresas
+              - text: Conhecer Freela para Empresas
+              - img
+          - generic [ref=e266]:
+            - generic [ref=e267]:
+              - img [ref=e269]
+              - heading "Freela em Casa" [level=3] [ref=e272]
+            - paragraph [ref=e273]: Profissionais para festas, aniversários, churrascos e eventos particulares.
+            - generic [ref=e274]:
+              - generic [ref=e275]:
+                - img [ref=e276]
+                - generic [ref=e279]: Garçom para festa
+              - generic [ref=e280]:
+                - img [ref=e281]
+                - generic [ref=e286]: Churrasqueiro
+              - generic [ref=e287]:
+                - img [ref=e288]
+                - generic [ref=e290]: Bartender
+              - generic [ref=e291]:
+                - img [ref=e292]
+                - generic [ref=e294]: Copeira
+              - generic [ref=e295]:
+                - img [ref=e296]
+                - generic [ref=e299]: Recreação infantil
+              - generic [ref=e300]:
+                - img [ref=e301]
+                - generic [ref=e305]: Música ao vivo
+            - link "Conhecer Freela em Casa" [ref=e306] [cursor=pointer]:
+              - /url: /inicio?modo=casa
+              - text: Conhecer Freela em Casa
+              - img
+      - generic [ref=e309]:
+        - img "Mapa do Brasil - Freelancers disponíveis" [ref=e311]
+        - generic [ref=e312]:
+          - generic [ref=e313]: 📍 Cobertura Nacional
+          - heading "Veja a quantidade de freelancers perto de você" [level=2] [ref=e314]
+          - paragraph [ref=e315]: Milhares de profissionais qualificados espalhados por todo o Brasil, prontos para trabalhar na sua região. Encontre garçons, bartenders, cozinheiros e muito mais.
+          - link "Ver freelancers disponíveis" [ref=e316] [cursor=pointer]:
+            - /url: /cadastro
+            - img
+            - text: Ver freelancers disponíveis
+            - img
+      - generic [ref=e318]:
+        - generic [ref=e319]:
+          - generic [ref=e320]: Depoimentos
+          - heading "Quem usa, recomenda" [level=2] [ref=e321]
+        - generic [ref=e322]:
+          - generic [ref=e323]:
+            - generic [ref=e324]:
+              - img [ref=e325]
+              - img [ref=e327]
+              - img [ref=e329]
+              - img [ref=e331]
+              - img [ref=e333]
+            - paragraph [ref=e335]: "\"Precisei de 3 garçons de última hora e em 30 minutos já tinha profissionais confirmados. Incrível!\""
+            - generic [ref=e336]:
+              - paragraph [ref=e337]: Mariana Costa
+              - paragraph [ref=e338]: Proprietária de Restaurante
+          - generic [ref=e339]:
+            - generic [ref=e340]:
+              - img [ref=e341]
+              - img [ref=e343]
+              - img [ref=e345]
+              - img [ref=e347]
+              - img [ref=e349]
+            - paragraph [ref=e351]: "\"Uso o Freela para todos os meus eventos corporativos. A qualidade dos profissionais é consistente.\""
+            - generic [ref=e352]:
+              - paragraph [ref=e353]: Ricardo Almeida
+              - paragraph [ref=e354]: Organizador de Eventos
+          - generic [ref=e355]:
+            - generic [ref=e356]:
+              - img [ref=e357]
+              - img [ref=e359]
+              - img [ref=e361]
+              - img [ref=e363]
+              - img [ref=e365]
+            - paragraph [ref=e367]: "\"Contratei um churrasqueiro pelo Freela para o aniversário do meu marido. Foi perfeito, recomendo!\""
+            - generic [ref=e368]:
+              - paragraph [ref=e369]: Juliana Santos
+              - paragraph [ref=e370]: Festa em casa
+        - generic [ref=e371]:
+          - generic [ref=e372]:
+            - img [ref=e374]
+            - generic [ref=e379]:
+              - paragraph [ref=e380]: +180 mil
+              - paragraph [ref=e381]: profissionais cadastrados
+          - generic [ref=e382]:
+            - img [ref=e384]
+            - generic [ref=e387]:
+              - paragraph [ref=e388]: Brasil inteiro
+              - paragraph [ref=e389]: atendido
+          - generic [ref=e390]:
+            - img [ref=e392]
+            - generic [ref=e395]:
+              - paragraph [ref=e396]: Crescimento
+              - paragraph [ref=e397]: constante
+      - generic [ref=e399]:
+        - generic [ref=e400]:
+          - generic [ref=e401]: 🎁 Benefícios exclusivos
+          - heading "Vantagens de fazer parte do Freela" [level=2] [ref=e402]
+          - paragraph [ref=e403]: Economia real e capacitação profissional para quem usa o ecossistema Freela.
+        - generic [ref=e405]:
+          - generic [ref=e406]:
+            - img [ref=e407]
+            - generic [ref=e410]: Capacitação profissional
+          - heading "Treinamentos e Capacitação" [level=3] [ref=e411]
+          - paragraph [ref=e412]: Aprimore suas habilidades com cursos dos melhores parceiros do setor de hospitalidade e destaque-se no mercado.
+          - generic [ref=e413]:
+            - generic [ref=e414]:
+              - generic [ref=e415]: 🍺
+              - generic [ref=e416]:
+                - heading "Bares SP" [level=5] [ref=e417]
+                - paragraph [ref=e418]: Coquetelaria, gestão de bares e tendências do mercado.
+              - link "Saber mais" [ref=e419] [cursor=pointer]:
+                - /url: https://baressp.com.br/cursos-online/
+                - button "Saber mais" [ref=e420]:
+                  - text: Saber mais
+                  - img
+            - generic [ref=e421]:
+              - generic [ref=e422]: 🥃
+              - generic [ref=e423]:
+                - heading "Diageo Bar Academy" [level=5] [ref=e424]
+                - paragraph [ref=e425]: Certificação internacional em mixologia e atendimento premium.
+              - link "Saber mais" [ref=e426] [cursor=pointer]:
+                - /url: https://www.diageobaracademy.com/pt-br/home/learning-for-life
+                - button "Saber mais" [ref=e427]:
+                  - text: Saber mais
+                  - img
+            - generic [ref=e428]:
+              - generic [ref=e429]: 📊
+              - generic [ref=e430]:
+                - heading "Sebrae" [level=5] [ref=e431]
+                - paragraph [ref=e432]: Gestão financeira, marketing e formalização para empresários.
+              - link "Saber mais" [ref=e433] [cursor=pointer]:
+                - /url: https://sebrae.com.br/sites/PortalSebrae
+                - button "Saber mais" [ref=e434]:
+                  - text: Saber mais
+                  - img
+      - generic [ref=e436]:
+        - generic [ref=e437]:
+          - generic [ref=e438]: ❓ Tire suas dúvidas
+          - heading "Dúvidas Frequentes" [level=2] [ref=e439]
+          - paragraph [ref=e440]: Tudo o que você precisa saber antes de contratar ou se cadastrar.
+        - generic [ref=e442]:
+          - heading "Contratar pelo Freela é mais caro?" [level=3] [ref=e444]:
+            - button "Contratar pelo Freela é mais caro?" [ref=e445] [cursor=pointer]:
+              - generic [ref=e446]:
+                - img [ref=e448]
+                - generic [ref=e450]: Contratar pelo Freela é mais caro?
+              - img [ref=e451]
+          - heading "O Freela cobra taxa de assinatura?" [level=3] [ref=e454]:
+            - button "O Freela cobra taxa de assinatura?" [ref=e455] [cursor=pointer]:
+              - generic [ref=e456]:
+                - img [ref=e458]
+                - generic [ref=e460]: O Freela cobra taxa de assinatura?
+              - img [ref=e461]
+          - heading "Os profissionais são verificados?" [level=3] [ref=e464]:
+            - button "Os profissionais são verificados?" [ref=e465] [cursor=pointer]:
+              - generic [ref=e466]:
+                - img [ref=e468]
+                - generic [ref=e472]: Os profissionais são verificados?
+              - img [ref=e473]
+          - heading "Posso contratar apenas um profissional?" [level=3] [ref=e476]:
+            - button "Posso contratar apenas um profissional?" [ref=e477] [cursor=pointer]:
+              - generic [ref=e478]:
+                - img [ref=e480]
+                - generic [ref=e485]: Posso contratar apenas um profissional?
+              - img [ref=e486]
+          - heading "O Freela atende minha cidade?" [level=3] [ref=e489]:
+            - button "O Freela atende minha cidade?" [ref=e490] [cursor=pointer]:
+              - generic [ref=e491]:
+                - img [ref=e493]
+                - generic [ref=e496]: O Freela atende minha cidade?
+              - img [ref=e497]
+          - heading "Sou profissional. Como faço para trabalhar pelo Freela?" [level=3] [ref=e500]:
+            - button "Sou profissional. Como faço para trabalhar pelo Freela?" [ref=e501] [cursor=pointer]:
+              - generic [ref=e502]:
+                - img [ref=e504]
+                - generic [ref=e507]: Sou profissional. Como faço para trabalhar pelo Freela?
+              - img [ref=e508]
+          - heading "Preciso assinar contrato?" [level=3] [ref=e511]:
+            - button "Preciso assinar contrato?" [ref=e512] [cursor=pointer]:
+              - generic [ref=e513]:
+                - img [ref=e515]
+                - generic [ref=e518]: Preciso assinar contrato?
+              - img [ref=e519]
+          - heading "Como funciona o pagamento?" [level=3] [ref=e522]:
+            - button "Como funciona o pagamento?" [ref=e523] [cursor=pointer]:
+              - generic [ref=e524]:
+                - img [ref=e526]
+                - generic [ref=e528]: Como funciona o pagamento?
+              - img [ref=e529]
+        - generic [ref=e531]:
+          - generic [ref=e532]:
+            - generic [ref=e533]:
+              - img [ref=e534]
+              - generic [ref=e536]: Disponível para iOS e Android
+            - heading "Baixe o App Freela e facilite sua experiência." [level=3] [ref=e537]
+            - paragraph [ref=e538]: Escolha seu perfil e tenha acesso completo à plataforma.
+          - generic [ref=e539]:
+            - generic [ref=e540]:
+              - generic [ref=e541]:
+                - img [ref=e542]
+                - generic [ref=e545]: Sou Profissional
+              - heading "Receba oportunidades na sua região" [level=4] [ref=e546]
+              - paragraph [ref=e547]: Gerencie seus trabalhos, aumente sua renda e receba ofertas diretamente no seu celular.
+              - generic [ref=e548]:
+                - link "Apple Store" [ref=e549] [cursor=pointer]:
+                  - /url: "#"
+                  - img [ref=e550]
+                  - text: Apple Store
+                - link "Google Play" [ref=e552] [cursor=pointer]:
+                  - /url: "#"
+                  - img [ref=e553]
+                  - text: Google Play
+            - generic [ref=e555]:
+              - generic [ref=e556]:
+                - img [ref=e557]
+                - generic [ref=e561]: Sou Contratante
+              - heading "Encontre profissionais rapidamente" [level=4] [ref=e562]
+              - paragraph [ref=e563]: Publique vagas, gerencie contratações com facilidade e tenha controle total pelo celular.
+              - generic [ref=e564]:
+                - link "Apple Store" [ref=e565] [cursor=pointer]:
+                  - /url: "#"
+                  - img [ref=e566]
+                  - text: Apple Store
+                - link "Google Play" [ref=e568] [cursor=pointer]:
+                  - /url: "#"
+                  - img [ref=e569]
+                  - text: Google Play
+      - generic [ref=e572]:
+        - heading "Seu próximo profissional está a poucos cliques." [level=2] [ref=e573]
+        - paragraph [ref=e574]: Não perca tempo com métodos informais. Contrate com segurança e agilidade.
+        - generic [ref=e575]:
+          - link "Contratar para Empresa" [ref=e576] [cursor=pointer]:
+            - /url: /inicio?modo=empresas
+            - img
+            - text: Contratar para Empresa
+          - link "Contratar para Evento em Casa" [ref=e577] [cursor=pointer]:
+            - /url: /inicio?modo=casa
+            - img
+            - text: Contratar para Evento em Casa
+          - link "Quero trabalhar" [ref=e578] [cursor=pointer]:
+            - /url: /cadastro
+            - img
+            - text: Quero trabalhar
+        - link "Fale com nosso suporte" [ref=e580] [cursor=pointer]:
+          - /url: https://wa.me/5511999999999
+          - img [ref=e581]
+          - text: Fale com nosso suporte
+    - contentinfo [ref=e584]:
+      - generic [ref=e585]:
+        - generic [ref=e586]:
+          - generic [ref=e587]:
+            - link "Freela Serviços" [ref=e588] [cursor=pointer]:
+              - /url: /
+              - img "Freela Serviços" [ref=e589]
+            - paragraph [ref=e590]: Conectamos você a profissionais qualificados para eventos e estabelecimentos em todo o Brasil.
+            - generic [ref=e591]:
+              - link "contato@freelaservicos.com.br" [ref=e592] [cursor=pointer]:
+                - /url: mailto:contato@freelaservicos.com.br
+                - img [ref=e593]
+                - generic [ref=e596]: contato@freelaservicos.com.br
+              - link "+55 11 94873-5114" [ref=e597] [cursor=pointer]:
+                - /url: tel:+5511948735114
+                - img [ref=e598]
+                - generic [ref=e600]: +55 11 94873-5114
+          - generic [ref=e601]:
+            - heading "Plataforma" [level=4] [ref=e602]
+            - list [ref=e603]:
+              - listitem [ref=e604]:
+                - link "Sobre o Freela" [ref=e605] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=e606]:
+                - link "Como Funciona" [ref=e607] [cursor=pointer]:
+                  - /url: /#como-funciona
+              - listitem [ref=e608]:
+                - link "Freela para Empresas" [ref=e609] [cursor=pointer]:
+                  - /url: /inicio?modo=empresas
+              - listitem [ref=e610]:
+                - link "Freela em Casa" [ref=e611] [cursor=pointer]:
+                  - /url: /inicio?modo=casa
+          - generic [ref=e612]:
+            - heading "Suporte" [level=4] [ref=e613]
+            - list [ref=e614]:
+              - listitem [ref=e615]:
+                - link "Contato" [ref=e616] [cursor=pointer]:
+                  - /url: /contato
+              - listitem [ref=e617]:
+                - link "Termos de Uso" [ref=e618] [cursor=pointer]:
+                  - /url: /termos
+              - listitem [ref=e619]:
+                - link "Política de Privacidade" [ref=e620] [cursor=pointer]:
+                  - /url: /privacidade
+          - generic [ref=e621]:
+            - heading "Acesso" [level=4] [ref=e622]
+            - list [ref=e623]:
+              - listitem [ref=e624]:
+                - link "Entrar" [ref=e625] [cursor=pointer]:
+                  - /url: /login
+              - listitem [ref=e626]:
+                - link "Cadastre-se" [ref=e627] [cursor=pointer]:
+                  - /url: /cadastro
+              - listitem [ref=e628]:
+                - link "Ver Freelancers" [ref=e629] [cursor=pointer]:
+                  - /url: /freelancers
+        - generic [ref=e631]:
+          - paragraph [ref=e632]: © 2026 Freela Serviços. Todos os direitos reservados.
+          - generic [ref=e633]:
+            - link "Facebook" [ref=e634] [cursor=pointer]:
+              - /url: https://www.facebook.com/profile.php?id=61573385341423&locale=pt_BR
+              - img [ref=e635]
+            - link "Instagram" [ref=e637] [cursor=pointer]:
+              - /url: https://www.instagram.com/freelaservicos/
+              - img [ref=e638]
+            - link "LinkedIn" [ref=e641] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/freela-serviços/
+              - img [ref=e642]
+```

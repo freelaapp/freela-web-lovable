@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Bell, Shield, Moon, Smartphone, Users, FileText, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, Bell, Shield, Smartphone, Users, FileText, Loader2, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
@@ -18,20 +18,6 @@ interface SettingsState {
   notifPush: boolean;
   perfilPublico: boolean;
 }
-
-// ── Modo Escuro via localStorage (sem API) ─────────────────────
-const DARK_MODE_KEY = "freela_dark_mode";
-
-const getDarkMode = (): boolean => {
-  const stored = localStorage.getItem(DARK_MODE_KEY);
-  if (stored !== null) return stored === "true";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
-};
-
-const setDarkMode = (value: boolean) => {
-  localStorage.setItem(DARK_MODE_KEY, String(value));
-  document.documentElement.classList.toggle("dark", value);
-};
 
 // ── Estado inicial ──────────────────────────────────────────────
 const DEFAULT_SETTINGS: SettingsState = {
@@ -53,12 +39,6 @@ const ConfiguracoesContratante = () => {
   const [saving, setSaving] = useState(false);
   const [contractorId, setContractorId] = useState<string | null>(null);
   const [settings, setSettings] = useState<SettingsState>(DEFAULT_SETTINGS);
-  const [modoEscuro, setModoEscuro] = useState(getDarkMode);
-
-  // Aplicar tema escuro ao carregar
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", modoEscuro);
-  }, [modoEscuro]);
 
   // Carregar contractorId e settings da API
   useEffect(() => {
@@ -118,15 +98,6 @@ const ConfiguracoesContratante = () => {
 
   const handleToggle = (key: keyof SettingsState, value: boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleDarkModeToggle = (value: boolean) => {
-    setModoEscuro(value);
-    setDarkMode(value);
-    toast({
-      title: value ? "Modo escuro ativado" : "Modo claro ativado",
-      description: "Preferência salva localmente",
-    });
   };
 
   const handleSave = async () => {
@@ -244,25 +215,8 @@ const ConfiguracoesContratante = () => {
             <ToggleRow
               icon={Shield}
               label="Perfil público"
-              desc="其他人可以看到您的個人資料"
               checked={settings.perfilPublico}
               onChange={(v) => handleToggle("perfilPublico", v)}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Aparência - Modo Escuro (localStorage) */}
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-semibold flex items-center gap-2">
-              <Moon className="w-5 h-5 text-primary" /> Aparência
-            </h3>
-            <ToggleRow
-              icon={Moon}
-              label="Modo escuro"
-              desc="Altera o tema do aplicativo"
-              checked={modoEscuro}
-              onChange={handleDarkModeToggle}
             />
           </CardContent>
         </Card>
@@ -304,7 +258,7 @@ const ConfiguracoesContratante = () => {
 
         {/* Badge de status */}
         <p className="text-xs text-muted-foreground text-center">
-          Modo escuro salvo localmente • Outras configurações sincronizadas
+          Configurações sincronizadas com seu perfil
         </p>
       </div>
     </AppLayout>

@@ -6,6 +6,30 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-03-23
+### Removed
+- **Dark Mode toggle completo removido** — Feature desativada conforme decisão de product. Removidos:
+  - `DARK_MODE_KEY` localStorage key
+  - Funções `getDarkMode()` e `setDarkMode()` 
+  - Seção "Aparência" (Card com Moon icon e toggle)
+  - Handler `handleDarkModeToggle()`
+  - Estado `modoEscuro` do componente
+  - useEffect que aplicava classe 'dark' ao html
+
+- **Frase em chinês removida** — `其他人可以看到您的個人資料` removida da seção Privacidade (campo `desc` em ToggleRow)
+
+### Changed
+- **`src/pages/ConfiguracoesContratante.tsx`** — Removido import de `Moon` icon (linha 5)
+- **Badge message atualizado** — De "Modo escuro salvo localmente • Outras configurações sincronizadas" para "Configurações sincronizadas com seu perfil"
+
+### Notes
+- ✅ **QA Verdict: APPROVED**
+- Build: 0 erros, 3447 módulos transformados
+- Linting: 0 erros no arquivo modificado
+- Testes visuais (Playwright): Dark Mode toggle e frase chinês confirmados removidos
+- Conformidade: BR-CFG02 (Perfil público) íntegra
+- Regressão: Nenhuma — estrutura preservada
+
 ## [0.9.0] - 2026-03-20
 ### Fixed
 - **[P1] `docs/api-contracts.md` — Endpoints de recuperação de senha incorretos** — Endpoints documentados como `/forgot-password` e `/reset-password` estavam desalinhados com a API real que usa prefixo `/users/`. Corrigidos para `/users/forgot-password` e `/users/reset-password`.
