@@ -155,6 +155,7 @@ const DetalheVaga = () => {
 
            // Extract contractorId from vacancy data
            const contractorIdFromVaga = vacData?.contractorId || vacData?.contractor?.id;
+           console.log("[DetalheVaga] Extracted contractorId from vacancy:", contractorIdFromVaga, "Vacancy data:", vacData);
            if (contractorIdFromVaga) {
              setContractorId(contractorIdFromVaga);
            }
@@ -171,7 +172,11 @@ const DetalheVaga = () => {
    // Fetch contractor data and user name
    useEffect(() => {
      const fetchContractorData = async () => {
-       if (!contractorId) return;
+       if (!contractorId) {
+         console.log("[DetalheVaga] No contractorId, skipping fetch");
+         return;
+       }
+       console.log("[DetalheVaga] Fetching contractor data for ID:", contractorId);
        try {
          setLoadingContractor(true);
          const tokenRaw = localStorage.getItem("authToken");
@@ -187,17 +192,21 @@ const DetalheVaga = () => {
          const contractorBody = await contractorRes.json().catch(() => null);
          const contractorData = contractorBody?.data ?? contractorBody;
 
+         console.log("[DetalheVaga] Contractor data:", contractorData);
+
          if (contractorData) {
            const feedbackStars = contractorData.feedbackStars ?? 0;
            setContractorFeedback(feedbackStars);
 
            // Fetch user name using userId
            const userId = contractorData.userId;
+           console.log("[DetalheVaga] userId from contractor:", userId);
            if (userId) {
              try {
                const userRes = await apiFetch(`${API_BASE_URL}/users/${userId}`, { headers });
                const userBody = await userRes.json().catch(() => null);
                const userData = userBody?.data ?? userBody;
+               console.log("[DetalheVaga] User data:", userData);
                if (userData?.name) {
                  setContractorName(userData.name);
                } else if (userData?.fullName) {
@@ -473,11 +482,17 @@ const DetalheVaga = () => {
                 <User className="w-7 h-7 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate">{contractorName}</p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <Star className="w-3 h-3 fill-primary text-primary" />
-                  <span className="text-xs font-medium">{contractorFeedback.toFixed(1)}</span>
-                </div>
+                {loadingContractor ? (
+                  <p className="text-sm font-semibold truncate">Carregando...</p>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold truncate">{contractorName}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Star className="w-3 h-3 fill-primary text-primary" />
+                      <span className="text-xs font-medium">{contractorFeedback.toFixed(1)}</span>
+                    </div>
+                  </>
+                )}
               </div>
               {contractorId && <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />}
             </div>
