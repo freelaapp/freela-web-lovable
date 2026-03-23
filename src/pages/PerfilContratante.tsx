@@ -184,17 +184,14 @@ const PerfilContratante = () => {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground justify-center sm:justify-start flex-wrap">
-              <span className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" /> {profile.city}, {profile.uf}
-              </span>
-              <span className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-primary text-primary" /> {profile.feedbackStars.toFixed(1)}
-              </span>
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" /> Desde {memberSince}
-              </span>
-            </div>
+             <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground justify-center sm:justify-start flex-wrap">
+               <span className="flex items-center gap-1">
+                 <MapPin className="w-4 h-4" /> {profile.city}, {profile.uf}
+               </span>
+               <span className="flex items-center gap-1">
+                 <Calendar className="w-4 h-4" /> Desde {memberSince}
+               </span>
+             </div>
           </div>
         </div>
 
@@ -219,9 +216,7 @@ const PerfilContratante = () => {
           <CardContent className="p-5">
             <h3 className="font-display font-semibold text-base mb-2">Sobre</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {profile.nameOperationResponsible
-                ? `Responsável pela operação: ${profile.nameOperationResponsible}`
-                : "Perfil de contratante verificado."}
+              Dados de Perfil Pendentes
             </p>
           </CardContent>
         </Card>

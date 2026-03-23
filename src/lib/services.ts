@@ -13,7 +13,7 @@ export const servicosPF = [
   { id: "seguranca", label: "Segurança (Não Armado)", pricePerHour: 20, minHoursCasa: 4, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "hostess", label: "Hostess/Recepcionista", pricePerHour: 16.67, minHoursCasa: 4, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "manobrista", label: "Manobrista", pricePerHour: 20, minHoursCasa: 4, minHoursEmpresa: 6, insuranceFee: 1 },
-  { id: "dj", label: "DJ", pricePerHour: 116.67, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
+   { id: "dj", label: "DJ", pricePerHour: 0.01, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
   { id: "musico-sertanejo", label: "Músico (Sertanejo)", pricePerHour: 150, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
   { id: "musico-rock", label: "Músico (Rock)", pricePerHour: 150, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
   { id: "musico-samba-pagode", label: "Músico (Samba e Pagode)", pricePerHour: 150, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
