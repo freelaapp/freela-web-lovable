@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, type JobPaymentResponse } from "@/lib/api";
-import { formatCurrency } from "@/lib/formatters";
 import Pusher from "pusher-js";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
