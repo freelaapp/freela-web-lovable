@@ -455,7 +455,17 @@ const MeusDados = () => {
           } catch { /* skip if can't convert */ }
         }
 
-        fd.append("birthdate", dataNascimento || "");
+         // Envia birthdate como Data (formato ISO YYYY-MM-DD)
+         if (dataNascimento) {
+           const date = new Date(dataNascimento);
+           if (!isNaN(date.getTime())) {
+             fd.append("birthdate", date.toISOString().split('T')[0]);
+           } else {
+             fd.append("birthdate", dataNascimento);
+           }
+         } else {
+           fd.append("birthdate", "");
+         }
         fd.append("gender", sexo || "");
         fd.append("deficiency", isPCD ? "true" : "false");
         fd.append("desiredJobVacancy", areasLabels);
