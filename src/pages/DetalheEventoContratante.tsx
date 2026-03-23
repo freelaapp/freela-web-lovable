@@ -102,7 +102,7 @@ const DetalheEventoContratante = () => {
   const [providerAttendedJob, setProviderAttendedJob] = useState<boolean | null>(null);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingAccept, setPendingAccept] = useState<{ id: string; assignment: string } | null>(null);
+  const [pendingAccept, setPendingAccept] = useState<{ id: string; assignment: string; providerId: string } | null>(null);
 
   // Helper: fetch payment details for a job (no auto-schedule)
   const fetchJobPayments = async (jobId: string) => {
@@ -341,34 +341,36 @@ const DetalheEventoContratante = () => {
     } catch { return vacancy.jobDate; }
   })();
 
-  const handleAceitar = async (id: string, assignment: string) => {
-    const limit = getServiceLimit(assignment);
-    const accepted = getAcceptedCountForAssignment(assignment);
+   const handleAceitar = async (id: string, assignment: string): Promise<boolean> => {
+     const limit = getServiceLimit(assignment);
+     const accepted = getAcceptedCountForAssignment(assignment);
 
-    if (accepted >= limit) {
-      toast({
-        title: "Limite atingido",
-        description: `Já foram aceitos ${limit} freelancers para a função ${assignment}.`,
-        variant: "destructive",
-      });
-      return;
-    }
+     if (accepted >= limit) {
+       toast({
+         title: "Limite atingido",
+         description: `Já foram aceitos ${limit} freelancers para a função ${assignment}.`,
+         variant: "destructive",
+       });
+       return false;
+     }
 
-    setActionLoadingIds(prev => new Set(prev).add(id));
-    try {
-      const result = await acceptCandidacy(id);
-      setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
-      if (timelineStep < 1) setTimelineStep(1);
-      if (result?.vacancy?.status) {
-        setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
-      }
-      toast({ title: "Freelancer aceito!", description: "O freelancer será notificado por e-mail." });
-    } catch (err: any) {
-      toast({ title: "Erro ao aceitar", description: err.message || "Tente novamente.", variant: "destructive" });
-    } finally {
-      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
-    }
-  };
+     setActionLoadingIds(prev => new Set(prev).add(id));
+     try {
+       const result = await acceptCandidacy(id);
+       setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
+       if (timelineStep < 1) setTimelineStep(1);
+       if (result?.vacancy?.status) {
+         setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
+       }
+       toast({ title: "Freelancer aceito!", description: "O freelancer será notificado por e-mail." });
+       return true;
+     } catch (err: any) {
+       toast({ title: "Erro ao aceitar", description: err.message || "Tente novamente.", variant: "destructive" });
+       return false;
+     } finally {
+       setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+     }
+   };
 
    const handleRecusar = async (id: string) => {
      setActionLoadingIds(prev => new Set(prev).add(id));
@@ -383,16 +385,26 @@ const DetalheEventoContratante = () => {
      }
    };
 
-   const openConfirmDialog = (id: string, assignment: string) => {
-     setPendingAccept({ id, assignment });
+   const openConfirmDialog = (id: string, assignment: string, providerId: string) => {
+     setPendingAccept({ id, assignment, providerId });
      setShowConfirmDialog(true);
    };
 
    const handleConfirmAccept = async () => {
      if (!pendingAccept) return;
-     const { id, assignment } = pendingAccept;
+     const { id, assignment, providerId } = pendingAccept;
      setShowConfirmDialog(false);
-     await handleAceitar(id, assignment);
+     
+     const success = await handleAceitar(id, assignment);
+     if (success) {
+       // Após aceitar com sucesso, chamar pagamento automaticamente
+       try {
+         await handlePagamento(providerId, id);
+       } catch (err) {
+         console.error("Erro ao abrir pagamento após aceite:", err);
+       }
+     }
+     
      setPendingAccept(null);
    };
 
@@ -750,7 +762,7 @@ const DetalheEventoContratante = () => {
                            <button
                              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors disabled:opacity-50"
                              disabled={actionLoadingIds.has(candidato.id) || getAcceptedCountForAssignment(candidato.role) >= getServiceLimit(candidato.role)}
-                             onClick={() => openConfirmDialog(candidato.id, candidato.role)}
+                             onClick={() => openConfirmDialog(candidato.id, candidato.role, candidato.providerId)}
                            >
                             {actionLoadingIds.has(candidato.id)
                               ? <Loader2 className="w-4 h-4 animate-spin text-success" />
@@ -1005,7 +1017,7 @@ const DetalheEventoContratante = () => {
                      <Button
                        className="flex-1 gap-2 bg-success hover:bg-success/90"
                        disabled={actionLoadingIds.has(selectedFreelancer.id) || getAcceptedCountForAssignment(selectedFreelancer.role) >= getServiceLimit(selectedFreelancer.role)}
-                       onClick={() => openConfirmDialog(selectedFreelancer.id, selectedFreelancer.role)}
+                       onClick={() => openConfirmDialog(selectedFreelancer.id, selectedFreelancer.role, selectedFreelancer.providerId)}
                      >
                       {actionLoadingIds.has(selectedFreelancer.id)
                         ? <Loader2 className="w-4 h-4 animate-spin" />
