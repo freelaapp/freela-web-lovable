@@ -4,6 +4,7 @@ import { Briefcase, DollarSign, Star, Clock, ChevronRight, MapPin, CheckCircle, 
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
+import { formatCurrency } from "@/lib/formatters";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -291,11 +292,11 @@ const DashboardFreelancer = () => {
             
             // Extract totalAll from data.summary
             const totalAll = earningsBody?.data?.summary?.totalAll;
-            if (typeof totalAll === "number") {
-              setMonthlyEarnings(`R$ ${totalAll.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-            } else {
-              setMonthlyEarnings("R$ 0,00");
-            }
+             if (typeof totalAll === "number") {
+               setMonthlyEarnings(formatCurrency(totalAll));
+             } else {
+               setMonthlyEarnings(formatCurrency(0));
+             }
           } catch (err) {
             console.error("[DashboardFreelancer] Error fetching monthly earnings:", err);
             setMonthlyEarnings("R$ 0,00");
@@ -423,66 +424,10 @@ const DashboardFreelancer = () => {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
                         )}
                         {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{jobValue}</span>
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{formatCurrency(jobValue)}</span>
                         )}
-                      </div>
-                      {jobDate && jobDate !== "--" && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Vagas Agendadas */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">
-                  <Link to="/agenda" className="flex items-center gap-2 hover:text-primary transition-colors">
-                    <Calendar className="w-5 h-5 text-primary" /> Vagas Agendadas
-                  </Link>
-                </CardTitle>
-                <Button variant="ghost" size="sm" className="text-primary text-xs" onClick={() => navigate("/agenda")}>
-                  Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {loadingAgendadas ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Carregando vagas agendadas...</p>
-              ) : vagasAgendadas.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga agendada</p>
-              ) : (
-                 vagasAgendadas.slice(0, 3).map((vaga: any) => {
-                   const service = vaga.services?.[0] || {};
-                   const assignment = service.assignment || "--";
-                   const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                   const jobTime = service.jobTime || "--";
-                   const jobValue = service.jobValue || "--";
-                   const jobDate = vaga.jobDate || "--";
-                   return (
-                    <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`, { state: { source: "agendadas", jobId: vaga._jobId, vacancyId: vaga._vacancyId || vaga.id } })}>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold truncate">{assignment}</p>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary-light text-primary">Agendada</span>
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        {neighborhoodCity && neighborhoodCity !== "--" && (
-                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
-                        )}
-                        {jobTime && jobTime !== "--" && (
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
-                        )}
-                        {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{jobValue}</span>
-                        )}
-                      </div>
-                      {jobDate && jobDate !== "--" && (
+                       </div>
+                       {jobDate && jobDate !== "--" && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
                         </p>
@@ -532,7 +477,7 @@ const DashboardFreelancer = () => {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
                         )}
                         {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{jobValue}</span>
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{formatCurrency(jobValue)}</span>
                         )}
                       </div>
                       {jobDate && jobDate !== "--" && (
@@ -591,7 +536,7 @@ const DashboardFreelancer = () => {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
                         )}
                         {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{jobValue}</span>
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{formatCurrency(jobValue)}</span>
                         )}
                       </div>
                       {jobDate && jobDate !== "--" && (

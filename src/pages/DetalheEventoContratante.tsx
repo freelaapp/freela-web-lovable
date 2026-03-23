@@ -628,11 +628,11 @@ const DetalheEventoContratante = () => {
                        <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
                          <item.icon className={`w-5 h-5 ${item.color}`} />
                          <div>
-                           {item.label === "Valor/pessoa" && (
-                             <p className="text-xs font-bold truncate max-w-[100px]">
-                               R$ {parseFloat(item.value).toFixed(2).replace('.', ',')}
-                             </p>
-                           )}
+                            {item.label === "Valor/pessoa" && (
+                              <p className="text-xs font-bold truncate max-w-[100px]">
+                                {formatCurrency(item.value)}
+                              </p>
+                            )}
                            {item.label !== "Valor/pessoa" && (
                              <p className="text-xs font-bold truncate max-w-[100px]">{item.value}</p>
                            )}
@@ -660,11 +660,11 @@ const DetalheEventoContratante = () => {
                    <div key={i} className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/50 text-center">
                      <item.icon className={`w-5 h-5 ${item.color}`} />
                      <div>
-                       {item.label === "Valor/pessoa" && (
-                         <p className="text-xs font-bold truncate max-w-[100px]">
-                           R$ {parseFloat(item.value).toFixed(2).replace('.', ',')}
-                         </p>
-                       )}
+                        {item.label === "Valor/pessoa" && (
+                          <p className="text-xs font-bold truncate max-w-[100px]">
+                            {formatCurrency(item.value)}
+                          </p>
+                        )}
                        {item.label !== "Valor/pessoa" && (
                          <p className="text-xs font-bold truncate max-w-[100px]">{item.value}</p>
                        )}

@@ -8,6 +8,7 @@ import { MapPin, Briefcase, Clock, DollarSign, Calendar, Filter, X, ChevronRight
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatCurrency } from "@/lib/formatters";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 

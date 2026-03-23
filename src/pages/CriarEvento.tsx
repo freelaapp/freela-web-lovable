@@ -12,6 +12,7 @@ import { useMode } from "@/contexts/ModeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { servicosPF, calcularValorTotal } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/formatters";
 import CriarEventoEmpresas from "@/components/criar-evento/CriarEventoEmpresas";
 
 const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}h`);
@@ -273,13 +274,13 @@ const CriarEvento = () => {
                         ⚠️ Jornada mínima de {minHours}h para {servicoSelecionado.label}. O cálculo considera {minHours}h.
                       </p>
                     )}
-                    <div className="text-4xl font-display font-bold text-primary">
-                      R$ {valorCalculado.total.toFixed(2).replace(".", ",")}
-                    </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <p>{formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {Math.max(formData.horas, minHours)} horas</p>
-                      <p className="text-xs">Freelancer recebe: R$ {valorCalculado.freelancerValue.toFixed(2).replace(".", ",")} cada</p>
-                    </div>
+                     <div className="text-4xl font-display font-bold text-primary">
+                       {formatCurrency(valorCalculado.total)}
+                     </div>
+                     <div className="text-sm text-muted-foreground space-y-1">
+                       <p>{formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {Math.max(formData.horas, minHours)} horas</p>
+                       <p className="text-xs">Freelancer recebe: {formatCurrency(valorCalculado.freelancerValue)} cada</p>
+                     </div>
                   </div>
                 )}
 

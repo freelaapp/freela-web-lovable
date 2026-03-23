@@ -9,6 +9,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { formatCurrency } from "@/lib/formatters";
 
 // Freelancer mocks
 const ganhosFreelancerMock = [
@@ -154,9 +155,9 @@ const Carteira = () => {
               <CardContent className="p-4 text-center">
                 <Clock className="w-5 h-5 text-secondary mx-auto mb-1" />
                 <p className="text-xs text-muted-foreground">Pagamentos futuros</p>
-                <p className="text-xl font-bold text-secondary">
-                  R$ {loading ? "..." : totalPending.toFixed(2)}
-                </p>
+                 <p className="text-xl font-bold text-secondary">
+                   {loading ? "..." : formatCurrency(totalPending)}
+                 </p>
               </CardContent>
             </Card>
             <Card>
@@ -167,9 +168,9 @@ const Carteira = () => {
                   <TrendingUp className="w-5 h-5 text-primary mx-auto mb-1" />
                 )}
                 <p className="text-xs text-muted-foreground">{isContratante ? "Total gasto" : "Total recebido"}</p>
-                <p className={`text-xl font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
-                  R$ {loading ? "..." : (isContratante ? totalGastoContratante : totalConfirmed).toFixed(2)}
-                </p>
+                 <p className={`text-xl font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
+                   {loading ? "..." : formatCurrency(isContratante ? totalGastoContratante : totalConfirmed)}
+                 </p>
               </CardContent>
             </Card>
           </div>
@@ -229,9 +230,9 @@ const Carteira = () => {
                     <p className="text-sm font-medium">{item.nome}</p>
                     <p className="text-xs text-muted-foreground">{item.dia}</p>
                   </div>
-                  <p className={`text-sm font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
-                    {isContratante ? "- " : ""}R$ {item.valor.toFixed(2)}
-                  </p>
+                   <p className={`text-sm font-bold ${isContratante ? "text-destructive" : "text-primary"}`}>
+                     {isContratante ? "- " : ""}{formatCurrency(item.valor)}
+                   </p>
                 </div>
               ))}
             </div>
