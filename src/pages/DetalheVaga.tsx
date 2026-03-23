@@ -447,7 +447,7 @@ const DetalheVaga = () => {
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-2xl font-display font-bold">{title}</h1>
             {!isAgendada && isOpen && !applied && (
-              <Button size="lg" className="gap-2 text-base" onClick={handleApply} disabled={applying}>
+              <Button size="lg" className="gap-2 text-base bg-emerald-500 hover:bg-emerald-600 text-white" onClick={handleApply} disabled={applying}>
                 {applying ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                 {applying ? "Enviando..." : "Se Aplicar"}
               </Button>
