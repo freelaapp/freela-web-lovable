@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatCurrency } from "@/lib/formatters";
+import { getDisplayValue } from "@/lib/values";
+import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -35,6 +37,8 @@ interface FlatService {
 
 const MapaVagas = () => {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isFreelancer = role === "freelancer";
   const [apiServices, setApiServices] = useState<FlatService[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -327,7 +331,7 @@ const MapaVagas = () => {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-primary">{vaga.jobValue}</p>
+                        <p className="text-sm font-bold text-primary">{getDisplayValue(vaga.jobValue, isFreelancer)}</p>
                         <p className="text-[10px] text-muted-foreground">{Math.round(vaga.distance!)}km</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
