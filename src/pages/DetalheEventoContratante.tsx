@@ -862,6 +862,8 @@ const DetalheEventoContratante = () => {
                 const isLast = i === arr.length - 1;
                 const showPaymentBtn = item.key === "pagamento" && isInProgress && confirmados.length > 0;
                 const showCheckInBtn = item.key === "inicio" && isInProgress && confirmados.length > 0;
+                const showCheckOutBtn = item.key === "termino" && isInProgress && confirmados.length > 0 && timelineStep >= 2;
+                const showReviewBtn = item.key === "feedback" && isInProgress && confirmados.length > 0 && timelineStep >= 3 && timelineStep < 4;
 
                 return (
                   <div key={item.key} className="relative pb-6 last:pb-0">
@@ -906,30 +908,30 @@ const DetalheEventoContratante = () => {
                           {checkInCode ? "Ver Código" : "Gerar Código"}
                         </Button>
                       )}
-                      {item.key === "termino" && (
-                        <Button
-                          size="sm"
-                          className="gap-1.5"
-                          onClick={handleGerarCodigoCheckout}
-                          disabled={checkOutLoading}
-                        >
-                          {checkOutLoading
-                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : <KeyRound className="w-4 h-4" />}
-                          {checkOutCode ? "Ver Código" : "Check-out"}
-                        </Button>
-                      )}
-                      {item.key === "feedback" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1.5"
-                          onClick={() => setShowReviewModal(true)}
-                        >
-                          <Star className="w-4 h-4" />
-                          Avaliação
-                        </Button>
-                      )}
+                       {showCheckOutBtn && (
+                         <Button
+                           size="sm"
+                           className="gap-1.5"
+                           onClick={handleGerarCodigoCheckout}
+                           disabled={checkOutLoading}
+                         >
+                           {checkOutLoading
+                             ? <Loader2 className="w-4 h-4 animate-spin" />
+                             : <KeyRound className="w-4 h-4" />}
+                           {checkOutCode ? "Ver Código" : "Check-out"}
+                         </Button>
+                       )}
+                       {showReviewBtn && (
+                         <Button
+                           size="sm"
+                           variant="outline"
+                           className="gap-1.5"
+                           onClick={() => setShowReviewModal(true)}
+                         >
+                           <Star className="w-4 h-4" />
+                           Avaliação
+                         </Button>
+                       )}
                     </div>
                   </div>
                 );
