@@ -176,7 +176,7 @@ const AceitarJob = () => {
                     <div>
                       <p className="text-sm text-success">Valor que você irá receber</p>
                       <p className="text-2xl font-bold text-success">
-                        R$ {jobMock.valorFreelancer.toFixed(2).replace(".", ",")}
+                        {jobMock.valorFreelancer.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                       </p>
                     </div>
                   </div>

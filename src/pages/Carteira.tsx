@@ -202,7 +202,7 @@ const Carteira = () => {
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    formatter={(value: number) => [`R$ ${value.toFixed(2)}`, isContratante ? "Gasto" : "Ganho"]}
+                    formatter={(value: number) => [formatCurrency(value), isContratante ? "Gasto" : "Ganho"]}
                   />
                   <Line
                     type="monotone"
