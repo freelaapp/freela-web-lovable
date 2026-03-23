@@ -22,6 +22,26 @@ const formatDateDDMMYYYY = (dateStr: string): string => {
   return dateStr;
 };
 
+// Extract neighborhood and city from establishment address
+// Format: "Rua X, 123 - Bairro, Cidade • CEP: 12345678"
+const extractNeighborhoodCity = (address: string): string => {
+  if (!address || address === "--") return "--";
+  // Split by " - " to get the part after dash
+  const parts = address.split(" - ");
+  if (parts.length < 2) return address;
+  const afterDash = parts.slice(1).join(" - ");
+  // Remove CEP part (starting with "•" or "CEP:")
+  const cepIndex = afterDash.indexOf("•");
+  if (cepIndex !== -1) {
+    return afterDash.substring(0, cepIndex).trim();
+  }
+  const cepLabelIndex = afterDash.toUpperCase().indexOf("CEP:");
+  if (cepLabelIndex !== -1) {
+    return afterDash.substring(0, cepLabelIndex).trim();
+  }
+  return afterDash.trim();
+};
+
 interface FlattenedVaga {
   vacancyId: string;
   serviceIndex: number;
@@ -360,7 +380,7 @@ const DashboardFreelancer = () => {
           ))}
         </div>
 
-        {/* Jobs Grid: Ativas + Disponíveis */}
+         {/* Jobs Grid: Ativas + Disponíveis */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Vagas Ativas */}
           <Card>
@@ -382,26 +402,37 @@ const DashboardFreelancer = () => {
               ) : vagasAtivas.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga ativa</p>
               ) : (
-                vagasAtivas.slice(0, 3).map((vaga: any) => (
-                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">Ativa</span>
+                vagasAtivas.slice(0, 3).map((vaga: any) => {
+                  const assignment = vaga.freelancers?.[0]?.assignment || "--";
+                  const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
+                  const jobTime = vaga.freelancers?.[0]?.jobTime || "--";
+                  const jobValue = vaga.freelancers?.[0]?.jobValue || "--";
+                  const jobDate = vaga.jobDate || "--";
+                  return (
+                    <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold truncate">{assignment}</p>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">Ativa</span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        {neighborhoodCity && neighborhoodCity !== "--" && (
+                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
+                        )}
+                        {jobTime && jobTime !== "--" && (
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
+                        )}
+                        {jobValue && jobValue !== "--" && (
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{jobValue}</span>
+                        )}
+                      </div>
+                      {jobDate && jobDate !== "--" && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {vaga.freelancers?.[0]?.assignment && (
-                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
-                      )}
-                      {vaga.freelancers?.[0]?.jobTime && (
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
-                      )}
-                      {vaga.freelancers?.[0]?.jobValue && (
-                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
-                      )}
-                    </div>
-                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(vaga.jobDate)}</p>}
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>
@@ -426,26 +457,37 @@ const DashboardFreelancer = () => {
               ) : vagasAgendadas.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga agendada</p>
               ) : (
-                vagasAgendadas.slice(0, 3).map((vaga: any) => (
-                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`, { state: { source: "agendadas", jobId: vaga._jobId, vacancyId: vaga._vacancyId || vaga.id } })}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary-light text-primary">Agendada</span>
+                vagasAgendadas.slice(0, 3).map((vaga: any) => {
+                  const assignment = vaga.freelancers?.[0]?.assignment || "--";
+                  const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
+                  const jobTime = vaga.freelancers?.[0]?.jobTime || "--";
+                  const jobValue = vaga.freelancers?.[0]?.jobValue || "--";
+                  const jobDate = vaga.jobDate || "--";
+                  return (
+                    <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`, { state: { source: "agendadas", jobId: vaga._jobId, vacancyId: vaga._vacancyId || vaga.id } })}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold truncate">{assignment}</p>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary-light text-primary">Agendada</span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        {neighborhoodCity && neighborhoodCity !== "--" && (
+                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
+                        )}
+                        {jobTime && jobTime !== "--" && (
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
+                        )}
+                        {jobValue && jobValue !== "--" && (
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{jobValue}</span>
+                        )}
+                      </div>
+                      {jobDate && jobDate !== "--" && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {vaga.freelancers?.[0]?.assignment && (
-                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
-                      )}
-                      {vaga.freelancers?.[0]?.jobTime && (
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
-                      )}
-                      {vaga.freelancers?.[0]?.jobValue && (
-                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
-                      )}
-                    </div>
-                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(vaga.jobDate)}</p>}
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>
@@ -467,26 +509,37 @@ const DashboardFreelancer = () => {
               ) : vagasPendentes.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga pendente</p>
               ) : (
-                vagasPendentes.slice(0, 3).map((vaga: any) => (
-                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`)}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-warning-light text-warning">Pendente</span>
+                vagasPendentes.slice(0, 3).map((vaga: any) => {
+                  const assignment = vaga.freelancers?.[0]?.assignment || "--";
+                  const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
+                  const jobTime = vaga.freelancers?.[0]?.jobTime || "--";
+                  const jobValue = vaga.freelancers?.[0]?.jobValue || "--";
+                  const jobDate = vaga.jobDate || "--";
+                  return (
+                    <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`)}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold truncate">{assignment}</p>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-warning-light text-warning">Pendente</span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        {neighborhoodCity && neighborhoodCity !== "--" && (
+                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
+                        )}
+                        {jobTime && jobTime !== "--" && (
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
+                        )}
+                        {jobValue && jobValue !== "--" && (
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{jobValue}</span>
+                        )}
+                      </div>
+                      {jobDate && jobDate !== "--" && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {vaga.freelancers?.[0]?.assignment && (
-                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
-                      )}
-                      {vaga.freelancers?.[0]?.jobTime && (
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
-                      )}
-                      {vaga.freelancers?.[0]?.jobValue && (
-                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
-                      )}
-                    </div>
-                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(vaga.jobDate)}</p>}
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>
@@ -509,38 +562,43 @@ const DashboardFreelancer = () => {
               ) : vagasDisponiveis.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga disponível</p>
               ) : (
-                vagasDisponiveis.slice(0, 3).map((vaga, idx) => (
-                  <div
-                    key={`${vaga.vacancyId}-${vaga.serviceIndex}`}
-                    className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2"
-                    onClick={() => navigate(`/vaga/${vaga.vacancyId}`, { state: { serviceIndex: vaga.serviceIndex } })}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold truncate">{vaga.assignment}</p>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        vaga.status === "confirmed" || vaga.status === "confirmado"
-                          ? "bg-success-light text-success"
-                          : "bg-warning-light text-warning"
-                      }`}>{vaga.status}</span>
+                vagasDisponiveis.slice(0, 3).map((vaga, idx) => {
+                  const assignment = vaga.assignment || "--";
+                  const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
+                  const jobTime = vaga.jobTime || "--";
+                  const jobValue = vaga.jobValue || "--";
+                  const jobDate = vaga.jobDate || "--";
+                  const statusLabel = vaga.status === "confirmed" || vaga.status === "confirmado" ? "Confirmada" : "Pendente";
+                  const statusBg = (vaga.status === "confirmed" || vaga.status === "confirmado") ? "bg-success-light text-success" : "bg-warning-light text-warning";
+                  return (
+                    <div
+                      key={`${vaga.vacancyId}-${vaga.serviceIndex}`}
+                      className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2"
+                      onClick={() => navigate(`/vaga/${vaga.vacancyId}`, { state: { serviceIndex: vaga.serviceIndex } })}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold truncate">{assignment}</p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusBg}`}>{statusLabel}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        {neighborhoodCity && neighborhoodCity !== "--" && (
+                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
+                        )}
+                        {jobTime && jobTime !== "--" && (
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
+                        )}
+                        {jobValue && jobValue !== "--" && (
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{jobValue}</span>
+                        )}
+                      </div>
+                      {jobDate && jobDate !== "--" && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      {vaga.establishment && (
-                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{vaga.establishment}</span>
-                      )}
-                      {vaga.jobTime && vaga.jobTime !== "--" && (
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.jobTime}</span>
-                      )}
-                      {vaga.jobValue && vaga.jobValue !== "--" && (
-                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.jobValue}</span>
-                      )}
-                    </div>
-                    {vaga.jobDate && vaga.jobDate !== "--" && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(vaga.jobDate)}
-                      </p>
-                    )}
-                  </div>
-                ))
+                  );
+                })
               )}
               <Button variant="outline" className="w-full text-xs gap-2 mt-2" onClick={() => navigate("/mapa-vagas")}>
                 <MapPin className="w-4 h-4" /> Ver todas no mapa
