@@ -216,7 +216,7 @@ const ServicoCard = ({
         </div>
         {hours > 0 && (
           <span className="text-sm font-bold text-primary">
-            R$ {valor.toFixed(2).replace(".", ",")}
+            {valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </span>
         )}
       </div>
