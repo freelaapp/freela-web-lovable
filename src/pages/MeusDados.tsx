@@ -252,8 +252,8 @@ const MeusDados = () => {
            setDataNascimento(bd);
            const g = prov.gender ?? "";
            setSexo(g);
-           const pcd = !!prov.deficiency;
-           setIsPCD(pcd);
+            const pcd = prov.deficiency === true || prov.deficiency === "true" || prov.deficiency === 1;
+            setIsPCD(pcd);
 
            // Profile image
            const imgUrl = bufferToDataUrl(prov.profileImage);
