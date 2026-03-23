@@ -396,49 +396,50 @@ const DetalheEventoContratante = () => {
      setPendingAccept(null);
    };
 
-  const handlePagamento = async (candidato: Candidato) => {
-    setActionLoadingIds(prev => new Set(prev).add(candidato.id));
-    try {
-      const vacancyId = eventoId ?? "";
+   const handlePagamento = async (providerId: string, candidatoId?: string) => {
+     const loadingId = candidatoId || providerId;
+     setActionLoadingIds(prev => new Set(prev).add(loadingId));
+     try {
+       const vacancyId = eventoId ?? "";
 
-      if (!vacancyId) {
-        toast({ title: "Erro", description: "Vaga não encontrada.", variant: "destructive" });
-        return;
-      }
+       if (!vacancyId) {
+         toast({ title: "Erro", description: "Vaga não encontrada.", variant: "destructive" });
+         return;
+       }
 
-      // Buscar jobId associado à vacancy para usar nas operações subsequentes
-      const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
-      const jobsBody = await jobsRes.json().catch(() => null);
-      const jobData = jobsBody?.data ?? jobsBody;
-      const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
+       // Buscar jobId associado à vacancy para usar nas operações subsequentes
+       const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
+       const jobsBody = await jobsRes.json().catch(() => null);
+       const jobData = jobsBody?.data ?? jobsBody;
+       const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
 
-      if (!jobId) {
-        toast({ title: "Erro", description: "Job não encontrado para esta vaga.", variant: "destructive" });
-        return;
-      }
+       if (!jobId) {
+         toast({ title: "Erro", description: "Job não encontrado para esta vaga.", variant: "destructive" });
+         return;
+       }
 
-      // Enviar pagamento com o payload correto para o backend
-      const paymentResult = await createJobPayment(vacancyId, {
-        method: "pix",
-        vacancyId: vacancyId,
-      });
+       // Enviar pagamento com o payload correto para o backend
+       const paymentResult = await createJobPayment(vacancyId, {
+         method: "pix",
+         vacancyId: vacancyId,
+       });
 
-      console.log("[Payment] POST result:", JSON.stringify(paymentResult));
-      lastJobIdRef.current = jobId;
+       console.log("[Payment] POST result:", JSON.stringify(paymentResult));
+       lastJobIdRef.current = jobId;
 
-      // Store POST result immediately (has pixQrCode & pixQrCodeImage)
-      setPixData(paymentResult);
-      setShowPixModal(true);
+       // Store POST result immediately (has pixQrCode & pixQrCodeImage)
+       setPixData(paymentResult);
+       setShowPixModal(true);
 
-      // Fetch extra payment info but do NOT schedule — wait for payment confirmation via Pusher
-      fetchJobPayments(jobId);
-    } catch (err: any) {
-      console.error("[Payment] error:", err);
-      toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
-    } finally {
-      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(candidato.id); return next; });
-    }
-  };
+       // Fetch extra payment info but do NOT schedule — wait for payment confirmation via Pusher
+       fetchJobPayments(jobId);
+     } catch (err: any) {
+       console.error("[Payment] error:", err);
+       toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
+     } finally {
+       setActionLoadingIds(prev => { const next = new Set(prev); next.delete(loadingId); return next; });
+     }
+   };
 
   const handleGerarCodigo = async () => {
     if (checkInCode) {
@@ -774,30 +775,18 @@ const DetalheEventoContratante = () => {
                             <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
                           </button>
                         </>
-                      ) : candidato.status === "aceito" ? (
-                        <>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">aceito</span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-xs px-2"
-                            disabled={actionLoadingIds.has(candidato.id)}
-                            onClick={() => handlePagamento(candidato)}
-                          >
-                            {actionLoadingIds.has(candidato.id)
-                              ? <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                              : <DollarSign className="w-3 h-3 mr-1" />}
-                            Pagamento
-                          </Button>
-                          <button
-                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
-                            onClick={() => setSelectedFreelancer(candidato)}
-                          >
-                            <Eye className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
-                          </button>
-                        </>
-                      ) : (
+                       ) : candidato.status === "aceito" ? (
+                         <>
+                           <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">aceito</span>
+                           <button
+                             className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                             onClick={() => setSelectedFreelancer(candidato)}
+                           >
+                             <Eye className="w-4 h-4 text-muted-foreground" />
+                             <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
+                           </button>
+                         </>
+                       ) : (
                         <>
                           <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-destructive/10 text-destructive">recusado</span>
                           <button
@@ -892,19 +881,19 @@ const DetalheEventoContratante = () => {
                           {isDone ? "✓ Concluído" : isInProgress ? "🔄 Em andamento" : "Pendente"}
                         </p>
                       </div>
-                      {showPaymentBtn && (
-                        <Button
-                          size="sm"
-                          className="gap-1.5"
-                          disabled={actionLoadingIds.has(confirmados[0]?.id)}
-                          onClick={() => confirmados[0] && handlePagamento(confirmados[0])}
-                        >
-                          {actionLoadingIds.has(confirmados[0]?.id)
-                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : <DollarSign className="w-4 h-4" />}
-                          Pagar
-                        </Button>
-                      )}
+                       {showPaymentBtn && (
+                         <Button
+                           size="sm"
+                           className="gap-1.5"
+                           disabled={actionLoadingIds.has(confirmados[0]?.id)}
+                           onClick={() => confirmados[0] && handlePagamento(confirmados[0].providerId, confirmados[0].id)}
+                         >
+                           {actionLoadingIds.has(confirmados[0]?.id)
+                             ? <Loader2 className="w-4 h-4 animate-spin" />
+                             : <DollarSign className="w-4 h-4" />}
+                           Pagar
+                         </Button>
+                       )}
                       {showCheckInBtn && (
                         <Button
                           size="sm"
@@ -1035,11 +1024,7 @@ const DetalheEventoContratante = () => {
                       Recusar
                     </Button>
                   </div>
-                ) : selectedFreelancer.status === "aceito" ? (
-                  <Button className="w-full gap-2 bg-success hover:bg-success/90 cursor-default" disabled>
-                    <UserCheck className="w-4 h-4" /> Contratado
-                  </Button>
-                ) : selectedFreelancer.status === "recusado" ? (
+                 ) : selectedFreelancer.status === "aceito" ? null : selectedFreelancer.status === "recusado" ? (
                   <Button variant="destructive" className="w-full gap-2 cursor-default" disabled>
                     <UserX className="w-4 h-4" /> Recusado
                   </Button>
