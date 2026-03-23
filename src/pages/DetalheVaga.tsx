@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
+import { getDisplayValue } from "@/lib/values";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
@@ -64,6 +66,8 @@ const DetalheVaga = () => {
   const { vagaId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { role } = useAuth();
+  const isFreelancer = role === "freelancer";
   const locState = location.state as any;
   const serviceIndex: number = locState?.serviceIndex ?? 0;
   const source: string = locState?.source ?? "";
@@ -241,13 +245,14 @@ const DetalheVaga = () => {
   const services = vaga.services ?? vaga.freelancers ?? [];
   const serviceInfo = services[serviceIndex] ?? services[0] ?? {};
 
-    const title = serviceInfo.assignment || vaga.establishment || vaga.description || "Vaga";
-   const status = vaga.status || "aberta";
-   const jobDate = vaga.jobDate ? formatDateDDMMYYYY(vaga.jobDate) : "--";
-   const jobTime = serviceInfo.jobTime || "--";
-   const jobValue = serviceInfo.jobValue || "--";
-   const assignment = serviceInfo.assignment || "--";
-   const location_ = extractNeighborhoodCity(vaga.establishment) || "--";
+   const title = serviceInfo.assignment || vaga.establishment || vaga.description || "Vaga";
+    const status = vaga.status || "aberta";
+    const jobDate = vaga.jobDate ? formatDateDDMMYYYY(vaga.jobDate) : "--";
+    const jobTime = serviceInfo.jobTime || "--";
+    const jobValueRaw = serviceInfo.jobValue || "--";
+    const jobValue = getDisplayValue(jobValueRaw, isFreelancer);
+    const assignment = serviceInfo.assignment || "--";
+    const location_ = extractNeighborhoodCity(vaga.establishment) || "--";
 
   // Timeline logic
   const timelineSteps = isAgendada ? agendadaTimelineSteps : defaultTimelineSteps;

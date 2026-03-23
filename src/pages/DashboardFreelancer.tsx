@@ -5,6 +5,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { formatCurrency } from "@/lib/formatters";
+import { getDisplayValue } from "@/lib/values";
+import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -57,6 +59,8 @@ interface FlattenedVaga {
 
 const DashboardFreelancer = () => {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isFreelancer = role === "freelancer";
   const [averageRating, setAverageRating] = useState<string>("--");
   const [vagasDisponiveis, setVagasDisponiveis] = useState<FlattenedVaga[]>([]);
   const [vagasAtivas, setVagasAtivas] = useState<any[]>([]);
@@ -424,7 +428,7 @@ const DashboardFreelancer = () => {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
                         )}
                         {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{formatCurrency(jobValue)}</span>
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, isFreelancer)}</span>
                         )}
                        </div>
                        {jobDate && jobDate !== "--" && (
@@ -480,7 +484,7 @@ const DashboardFreelancer = () => {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
                         )}
                         {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{formatCurrency(jobValue)}</span>
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, isFreelancer)}</span>
                         )}
                       </div>
                       {jobDate && jobDate !== "--" && (
@@ -533,7 +537,7 @@ const DashboardFreelancer = () => {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
                         )}
                         {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{formatCurrency(jobValue)}</span>
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, isFreelancer)}</span>
                         )}
                       </div>
                       {jobDate && jobDate !== "--" && (
@@ -592,7 +596,7 @@ const DashboardFreelancer = () => {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
                         )}
                         {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{formatCurrency(jobValue)}</span>
+                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, isFreelancer)}</span>
                         )}
                       </div>
                       {jobDate && jobDate !== "--" && (
