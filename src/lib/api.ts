@@ -352,11 +352,9 @@ export async function getProviderDetails(providerId: string): Promise<ProviderDe
 
 // ── Job Payment ───────────────────────────────────────────────
 export interface CreateJobPaymentPayload {
+  method: "pix";
   vacancyId: string;
-  contractorId: string;
-  providerId: string;
-  providerPixKeyId: string;
-  method: string;
+  contractorCreditCardId?: string; // opcional para pix
 }
 
 export interface JobPaymentResponse {
@@ -372,8 +370,8 @@ export interface JobPaymentResponse {
   [key: string]: unknown;
 }
 
-export async function createJobPayment(jobId: string, payload: CreateJobPaymentPayload): Promise<JobPaymentResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, {
+export async function createJobPayment(vacancyId: string, payload: CreateJobPaymentPayload): Promise<JobPaymentResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/vacancies/jobs/payments`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

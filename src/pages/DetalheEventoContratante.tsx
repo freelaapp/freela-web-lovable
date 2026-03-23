@@ -384,10 +384,13 @@ const DetalheEventoContratante = () => {
     setActionLoadingIds(prev => new Set(prev).add(candidato.id));
     try {
       const vacancyId = eventoId ?? "";
-      const contractorId = vacancy?.contractorId ?? "";
-      const providerId = candidato.providerId;
 
-      // Fetch jobId
+      if (!vacancyId) {
+        toast({ title: "Erro", description: "Vaga não encontrada.", variant: "destructive" });
+        return;
+      }
+
+      // Buscar jobId associado à vacancy para usar nas operações subsequentes
       const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
       const jobsBody = await jobsRes.json().catch(() => null);
       const jobData = jobsBody?.data ?? jobsBody;
@@ -398,19 +401,10 @@ const DetalheEventoContratante = () => {
         return;
       }
 
-      // Fetch provider PIX key ID (UUID)
-      const pixKeysRes = await apiFetch(`${API_BASE_URL}/providers/${providerId}/pix-keys`, { method: "GET" });
-      const pixKeysBody = await pixKeysRes.json().catch(() => null);
-      const pixKeysData = pixKeysBody?.data ?? pixKeysBody;
-      const pixKeyRecord = Array.isArray(pixKeysData) ? pixKeysData[0] : pixKeysData;
-      const pixKeyId = pixKeyRecord?.id ?? "";
-
-      const paymentResult = await createJobPayment(jobId, {
-        vacancyId,
-        contractorId,
-        providerId,
-        providerPixKeyId: pixKeyId,
+      // Enviar pagamento com o payload correto para o backend
+      const paymentResult = await createJobPayment(vacancyId, {
         method: "pix",
+        vacancyId: vacancyId,
       });
 
       console.log("[Payment] POST result:", JSON.stringify(paymentResult));
