@@ -402,13 +402,14 @@ const DashboardFreelancer = () => {
               ) : vagasAtivas.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga ativa</p>
               ) : (
-                vagasAtivas.slice(0, 3).map((vaga: any) => {
-                  const assignment = vaga.freelancers?.[0]?.assignment || "--";
-                  const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                  const jobTime = vaga.freelancers?.[0]?.jobTime || "--";
-                  const jobValue = vaga.freelancers?.[0]?.jobValue || "--";
-                  const jobDate = vaga.jobDate || "--";
-                  return (
+                 vagasAtivas.slice(0, 3).map((vaga: any) => {
+                   const service = vaga.services?.[0] || {};
+                   const assignment = service.assignment || "--";
+                   const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
+                   const jobTime = service.jobTime || "--";
+                   const jobValue = service.jobValue || "--";
+                   const jobDate = vaga.jobDate || "--";
+                   return (
                     <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold truncate">{assignment}</p>
@@ -457,13 +458,14 @@ const DashboardFreelancer = () => {
               ) : vagasAgendadas.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga agendada</p>
               ) : (
-                vagasAgendadas.slice(0, 3).map((vaga: any) => {
-                  const assignment = vaga.freelancers?.[0]?.assignment || "--";
-                  const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                  const jobTime = vaga.freelancers?.[0]?.jobTime || "--";
-                  const jobValue = vaga.freelancers?.[0]?.jobValue || "--";
-                  const jobDate = vaga.jobDate || "--";
-                  return (
+                 vagasAgendadas.slice(0, 3).map((vaga: any) => {
+                   const service = vaga.services?.[0] || {};
+                   const assignment = service.assignment || "--";
+                   const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
+                   const jobTime = service.jobTime || "--";
+                   const jobValue = service.jobValue || "--";
+                   const jobDate = vaga.jobDate || "--";
+                   return (
                     <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`, { state: { source: "agendadas", jobId: vaga._jobId, vacancyId: vaga._vacancyId || vaga.id } })}>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold truncate">{assignment}</p>
@@ -509,13 +511,14 @@ const DashboardFreelancer = () => {
               ) : vagasPendentes.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga pendente</p>
               ) : (
-                vagasPendentes.slice(0, 3).map((vaga: any) => {
-                  const assignment = vaga.freelancers?.[0]?.assignment || "--";
-                  const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                  const jobTime = vaga.freelancers?.[0]?.jobTime || "--";
-                  const jobValue = vaga.freelancers?.[0]?.jobValue || "--";
-                  const jobDate = vaga.jobDate || "--";
-                  return (
+                 vagasPendentes.slice(0, 3).map((vaga: any) => {
+                   const service = vaga.services?.[0] || {};
+                   const assignment = service.assignment || "--";
+                   const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
+                   const jobTime = service.jobTime || "--";
+                   const jobValue = service.jobValue || "--";
+                   const jobDate = vaga.jobDate || "--";
+                   return (
                     <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`)}>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold truncate">{assignment}</p>
