@@ -101,6 +101,8 @@ const DetalheEventoContratante = () => {
   const [reviewComment, setReviewComment] = useState("");
   const [providerAttendedJob, setProviderAttendedJob] = useState<boolean | null>(null);
   const [reviewLoading, setReviewLoading] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAccept, setPendingAccept] = useState<{ id: string; assignment: string } | null>(null);
 
   // Helper: fetch payment details for a job (no auto-schedule)
   const fetchJobPayments = async (jobId: string) => {
@@ -368,18 +370,31 @@ const DetalheEventoContratante = () => {
     }
   };
 
-  const handleRecusar = async (id: string) => {
-    setActionLoadingIds(prev => new Set(prev).add(id));
-    try {
-      await rejectCandidacy(id);
-      setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
-      toast({ title: "Candidatura recusada", description: "O freelancer será notificado por e-mail." });
-    } catch (err: any) {
-      toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
-    } finally {
-      setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
-    }
-  };
+   const handleRecusar = async (id: string) => {
+     setActionLoadingIds(prev => new Set(prev).add(id));
+     try {
+       await rejectCandidacy(id);
+       setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
+       toast({ title: "Candidatura recusada", description: "O freelancer será notificado por e-mail." });
+     } catch (err: any) {
+       toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
+     } finally {
+       setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+     }
+   };
+
+   const openConfirmDialog = (id: string, assignment: string) => {
+     setPendingAccept({ id, assignment });
+     setShowConfirmDialog(true);
+   };
+
+   const handleConfirmAccept = async () => {
+     if (!pendingAccept) return;
+     const { id, assignment } = pendingAccept;
+     setShowConfirmDialog(false);
+     await handleAceitar(id, assignment);
+     setPendingAccept(null);
+   };
 
   const handlePagamento = async (candidato: Candidato) => {
     setActionLoadingIds(prev => new Set(prev).add(candidato.id));
@@ -734,7 +749,7 @@ const DetalheEventoContratante = () => {
                            <button
                              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-colors disabled:opacity-50"
                              disabled={actionLoadingIds.has(candidato.id) || getAcceptedCountForAssignment(candidato.role) >= getServiceLimit(candidato.role)}
-                             onClick={() => handleAceitar(candidato.id, candidato.role)}
+                             onClick={() => openConfirmDialog(candidato.id, candidato.role)}
                            >
                             {actionLoadingIds.has(candidato.id)
                               ? <Loader2 className="w-4 h-4 animate-spin text-success" />
@@ -996,13 +1011,13 @@ const DetalheEventoContratante = () => {
                 </div>
 
                 {/* Actions */}
-                {selectedFreelancer.status === "pendente" ? (
-                  <div className="flex gap-2">
-                    <Button
-                      className="flex-1 gap-2 bg-success hover:bg-success/90"
-                      disabled={actionLoadingIds.has(selectedFreelancer.id) || getAcceptedCountForAssignment(selectedFreelancer.role) >= getServiceLimit(selectedFreelancer.role)}
-                      onClick={() => handleAceitar(selectedFreelancer.id, selectedFreelancer.role)}
-                    >
+                 {selectedFreelancer.status === "pendente" ? (
+                   <div className="flex gap-2">
+                     <Button
+                       className="flex-1 gap-2 bg-success hover:bg-success/90"
+                       disabled={actionLoadingIds.has(selectedFreelancer.id) || getAcceptedCountForAssignment(selectedFreelancer.role) >= getServiceLimit(selectedFreelancer.role)}
+                       onClick={() => openConfirmDialog(selectedFreelancer.id, selectedFreelancer.role)}
+                     >
                       {actionLoadingIds.has(selectedFreelancer.id)
                         ? <Loader2 className="w-4 h-4 animate-spin" />
                         : <UserCheck className="w-4 h-4" />}
@@ -1036,10 +1051,43 @@ const DetalheEventoContratante = () => {
               </div>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+       </DialogContent>
+       </Dialog>
 
-      {/* ── Modal Pix ──────────────────────────────────────────── */}
+       {/* Dialog de Confirmação de Aceite */}
+       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+         <DialogContent className="max-w-sm">
+           <DialogHeader>
+             <DialogTitle className="text-center">Confirmar o aceite do Freelancer?</DialogTitle>
+           </DialogHeader>
+           <div className="flex flex-col items-center gap-4 py-4">
+             <p className="text-sm text-muted-foreground text-center">
+               Ao confirmar o freelancer você será redirecionado ao pagamento da vaga, esse valor ficará retido até a conclusão do serviço, com serviço concluído o Freelancer irá receber o valor, caso aconteça algum tipo de problema com o serviço, esse valor será estornado para sua conta
+             </p>
+             <div className="flex gap-3 w-full">
+               <Button
+                 variant="outline"
+                 className="flex-1"
+                 onClick={() => setShowConfirmDialog(false)}
+               >
+                 Não
+               </Button>
+               <Button
+                 className="flex-1 bg-success hover:bg-success/90"
+                 onClick={handleConfirmAccept}
+                 disabled={actionLoadingIds.has(pendingAccept?.id || "")}
+               >
+                 {actionLoadingIds.has(pendingAccept?.id || "")
+                   ? <Loader2 className="w-4 h-4 animate-spin" />
+                   : "Sim"
+                 }
+               </Button>
+             </div>
+           </div>
+         </DialogContent>
+       </Dialog>
+
+       {/* ── Modal Pix ──────────────────────────────────────────── */}
       <Dialog open={showPixModal} onOpenChange={setShowPixModal}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
