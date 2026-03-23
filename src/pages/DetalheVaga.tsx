@@ -69,87 +69,153 @@ const DetalheVaga = () => {
   const vacancyIdFromState: string | undefined = locState?.vacancyId;
   const isAgendada = source === "agendadas";
 
-  const [applied, setApplied] = useState(false);
-  const [applying, setApplying] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [vaga, setVaga] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [providerId, setProviderId] = useState<string | null>(null);
-  const [candidacyStatus, setCandidacyStatus] = useState<string | null>(null);
-  const [showCheckinModal, setShowCheckinModal] = useState(false);
-  const [checkinCode, setCheckinCode] = useState("");
-  const [checkinLoading, setCheckinLoading] = useState(false);
-  const [checkinDone, setCheckinDone] = useState(false);
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [checkoutCode, setCheckoutCode] = useState("");
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutDone, setCheckoutDone] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewStars, setReviewStars] = useState(0);
-  const [reviewComment, setReviewComment] = useState("");
-  const [reviewLoading, setReviewLoading] = useState(false);
+   const [applied, setApplied] = useState(false);
+   const [applying, setApplying] = useState(false);
+   const [showSuccess, setShowSuccess] = useState(false);
+   const [vaga, setVaga] = useState<any>(null);
+   const [loading, setLoading] = useState(true);
+   const [providerId, setProviderId] = useState<string | null>(null);
+   const [contractorId, setContractorId] = useState<string | null>(null);
+   const [candidacyStatus, setCandidacyStatus] = useState<string | null>(null);
+   const [showCheckinModal, setShowCheckinModal] = useState(false);
+   const [checkinCode, setCheckinCode] = useState("");
+   const [checkinLoading, setCheckinLoading] = useState(false);
+   const [checkinDone, setCheckinDone] = useState(false);
+   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+   const [checkoutCode, setCheckoutCode] = useState("");
+   const [checkoutLoading, setCheckoutLoading] = useState(false);
+   const [checkoutDone, setCheckoutDone] = useState(false);
+   const [showReviewModal, setShowReviewModal] = useState(false);
+   const [reviewStars, setReviewStars] = useState(0);
+   const [reviewComment, setReviewComment] = useState("");
+   const [reviewLoading, setReviewLoading] = useState(false);
+   // Contratante data
+   const [contractorName, setContractorName] = useState<string>("--");
+   const [contractorFeedback, setContractorFeedback] = useState<number>(0);
+   const [loadingContractor, setLoadingContractor] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!vagaId) return;
-      try {
-        if (isAgendada) {
-          // For scheduled jobs: use /jobs/{jobId} and /candidacies/{vacancyId}
-          const actualJobId = jobIdFromState || vagaId;
-          const actualVacancyId = vacancyIdFromState || vagaId;
+   useEffect(() => {
+     const fetchData = async () => {
+       if (!vagaId) return;
+       try {
+         if (isAgendada) {
+           // For scheduled jobs: use /jobs/{jobId} and /candidacies/{vacancyId}
+           const actualJobId = jobIdFromState || vagaId;
+           const actualVacancyId = vacancyIdFromState || vagaId;
 
-          const [jobRes, candidacyRes, provRes] = await Promise.all([
-            apiFetch(`${API_BASE_URL}/jobs/${actualJobId}`, { method: "GET" }),
-            apiFetch(`${API_BASE_URL}/candidacies/${actualVacancyId}`, { method: "GET" }),
-            apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
-          ]);
+           const [jobRes, candidacyRes, provRes] = await Promise.all([
+             apiFetch(`${API_BASE_URL}/jobs/${actualJobId}`, { method: "GET" }),
+             apiFetch(`${API_BASE_URL}/candidacies/${actualVacancyId}`, { method: "GET" }),
+             apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
+           ]);
 
-          const jobBody = await jobRes.json().catch(() => null);
-          const jobData = jobBody?.data ?? jobBody;
-          setVaga(jobData);
+           const jobBody = await jobRes.json().catch(() => null);
+           const jobData = jobBody?.data ?? jobBody;
+           setVaga(jobData);
 
-          const candidacyBody = await candidacyRes.json().catch(() => null);
-          const candidacyData = candidacyBody?.data ?? candidacyBody;
-          if (candidacyData?.status) {
-            setCandidacyStatus(candidacyData.status);
-          } else if (Array.isArray(candidacyData) && candidacyData.length > 0) {
-            setCandidacyStatus(candidacyData[0]?.status ?? null);
-          }
+           const candidacyBody = await candidacyRes.json().catch(() => null);
+           const candidacyData = candidacyBody?.data ?? candidacyBody;
+           if (candidacyData?.status) {
+             setCandidacyStatus(candidacyData.status);
+           } else if (Array.isArray(candidacyData) && candidacyData.length > 0) {
+             setCandidacyStatus(candidacyData[0]?.status ?? null);
+           }
 
-          const provBody = await provRes.json().catch(() => null);
-          const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
-          if (provData?.id) setProviderId(provData.id);
-          setApplied(true); // Already applied if it's scheduled
-        } else {
-          // Default: fetch vacancy and provider in parallel
-          const [vacRes, provRes] = await Promise.all([
-            apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
-            apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
-          ]);
+           const provBody = await provRes.json().catch(() => null);
+           const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
+           if (provData?.id) setProviderId(provData.id);
+           setApplied(true); // Already applied if it's scheduled
 
-          const vacBody = await vacRes.json().catch(() => null);
-          const vacData = vacBody?.data ?? vacBody;
-          setVaga(vacData);
+           // Extract contractorId from job data
+           const contractorIdFromJob = jobData?.contractorId || jobData?.contractor?.id;
+           if (contractorIdFromJob) {
+             setContractorId(contractorIdFromJob);
+           }
+         } else {
+           // Default: fetch vacancy and provider in parallel
+           const [vacRes, provRes] = await Promise.all([
+             apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
+             apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
+           ]);
 
-          const provBody = await provRes.json().catch(() => null);
-          const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
-          if (provData?.id) setProviderId(provData.id);
+           const vacBody = await vacRes.json().catch(() => null);
+           const vacData = vacBody?.data ?? vacBody;
+           setVaga(vacData);
 
-          if (vacData?.candidacies && Array.isArray(vacData.candidacies) && provData?.id) {
-            const alreadyApplied = vacData.candidacies.some(
-              (c: any) => c.providerId === provData.id && c.status !== "rejected"
-            );
-            if (alreadyApplied) setApplied(true);
-          }
-        }
-      } catch (err) {
-        console.error("[DetalheVaga] error fetching data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [vagaId]);
+           const provBody = await provRes.json().catch(() => null);
+           const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
+           if (provData?.id) setProviderId(provData.id);
+
+           if (vacData?.candidacies && Array.isArray(vacData.candidacies) && provData?.id) {
+             const alreadyApplied = vacData.candidacies.some(
+               (c: any) => c.providerId === provData.id && c.status !== "rejected"
+             );
+             if (alreadyApplied) setApplied(true);
+           }
+
+           // Extract contractorId from vacancy data
+           const contractorIdFromVaga = vacData?.contractorId || vacData?.contractor?.id;
+           if (contractorIdFromVaga) {
+             setContractorId(contractorIdFromVaga);
+           }
+         }
+       } catch (err) {
+         console.error("[DetalheVaga] error fetching data:", err);
+       } finally {
+         setLoading(false);
+       }
+     };
+     fetchData();
+   }, [vagaId]);
+
+   // Fetch contractor data and user name
+   useEffect(() => {
+     const fetchContractorData = async () => {
+       if (!contractorId) return;
+       try {
+         setLoadingContractor(true);
+         const tokenRaw = localStorage.getItem("authToken");
+         const headers: any = {};
+         if (tokenRaw) {
+           const token = JSON.parse(tokenRaw);
+           headers.Authorization = `Bearer ${token}`;
+           headers["Origin-type"] = "Web";
+         }
+
+         // Fetch contractor by ID
+         const contractorRes = await apiFetch(`${API_BASE_URL}/users/contractors/${contractorId}`, { headers });
+         const contractorBody = await contractorRes.json().catch(() => null);
+         const contractorData = contractorBody?.data ?? contractorBody;
+
+         if (contractorData) {
+           const feedbackStars = contractorData.feedbackStars ?? 0;
+           setContractorFeedback(feedbackStars);
+
+           // Fetch user name using userId
+           const userId = contractorData.userId;
+           if (userId) {
+             try {
+               const userRes = await apiFetch(`${API_BASE_URL}/users/${userId}`, { headers });
+               const userBody = await userRes.json().catch(() => null);
+               const userData = userBody?.data ?? userBody;
+               if (userData?.name) {
+                 setContractorName(userData.name);
+               } else if (userData?.fullName) {
+                 setContractorName(userData.fullName);
+               }
+             } catch (userErr) {
+               console.warn("[DetalheVaga] Failed to fetch user name:", userErr);
+             }
+           }
+         }
+       } catch (err) {
+         console.error("[DetalheVaga] Error fetching contractor data:", err);
+       } finally {
+         setLoadingContractor(false);
+       }
+     };
+     fetchContractorData();
+   }, [contractorId]);
 
   if (loading) {
     return (
@@ -176,15 +242,13 @@ const DetalheVaga = () => {
   const services = vaga.services ?? vaga.freelancers ?? [];
   const serviceInfo = services[serviceIndex] ?? services[0] ?? {};
 
-   const title = serviceInfo.assignment || vaga.establishment || vaga.description || "Vaga";
-  const status = vaga.status || "aberta";
-  const jobDate = vaga.jobDate ? formatDateDDMMYYYY(vaga.jobDate) : "--";
-  const jobTime = serviceInfo.jobTime || "--";
-  const jobValue = serviceInfo.jobValue || "--";
-  const assignment = serviceInfo.assignment || "--";
-  const location_ = extractNeighborhoodCity(vaga.establishment) || "--";
-  const clientName = vaga.contractorName || vaga.contractor?.name || vaga.establishment || "--";
-  const contractorId = vaga.contractorId || vaga.contractor?.id;
+    const title = serviceInfo.assignment || vaga.establishment || vaga.description || "Vaga";
+   const status = vaga.status || "aberta";
+   const jobDate = vaga.jobDate ? formatDateDDMMYYYY(vaga.jobDate) : "--";
+   const jobTime = serviceInfo.jobTime || "--";
+   const jobValue = serviceInfo.jobValue || "--";
+   const assignment = serviceInfo.assignment || "--";
+   const location_ = extractNeighborhoodCity(vaga.establishment) || "--";
 
   // Timeline logic
   const timelineSteps = isAgendada ? agendadaTimelineSteps : defaultTimelineSteps;
@@ -408,8 +472,12 @@ const DetalheVaga = () => {
               <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden border-2 border-primary/20">
                 <User className="w-7 h-7 text-muted-foreground" />
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold">{clientName}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate">{contractorName}</p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <Star className="w-3 h-3 fill-primary text-primary" />
+                  <span className="text-xs font-medium">{contractorFeedback.toFixed(1)}</span>
+                </div>
               </div>
               {contractorId && <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />}
             </div>
