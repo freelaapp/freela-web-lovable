@@ -38,6 +38,26 @@ const formatDateDDMMYYYY = (dateStr: string): string => {
   return dateStr;
 };
 
+// Extract neighborhood and city from establishment address
+// Format: "Rua X, 123 - Bairro, Cidade • CEP: 12345678"
+const extractNeighborhoodCity = (address: string): string => {
+  if (!address || address === "--") return "--";
+  // Split by " - " to get the part after dash
+  const parts = address.split(" - ");
+  if (parts.length < 2) return address;
+  const afterDash = parts.slice(1).join(" - ");
+  // Remove CEP part (starting with "•" or "CEP:")
+  const cepIndex = afterDash.indexOf("•");
+  if (cepIndex !== -1) {
+    return afterDash.substring(0, cepIndex).trim();
+  }
+  const cepLabelIndex = afterDash.toUpperCase().indexOf("CEP:");
+  if (cepLabelIndex !== -1) {
+    return afterDash.substring(0, cepLabelIndex).trim();
+  }
+  return afterDash.trim();
+};
+
 const DetalheVaga = () => {
   const { vagaId } = useParams();
   const navigate = useNavigate();
@@ -156,13 +176,13 @@ const DetalheVaga = () => {
   const services = vaga.services ?? vaga.freelancers ?? [];
   const serviceInfo = services[serviceIndex] ?? services[0] ?? {};
 
-  const title = serviceInfo.assignment || vaga.establishment || vaga.description || "Vaga";
+   const title = serviceInfo.assignment || vaga.establishment || vaga.description || "Vaga";
   const status = vaga.status || "aberta";
   const jobDate = vaga.jobDate ? formatDateDDMMYYYY(vaga.jobDate) : "--";
   const jobTime = serviceInfo.jobTime || "--";
   const jobValue = serviceInfo.jobValue || "--";
   const assignment = serviceInfo.assignment || "--";
-  const location_ = vaga.address || vaga.location || "--";
+  const location_ = extractNeighborhoodCity(vaga.establishment) || "--";
   const clientName = vaga.contractorName || vaga.contractor?.name || vaga.establishment || "--";
   const contractorId = vaga.contractorId || vaga.contractor?.id;
 
