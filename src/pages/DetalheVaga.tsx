@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star, Send } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
@@ -16,6 +17,7 @@ const defaultTimelineSteps = [
   { key: "inicio", label: "Início do Trabalho", icon: Clock },
   { key: "fim", label: "Final do Trabalho", icon: CheckCircle },
   { key: "pagamento", label: "Pagamento", icon: DollarSign },
+  { key: "feedback", label: "Feedback", icon: Star },
 ];
 
 const agendadaTimelineSteps = [
@@ -89,6 +91,7 @@ const DetalheVaga = () => {
    const [reviewStars, setReviewStars] = useState(0);
    const [reviewComment, setReviewComment] = useState("");
    const [reviewLoading, setReviewLoading] = useState(false);
+   const [reviewDone, setReviewDone] = useState(false);
    // Contratante data
    const [contractorName, setContractorName] = useState<string>("--");
    const [contractorFeedback, setContractorFeedback] = useState<number>(0);
@@ -246,16 +249,23 @@ const DetalheVaga = () => {
   const timelineSteps = isAgendada ? agendadaTimelineSteps : defaultTimelineSteps;
 
   // For agendadas: timeline depends on checkinDone
-  const getAgendadaStepStatus = (stepKey: string) => {
-    if (checkinDone) {
-      if (stepKey === "aceite" || stepKey === "inicio") return "done";
-      if (stepKey === "fim") return "in_progress";
-      return "pending";
-    }
-    if (stepKey === "aceite") return "done";
-    if (stepKey === "inicio") return "in_progress";
-    return "pending";
-  };
+   const getAgendadaStepStatus = (stepKey: string) => {
+     if (checkinDone) {
+       if (stepKey === "aceite" || stepKey === "inicio") return "done";
+       if (stepKey === "fim") {
+         return checkoutDone ? "done" : "in_progress";
+       }
+       if (stepKey === "feedback") {
+         if (reviewDone) return "done";
+         if (checkoutDone) return "in_progress";
+         return "pending";
+       }
+       return "pending";
+     }
+     if (stepKey === "aceite") return "done";
+     if (stepKey === "inicio") return "in_progress";
+     return "pending";
+   };
 
   const handleCheckinValidate = async () => {
     if (checkinCode.length !== 6) {
@@ -290,40 +300,98 @@ const DetalheVaga = () => {
     }
   };
 
-  const handleCheckoutValidate = async () => {
-    if (checkoutCode.length !== 6) {
-      toast.error("Digite o código de 6 dígitos.");
-      return;
-    }
-    const jobId = jobIdFromState || vagaId;
-    if (!providerId || !jobId) {
-      toast.error("Não foi possível identificar os dados. Tente novamente.");
-      return;
-    }
-    setCheckoutLoading(true);
-    try {
-      const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-outs/validate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId, providerId, code: checkoutCode }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.message || "Código inválido. Tente novamente.");
-      }
-      setCheckoutDone(true);
-      setShowCheckoutModal(false);
-      setCheckoutCode("");
-      toast.success("Check-out realizado com sucesso!");
-    } catch (err: any) {
-      console.error("[DetalheVaga] checkout error:", err);
-      toast.error(err.message || "Erro ao validar código. Tente novamente.");
-    } finally {
-      setCheckoutLoading(false);
-    }
-  };
+   const handleCheckoutValidate = async () => {
+     if (checkoutCode.length !== 6) {
+       toast.error("Digite o código de 6 dígitos.");
+       return;
+     }
+     const jobId = jobIdFromState || vagaId;
+     if (!providerId || !jobId) {
+       toast.error("Não foi possível identificar os dados. Tente novamente.");
+       return;
+     }
+     setCheckoutLoading(true);
+     try {
+       const res = await apiFetch(`${API_BASE_URL}/providers/jobs/check-outs/validate`, {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ jobId, providerId, code: checkoutCode }),
+       });
+       if (!res.ok) {
+         const body = await res.json().catch(() => null);
+         throw new Error(body?.message || "Código inválido. Tente novamente.");
+       }
+       setCheckoutDone(true);
+       setShowCheckoutModal(false);
+       setCheckoutCode("");
+       toast.success("Check-out realizado com sucesso!");
+     } catch (err: any) {
+       console.error("[DetalheVaga] checkout error:", err);
+       toast.error(err.message || "Erro ao validar código. Tente novamente.");
+     } finally {
+       setCheckoutLoading(false);
+     }
+   };
 
-  const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false };
+   const handleSubmitReview = async () => {
+     if (reviewStars === 0) {
+       toast.error("Selecione pelo menos 1 estrela.");
+       return;
+     }
+     setReviewLoading(true);
+     try {
+       const jobId = jobIdFromState || vagaId;
+       const contractorId = vaga?.contractorId || vaga?.contractor?.id;
+       if (!providerId || !contractorId || !jobId) {
+         toast.error("Não foi possível identificar os dados. Tente novamente.");
+         return;
+       }
+
+       const res = await apiFetch(`${API_BASE_URL}/contractors/jobs/feedbacks`, {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           comment: reviewComment.trim(),
+           star: reviewStars,
+           sender: providerId,
+           receiver: contractorId,
+           jobId,
+           providerAttendedJob: checkoutDone,
+           createdAt: new Date().toISOString(),
+         }),
+       });
+
+       if (!res.ok) {
+         const body = await res.json().catch(() => null);
+         throw new Error(body?.message || "Erro ao enviar avaliação.");
+       }
+
+       setReviewDone(true);
+       if (!isAgendada) {
+         setVaga(prev => {
+           if (!prev) return prev;
+           return {
+             ...prev,
+             timeline: {
+               ...prev.timeline,
+               feedback: true,
+             },
+           };
+         });
+       }
+
+       setShowReviewModal(false);
+       setReviewStars(0);
+       setReviewComment("");
+       toast.success("Avaliação enviada com sucesso!");
+     } catch (err: any) {
+       toast.error(err.message || "Erro ao enviar avaliação.");
+     } finally {
+       setReviewLoading(false);
+      }
+    };
+
+   const defaultTimeline = vaga.timeline || { aceite: false, inicio: false, fim: false, pagamento: false, feedback: false };
   const agendadaTimeline = {
     aceite: true,
     inicio: checkinDone,
@@ -504,12 +572,17 @@ const DetalheVaga = () => {
 
                 const isInProgress = stepStatus === "in_progress";
                 const showCheckin = isAgendada && step.key === "inicio" && isInProgress && !checkinDone;
-                const showCheckout = isAgendada && step.key === "fim";
-
-                // For non-agendada: existing logic
+                const showCheckout = isAgendada && step.key === "fim" && isInProgress && !checkoutDone;
                 const showEntrada = !isAgendada && step.key === "inicio" && canConfirm;
                 const canConfirmExit = !isAgendada && (status === "aceita" || status === "accepted") && timeline.inicio && !timeline.fim;
                 const showSaida = !isAgendada && step.key === "fim" && canConfirmExit;
+
+                const showReviewBtn = (
+                  step.key === "feedback" && (
+                    (isAgendada && isInProgress && !reviewDone) ||
+                    (!isAgendada && timeline.fim && !timeline.feedback)
+                  )
+                );
 
                 return (
                   <div key={step.key} className="relative pb-6 last:pb-0">
@@ -538,21 +611,26 @@ const DetalheVaga = () => {
                           <ShieldCheck className="w-4 h-4" /> Check-out
                         </Button>
                       )}
-                      {isAgendada && step.key === "feedback" && (
-                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setShowReviewModal(true)}>
+                      {showReviewBtn && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5"
+                          onClick={() => setShowReviewModal(true)}
+                        >
                           <Star className="w-4 h-4" /> Avaliação
                         </Button>
                       )}
-                      {showEntrada && (
-                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
-                          <ShieldCheck className="w-4 h-4" /> Confirmar Entrada
-                        </Button>
-                      )}
-                      {showSaida && (
-                        <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
-                          <ShieldCheck className="w-4 h-4" /> Confirmar Saída
-                        </Button>
-                      )}
+                       {showEntrada && (
+                         <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}`)}>
+                           <ShieldCheck className="w-4 h-4" /> Confirmar Entrada
+                         </Button>
+                       )}
+                       {showSaida && (
+                         <Button size="sm" className="gap-1.5" onClick={() => navigate(`/confirmar-servico/${vaga.id}?tipo=saida`)}>
+                           <ShieldCheck className="w-4 h-4" /> Confirmar Saída
+                         </Button>
+                       )}
                     </div>
                   </div>
                 );
