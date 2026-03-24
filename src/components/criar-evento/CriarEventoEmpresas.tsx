@@ -155,9 +155,10 @@ const CriarEventoEmpresas = () => {
     });
   }, [selectedServices]);
 
-  const valorTotal = useMemo(() => {
-    return servicePricing.reduce((sum, s) => sum + s.total, 0);
-  }, [servicePricing]);
+   const valorTotal = useMemo(() => {
+     const subtotal = servicePricing.reduce((sum, s) => sum + s.total, 0);
+     return subtotal + 1.00; // Add R$ 1,00 for Pix payment (secure)
+   }, [servicePricing]);
 
 
   const totalSubtotal = useMemo(() => {
@@ -692,13 +693,17 @@ const CriarEventoEmpresas = () => {
                   </div>
                 ))}
 
-                {/* Totais gerais */}
-                <div className="border-t border-border pt-3 space-y-1 text-xs">
-<div className="flex justify-between font-bold text-sm text-foreground pt-1">
-                    <span>Total</span>
-                    <span>R$ {valorTotal.toFixed(2).replace(".", ",")}</span>
-                  </div>
-                </div>
+                 {/* Totais gerais */}
+                 <div className="border-t border-border pt-3 space-y-1 text-xs">
+                   <div className="flex justify-between">
+                     <span>Pagamento via Pix (seguro):</span>
+                     <span>R$ 1,00</span>
+                   </div>
+                   <div className="flex justify-between font-bold text-sm text-foreground pt-1">
+                     <span>Total</span>
+                     <span>R$ {valorTotal.toFixed(2).replace(".", ",")}</span>
+                   </div>
+                 </div>
               </div>
             )}
           </div>
