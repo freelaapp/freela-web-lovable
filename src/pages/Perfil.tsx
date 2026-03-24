@@ -192,14 +192,43 @@ const Perfil = () => {
 
         const avatar = bufferToDataUrl(providerData.profileImage);
 
-        if (providerData.diasAtivos) {
-          setDiasAtivos(providerData.diasAtivos);
-          setSavedDiasAtivos(providerData.diasAtivos);
-        }
-        if (providerData.horarios) {
-          setHorarios(providerData.horarios);
-          setSavedHorarios(providerData.horarios);
-        }
+         // Process availability from 'availability' field (JSON string)
+         const availabilityData = providerData.availability;
+         if (availabilityData) {
+           let availability: any = null;
+           if (typeof availabilityData === 'string') {
+             try {
+               availability = JSON.parse(availabilityData);
+             } catch (e) {
+               console.error('Erro ao parsear availability:', e);
+               availability = null;
+             }
+           } else {
+             availability = availabilityData;
+           }
+
+           if (availability && availability.diasAtivos && Array.isArray(availability.diasAtivos)) {
+             setDiasAtivos(availability.diasAtivos);
+             setSavedDiasAtivos(availability.diasAtivos);
+           } else {
+             setDiasAtivos([]);
+             setSavedDiasAtivos([]);
+           }
+
+           if (availability && availability.horarios && typeof availability.horarios === 'object') {
+             setHorarios(availability.horarios);
+             setSavedHorarios(availability.horarios);
+           } else {
+             setHorarios({});
+             setSavedHorarios({});
+           }
+         } else {
+           // Sem campo availability, limpar estados (sem dados fictícios)
+           setDiasAtivos([]);
+           setSavedDiasAtivos([]);
+           setHorarios({});
+           setSavedHorarios({});
+         }
 
         const djv = providerData.desiredJobVacancy || "";
         if (djv) {
