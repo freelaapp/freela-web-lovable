@@ -165,14 +165,17 @@ const CadastroFreelancerAreas = () => {
       fd.append("schooling", "");
       fd.append("cnh", "");
       fd.append("language", "");
-        fd.append("desiredJobVacancy", areasLabels);
+       fd.append("desiredJobVacancy", areasLabels);
 
-        // Enviar availability como JSON string
-        const availabilityPayload = {
-          diasAtivos,
-          horarios
-        };
-        fd.append("availability", JSON.stringify(availabilityPayload));
+       // Enviar availability como JSON string apenas com dias ativos e seus horários
+       const horariosFiltrados = Object.fromEntries(
+         Object.entries(horarios).filter(([key]) => diasAtivos.includes(key))
+       );
+       const availabilityPayload = {
+         diasAtivos,
+         horarios: horariosFiltrados
+       };
+       fd.append("availability", JSON.stringify(availabilityPayload));
 
        fd.append("emergencyContactName", saved.emergencyContactName || "");
       fd.append("emergencyContactRelationship", saved.emergencyContactRelationship || "");
