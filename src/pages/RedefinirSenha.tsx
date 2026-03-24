@@ -111,22 +111,6 @@ const RedefinirSenha = () => {
     }
   };
 
-  if (!emailFromQuery) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center container-padding">
-        <div className="w-full max-w-md text-center">
-          <h1 className="text-2xl font-display font-bold mb-4">Link de recuperação inválido</h1>
-          <p className="text-muted-foreground mb-6">
-            O link de redefinição de senha é inválido ou expirou. Solicite um novo código.
-          </p>
-          <Button asChild className="w-full h-12" size="lg">
-            <Link to="/esqueci-minha-senha">Solicitar novo código</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center container-padding relative">
       <button
