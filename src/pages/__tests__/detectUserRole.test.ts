@@ -20,13 +20,13 @@ describe("detectUserRole", () => {
     vi.clearAllMocks();
   });
 
-  it("should return 'contratante' when contractor profile exists as object", async () => {
+  it("should return 'contratante' when activeRole is 'contractor'", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
         success: true,
-        data: { id: "contractor-123", establishmentName: "Acme Corp" },
+        data: { activeRole: "contractor", contractor: { id: "123" }, provider: { id: "456" } },
       }),
     } as unknown as Response);
 
@@ -34,27 +34,13 @@ describe("detectUserRole", () => {
     expect(result).toBe("contratante");
   });
 
-  it("should return 'contratante' when contractor profile exists as non-empty array", async () => {
+  it("should return 'freelancer' when activeRole is 'provider'", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
         success: true,
-        data: [{ id: "contractor-123", establishmentName: "Acme Corp" }],
-      }),
-    } as unknown as Response);
-
-    const result = await detectUserRole();
-    expect(result).toBe("contratante");
-  });
-
-  it("should return 'freelancer' when contractor profile is empty array", async () => {
-    vi.mocked(apiFetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        success: true,
-        data: [],
+        data: { activeRole: "provider", contractor: { id: "123" }, provider: { id: "456" } },
       }),
     } as unknown as Response);
 
@@ -62,13 +48,13 @@ describe("detectUserRole", () => {
     expect(result).toBe("freelancer");
   });
 
-  it("should return 'freelancer' when contractor profile is null", async () => {
+  it("should return 'freelancer' when activeRole is missing", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
         success: true,
-        data: null,
+        data: { contractor: { id: "123" }, provider: { id: "456" } },
       }),
     } as unknown as Response);
 
@@ -76,12 +62,27 @@ describe("detectUserRole", () => {
     expect(result).toBe("freelancer");
   });
 
-  it("should return 'freelancer' when contractor profile is undefined", async () => {
+  it("should return 'freelancer' when activeRole is null", async () => {
     vi.mocked(apiFetch).mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({
         success: true,
+        data: { activeRole: null, contractor: { id: "123" }, provider: { id: "456" } },
+      }),
+    } as unknown as Response);
+
+    const result = await detectUserRole();
+    expect(result).toBe("freelancer");
+  });
+
+  it("should return 'freelancer' when activeRole is undefined", async () => {
+    vi.mocked(apiFetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: { contractor: { id: "123" }, provider: { id: "456" } },
       }),
     } as unknown as Response);
 

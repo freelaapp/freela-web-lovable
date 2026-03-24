@@ -145,6 +145,21 @@ const Perfil = () => {
       setFreelancerLoading(false);
       return;
     }
+    setFreelancerData({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "", isPCD: false });
+    setDiasAtivos(["seg", "ter", "qua", "qui", "sex"]);
+    setHorarios({
+      seg: { de: "08h", ate: "20h" },
+      ter: { de: "08h", ate: "20h" },
+      qua: { de: "08h", ate: "20h" },
+      qui: { de: "08h", ate: "20h" },
+      sex: { de: "08h", ate: "20h" },
+      sab: { de: "10h", ate: "16h" },
+      dom: { de: "10h", ate: "14h" }
+    });
+    setServicosSelecionados(["garcom", "barman", "churrasqueiro"]);
+
+    const abortController = new AbortController();
+
     const fetchFreelancer = async () => {
       try {
         const tokenRaw = localStorage.getItem("authToken");
@@ -154,10 +169,10 @@ const Perfil = () => {
 
         const [providerRes, userRes] = await Promise.all([
           fetch(`${API_BASE_URL}/users/providers`, {
-            method: "GET", credentials: "include", headers,
+            method: "GET", credentials: "include", headers, signal: abortController.signal,
           }),
           fetch(`${API_BASE_URL}/users/me`, {
-            method: "GET", credentials: "include", headers,
+            method: "GET", credentials: "include", headers, signal: abortController.signal,
           }),
         ]);
 
@@ -177,7 +192,6 @@ const Perfil = () => {
 
         const avatar = bufferToDataUrl(providerData.profileImage);
 
-        // Carregar disponibilidade de horários da API
         if (providerData.diasAtivos) {
           setDiasAtivos(providerData.diasAtivos);
           setSavedDiasAtivos(providerData.diasAtivos);
@@ -187,7 +201,6 @@ const Perfil = () => {
           setSavedHorarios(providerData.horarios);
         }
 
-        // Parse desiredJobVacancy into service chips
         const djv = providerData.desiredJobVacancy || "";
         if (djv) {
           const ids = djv.split(",").map((s: string) => s.trim().toLowerCase());
@@ -209,13 +222,17 @@ const Perfil = () => {
           isPCD: !!providerData.deficiency,
         });
       } catch (err) {
-        console.error("[Perfil] freelancer fetch error:", err);
+        if ((err as Error).name !== "AbortError") {
+          console.error("[Perfil] freelancer fetch error:", err);
+        }
       } finally {
         setFreelancerLoading(false);
       }
     };
     fetchFreelancer();
-  }, [isContratante]);
+
+    return () => abortController.abort();
+  }, [role]);
 
   // Fetch contractor profile when contratante
   useEffect(() => {
@@ -223,6 +240,12 @@ const Perfil = () => {
       setContractorLoading(false);
       return;
     }
+    setContractorData({ name: "", avatarUrl: null, rating: "0", segment: "", city: "", uf: "" });
+    setFotoFachada(null);
+    setFotoInterno(null);
+
+    const abortController = new AbortController();
+
     const fetchContractor = async () => {
       try {
         const tokenRaw = localStorage.getItem("authToken");
@@ -233,21 +256,19 @@ const Perfil = () => {
           method: "GET",
           credentials: "include",
           headers: { "Origin-type": "Web", "Authorization": `Bearer ${token}` },
+          signal: abortController.signal,
         });
         if (!res.ok) { setContractorLoading(false); return; }
         const body = await res.json();
         const d = body?.data ?? body;
 
-        // Detect type
         let detected: ContractorType = "empresas";
         if (d.cpf && !d.cnpj) detected = "casa_cpf";
         else if (d.cnpj && !d.establishmentFacadeImage && !d.companyName) detected = "casa_cnpj";
         setContractorType(detected);
 
-        // Avatar
         const avatar = bufferToDataUrl(d.establishmentFacadeImage) || bufferToDataUrl(d.profileImage);
 
-        // Fotos for empresas
         const facadeUrl = bufferToDataUrl(d.establishmentFacadeImage);
         if (facadeUrl) setFotoFachada(facadeUrl);
         const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
@@ -262,13 +283,17 @@ const Perfil = () => {
           uf: d.uf || "",
         });
       } catch (err) {
-        console.error("[Perfil] contractor fetch error:", err);
+        if ((err as Error).name !== "AbortError") {
+          console.error("[Perfil] contractor fetch error:", err);
+        }
       } finally {
         setContractorLoading(false);
       }
     };
     fetchContractor();
-  }, [isContratante]);
+
+    return () => abortController.abort();
+  }, [role]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -417,6 +442,8 @@ const Perfil = () => {
   const switchRole = () => {
     const newRole = isContratante ? "freelancer" : "contratante";
     setRole(newRole);
+    setFreelancerData({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "", isPCD: false });
+    setContractorData({ name: "", avatarUrl: null, rating: "0", segment: "", city: "", uf: "" });
     navigate(newRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
   };
 

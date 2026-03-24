@@ -10,49 +10,43 @@ import { loginUser, apiFetch, SessionExpiredError } from "@/lib/api";
 import { onAuthSuccess, getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 
-/**
- * Detects user role by checking if they have a contractor profile.
- * Returns "contratante" if profile exists, "freelancer" otherwise.
- * Always returns a valid role (never throws).
- */
+const API_BASE_URL = import.meta.env.API_BASE_URL;
+
 export async function detectUserRole(): Promise<"freelancer" | "contratante"> {
   try {
-    const response = await apiFetch(`${import.meta.env.API_BASE_URL}/users/contractors`, {
+    const response = await apiFetch(`${API_BASE_URL}/users/profiles`, {
       method: "GET",
     });
 
-    // Token expired during role detection - propagate to login handler
     if (response.status === 401) {
       throw new SessionExpiredError();
     }
 
-    // Server error - graceful fallback to freelancer
     if (!response.ok) {
-      console.warn(`[detectUserRole] Contractor check failed: ${response.status}`);
+      console.warn(`[detectUserRole] Profiles check failed: ${response.status}`);
       return "freelancer";
     }
 
     const body = await response.json().catch(() => null);
 
-    // Validate response structure
-    if (!body?.success) {
+    if (!body?.success || !body?.data) {
       return "freelancer";
     }
 
-    const data = body?.data;
+    const { activeRole } = body.data;
 
-    // Check if data is a valid profile: non-empty array OR non-null object
-    const hasValidProfile =
-      (Array.isArray(data) && data.length > 0) ||
-      (typeof data === "object" && data !== null && !Array.isArray(data));
+    if (activeRole === "contractor") {
+      return "contratante";
+    }
+    if (activeRole === "provider") {
+      return "freelancer";
+    }
 
-    return hasValidProfile ? "contratante" : "freelancer";
+    return "freelancer";
   } catch (err) {
-    // SessionExpiredError propagates - will be caught by handleSubmit
     if (err instanceof SessionExpiredError) {
       throw err;
     }
-    // Network error or other - graceful fallback
     console.error("[detectUserRole] Error detecting role:", err);
     return "freelancer";
   }
@@ -98,20 +92,21 @@ const Login = () => {
       const result = await loginUser({ email: email.toLowerCase().trim(), password });
       onAuthSuccess(result.data);
 
-      // Get auth user info
       const authUser = getAuthUser();
+      let userRole = authUser?.role;
 
-      // Detect user role by checking contractor profile
-      const detectedRole = await detectUserRole();
+      if (!userRole) {
+        userRole = await detectUserRole();
+      }
 
-      // Atualiza isAuthenticated + userId + role atomicamente no contexto
-      loginSuccess(authUser?.id ?? "", detectedRole);
+      const finalRole = userRole || "freelancer";
+      loginSuccess(authUser?.id ?? "", finalRole);
 
       toast({
         title: "Login realizado!",
         description: "Bem-vindo de volta à Freela.",
       });
-      navigate(detectedRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
+      navigate(finalRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
     } catch (err: unknown) {
       const message =
         err instanceof TypeError
