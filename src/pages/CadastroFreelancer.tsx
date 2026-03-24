@@ -69,9 +69,8 @@ const CadastroFreelancer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [fotoPerfil, setFotoPerfil] = useState<File | null>(null);
-  const [nomeCompleto, setNomeCompleto] = useState("");
-  const [cpf, setCpf] = useState("");
+   const [fotoPerfil, setFotoPerfil] = useState<File | null>(null);
+   const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState<Date>();
   const [sexo, setSexo] = useState("");
   const [isPCD, setIsPCD] = useState(false);
@@ -135,18 +134,17 @@ const CadastroFreelancer = () => {
 
   const previewFoto = useMemo(() => fotoPerfil ? URL.createObjectURL(fotoPerfil) : null, [fotoPerfil]);
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!fotoPerfil) e.fotoPerfil = "Foto de perfil é obrigatória";
-    if (!nomeCompleto.trim() || nomeCompleto.trim().length < 3) e.nomeCompleto = "Nome completo é obrigatório (mínimo 3 caracteres)";
-    if (!cpf.replace(/\D/g, "") || !validateCPF(cpf)) e.cpf = "CPF inválido";
-    if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
-    else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
-    if (!sexo) e.sexo = "Sexo é obrigatório";
-    if (!endereco.trim()) e.endereco = "Endereço é obrigatório";
-    if (!numero.trim()) e.numero = "Número do endereço é obrigatório";
-    if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
-    if (!estado) e.estado = "Estado é obrigatório";
+   const validate = () => {
+     const e: Record<string, string> = {};
+     if (!fotoPerfil) e.fotoPerfil = "Foto de perfil é obrigatória";
+     if (!cpf.replace(/\D/g, "") || !validateCPF(cpf)) e.cpf = "CPF inválido";
+     if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
+     else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
+     if (!sexo) e.sexo = "Sexo é obrigatório";
+     if (!endereco.trim()) e.endereco = "Endereço é obrigatório";
+     if (!numero.trim()) e.numero = "Número do endereço é obrigatório";
+     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
+     if (!estado) e.estado = "Estado é obrigatório";
 
     // Validar contato de emergência: telefone não pode ser igual ao do usuário
     if (contatoEmergTelefone) {
@@ -197,31 +195,30 @@ const CadastroFreelancer = () => {
         fotoBase64 = await fileToBase64(fotoPerfil);
       }
 
-      // Save all form data to localStorage for the next step
-      const freelancerData = {
-        fotoBase64,
-        fotoName: fotoPerfil?.name || "",
-        fotoType: fotoPerfil?.type || "",
-        nomeCompleto,
-        cpf: cpf.replace(/\D/g, ""),
-        dataNascimento: dataNascimento?.toISOString() || "",
-        sexo,
-        isPCD,
-        deficienciasSelecionadas,
-        deficiency: isPCD ? "Sim" : "Não",
-        cep: cep.replace(/\D/g, ""),
-        street: endereco,
-        complement: complemento,
-        neighborhood: bairro,
-        number: numero,
-        city: cidade,
-        uf: estado,
-        tipoChavePix,
-        pixKeyValue: chavePix,
-        emergencyContactName: contatoEmergNome,
-        emergencyContactRelationship: contatoEmergParentesco,
-        emergencyContactNumber: contatoEmergTelefone.replace(/\D/g, ""),
-      };
+       // Save all form data to localStorage for the next step
+       const freelancerData = {
+         fotoBase64,
+         fotoName: fotoPerfil?.name || "",
+         fotoType: fotoPerfil?.type || "",
+         cpf: cpf.replace(/\D/g, ""),
+         dataNascimento: dataNascimento?.toISOString() || "",
+         sexo,
+         isPCD,
+         deficienciasSelecionadas,
+         deficiency: isPCD ? "Sim" : "Não",
+         cep: cep.replace(/\D/g, ""),
+         street: endereco,
+         complement: complemento,
+         neighborhood: bairro,
+         number: numero,
+         city: cidade,
+         uf: estado,
+         tipoChavePix,
+         pixKeyValue: chavePix,
+         emergencyContactName: contatoEmergNome,
+         emergencyContactRelationship: contatoEmergParentesco,
+         emergencyContactNumber: contatoEmergTelefone.replace(/\D/g, ""),
+       };
 
       try {
         localStorage.setItem("freelancerFormData", JSON.stringify(freelancerData));
@@ -339,19 +336,7 @@ const CadastroFreelancer = () => {
                 {errors.fotoPerfil && <p className="text-sm text-destructive">{errors.fotoPerfil}</p>}
               </div>
 
-              {/* Nome Completo */}
-              <div className="space-y-2">
-                <Label>Nome Completo</Label>
-                <Input
-                  placeholder="Seu nome completo"
-                  value={nomeCompleto}
-                  onChange={(e) => setNomeCompleto(e.target.value)}
-                  className={`h-12 ${errors.nomeCompleto ? "border-destructive" : ""}`}
-                />
-                {errors.nomeCompleto && <p className="text-sm text-destructive">{errors.nomeCompleto}</p>}
-              </div>
-
-              {/* CPF */}
+               {/* CPF */}
               <div className="space-y-2">
                 <Label>CPF</Label>
                 <Input

@@ -165,18 +165,16 @@ const CadastroFreelancerAreas = () => {
       fd.append("schooling", "");
       fd.append("cnh", "");
       fd.append("language", "");
-      fd.append("desiredJobVacancy", areasLabels);
+        fd.append("desiredJobVacancy", areasLabels);
 
-      // TODO: Enviar posteriormente
-      // const mappedHorarios = Object.entries(horarios).reduce((acc, [key, val]) => {
-      //   acc[`availability_${key}_from`] = val.de.replace("h", ":00");
-      //   acc[`availability_${key}_to`] = val.ate.replace("h", ":00");
-      //   return acc;
-      // }, {} as Record<string, string>);
-      // Object.entries(mappedHorarios).forEach(([k, v]) => fd.append(k, v));
-      // fd.append("activeDays", diasAtivos.join(","));
+        // Enviar availability como JSON string
+        const availabilityPayload = {
+          diasAtivos,
+          horarios
+        };
+        fd.append("availability", JSON.stringify(availabilityPayload));
 
-      fd.append("emergencyContactName", saved.emergencyContactName || "");
+       fd.append("emergencyContactName", saved.emergencyContactName || "");
       fd.append("emergencyContactRelationship", saved.emergencyContactRelationship || "");
       fd.append("emergencyContactNumber", saved.emergencyContactNumber || "");
       fd.append("cep", saved.cep || "");
