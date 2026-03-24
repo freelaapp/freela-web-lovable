@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
     setUserId(null);
     setRoleState(null);
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   }, [navigate]);
 
   const handleLoginSuccess = useCallback((newUserId: string, newRole: "freelancer" | "contratante") => {
