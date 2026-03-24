@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Mail, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { confirmEmail, generateEmailConfirmationCode } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { onAuthSuccess } from "@/lib/auth";
 
 const ConfirmarEmail = () => {
   const navigate = useNavigate();
@@ -65,54 +66,58 @@ const ConfirmarEmail = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const fullCode = code.join("");
+   const handleSubmit = async (e: React.FormEvent) => {
+     e.preventDefault();
+     const fullCode = code.join("");
 
-    // 1) Validação local
-    if (fullCode.length < 6 || !/^\d{6}$/.test(fullCode)) {
-      setError("Digite o código de 6 dígitos");
-      return;
-    }
+     // 1) Validação local
+     if (fullCode.length < 6 || !/^\d{6}$/.test(fullCode)) {
+       setError("Digite o código de 6 dígitos");
+       return;
+     }
 
-    // 2) Ler dados pendentes ANTES de chamar a API
-    const pendingRaw = localStorage.getItem("pendingRegisterData");
-    if (!pendingRaw) {
-      setError("Dados de cadastro não encontrados. Volte para /cadastro.");
-      return;
-    }
+     // 2) Ler dados pendentes
+     const pendingRaw = localStorage.getItem("pendingRegisterData");
+     if (!pendingRaw) {
+       setError("Dados de cadastro não encontrados. Volte para /cadastro.");
+       return;
+     }
 
-    const pendingData = JSON.parse(pendingRaw);
-    if (!pendingData.email) {
-      setError("Dados de cadastro não encontrados. Volte para /cadastro.");
-      return;
-    }
+     const pendingData = JSON.parse(pendingRaw);
+     if (!pendingData.email) {
+       setError("Dados de cadastro não encontrados. Volte para /cadastro.");
+       return;
+     }
 
-    setIsLoading(true);
-    setError("");
+     setIsLoading(true);
+     setError("");
 
     try {
-      // Confirmar e-mail (usuário já foi registrado em /cadastro)
-      setLoadingMessage("Validando código…");
+      // 3) Confirmar e-mail com o código digitado primeiro
+      setLoadingMessage("Validando código...");
       await confirmEmail(pendingData.email, fullCode);
 
-      // Código válido — autenticação já ocorreu no cadastro, ir direto para escolher perfil
+      // 4) Registrar usuário (POST /users/register) com dados pendentes
+      setLoadingMessage("Criando conta...");
+      const result = await registerUser(pendingData);
+      onAuthSuccess(result.data);
+
+      // 5) Limpar dados pendentes e navegar
       localStorage.removeItem("pendingRegisterData");
       await recheckAuth();
-
       navigate("/escolher-perfil");
     } catch (err: any) {
-      const msg = err?.message || "";
-      const message =
-        err instanceof TypeError
-          ? "Falha de conexão. Verifique sua internet e tente novamente."
-          : msg || "Código inválido ou expirado. Tente novamente.";
-      setError(message);
-    } finally {
-      setIsLoading(false);
-      setLoadingMessage("");
-    }
-  };
+       const msg = err?.message || "";
+       const message =
+         err instanceof TypeError
+           ? "Falha de conexão. Verifique sua internet e tente novamente."
+           : msg || "Código inválido ou expirado. Tente novamente.";
+       setError(message);
+     } finally {
+       setIsLoading(false);
+       setLoadingMessage("");
+     }
+   };
 
   return (
     <div className="min-h-screen hero-gradient flex flex-col items-center justify-center container-padding py-12 relative">

@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, ArrowLeft, CheckCircle, Phone } from "lucide-react";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
-import { registerUser, generateEmailConfirmationCode } from "@/lib/api";
+import { generateEmailConfirmationCode } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
 
 const Cadastro = () => {
@@ -98,16 +98,11 @@ const Cadastro = () => {
 
     setIsLoading(true);
     try {
-      // 1) Registrar usuário primeiro (a API exige que o usuário exista
-      //    antes de poder gerar o código de confirmação de e-mail)
-      const result = await registerUser(pendingData);
-      onAuthSuccess(result.data);
-
-      // 2) Agora que o usuário existe, solicitar o envio do código
+      // 1) Solicitar o envio do código de confirmação de e-mail
       await generateEmailConfirmationCode(emailNormalizado);
 
-      // 3) Guardar e-mail para a tela de confirmação usar no reenvio
-      localStorage.setItem("pendingRegisterData", JSON.stringify({ email: emailNormalizado, phoneNumber: formData.celular.replace(/\D/g, "") }));
+      // 2) Guardar todos os dados de cadastro para serem usados na próxima tela
+      localStorage.setItem("pendingRegisterData", JSON.stringify(pendingData));
 
       navigate("/confirmar-email");
     } catch (error: any) {
