@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
-import { updateProviderAvailability } from "@/lib/api";
+import { updateProviderAvailability, updateDesiredJobVacancy } from "@/lib/api";
 import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
@@ -354,19 +354,32 @@ const Perfil = () => {
     setServicosDialog(false);
   };
 
-  // Services inline edit helpers
-  const startEditingServices = () => {
-    setTempServicos([...servicosSelecionados]);
-    setEditingServices(true);
-  };
-  const cancelEditingServices = () => {
-    setTempServicos([...servicosSelecionados]);
-    setEditingServices(false);
-  };
-  const saveEditingServices = () => {
-    setServicosSelecionados([...tempServicos]);
-    setEditingServices(false);
-  };
+   // Services inline edit helpers
+   const startEditingServices = () => {
+     setTempServicos([...servicosSelecionados]);
+     setEditingServices(true);
+   };
+   const cancelEditingServices = () => {
+     setTempServicos([...servicosSelecionados]);
+     setEditingServices(false);
+   };
+   const saveEditingServices = async () => {
+     try {
+       // Convert selected service IDs to comma-separated string
+       const desiredJobVacancy = tempServicos.join(",");
+       
+       // Call API to update desiredJobVacancy
+       await updateDesiredJobVacancy({ desiredJobVacancy });
+       
+       // Update local state with saved values
+       setServicosSelecionados([...tempServicos]);
+       setEditingServices(false);
+       
+       toast.success("Serviços atualizados com sucesso!");
+     } catch (error) {
+       toast.error("Erro ao atualizar serviços. Tente novamente.");
+     }
+   };
 
   // Availability edit helpers
   const startEditingAvailability = () => {

@@ -641,9 +641,46 @@ export async function updateProviderAvailability(
     throw new Error(body?.message || 'Não foi possível atualizar a disponibilidade. Tente novamente.');
   }
 
-  if (!body?.success) {
-    throw new Error(body?.message || 'Falha ao atualizar disponibilidade.');
+   if (!body?.success) {
+     throw new Error(body?.message || 'Falha ao atualizar disponibilidade.');
+   }
+
+   return body as UpdateProviderAvailabilityResponse;
+}
+
+// ── Desired Job Vacancy ────────────────────────────────────────
+
+export interface UpdateDesiredJobVacancyPayload {
+  desiredJobVacancy: string;
+}
+
+export interface UpdateDesiredJobVacancyResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Atualiza a vaga desejada do freelancer.
+ * @param payload A string contendo os IDs dos serviços separados por vírgula
+ * @returns Confirmação da atualização
+ * @throws Error se houver problema na persistência
+ */
+export async function updateDesiredJobVacancy(
+  payload: UpdateDesiredJobVacancyPayload,
+): Promise<UpdateDesiredJobVacancyResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || 'Não foi possível atualizar a vaga desejada. Tente novamente.');
   }
 
-  return body as UpdateProviderAvailabilityResponse;
+  return body as UpdateDesiredJobVacancyResponse;
 }
