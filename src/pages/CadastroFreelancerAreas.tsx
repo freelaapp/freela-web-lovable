@@ -210,10 +210,20 @@ const CadastroFreelancerAreas = () => {
       fd.append("pixKeyType", saved.tipoChavePix || "");
       fd.append("pixKeyValue", saved.pixKeyValue || "");
       fd.append("phoneMessage", "");
-      fd.append("mileageRadius", "30");
-      fd.append("feedbackStars", "0");
+       fd.append("mileageRadius", "30");
+       fd.append("feedbackStars", "0");
 
-      await registerProvider(fd);
+       // Log de todos os campos do FormData antes do envio
+       console.log('[CadastroFreelancerAreas] FormData completo:');
+       for (const [key, value] of fd.entries()) {
+         if (key === 'availability' || key === 'profileImage') {
+           console.log(`  ${key}: ${value instanceof Blob ? '[Blob/FILE]' : value}`);
+         } else {
+           console.log(`  ${key}: ${value}`);
+         }
+       }
+
+       await registerProvider(fd);
 
       localStorage.removeItem("freelancerFormData");
       localStorage.removeItem("freelancerViacepData");

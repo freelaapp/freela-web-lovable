@@ -215,6 +215,16 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
 }
 
 export async function registerProvider(formData: FormData): Promise<void> {
+  // Log do FormData para debug
+  console.log('[registerProvider] FormData recebido:');
+  for (const [key, value] of formData.entries()) {
+    if (key === 'availability' || key === 'profileImage') {
+      console.log(`  ${key}: ${value instanceof Blob ? '[Blob/FILE]' : value}`);
+    } else {
+      console.log(`  ${key}: ${value}`);
+    }
+  }
+
   const response = await apiFetch(`${API_BASE_URL}/providers/`, {
     method: "POST",
     body: formData,
