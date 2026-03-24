@@ -74,11 +74,14 @@ const CadastroFreelancerAreas = () => {
     );
   };
 
-  const toggleDia = (key: string) => {
-    setDiasAtivos((prev) =>
-      prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key]
-    );
-  };
+   const toggleDia = (key: string) => {
+     console.log('[CadastroFreelancerAreas] toggleDia clicado:', key, 'diasAtivos antes:', diasAtivos);
+     setDiasAtivos((prev) => {
+       const novo = prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key];
+       console.log('[CadastroFreelancerAreas] diasAtivos depois:', novo);
+       return novo;
+     });
+   };
 
   const updateHorario = (key: string, field: "de" | "ate", value: string) => {
     setHorarios((prev) => ({
@@ -175,7 +178,18 @@ const CadastroFreelancerAreas = () => {
          diasAtivos,
          horarios: horariosFiltrados
        };
-       fd.append("availability", JSON.stringify(availabilityPayload));
+       
+        // Debug logs
+        console.log('[CadastroFreelancerAreas] Debug final:', {
+          diasAtivos,
+          horariosOriginal: horarios,
+          horariosFiltrados,
+          availabilityPayload
+        });
+       
+        const availabilityString = JSON.stringify(availabilityPayload);
+        fd.append("availability", availabilityString);
+        console.log('[CadastroFreelancerAreas] Enviando availability string:', availabilityString);
 
        fd.append("emergencyContactName", saved.emergencyContactName || "");
       fd.append("emergencyContactRelationship", saved.emergencyContactRelationship || "");
