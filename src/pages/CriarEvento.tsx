@@ -46,15 +46,23 @@ const CriarEvento = () => {
     return isFreelaCasa ? servicoSelecionado.minHoursCasa : servicoSelecionado.minHoursEmpresa;
   }, [servicoSelecionado, isFreelaCasa]);
 
-  const valorCalculado = useMemo(() => {
-    if (!servicoSelecionado) return null;
-    const hours = Math.max(formData.horas, minHours);
-    return calcularValorTotal(
-      servicoSelecionado.pricePerHour,
-      hours,
-      formData.quantidade
-    );
-  }, [servicoSelecionado, formData.horas, formData.quantidade, minHours]);
+   const valorCalculado = useMemo(() => {
+     if (!servicoSelecionado) return null;
+     const hours = Math.max(formData.horas, minHours);
+     const baseCalc = calcularValorTotal(
+       servicoSelecionado.pricePerHour,
+       hours,
+       formData.quantidade
+     );
+     
+     // Add R$ 1,00 for Pix payment (secure)
+     const totalComPix = baseCalc.total + 1.00;
+     
+     return {
+       ...baseCalc,
+       total: totalComPix
+     };
+   }, [servicoSelecionado, formData.horas, formData.quantidade, minHours]);
 
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -262,27 +270,28 @@ const CriarEvento = () => {
                   />
                 </div>
 
-                {/* Cálculo automático para PF */}
-                {valorCalculado && servicoSelecionado && (
-                  <div className="bg-muted rounded-xl p-6 space-y-4">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Calculator className="w-4 h-4" />
-                      Valor total do serviço
-                    </div>
-                    {formData.horas < minHours && (
-                      <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
-                        ⚠️ Jornada mínima de {minHours}h para {servicoSelecionado.label}. O cálculo considera {minHours}h.
-                      </p>
-                    )}
-                     <div className="text-4xl font-display font-bold text-primary">
-                       {formatCurrency(valorCalculado.total)}
-                     </div>
-                     <div className="text-sm text-muted-foreground space-y-1">
-                       <p>{formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {Math.max(formData.horas, minHours)} horas</p>
-                       <p className="text-xs">Freelancer recebe: {formatCurrency(valorCalculado.freelancerValue)} cada</p>
-                     </div>
-                  </div>
-                )}
+                   {/* Cálculo automático para PF */}
+                     {valorCalculado && servicoSelecionado && (
+                       <div className="bg-muted rounded-xl p-6 space-y-4">
+                         <div className="flex items-center gap-2 text-sm font-medium">
+                           <Calculator className="w-4 h-4" />
+                           Valor total do serviço
+                         </div>
+                         {formData.horas < minHours && (
+                           <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
+                             ⚠️ Jornada mínima de {minHours}h para {servicoSelecionado.label}. O cálculo considera {minHours}h.
+                           </p>
+                         )}
+                         <div className="text-4xl font-display font-bold text-primary">
+                           {formatCurrency(valorCalculado.total)}
+                         </div>
+                         <div className="text-sm text-muted-foreground space-y-2">
+                           <p>{formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {Math.max(formData.horas, minHours)} horas</p>
+                           <p className="text-xs">Freelancer recebe: {formatCurrency(valorCalculado.freelancerValue)} cada</p>
+                           <p className="text-xs">Pagamento via Pix (seguro): R$ 1,00</p>
+                         </div>
+                       </div>
+                     )}
 
                 {/* Descrição da Vaga */}
                 <div className="space-y-2">
