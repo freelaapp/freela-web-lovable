@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
-import { updateProviderAvailability, updateDesiredJobVacancy } from "@/lib/api";
+import { updateProviderAvailability } from "@/lib/api";
 import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
@@ -363,23 +363,92 @@ const Perfil = () => {
      setTempServicos([...servicosSelecionados]);
      setEditingServices(false);
    };
-   const saveEditingServices = async () => {
-     try {
-       // Convert selected service IDs to comma-separated string
-       const desiredJobVacancy = tempServicos.join(",");
-       
-       // Call API to update desiredJobVacancy
-       await updateDesiredJobVacancy({ desiredJobVacancy });
-       
-       // Update local state with saved values
-       setServicosSelecionados([...tempServicos]);
-       setEditingServices(false);
-       
-       toast.success("Serviços atualizados com sucesso!");
-     } catch (error) {
-       toast.error("Erro ao atualizar serviços. Tente novamente.");
-     }
-   };
+    const saveEditingServices = async () => {
+      try {
+        // 1. Get current provider data from API
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) {
+          toast.error("Sessão expirada. Faça login novamente.");
+          return;
+        }
+        const token = JSON.parse(tokenRaw);
+        const headers = { 
+          "Origin-type": "Web", 
+          "Authorization": `Bearer ${token}` 
+        };
+
+        const response = await fetch(`${API_BASE_URL}/users/providers`, {
+          method: "GET",
+          credentials: "include",
+          headers,
+        });
+
+        if (!response.ok) {
+          throw new Error("Não foi possível obter os dados atuais do perfil.");
+        }
+
+        const body = await response.json();
+        const raw = body?.data ?? body;
+        const currentProviderData = Array.isArray(raw) ? raw[0] ?? {} : raw;
+
+        // 2. Prepare the complete payload with all fields
+        const payload = {
+          // Keep all existing fields from current provider data
+          name: currentProviderData.name || "",
+          email: currentProviderData.email || "",
+          phoneNumber: currentProviderData.phoneNumber || "",
+          pixKeyValue: currentProviderData.pixKeyValue || "",
+          pixKeyType: currentProviderData.pixKeyType || "",
+          city: currentProviderData.city || "",
+          uf: currentProviderData.uf || "",
+          cnhCategories: currentProviderData.cnhCategories || [],
+          deficiency: currentProviderData.deficiency || false,
+          establishmentName: currentProviderData.establishmentName || "",
+          fantasyName: currentProviderData.fantasyName || "",
+          companyName: currentProviderData.companyName || "",
+          cnpj: currentProviderData.cnpj || "",
+          street: currentProviderData.street || "",
+          number: currentProviderData.number || "",
+          complement: currentProviderData.complement || "",
+          neighborhood: currentProviderData.neighborhood || "",
+          profileImage: currentProviderData.profileImage || null,
+          establishmentFacadeImage: currentProviderData.establishmentFacadeImage || null,
+          establishmentInteriorImage: currentProviderData.establishmentInteriorImage || null,
+          feedbackStars: currentProviderData.feedbackStars || 0,
+          isPCD: currentProviderData.deficiency || false,
+          
+          // Update with edited values
+          desiredJobVacancy: tempServicos.join(","),
+          DiasAtivos: diasAtivos,
+          horarios: horarios,
+        };
+
+        // 3. Send PUT request to /providers
+        const updateResponse = await fetch(`${API_BASE_URL}/providers`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...headers,
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+
+        if (!updateResponse.ok) {
+          const errBody = await updateResponse.json().catch(() => ({}));
+          throw new Error(errBody?.message || "Não foi possível atualizar o perfil.");
+        }
+
+        // 4. Update local state with new services
+        setServicosSelecionados([...tempServicos]);
+        setEditingServices(false);
+        
+        toast.success("Serviços atualizados com sucesso!");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Erro ao atualizar serviços. Tente novamente.";
+        toast.error(message);
+      }
+    };
 
   // Availability edit helpers
   const startEditingAvailability = () => {
