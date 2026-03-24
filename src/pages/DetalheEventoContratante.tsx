@@ -148,12 +148,12 @@ const DetalheEventoContratante = () => {
           const paid = jobBody?.data?.paid ?? jobBody?.paid;
           console.log("[Pusher] job paid status:", paid);
 
-          if (paid === true) {
-            await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
-            console.log("[Pusher] job scheduled after payment confirmation");
-            setTimelineStep(2);
-            toast({ title: "Job agendado", description: "Pagamento confirmado e job agendado com sucesso!" });
-          }
+           if (paid === "true") {
+             await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
+             console.log("[Pusher] job scheduled after payment confirmation");
+             setTimelineStep(2);
+             toast({ title: "Job agendado", description: "Pagamento confirmado e job agendado com sucesso!" });
+           }
         } catch (scheduleErr: any) {
           console.error("[Pusher] failed to check/schedule job:", scheduleErr);
         }
