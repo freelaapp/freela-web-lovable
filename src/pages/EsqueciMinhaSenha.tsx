@@ -34,13 +34,11 @@ const EsqueciMinhaSenha = () => {
 
     try {
       await forgotPassword({ email: data.email });
-      setSubmittedEmail(data.email);
-      setIsSuccess(true);
       toast({
         title: "Email enviado!",
         description: "Se o email estiver cadastrado, você receberá um código de recuperação.",
       });
-      reset();
+      navigate(`/redefinir-senha?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
       toast({
         title: "Erro ao enviar email",
