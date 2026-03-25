@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -340,7 +341,7 @@ const MeusDados = () => {
     const hasProviderChanges = currentProviderSnap() !== origProvider || profileImageFile !== null;
 
     if (!hasUserChanges && !hasPixChanges && !hasProviderChanges) {
-      toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
+      toast({ title: errorMessages.noChangesDetected, description: "Nenhum campo foi modificado." });
       return;
     }
 

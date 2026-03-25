@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { getContractorSettings, updateContractorSettings, UpsertSettingsPayload } from "@/lib/api";
+import { errorMessages } from "@/lib/error-messages";
 
 // ── Tipos ──────────────────────────────────────────────────────
 interface SettingsState {
@@ -40,7 +41,7 @@ const ConfiguracoesContratante = () => {
       try {
         const tokenRaw = localStorage.getItem("authToken");
         if (!tokenRaw) {
-          toast({ title: "Erro", description: "Sessão não encontrada.", variant: "destructive" });
+          toast({ title: errorMessages.sessionExpired, description: "Sessão não encontrada.", variant: "destructive" });
           setLoading(false);
           return;
         }

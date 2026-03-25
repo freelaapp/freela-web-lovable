@@ -7,6 +7,7 @@ import { ShieldCheck, CheckCircle, Copy, Eye } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { errorMessages } from "@/lib/error-messages";
 
 const ConfirmarServico = () => {
   const { vagaId } = useParams();
@@ -34,7 +35,7 @@ const ConfirmarServico = () => {
 
   const handleConfirm = () => {
     if (code.length !== 6) {
-      setError("Digite o código completo de 6 dígitos");
+      setError(errorMessages.checkinCodeRequired);
       return;
     }
     if (code === validCodes[step]) {
@@ -46,7 +47,7 @@ const ConfirmarServico = () => {
         setStep("concluido");
       }
     } else {
-      setError("Código inválido. Verifique com o contratante.");
+      setError(errorMessages.checkinCodeInvalid);
     }
   };
 

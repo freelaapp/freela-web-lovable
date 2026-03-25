@@ -15,6 +15,7 @@ import { ptBR } from "date-fns/locale";
 import { cn, validateCPF } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
+import { errorMessages } from "@/lib/error-messages";
 
 const estadosBR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",

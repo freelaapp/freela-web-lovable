@@ -166,6 +166,8 @@ const MapaVagas = () => {
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Extrair lista única de datas
@@ -332,7 +334,6 @@ const MapaVagas = () => {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-bold text-primary">{getDisplayValue(vaga.jobValue, isFreelancer)}</p>
-                        <p className="text-[10px] text-muted-foreground">{Math.round(vaga.distance!)}km</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
                     </div>

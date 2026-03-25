@@ -11,6 +11,7 @@ import { apiFetch } from "@/lib/api";
 import { getDisplayValue } from "@/lib/values";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -311,7 +312,7 @@ const DetalheVaga = () => {
 
    const handleCheckoutValidate = async () => {
      if (checkoutCode.length !== 6) {
-       toast.error("Digite o código de 6 dígitos.");
+toast.error(errorMessages.checkinCodeRequired);
        return;
      }
      const jobId = jobIdFromState || vagaId;

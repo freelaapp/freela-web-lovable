@@ -9,9 +9,13 @@ import { errorMessages } from "../error-messages";
 export const forgotPasswordSchema = z.object({
   email: z
     .string()
-    .min(1, errorMessages.required(errorMessages.fields.email))
-    .email(errorMessages.invalidEmail)
-    .transform((email) => email.toLowerCase().trim()),
+    .transform((email) => email.trim())
+    .pipe(
+      z.string()
+        .min(1, errorMessages.required(errorMessages.fields.email))
+        .email(errorMessages.invalidEmail)
+        .transform((email) => email.toLowerCase())
+    ),
 });
 
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;

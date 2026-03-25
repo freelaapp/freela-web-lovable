@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { loginUser, apiFetch, SessionExpiredError } from "@/lib/api";
 import { onAuthSuccess, getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -66,15 +67,15 @@ const Login = () => {
     const newErrors: { email?: string; password?: string } = {};
 
     if (!email) {
-      newErrors.email = "Email é obrigatório";
+      newErrors.email = errorMessages.required(errorMessages.fields.email);
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Digite um email válido";
+      newErrors.email = errorMessages.invalidEmail;
     }
 
     if (!password) {
-      newErrors.password = "Senha é obrigatória";
+      newErrors.password = errorMessages.required(errorMessages.fields.senha);
     } else if (password.length < 6) {
-      newErrors.password = "Senha deve ter pelo menos 6 caracteres";
+      newErrors.password = errorMessages.passwordTooShort;
     }
 
     setErrors(newErrors);
@@ -110,12 +111,12 @@ const Login = () => {
     } catch (err: unknown) {
       const message =
         err instanceof TypeError
-          ? "Falha de conexão. Verifique sua internet e tente novamente."
+          ? errorMessages.connectionError
           : err instanceof SessionExpiredError
-          ? "Sua sessão expirou. Faça login novamente."
+          ? errorMessages.sessionExpired
           : err instanceof Error
-          ? err.message || "E-mail ou senha inválidos. Tente novamente."
-          : "E-mail ou senha inválidos. Tente novamente.";
+          ? err.message || errorMessages.invalidCredentials
+          : errorMessages.invalidCredentials;
       toast({
         title: "Erro no login",
         description: message,

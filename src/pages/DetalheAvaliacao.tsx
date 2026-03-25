@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import AppLayout from "@/components/layout/AppLayout";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -92,7 +93,7 @@ const DetalheAvaliacao = () => {
 
       const token = getAuthToken();
       if (!token) {
-        setError("Sessão expirada. Faça login novamente.");
+        setError(errorMessages.sessionExpired);
         setLoading(false);
         return;
       }

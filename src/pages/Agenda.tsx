@@ -10,6 +10,7 @@ import VagaCard from "@/components/dashboard-contratante/VagaCard";
 import { useToast } from "@/hooks/use-toast";
 import { getDisplayValue } from "@/lib/values";
 import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 

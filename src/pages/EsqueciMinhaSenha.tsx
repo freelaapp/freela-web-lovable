@@ -7,6 +7,7 @@ import { Mail, ArrowLeft, Lock, Eye, EyeOff, RotateCcw, ShieldCheck, Check, Chec
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { forgotPassword, resetPassword } from "@/lib/api";
+import { errorMessages } from "@/lib/error-messages";
 
 const RESEND_COOLDOWN = 60;
 
@@ -58,7 +59,7 @@ const EsqueciMinhaSenha = () => {
     setEmailError("");
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError("Digite um email válido");
+      setEmailError(errorMessages.invalidEmail);
       return;
     }
 

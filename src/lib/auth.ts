@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
+import { errorMessages } from "./error-messages";
 
 type BackendRole = "contractor" | "provider";
 type FrontendRole = "freelancer" | "contratante";
@@ -52,7 +53,7 @@ let refreshPromise: Promise<boolean> | null = null;
 /** Decode a JWT payload without external libraries */
 function decodeJwt(token: string): { id: string; exp: number; [key: string]: unknown } {
   const base64Url = token.split(".")[1];
-  if (!base64Url) throw new Error("Token JWT inválido.");
+  if (!base64Url) throw new Error(errorMessages.tokenNotFound);
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
   const jsonPayload = decodeURIComponent(
     atob(base64)

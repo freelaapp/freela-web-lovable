@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Trash2, AlertTriangle, Building2, ImagePlus, MapPin, Loader2, User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CitySelect from "@/components/CitySelect";
+import { errorMessages } from "@/lib/error-messages";
 
 const estadosBR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -499,7 +500,7 @@ const MeusDadosContratante = () => {
     const hasInternoChange = internoFile !== null;
 
     if (!hasFieldChanges && !hasUserChanges && !hasFachadaChange && !hasInternoChange) {
-      toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
+      toast({ title: errorMessages.noChangesDetected, description: "Nenhum campo foi modificado." });
       return;
     }
 

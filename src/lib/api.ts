@@ -1,4 +1,5 @@
 import { refreshAuthToken, logout } from "@/lib/auth";
+import { errorMessages } from "./error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -21,7 +22,7 @@ export function registerSessionExpiredHandler(cb: OnSessionExpired): void {
 // but in most cases the global handler already redirected to login.
 export class SessionExpiredError extends Error {
   constructor() {
-    super("Sessão expirada. Faça login novamente.");
+    super(errorMessages.sessionExpired);
     this.name = "SessionExpiredError";
   }
 }
@@ -124,19 +125,19 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   const body = await response.json().catch(() => null);
 
   if (response.status === 401) {
-    throw new Error("Credenciais incorretas.");
+    throw new Error(errorMessages.invalidCredentials);
   }
 
   if (response.status === 429) {
-    throw new Error("Muitas tentativas. Tente novamente mais tarde.");
+    throw new Error(errorMessages.tooManyAttempts);
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
+    throw new Error(body?.message || errorMessages.invalidCredentials);
   }
 
   if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
+    throw new Error(body?.message || errorMessages.invalidCredentials);
   }
 
   return body as LoginResponse;
@@ -170,15 +171,15 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
   const body = await response.json().catch(() => null);
 
   if (response.status === 409) {
-    throw new Error("Este e-mail já está cadastrado.");
+    throw new Error(errorMessages.emailAlreadyRegistered);
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível criar sua conta. Tente novamente.");
+    throw new Error(body?.message || errorMessages.registrationFailed);
   }
 
   if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || "Resposta inesperada do servidor.");
+    throw new Error(body?.message || errorMessages.unexpectedError);
   }
 
   console.log("[register] status:", response.status, "message:", body.message);
@@ -195,7 +196,7 @@ export async function generateEmailConfirmationCode(email: string): Promise<void
   );
 
   if (response.status !== 200) {
-    throw new Error("Não foi possível enviar o código de confirmação. Verifique o e-mail e tente novamente.");
+    throw new Error(errorMessages.couldNotSendCode);
   }
 }
 
@@ -210,7 +211,7 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
   });
 
   if (response.status !== 200) {
-    throw new Error("Código inválido ou expirado. Tente novamente.");
+    throw new Error(errorMessages.confirmationCodeInvalid);
   }
 }
 
@@ -222,7 +223,7 @@ export async function registerProvider(formData: FormData): Promise<void> {
 
   if (response.status !== 200 && response.status !== 201) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.message || "Não foi possível completar o cadastro. Tente novamente.");
+    throw new Error(body?.message || errorMessages.registrationFailed);
   }
 }
 
@@ -295,13 +296,13 @@ export async function acceptCandidacy(candidacyId: string): Promise<CandidacyAct
   const body = await response.json().catch(() => null);
 
   if (response.status === 403) {
-    throw new Error("Esta vaga já atingiu o número máximo de freelancers.");
+    throw new Error(errorMessages.maxCandidatesReached);
   }
   if (response.status === 409) {
-    throw new Error("Esta candidatura já foi aceita ou recusada anteriormente.");
+    throw new Error(errorMessages.alreadyApplied);
   }
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível aceitar a candidatura. Tente novamente.");
+    throw new Error(body?.message || errorMessages.applicationFailed);
   }
 
   return body.data as CandidacyActionResponse;
@@ -315,13 +316,13 @@ export async function rejectCandidacy(candidacyId: string): Promise<CandidacyAct
   const body = await response.json().catch(() => null);
 
   if (response.status === 404) {
-    throw new Error("Candidatura não encontrada.");
+    throw new Error(errorMessages.jobNotFound);
   }
   if (response.status === 409) {
-    throw new Error("Esta candidatura já foi aceita ou recusada anteriormente.");
+    throw new Error(errorMessages.alreadyApplied);
   }
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível recusar a candidatura. Tente novamente.");
+    throw new Error(body?.message || errorMessages.applicationFailed);
   }
 
   return body.data as CandidacyActionResponse;
@@ -343,7 +344,7 @@ export async function getProviderDetails(providerId: string): Promise<ProviderDe
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível carregar os dados do freelancer.");
+    throw new Error(body?.message || errorMessages.freelancerDataFailed);
   }
 
   const data = body?.data ?? body;
@@ -382,7 +383,7 @@ export async function createJobPayment(vacancyId: string, payload: CreateJobPaym
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível criar o pagamento. Tente novamente.");
+    throw new Error(body?.message || errorMessages.paymentFailed);
   }
 
   return (body?.data ?? body) as JobPaymentResponse;
@@ -400,7 +401,7 @@ export async function createVacancy(payload: CreateVacancyPayload, token: string
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível criar a vaga. Tente novamente.");
+    throw new Error(body?.message || errorMessages.applicationFailed);
   }
 }
 
@@ -438,7 +439,7 @@ export async function getContractorById(contractorId: string): Promise<PublicCon
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível carregar o perfil do contratante.");
+    throw new Error(body?.message || errorMessages.contractorLoadFailed);
   }
 
   const raw = body?.data ?? body;
@@ -473,7 +474,7 @@ export async function getContractorSettings(contractorId: string): Promise<Contr
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível carregar as configurações.");
+    throw new Error(body?.message || errorMessages.settingsLoadFailed);
   }
 
   const raw = body?.data ?? body;
@@ -493,7 +494,7 @@ export async function updateContractorSettings(contractorId: string, settings: U
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível salvar as configurações.");
+    throw new Error(body?.message || errorMessages.settingsSaveFailed);
   }
 
   const raw = body?.data ?? body;
@@ -530,11 +531,11 @@ export async function forgotPassword(payload: ForgotPasswordPayload): Promise<Fo
 
   // Mesmo se email não existir, API retorna 200 com mensagem genérica
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível solicitar a recuperação. Tente novamente.");
+    throw new Error(body?.message || errorMessages.recoveryFailed);
   }
 
   if (!body?.success) {
-    throw new Error(body?.message || "Não foi possível solicitar a recuperação. Tente novamente.");
+    throw new Error(body?.message || errorMessages.recoveryFailed);
   }
 
   return body as ForgotPasswordResponse;
@@ -572,15 +573,15 @@ export async function resetPassword(payload: ResetPasswordPayload): Promise<Rese
   const body = await response.json().catch(() => null);
 
   if (response.status === 401) {
-    throw new Error("Código inválido ou expirado. Solicite um novo código.");
+    throw new Error(errorMessages.confirmationCodeInvalid);
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível redefinir a senha. Tente novamente.");
+    throw new Error(body?.message || errorMessages.resetPasswordFailed);
   }
 
   if (!body?.success) {
-    throw new Error(body?.message || "Não foi possível redefinir a senha. Tente novamente.");
+    throw new Error(body?.message || errorMessages.resetPasswordFailed);
   }
 
   return body as ResetPasswordResponse;
@@ -626,19 +627,19 @@ export async function updateProviderAvailability(
   const body = await response.json().catch(() => null);
 
   if (response.status === 422) {
-    throw new Error(body?.message || 'Validação de horários falhou. Verifique se "até" é posterior a "de".');
+    throw new Error(body?.message || errorMessages.availabilityValidationFailed);
   }
 
   if (response.status === 401) {
-    throw new Error('Sessão expirada. Faça login novamente.');
+    throw new Error(errorMessages.sessionExpired);
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || 'Não foi possível atualizar a disponibilidade. Tente novamente.');
+    throw new Error(body?.message || errorMessages.availabilityUpdateFailed);
   }
 
    if (!body?.success) {
-     throw new Error(body?.message || 'Falha ao atualizar disponibilidade.');
+     throw new Error(body?.message || errorMessages.availabilityUpdateFailed);
    }
 
    return body as UpdateProviderAvailabilityResponse;
@@ -675,7 +676,7 @@ export async function updateDesiredJobVacancy(
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || 'Não foi possível atualizar a vaga desejada. Tente novamente.');
+    throw new Error(body?.message || errorMessages.applicationFailed);
   }
 
   return body as UpdateDesiredJobVacancyResponse;
@@ -734,7 +735,7 @@ export async function updateProvider(payload: ProviderUpdatePayload): Promise<Pr
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || 'Não foi possível atualizar o perfil. Tente novamente.');
+    throw new Error(body?.message || errorMessages.profileUpdateFailed);
   }
 
    return body as ProviderUpdateResponse;
@@ -756,7 +757,7 @@ export async function updateProviderProfileImage(
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || 'Não foi possível atualizar a imagem de perfil. Tente novamente.');
+    throw new Error(body?.message || errorMessages.photoUpdateFailed);
   }
 
   return body as ProviderUpdateResponse;
@@ -777,13 +778,13 @@ export async function deleteVacancy(vacancyId: string): Promise<DeleteVacancyRes
   const body = await response.json().catch(() => null);
 
   if (response.status === 404) {
-    throw new Error("Vaga não encontrada.");
+    throw new Error(errorMessages.jobNotFound);
   }
   if (response.status === 409) {
-    throw new Error("Não é possível excluir esta vaga. Ela pode ter candidatos ou já estar em andamento.");
+    throw new Error(errorMessages.cannotDeleteJob);
   }
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível excluir a vaga. Tente novamente.");
+    throw new Error(body?.message || errorMessages.deleteJobFailed);
   }
 
   return body as DeleteVacancyResponse;

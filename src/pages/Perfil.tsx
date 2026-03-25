@@ -12,6 +12,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
 import { updateProviderAvailability, updateProviderProfileImage } from "@/lib/api";
 import { toast } from "sonner";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -414,7 +415,7 @@ const Perfil = () => {
         // Get auth token
         const tokenRaw = localStorage.getItem("authToken");
         if (!tokenRaw) {
-          toast.error("Sessão expirada. Faça login novamente.");
+          toast.error(errorMessages.sessionExpired);
           return;
         }
         const token = JSON.parse(tokenRaw);
