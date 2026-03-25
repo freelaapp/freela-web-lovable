@@ -414,6 +414,22 @@ export async function createVacancy(payload: CreateVacancyPayload, token: string
   }
 }
 
+export async function deleteVacancy(vacancyId: string): Promise<void> {
+  const response = await apiFetch(`${API_BASE_URL}/vacancies/${vacancyId}`, {
+    method: "DELETE",
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (response.status === 404) {
+    throw new Error("Vaga não encontrada.");
+  }
+
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível deletar a vaga. Tente novamente.");
+  }
+}
+
 // ── Contractor by ID (public profile) ─────────────────────────
 export interface PublicContractorProfile {
   id: string;
