@@ -83,7 +83,6 @@ const CadastroFreelancer = () => {
   const [endereco, setEndereco] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [bairro, setBairro] = useState("");
   const [numero, setNumero] = useState("");
   const [complemento, setComplemento] = useState("");
@@ -135,33 +134,32 @@ const CadastroFreelancer = () => {
 
   const previewFoto = useMemo(() => fotoPerfil ? URL.createObjectURL(fotoPerfil) : null, [fotoPerfil]);
 
-const validate = () => {
-      const e: Record<string, string> = {};
-      if (!fotoPerfil) e.fotoPerfil = errorMessages.required(errorMessages.fields.foto);
-      if (!cpf.replace(/\D/g, "") || !validateCPF(cpf)) e.cpf = errorMessages.invalidCpf;
-      if (!dataNascimento) e.dataNascimento = errorMessages.required(errorMessages.fields.nascimento);
-      else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = errorMessages.minAge;
-      if (!sexo) e.sexo = errorMessages.required(errorMessages.fields.sexo);
-      if (!endereco.trim()) e.endereco = errorMessages.required(errorMessages.fields.endereco);
-      if (!numero.trim()) e.numero = errorMessages.required(errorMessages.fields.numero);
-      if (!cidade.trim()) e.cidade = errorMessages.required(errorMessages.fields.cidade);
-      if (!estado) e.estado = errorMessages.required(errorMessages.fields.estado);
+   const validate = () => {
+     const e: Record<string, string> = {};
+     if (!fotoPerfil) e.fotoPerfil = "Foto de perfil é obrigatória";
+     if (!cpf.replace(/\D/g, "") || !validateCPF(cpf)) e.cpf = "CPF inválido";
+     if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
+     else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
+     if (!sexo) e.sexo = "Sexo é obrigatório";
+     if (!endereco.trim()) e.endereco = "Endereço é obrigatório";
+     if (!numero.trim()) e.numero = "Número do endereço é obrigatório";
+     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
+     if (!estado) e.estado = "Estado é obrigatório";
 
-     // Validar contato de emergência: telefone não pode ser igual ao do usuário
-     if (contatoEmergTelefone) {
-       try {
-         const pendingData = JSON.parse(localStorage.getItem("pendingRegisterData") || "{}");
-         const userPhone = pendingData.phoneNumber || "";
-         const emergPhone = contatoEmergTelefone.replace(/\D/g, "");
-         if (userPhone && emergPhone && userPhone === emergPhone) {
-           e.contatoEmergTelefone = "O número do contato de emergência não pode ser o mesmo que o seu";
-         }
-       } catch {
-         // ignore parse errors
-       }
-     }
+    // Validar contato de emergência: telefone não pode ser igual ao do usuário
+    if (contatoEmergTelefone) {
+      try {
+        const pendingData = JSON.parse(localStorage.getItem("pendingRegisterData") || "{}");
+        const userPhone = pendingData.phoneNumber || "";
+        const emergPhone = contatoEmergTelefone.replace(/\D/g, "");
+        if (userPhone && emergPhone && userPhone === emergPhone) {
+          e.contatoEmergTelefone = "O número do contato de emergência não pode ser o mesmo que o seu";
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
 
-     if (!acceptTerms) e.terms = errorMessages.mustAcceptTerms;
     setErrors(e);
 
     if (Object.keys(e).length > 0) {
@@ -604,19 +602,6 @@ const validate = () => {
                 />
                 {errors.contatoEmergTelefone && <p className="text-sm text-destructive">{errors.contatoEmergTelefone}</p>}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <Checkbox id="terms" checked={acceptTerms} onCheckedChange={(c) => setAcceptTerms(c as boolean)} className="mt-0.5" />
-                <Label htmlFor="terms" className="text-sm text-muted-foreground font-normal cursor-pointer">
-                  Li e aceito os{" "}
-                  <Link to="/termos" className="text-primary hover:underline">Termos de Uso</Link>{" "}
-                  e a{" "}
-                  <Link to="/privacidade" className="text-primary hover:underline">Política de Privacidade</Link>
-                </Label>
-              </div>
-              {errors.terms && <p className="text-sm text-destructive">{errors.terms}</p>}
             </div>
 
             <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Bell, Shield, Smartphone, Users, FileText, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, Bell, Shield, Users, FileText, Loader2, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
@@ -12,23 +12,17 @@ import { errorMessages } from "@/lib/error-messages";
 // ── Tipos ──────────────────────────────────────────────────────
 interface SettingsState {
   notifCandidaturas: boolean;
-  notifMensagens: boolean;
   notifAvaliacoes: boolean;
   notifPagamentos: boolean;
   notifEmail: boolean;
-  notifPush: boolean;
-  perfilPublico: boolean;
 }
 
 // ── Estado inicial ──────────────────────────────────────────────
 const DEFAULT_SETTINGS: SettingsState = {
   notifCandidaturas: true,
-  notifMensagens: true,
   notifAvaliacoes: true,
   notifPagamentos: true,
   notifEmail: true,
-  notifPush: true,
-  perfilPublico: true,
 };
 
 // ── Component ───────────────────────────────────────────────────
@@ -79,12 +73,9 @@ const ConfiguracoesContratante = () => {
         const settingsData = await getContractorSettings(cid);
         setSettings({
           notifCandidaturas: settingsData.notifCandidaturas,
-          notifMensagens: settingsData.notifMensagens,
           notifAvaliacoes: settingsData.notifAvaliacoes,
           notifPagamentos: settingsData.notifPagamentos,
           notifEmail: settingsData.notifEmail,
-          notifPush: settingsData.notifPush,
-          perfilPublico: settingsData.perfilPublico,
         });
       } catch (err) {
         console.error("[ConfiguracoesContratante] Erro ao carregar dados:", err);
@@ -112,12 +103,9 @@ const ConfiguracoesContratante = () => {
     try {
       const payload: UpsertSettingsPayload = {
         notifCandidaturas: settings.notifCandidaturas,
-        notifMensagens: settings.notifMensagens,
         notifAvaliacoes: settings.notifAvaliacoes,
         notifPagamentos: settings.notifPagamentos,
         notifEmail: settings.notifEmail,
-        notifPush: settings.notifPush,
-        perfilPublico: settings.perfilPublico,
       };
 
       await updateContractorSettings(contractorId, payload);
@@ -173,12 +161,6 @@ const ConfiguracoesContratante = () => {
             />
             <ToggleRow
               icon={Bell}
-              label="Mensagens recebidas"
-              checked={settings.notifMensagens}
-              onChange={(v) => handleToggle("notifMensagens", v)}
-            />
-            <ToggleRow
-              icon={Bell}
               label="Avaliações recebidas"
               checked={settings.notifAvaliacoes}
               onChange={(v) => handleToggle("notifAvaliacoes", v)}
@@ -192,33 +174,12 @@ const ConfiguracoesContratante = () => {
             <div className="border-t pt-3 space-y-3">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Canais</p>
               <ToggleRow
-                icon={Smartphone}
-                label="Notificações push"
-                checked={settings.notifPush}
-                onChange={(v) => handleToggle("notifPush", v)}
-              />
-              <ToggleRow
                 icon={Mail}
                 label="Receber por e-mail"
                 checked={settings.notifEmail}
                 onChange={(v) => handleToggle("notifEmail", v)}
               />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Privacidade */}
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <h3 className="text-base font-display font-semibold flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" /> Privacidade
-            </h3>
-            <ToggleRow
-              icon={Shield}
-              label="Perfil público"
-              checked={settings.perfilPublico}
-              onChange={(v) => handleToggle("perfilPublico", v)}
-            />
           </CardContent>
         </Card>
 

@@ -452,24 +452,18 @@ export interface ContractorSettings {
   id: string;
   contractorId: string;
   notifCandidaturas: boolean;
-  notifMensagens: boolean;
   notifAvaliacoes: boolean;
   notifPagamentos: boolean;
   notifEmail: boolean;
-  notifPush: boolean;
-  perfilPublico: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface UpsertSettingsPayload {
   notifCandidaturas?: boolean;
-  notifMensagens?: boolean;
   notifAvaliacoes?: boolean;
   notifPagamentos?: boolean;
   notifEmail?: boolean;
-  notifPush?: boolean;
-  perfilPublico?: boolean;
 }
 
 export async function getContractorSettings(contractorId: string): Promise<ContractorSettings> {

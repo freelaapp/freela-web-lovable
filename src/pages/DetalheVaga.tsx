@@ -529,6 +529,20 @@ toast.error(errorMessages.checkinCodeRequired);
           </CardContent>
         </Card>
 
+        {/* Descrição da Vaga */}
+        {vaga.description && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Descrição da Vaga</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                {vaga.description}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Contratante */}
         <Card
           className="cursor-pointer hover:ring-1 hover:ring-primary/20 transition-all"
