@@ -215,16 +215,6 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
 }
 
 export async function registerProvider(formData: FormData): Promise<void> {
-  // Log do FormData para debug
-  console.log('[registerProvider] FormData recebido:');
-  for (const [key, value] of formData.entries()) {
-    if (key === 'availability' || key === 'profileImage') {
-      console.log(`  ${key}: ${value instanceof Blob ? '[Blob/FILE]' : value}`);
-    } else {
-      console.log(`  ${key}: ${value}`);
-    }
-  }
-
   const response = await apiFetch(`${API_BASE_URL}/providers/`, {
     method: "POST",
     body: formData,
@@ -630,11 +620,13 @@ export async function updateProviderAvailability(
   payload: UpdateProviderAvailabilityPayload,
 ): Promise<UpdateProviderAvailabilityResponse> {
   const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
-    method: 'PATCH',
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      availability: JSON.stringify(payload)
+    }),
   });
 
   const body = await response.json().catch(() => null);
@@ -749,6 +741,28 @@ export async function updateProvider(payload: ProviderUpdatePayload): Promise<Pr
 
   if (!response.ok) {
     throw new Error(body?.message || 'Não foi possível atualizar o perfil. Tente novamente.');
+  }
+
+   return body as ProviderUpdateResponse;
+}
+
+// ── Provider Profile Image ─────────────────────────────────────
+
+export async function updateProviderProfileImage(
+  profileImage: File
+): Promise<ProviderUpdateResponse> {
+  const formData = new FormData();
+  formData.append('profileImage', profileImage);
+
+  const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
+    method: 'PUT',
+    body: formData,
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || 'Não foi possível atualizar a imagem de perfil. Tente novamente.');
   }
 
   return body as ProviderUpdateResponse;

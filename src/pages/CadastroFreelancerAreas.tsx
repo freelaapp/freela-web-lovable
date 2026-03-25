@@ -112,9 +112,11 @@ const CadastroFreelancerAreas = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) {
+   const handleSubmit = async (e: React.FormEvent) => {
+     e.preventDefault();
+     e.stopPropagation();
+     console.log('[CadastroFreelancerAreas] handleSubmit chamado! Form target:', e.target);
+     if (!validate()) {
       if (errors.dias) {
         toast({
           title: "Disponibilidade insuficiente",
