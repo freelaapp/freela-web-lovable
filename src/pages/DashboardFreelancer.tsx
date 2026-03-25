@@ -170,43 +170,29 @@ const DashboardFreelancer = () => {
          }
          setLoadingAtivas(false);
 
-          // 3b. Get future/scheduled jobs (same logic as active jobs)
-          setLoadingAgendadas(true);
-          const futureJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
-            method: "GET", credentials: "include", headers,
-          });
-          const futureJobsBody = await futureJobsRes.json().catch(() => null);
-          const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
-          const futureIds: string[] = Array.isArray(futureJobsData)
-            ? futureJobsData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
-            : [];
+           // 3b. Get future/scheduled jobs
+           setLoadingAgendadas(true);
+           const futureJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
+             method: "GET", credentials: "include", headers,
+           });
+           const futureJobsBody = await futureJobsRes.json().catch(() => null);
+           const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
 
-          if (futureIds.length > 0) {
-            // Keep raw items to preserve jobId mapping
-            const rawFutureItems = Array.isArray(futureJobsData) ? futureJobsData : [];
-            const futureDetails = await Promise.all(
-              futureIds.filter(Boolean).map(async (vacId: string, idx: number) => {
-                try {
-                  const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
-                    method: "GET", credentials: "include", headers,
-                  });
-                  const body = await res.json().catch(() => null);
-                  const detail = body?.data ?? body ?? null;
-                  if (detail) {
-                    // Attach jobId from the raw future-jobs response
-                    const rawItem = rawFutureItems[idx];
-                    detail._jobId = rawItem?.jobId ?? rawItem?.id ?? vacId;
-                    detail._vacancyId = vacId;
-                  }
-                  return detail;
-                } catch { return null; }
-              })
-            );
-            setVagasAgendadas(futureDetails.filter(Boolean));
-          } else {
-            setVagasAgendadas([]);
-          }
-          setLoadingAgendadas(false);
+           if (Array.isArray(futureJobsData) && futureJobsData.length > 0) {
+             // Use data directly from future-jobs API (already contains full vacancy details)
+             const futureDetails = futureJobsData.map((item: any) => {
+               const vacId = item.vacancyId || item.id;
+               return {
+                 ...item,
+                 _jobId: item.jobId || item.id || vacId,
+                 _vacancyId: vacId,
+               };
+             });
+             setVagasAgendadas(futureDetails.filter(Boolean));
+           } else {
+             setVagasAgendadas([]);
+           }
+           setLoadingAgendadas(false);
 
           // 3c. Get applied vacancies (vagas pendentes)
            setLoadingPendentes(true);

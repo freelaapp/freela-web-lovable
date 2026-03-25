@@ -122,8 +122,19 @@ const DetalheVaga = () => {
            ]);
 
            const jobBody = await jobRes.json().catch(() => null);
-           const jobData = jobBody?.data ?? jobBody;
-           setVaga(jobData);
+            const jobData = jobBody?.data ?? jobBody;
+            // Normalize job data to match vacancy structure
+            // Jobs API may return data in different structure
+            const normalizedJob = {
+              ...jobData,
+              services: jobData.services || jobData.vacancy?.services || jobData.freelancers || [],
+              establishment: jobData.establishment || jobData.vacancy?.establishment || jobData.location || "",
+              jobDate: jobData.jobDate || jobData.vacancy?.jobDate || jobData.date || "",
+              description: jobData.description || jobData.vacancy?.description || "",
+              status: jobData.status || "agendada",
+              contractorId: jobData.contractorId || jobData.contractor?.id || jobData.vacancy?.contractorId,
+            };
+            setVaga(normalizedJob);
 
            const candidacyBody = await candidacyRes.json().catch(() => null);
            const candidacyData = candidacyBody?.data ?? candidacyBody;
