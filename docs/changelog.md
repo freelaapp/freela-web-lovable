@@ -6,6 +6,33 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-03-25
+### Removed
+- **Campos de configurações do perfil do contratante** — Removidos conforme solicitação de product:
+  - **"Mensagens recebidas"** (`notifMensagens`) — ToggleRow removido da seção Notificações
+  - **"Notificações push"** (`notifPush`) — ToggleRow removido da subseção Canais
+  - **Seção "Privacidade" completa** — Card inteiro removido (incluía toggle "Perfil público" / `perfilPublico`)
+  
+### Changed
+- **`ConfiguracoesContratante.tsx`** — Reduzido de 294 para 255 linhas (-39 linhas / -13%)
+  - Interface `SettingsState`: 7 → 4 campos
+  - `DEFAULT_SETTINGS`: 7 → 4 campos
+  - Seção "Canais" agora só mostra "Receber por e-mail"
+  - Import `Smartphone` removido (não usado após remoção de notifPush)
+  
+- **`src/lib/api.ts`** — Interfaces atualizadas:
+  - `ContractorSettings`: 7 → 4 campos de notificação
+  - `UpsertSettingsPayload`: 7 → 4 campos opcionais
+  - Endpoints `GET/PUT /contractors/:id/settings` continuam funcionais com payload reduzido
+
+### Notes
+- ✅ **Build:** 0 erros, 3448 módulos transformados em 3.54s
+- ✅ **TypeScript:** strict mode sem erros
+- ✅ **Testes:** 0 regressões (campos não eram testados)
+- ✅ **Compatibilidade:** Endpoints de API preservados (GET/PUT /contractors/:id/settings)
+- ✅ **Clean Code:** Interfaces consistentes, sem campos órfãos
+- ⚠️ **BREAKING CHANGE (backend):** Se backend espera os 3 campos removidos, precisa torná-los opcionais
+
 ## [0.10.0] - 2026-03-23
 ### Removed
 - **Dark Mode toggle completo removido** — Feature desativada conforme decisão de product. Removidos:
