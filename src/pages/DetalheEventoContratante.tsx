@@ -185,16 +185,16 @@ const DetalheEventoContratante = () => {
         return;
       }
       const body = await res.json().catch(() => null);
-      const status = body?.data?.status ?? body?.status ?? "";
-      console.log("[JobStatus] job", jobId, "status:", status);
+      const status = (body?.data?.status ?? body?.status ?? "").trim();
+      console.log("[JobStatus] job", jobId, "status:", JSON.stringify(status));
 
       if (status === "unavailable") {
         setTimelineStep(1);
       } else if (status === "schedule") {
         setTimelineStep(2);
-      } else if (status === "in_progress" || status === "started") {
+      } else if (status === "in progress") {
         setTimelineStep(3);
-      } else if (status === "completed" || status === "done") {
+      } else if (status === "completed" || status === "partially completed") {
         setTimelineStep(4);
       }
     } catch (err) {
@@ -303,7 +303,9 @@ const DetalheEventoContratante = () => {
            });
            
            const hasAccepted = mapped.some(c => c.status === "aceito");
-           if (hasAccepted && timelineStep < 1) setTimelineStep(1);
+           if (hasAccepted) {
+             setTimelineStep(prev => prev < 1 ? 1 : prev);
+           }
            setCandidatos(mapped);
          } catch (err) {
            console.error("Erro ao processar candidatos:", err);
