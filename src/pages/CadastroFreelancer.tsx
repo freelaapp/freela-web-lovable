@@ -82,7 +82,6 @@ const CadastroFreelancer = () => {
   const [endereco, setEndereco] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [bairro, setBairro] = useState("");
   const [numero, setNumero] = useState("");
   const [complemento, setComplemento] = useState("");
@@ -160,7 +159,6 @@ const CadastroFreelancer = () => {
       }
     }
 
-    if (!acceptTerms) e.terms = "Você deve aceitar os termos";
     setErrors(e);
 
     if (Object.keys(e).length > 0) {
@@ -603,19 +601,6 @@ const CadastroFreelancer = () => {
                 />
                 {errors.contatoEmergTelefone && <p className="text-sm text-destructive">{errors.contatoEmergTelefone}</p>}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <Checkbox id="terms" checked={acceptTerms} onCheckedChange={(c) => setAcceptTerms(c as boolean)} className="mt-0.5" />
-                <Label htmlFor="terms" className="text-sm text-muted-foreground font-normal cursor-pointer">
-                  Li e aceito os{" "}
-                  <Link to="/termos" className="text-primary hover:underline">Termos de Uso</Link>{" "}
-                  e a{" "}
-                  <Link to="/privacidade" className="text-primary hover:underline">Política de Privacidade</Link>
-                </Label>
-              </div>
-              {errors.terms && <p className="text-sm text-destructive">{errors.terms}</p>}
             </div>
 
             <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
