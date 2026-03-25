@@ -17,9 +17,11 @@ interface VagasBlockProps {
   title: string;
   icon: React.ReactNode;
   vacancies: Vacancy[];
+  onDeleteVacancy?: (id: string) => void | Promise<void>;
+  deletingVacancyIds?: Set<string>;
 }
 
-const VagasBlock = ({ title, icon, vacancies }: VagasBlockProps) => (
+const VagasBlock = ({ title, icon, vacancies, onDeleteVacancy, deletingVacancyIds }: VagasBlockProps) => (
   <Card>
     <CardHeader className="pb-3">
       <div className="flex items-center justify-between">
@@ -38,7 +40,17 @@ const VagasBlock = ({ title, icon, vacancies }: VagasBlockProps) => (
         <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga encontrada</p>
       ) : (
         vacancies.map((v, idx) => (
-          <VagaCard key={`${v.id}-${v.serviceIndex ?? idx}`} id={v.id} assignment={v.assignment} quantity={v.quantity} jobDate={v.jobDate} status={v.status} serviceIndex={v.serviceIndex} />
+          <VagaCard
+            key={`${v.id}-${v.serviceIndex ?? idx}`}
+            id={v.id}
+            assignment={v.assignment}
+            quantity={v.quantity}
+            jobDate={v.jobDate}
+            status={v.status}
+            serviceIndex={v.serviceIndex}
+            onDelete={onDeleteVacancy}
+            isDeleting={Boolean(deletingVacancyIds?.has(v.id))}
+          />
         ))
       )}
     </CardContent>

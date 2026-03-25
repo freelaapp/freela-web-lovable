@@ -1,5 +1,6 @@
-import { Clock, Users, Briefcase } from "lucide-react";
+import { Clock, Users, Briefcase, Trash2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface VagaCardProps {
   id: string;
@@ -8,6 +9,8 @@ interface VagaCardProps {
   jobDate: string;
   status: string;
   serviceIndex?: number;
+  onDelete?: (id: string) => void | Promise<void>;
+  isDeleting?: boolean;
 }
 
 const statusLabels: Record<string, string> = {
@@ -24,7 +27,7 @@ const statusStyles: Record<string, string> = {
   removed: "bg-muted text-muted-foreground",
 };
 
-const VagaCard = ({ id, assignment, quantity, jobDate, status, serviceIndex = 0 }: VagaCardProps) => {
+const VagaCard = ({ id, assignment, quantity, jobDate, status, serviceIndex = 0, onDelete, isDeleting = false }: VagaCardProps) => {
   const navigate = useNavigate();
 
   const formattedDate = (() => {
@@ -54,6 +57,21 @@ const VagaCard = ({ id, assignment, quantity, jobDate, status, serviceIndex = 0 
       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${statusStyles[status] || "bg-muted text-muted-foreground"}`}>
         {statusLabels[status] || status}
       </span>
+      {onDelete && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive"
+          disabled={isDeleting}
+          onClick={async (e) => {
+            e.stopPropagation();
+            await onDelete(id);
+          }}
+        >
+          {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+        </Button>
+      )}
     </div>
   );
 };
