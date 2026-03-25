@@ -743,5 +743,27 @@ export async function updateProvider(payload: ProviderUpdatePayload): Promise<Pr
     throw new Error(body?.message || 'Não foi possível atualizar o perfil. Tente novamente.');
   }
 
+   return body as ProviderUpdateResponse;
+}
+
+// ── Provider Profile Image ─────────────────────────────────────
+
+export async function updateProviderProfileImage(
+  profileImage: File
+): Promise<ProviderUpdateResponse> {
+  const formData = new FormData();
+  formData.append('profileImage', profileImage);
+
+  const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
+    method: 'PUT',
+    body: formData,
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.message || 'Não foi possível atualizar a imagem de perfil. Tente novamente.');
+  }
+
   return body as ProviderUpdateResponse;
 }

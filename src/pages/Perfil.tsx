@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
-import { updateProviderAvailability } from "@/lib/api";
+import { updateProviderAvailability, updateProviderProfileImage } from "@/lib/api";
 import { toast } from "sonner";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
@@ -348,6 +348,23 @@ const Perfil = () => {
     if (file && file.type.startsWith("image/")) setFotoInterno(URL.createObjectURL(file));
   };
 
+  const handleProfileImageUpload = async (file: File) => {
+    // Apenas freelancer pode usar este endpoint
+    if (isContratante) {
+      toast.error("Apenas freelancers podem alterar a foto de perfil por este método.");
+      return;
+    }
+
+    try {
+      await updateProviderProfileImage(file);
+      setAvatarUrl(URL.createObjectURL(file));
+      toast.success("Foto de perfil atualizada com sucesso!");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao atualizar a foto de perfil.";
+      toast.error(message);
+    }
+  };
+
   const toggleDia = (key: string) => {
     setDiasAtivos((prev) =>
     prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key]
@@ -554,12 +571,12 @@ const Perfil = () => {
             <CardContent className="p-5">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
                 <div className="relative shrink-0">
-                  <EditableAvatar
-                    src={isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl)}
-                    fallback={isContratante ? (contractorData.name?.[0] || "C") : (freelancerData.name?.[0] || "F")}
-                    size="md"
-                    onFileSelect={(file) => setAvatarUrl(URL.createObjectURL(file))}
-                  />
+                   <EditableAvatar
+                     src={isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl)}
+                     fallback={isContratante ? (contractorData.name?.[0] || "C") : (freelancerData.name?.[0] || "F")}
+                     size="md"
+                     onFileSelect={handleProfileImageUpload}
+                   />
                    {!isContratante && freelancerData.isPCD && (
                      <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
                    )}
