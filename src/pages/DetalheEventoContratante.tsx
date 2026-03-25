@@ -135,24 +135,26 @@ const DetalheEventoContratante = () => {
       if (data?.status) {
         setPaymentStatus(prev => ({ ...prev, [data.providerId ?? data.jobId ?? ""]: data.status }));
       }
-      toast({ title: "Pagamento atualizado", description: data?.message || `Status: ${data?.status}` });
 
       const jobId = data?.jobId || lastJobIdRef.current;
       if (jobId) {
         await fetchJobPayments(jobId);
 
-        // Payment confirmed → now schedule the job
+        // Payment confirmed → schedule the job and close modal
         try {
           const jobRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
           const jobBody = await jobRes.json().catch(() => null);
           const paid = jobBody?.data?.paid ?? jobBody?.paid;
           console.log("[Pusher] job paid status:", paid);
 
-           if (paid === "true") {
+           if (paid === true || paid === "true") {
              await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
              console.log("[Pusher] job scheduled after payment confirmation");
              setTimelineStep(2);
-             toast({ title: "Job agendado", description: "Pagamento confirmado e job agendado com sucesso!" });
+             setShowPixModal(false);
+             toast({ title: "Pagamento confirmado!", description: "O job foi agendado com sucesso." });
+           } else {
+             toast({ title: "Pagamento atualizado", description: data?.message || `Status: ${data?.status}` });
            }
         } catch (scheduleErr: any) {
           console.error("[Pusher] failed to check/schedule job:", scheduleErr);

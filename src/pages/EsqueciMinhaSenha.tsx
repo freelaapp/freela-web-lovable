@@ -3,14 +3,21 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, ArrowLeft, Lock, Eye, EyeOff, RotateCcw, ShieldCheck } from "lucide-react";
+import { Mail, ArrowLeft, Lock, Eye, EyeOff, RotateCcw, ShieldCheck, Check, CheckCircle2 } from "lucide-react";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { forgotPassword, resetPassword } from "@/lib/api";
 
 const RESEND_COOLDOWN = 60;
 
-type Step = "email" | "code" | "password";
+const getPasswordRequirements = (pwd: string) => [
+  { label: "Mínimo 6 caracteres", met: pwd.length >= 6 },
+  { label: "Uma letra maiúscula", met: /[A-Z]/.test(pwd) },
+  { label: "Uma letra minúscula", met: /[a-z]/.test(pwd) },
+  { label: "Um número", met: /\d/.test(pwd) },
+];
+
+type Step = "email" | "reset" | "success";
 
 const EsqueciMinhaSenha = () => {
   const navigate = useNavigate();
@@ -21,17 +28,18 @@ const EsqueciMinhaSenha = () => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
 
-  // Code step
+  // Code
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [codeError, setCodeError] = useState("");
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
   const [isResending, setIsResending] = useState(false);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Password step
+  // Password
+  const [codeVerified, setCodeVerified] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [resetError, setResetError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -62,7 +70,7 @@ const EsqueciMinhaSenha = () => {
         description: "Verifique sua caixa de entrada.",
       });
       startCooldown();
-      setStep("code");
+      setStep("reset");
     } catch (err) {
       setEmailError(
         err instanceof Error ? err.message : "Erro ao verificar email. Tente novamente."
@@ -117,28 +125,30 @@ const EsqueciMinhaSenha = () => {
     inputsRef.current[nextIndex]?.focus();
   };
 
-  // Step 2: Code submit
-  const handleCodeSubmit = (e: React.FormEvent) => {
+  // Verify code format
+  const handleVerifyCode = (e: React.FormEvent) => {
     e.preventDefault();
+    setCodeError("");
     const fullCode = code.join("");
     if (fullCode.length < 6 || !/^\d{6}$/.test(fullCode)) {
       setCodeError("Digite o código de 6 dígitos");
       return;
     }
-    setStep("password");
+    setCodeVerified(true);
   };
 
-  // Step 3: Password reset
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  // Step 2: Password reset (code already verified)
+  const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordError("");
+    setResetError("");
 
+    const fullCode = code.join("");
     if (password.length < 6) {
-      setPasswordError("A senha deve ter pelo menos 6 caracteres");
+      setResetError("A senha deve ter pelo menos 6 caracteres");
       return;
     }
     if (password !== confirmPassword) {
-      setPasswordError("As senhas não coincidem");
+      setResetError("As senhas não coincidem");
       return;
     }
 
@@ -146,16 +156,16 @@ const EsqueciMinhaSenha = () => {
     try {
       await resetPassword({
         email,
-        code: code.join(""),
+        code: fullCode,
         password,
       });
       toast({
         title: "Senha alterada!",
         description: "Sua senha foi redefinida com sucesso.",
       });
-      navigate("/login");
+      setStep("success");
     } catch (err) {
-      setPasswordError(
+      setResetError(
         err instanceof Error ? err.message : "Erro ao redefinir senha. Tente novamente."
       );
     } finally {
@@ -164,16 +174,18 @@ const EsqueciMinhaSenha = () => {
   };
 
   const goBack = () => {
-    if (step === "code") {
+    if (step === "reset") {
+      if (codeVerified) {
+        setCodeVerified(false);
+        return;
+      }
       setStep("email");
-    } else if (step === "password") {
-      setStep("code");
     } else {
       navigate(-1);
     }
   };
 
-  const stepNumber = step === "email" ? 1 : step === "code" ? 2 : 3;
+  const stepNumber = step === "email" ? 1 : 2;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center container-padding relative">
@@ -190,27 +202,31 @@ const EsqueciMinhaSenha = () => {
           <img src={logoFreela} alt="Freela Serviços" className="h-24" />
         </Link>
 
-        {/* Step indicator */}
-        <div className="flex items-center gap-2 mb-8">
-          {[1, 2, 3].map((s) => (
-            <div key={s} className="flex items-center gap-2">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                  s <= stepNumber
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {s}
-              </div>
-              {s < 3 && (
-                <div
-                  className={`w-8 h-0.5 ${s < stepNumber ? "bg-primary" : "bg-muted"}`}
-                />
-              )}
+        {step !== "success" && (
+          <>
+            {/* Step indicator */}
+            <div className="flex items-center gap-2 mb-8">
+              {[1, 2].map((s) => (
+                <div key={s} className="flex items-center gap-2">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                      s <= stepNumber
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {s}
+                  </div>
+                  {s < 2 && (
+                    <div
+                      className={`w-8 h-0.5 ${s < stepNumber ? "bg-primary" : "bg-muted"}`}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
 
         {/* STEP 1: Email */}
         {step === "email" && (
@@ -222,7 +238,7 @@ const EsqueciMinhaSenha = () => {
               </p>
             </div>
 
-            <form onSubmit={handleEmailSubmit} className="space-y-5">
+            <form onSubmit={handleEmailSubmit} className="space-y-5" noValidate>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -253,44 +269,132 @@ const EsqueciMinhaSenha = () => {
           </>
         )}
 
-        {/* STEP 2: Code */}
-        {step === "code" && (
+        {/* STEP 2: Code + New password */}
+        {step === "reset" && (
           <>
             <div className="mb-8">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <ShieldCheck className="w-8 h-8 text-primary" />
               </div>
-              <h1 className="text-3xl font-display font-bold mb-2 text-center">Digite o código</h1>
+              <h1 className="text-3xl font-display font-bold mb-2 text-center">
+                {codeVerified ? "Redefinir senha" : "Digite o código"}
+              </h1>
               <p className="text-muted-foreground text-center">
-                Enviamos um código de 6 dígitos para{" "}
-                <span className="font-medium text-foreground">{email}</span>
+                {codeVerified
+                  ? "Crie uma nova senha para sua conta."
+                  : <>Enviamos um código de 6 dígitos para <span className="font-medium text-foreground">{email}</span></>}
               </p>
             </div>
 
-            <form onSubmit={handleCodeSubmit} className="space-y-6">
-              <div className="flex justify-center gap-3">
-                {code.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => { inputsRef.current[index] = el; }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleCodeChange(index, e.target.value)}
-                    onKeyDown={(e) => handleCodeKeyDown(index, e)}
-                    onPaste={index === 0 ? handleCodePaste : undefined}
-                    className="w-12 h-14 text-center text-xl font-bold rounded-xl border-2 border-border bg-background text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  />
-                ))}
-              </div>
+            {!codeVerified ? (
+              <form onSubmit={handleVerifyCode} className="space-y-6" noValidate>
+                <div className="space-y-2">
+                  <Label>Código de verificação</Label>
+                  <div className="flex justify-center gap-3">
+                    {code.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => { inputsRef.current[index] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleCodeChange(index, e.target.value)}
+                        onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                        onPaste={index === 0 ? handleCodePaste : undefined}
+                        className={`w-12 h-14 text-center text-xl font-bold rounded-xl border-2 bg-background text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all ${codeError ? "border-destructive" : "border-border"}`}
+                      />
+                    ))}
+                  </div>
+                  {codeError && <p className="text-sm text-destructive text-center">{codeError}</p>}
+                </div>
 
-              {codeError && <p className="text-sm text-destructive text-center">{codeError}</p>}
+                <Button type="submit" className="w-full h-12" size="lg">
+                  Verificar código
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetSubmit} className="space-y-6" noValidate>
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-green-500" />
+                  <span>Código: <strong className="text-foreground">{code.join("")}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => setCodeVerified(false)}
+                    className="text-primary hover:underline ml-1"
+                  >
+                    Alterar
+                  </button>
+                </div>
 
-              <Button type="submit" className="w-full h-12" size="lg">
-                Verificar código
-              </Button>
-            </form>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Nova senha</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setResetError(""); }}
+                      className={`pl-10 pr-10 h-12 ${resetError ? "border-destructive" : ""}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {password.length > 0 && (
+                    <ul className="space-y-1 mt-2">
+                      {getPasswordRequirements(password).map((req) => (
+                        <li key={req.label} className="flex items-center gap-2 text-xs">
+                          <Check className={`w-3.5 h-3.5 ${req.met ? "text-green-500" : "text-muted-foreground/40"}`} />
+                          <span className={req.met ? "text-green-500" : "text-muted-foreground"}>{req.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirm ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => { setConfirmPassword(e.target.value); setResetError(""); }}
+                      className={`pl-10 pr-10 h-12 ${resetError ? "border-destructive" : ""}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm(!showConfirm)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {resetError && <p className="text-sm text-destructive">{resetError}</p>}
+
+                <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      Redefinindo...
+                    </span>
+                  ) : (
+                    "Redefinir senha"
+                  )}
+                </Button>
+              </form>
+            )}
 
             <p className="text-xs text-muted-foreground text-center mt-4">
               Não encontrou o código? Verifique também sua caixa de <strong>Spam</strong> e <strong>Lixeira</strong>.
@@ -314,75 +418,24 @@ const EsqueciMinhaSenha = () => {
           </>
         )}
 
-        {/* STEP 3: New password */}
-        {step === "password" && (
+        {/* STEP 3: Success */}
+        {step === "success" && (
           <>
-            <div className="mb-8">
-              <h1 className="text-3xl font-display font-bold mb-2">Redefinir senha</h1>
+            <div className="mb-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8 text-green-500" />
+              </div>
+              <h1 className="text-3xl font-display font-bold mb-2">Senha redefinida!</h1>
               <p className="text-muted-foreground">
-                Crie uma nova senha para sua conta.
+                Sua senha foi alterada com sucesso. Você já pode fazer login com a nova senha.
               </p>
             </div>
 
-            <form onSubmit={handlePasswordSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="password">Nova senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); setPasswordError(""); }}
-                    className={`pl-10 pr-10 h-12 ${passwordError ? "border-destructive" : ""}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">Mínimo de 6 caracteres</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirm ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(""); }}
-                    className={`pl-10 pr-10 h-12 ${passwordError ? "border-destructive" : ""}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
-
-              <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Redefinindo...
-                  </span>
-                ) : (
-                  "Redefinir senha"
-                )}
+            <Link to="/login">
+              <Button className="w-full h-12" size="lg">
+                Ir para login
               </Button>
-            </form>
+            </Link>
           </>
         )}
 
@@ -390,6 +443,11 @@ const EsqueciMinhaSenha = () => {
           Precisa de ajuda?{" "}
           <Link to="/ajuda" className="text-primary hover:underline">
             Fale conosco
+          </Link>
+        </p>
+        <p className="mt-2 text-center text-sm">
+          <Link to="/login" className="text-primary hover:underline">
+            Voltar para login
           </Link>
         </p>
       </div>

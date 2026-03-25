@@ -601,7 +601,7 @@ const MeusDados = () => {
             <h3 className="text-base font-display font-bold flex items-center gap-2">
               <User className="w-5 h-5 text-primary" /> Dados de Usuário
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-2 hidden">
               <Label>Nome Completo</Label>
               <Input value={nome} onChange={(e) => setNome(e.target.value)} />
             </div>
