@@ -6,6 +6,12 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### Fixed
+- **`src/pages/DetalheEventoContratante.tsx` — Renderização do bloco de freelancers em vaga fechada**
+  - Quando a vaga está `closed`, o card agora exibe apenas o **freelancer selecionado** (em vez da lista de confirmados/inscritos).
+  - O card passou a mostrar **foto de perfil** (com fallback para iniciais), **nome**, **avaliação** e **número de contato**.
+  - O botão **"Ver perfil"** reaproveita a mesma ação já usada nos cards de inscritos (`setSelectedFreelancer(...)`).
+
 ## [0.11.0] - 2026-03-25
 ### Removed
 - **Campos de configurações do perfil do contratante** — Removidos conforme solicitação de product:
