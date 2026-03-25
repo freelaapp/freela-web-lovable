@@ -624,7 +624,9 @@ export async function updateProviderAvailability(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      availability: JSON.stringify(payload)
+    }),
   });
 
   const body = await response.json().catch(() => null);
