@@ -374,18 +374,21 @@ const DetalheEventoContratante = () => {
      }
    };
 
-   const handleRecusar = async (id: string) => {
-     setActionLoadingIds(prev => new Set(prev).add(id));
-     try {
-       await rejectCandidacy(id);
-       setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
-       toast({ title: "Candidatura recusada", description: "O freelancer será notificado por e-mail." });
-     } catch (err: any) {
-       toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
-     } finally {
-       setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
-     }
-   };
+    const handleRecusar = async (id: string) => {
+      setActionLoadingIds(prev => new Set(prev).add(id));
+      try {
+        const result = await rejectCandidacy(id);
+        setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
+        if (result?.vacancy?.status) {
+          setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
+        }
+        toast({ title: "Candidatura recusada", description: "O freelancer será notificado por e-mail." });
+      } catch (err: any) {
+        toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
+      } finally {
+        setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+      }
+    };
 
    const openConfirmDialog = (id: string, assignment: string, providerId: string) => {
      setPendingAccept({ id, assignment, providerId });
