@@ -217,7 +217,13 @@ const DashboardFreelancer = () => {
            const appliedData = appliedBody?.data ?? appliedBody;
 
            // Process applied vacancies with their application status
-           const processedApplications = Array.isArray(appliedData) ? appliedData : [];
+           // Filter out paid/completed applications (they should be in Ativas/Agendadas)
+           const processedApplications = Array.isArray(appliedData)
+             ? appliedData.filter((app: any) => {
+                 const s = (app.status || "").toLowerCase();
+                 return s !== "paid" && s !== "pago" && s !== "completed" && s !== "concluído" && s !== "confirmado" && s !== "confirmed";
+               })
+             : [];
 
            if (processedApplications.length > 0) {
              const appliedDetailsWithStatus = await Promise.all(
@@ -307,13 +313,13 @@ const DashboardFreelancer = () => {
             });
             const earningsBody = await earningsRes.json().catch(() => null);
             
-            // Extract totalAll from data.summary
-            const totalAll = earningsBody?.data?.summary?.totalAll;
-             if (typeof totalAll === "number") {
-               setMonthlyEarnings(formatCurrency(totalAll));
-             } else {
-               setMonthlyEarnings(formatCurrency(0));
-             }
+            // Extract totalAll from data.summary (API returns value in centavos)
+             const totalAll = earningsBody?.data?.summary?.totalAll;
+              if (typeof totalAll === "number") {
+                setMonthlyEarnings(formatCurrency(totalAll / 100));
+              } else {
+                setMonthlyEarnings(formatCurrency(0));
+              }
           } catch (err) {
             console.error("[DashboardFreelancer] Error fetching monthly earnings:", err);
             setMonthlyEarnings("R$ 0,00");
@@ -543,7 +549,7 @@ const DashboardFreelancer = () => {
                     const statusBg = applicationStatus === "rejected" ? "bg-destructive/10 text-destructive" : "bg-warning-light text-warning";
                     
                     return (
-                      <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-3">
+                      <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-3" onClick={() => navigate(`/vaga/${vaga._vacancyId || vaga.id}`, { state: { source: 'pendentes', jobId: vaga._jobId } })}>
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-semibold truncate">{assignment}</p>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusBg}`}>{statusLabel}</span>
@@ -560,21 +566,10 @@ const DashboardFreelancer = () => {
                           )}
                         </div>
                         {jobDate && jobDate !== "--" && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
-                          </p>
-                        )}
-                        {/* Button to view details when application is rejected */}
-                        {applicationStatus === "rejected" && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full mt-2"
-                            onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`, { state: { source: 'pendentes' } })}
-                          >
-                            Ver detalhes
-                          </Button>
-                        )}
+                         <p className="text-xs text-muted-foreground flex items-center gap-1">
+                           <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
+                         </p>
+                       )}
                       </div>
                     );
                   })
