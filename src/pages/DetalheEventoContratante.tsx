@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound, MessageSquare } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound, MessageSquare, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, type JobPaymentResponse } from "@/lib/api";
+import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, deleteVacancy, type JobPaymentResponse } from "@/lib/api";
 import Pusher from "pusher-js";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -103,6 +103,8 @@ const DetalheEventoContratante = () => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAccept, setPendingAccept] = useState<{ id: string; assignment: string; providerId: string } | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Helper: fetch payment details for a job (no auto-schedule)
   const fetchJobPayments = async (jobId: string) => {
@@ -413,6 +415,21 @@ const DetalheEventoContratante = () => {
      setPendingAccept(null);
    };
 
+   const handleDeleteVaga = async () => {
+     if (!eventoId) return;
+     setShowDeleteDialog(false);
+     setDeleteLoading(true);
+     try {
+       await deleteVacancy(eventoId);
+       toast({ title: "Vaga excluída!", description: "A vaga foi removida com sucesso." });
+       navigate(-1);
+     } catch (err: any) {
+       toast({ title: "Erro ao excluir", description: err.message || "Tente novamente.", variant: "destructive" });
+     } finally {
+       setDeleteLoading(false);
+     }
+   };
+
    const handlePagamento = async (providerId: string, candidatoId?: string) => {
      const loadingId = candidatoId || providerId;
      setActionLoadingIds(prev => new Set(prev).add(loadingId));
@@ -636,12 +653,27 @@ const DetalheEventoContratante = () => {
            <button onClick={() => navigate(-1)} className="text-sm text-primary flex items-center gap-1 mb-2 hover:underline">
              ← Voltar
            </button>
-           <h1 className="text-2xl font-display font-bold">
-             {vacancy.services?.[0]?.assignment || vacancy.assignment || "Vaga"}
-           </h1>
-           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
-             statusStyles[vacancy.status] || "bg-muted text-muted-foreground"
-           }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
+           <div className="flex items-center justify-between">
+             <div>
+               <h1 className="text-2xl font-display font-bold">
+                 {vacancy.services?.[0]?.assignment || vacancy.assignment || "Vaga"}
+               </h1>
+               <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
+                 statusStyles[vacancy.status] || "bg-muted text-muted-foreground"
+               }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
+             </div>
+             {candidatos.length === 0 && (
+               <Button
+                 variant="destructive"
+                 size="sm"
+                 className="gap-2"
+                 onClick={() => setShowDeleteDialog(true)}
+               >
+                 <Trash2 className="w-4 h-4" />
+                 Excluir Vaga
+               </Button>
+             )}
+           </div>
          </div>
 
          {/* Detalhes - Services Cards */}
@@ -1315,6 +1347,41 @@ const DetalheEventoContratante = () => {
               {reviewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Enviar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal Excluir Vaga ──────────────────────────────────── */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">Excluir Vaga?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+              <Trash2 className="w-8 h-8 text-destructive" />
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Tem certeza que deseja excluir esta vaga? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3 w-full">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowDeleteDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1 gap-2"
+                onClick={handleDeleteVaga}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Excluir
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -767,3 +767,30 @@ export async function updateProviderProfileImage(
 
   return body as ProviderUpdateResponse;
 }
+
+// ── Delete Vacancy ─────────────────────────────────────────────
+
+export interface DeleteVacancyResponse {
+  success: boolean;
+  message: string;
+}
+
+export async function deleteVacancy(vacancyId: string): Promise<DeleteVacancyResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/vacancies/${vacancyId}`, {
+    method: "DELETE",
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (response.status === 404) {
+    throw new Error("Vaga não encontrada.");
+  }
+  if (response.status === 409) {
+    throw new Error("Não é possível excluir esta vaga. Ela pode ter candidatos ou já estar em andamento.");
+  }
+  if (!response.ok) {
+    throw new Error(body?.message || "Não foi possível excluir a vaga. Tente novamente.");
+  }
+
+  return body as DeleteVacancyResponse;
+}
