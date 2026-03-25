@@ -1,4 +1,5 @@
 import { refreshAuthToken, logout } from "@/lib/auth";
+import { errorMessages } from "./error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -21,7 +22,7 @@ export function registerSessionExpiredHandler(cb: OnSessionExpired): void {
 // but in most cases the global handler already redirected to login.
 export class SessionExpiredError extends Error {
   constructor() {
-    super("Sessão expirada. Faça login novamente.");
+    super(errorMessages.sessionExpired);
     this.name = "SessionExpiredError";
   }
 }
@@ -124,19 +125,19 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   const body = await response.json().catch(() => null);
 
   if (response.status === 401) {
-    throw new Error("Credenciais incorretas.");
+    throw new Error(errorMessages.invalidCredentials);
   }
 
   if (response.status === 429) {
-    throw new Error("Muitas tentativas. Tente novamente mais tarde.");
+    throw new Error(errorMessages.tooManyAttempts);
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
+    throw new Error(body?.message || errorMessages.invalidCredentials);
   }
 
   if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
+    throw new Error(body?.message || errorMessages.invalidCredentials);
   }
 
   return body as LoginResponse;
@@ -170,15 +171,15 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
   const body = await response.json().catch(() => null);
 
   if (response.status === 409) {
-    throw new Error("Este e-mail já está cadastrado.");
+    throw new Error(errorMessages.emailAlreadyRegistered);
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || "Não foi possível criar sua conta. Tente novamente.");
+    throw new Error(body?.message || errorMessages.registrationFailed);
   }
 
   if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || "Resposta inesperada do servidor.");
+    throw new Error(body?.message || errorMessages.unexpectedError);
   }
 
   console.log("[register] status:", response.status, "message:", body.message);
@@ -195,7 +196,7 @@ export async function generateEmailConfirmationCode(email: string): Promise<void
   );
 
   if (response.status !== 200) {
-    throw new Error("Não foi possível enviar o código de confirmação. Verifique o e-mail e tente novamente.");
+    throw new Error(errorMessages.couldNotSendCode);
   }
 }
 
@@ -210,7 +211,7 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
   });
 
   if (response.status !== 200) {
-    throw new Error("Código inválido ou expirado. Tente novamente.");
+    throw new Error(errorMessages.confirmationCodeInvalid);
   }
 }
 
@@ -222,7 +223,7 @@ export async function registerProvider(formData: FormData): Promise<void> {
 
   if (response.status !== 200 && response.status !== 201) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.message || "Não foi possível completar o cadastro. Tente novamente.");
+    throw new Error(body?.message || errorMessages.registrationFailed);
   }
 }
 
