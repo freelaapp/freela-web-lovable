@@ -48,7 +48,7 @@ describe("resetPasswordSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors.find(e => e.path[0] === "email")?.message).toBe("Email é obrigatório");
+      expect(result.error.errors.find(e => e.path[0] === "email")?.message).toBe("Ops! Não esqueça de preencher o e-mail.");
     }
   });
 
@@ -69,7 +69,7 @@ describe("resetPasswordSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors.find(e => e.path[0] === "code")?.message).toBe("Código deve ter 6 dígitos");
+      expect(result.error.errors.find(e => e.path[0] === "code")?.message).toBe("Digite o código de 6 dígitos.");
     }
   });
 
@@ -90,7 +90,7 @@ describe("resetPasswordSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors.find(e => e.path[0] === "code")?.message).toBe("Código deve conter apenas números");
+      expect(result.error.errors.find(e => e.path[0] === "code")?.message).toBe("O código deve conter apenas números.");
     }
   });
 
@@ -102,7 +102,7 @@ describe("resetPasswordSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors.find(e => e.path[0] === "password")?.message).toBe("Senha deve ter pelo menos 6 caracteres");
+      expect(result.error.errors.find(e => e.path[0] === "password")?.message).toBe("Sua senha precisa ter pelo menos 6 caracteres.");
     }
   });
 

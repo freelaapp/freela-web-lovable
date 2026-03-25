@@ -11,15 +11,22 @@ import { errorMessages } from "../error-messages";
 export const resetPasswordSchema = z.object({
   email: z
     .string()
-    .min(1, errorMessages.required(errorMessages.fields.email))
-    .email(errorMessages.invalidEmail)
-    .transform((email) => email.toLowerCase().trim()),
+    .transform((email) => email.trim())
+    .pipe(
+      z.string()
+        .min(1, errorMessages.required(errorMessages.fields.email))
+        .email(errorMessages.invalidEmail)
+        .transform((email) => email.toLowerCase())
+    ),
   code: z
     .string()
-    .min(6, errorMessages.checkinCodeRequired)
-    .max(6, errorMessages.checkinCodeRequired)
-    .regex(/^\d+$/, "O código deve conter apenas números.")
-    .transform((code) => code.trim()),
+    .transform((code) => code.trim())
+    .pipe(
+      z.string()
+        .min(6, errorMessages.checkinCodeRequired)
+        .max(6, errorMessages.checkinCodeRequired)
+        .regex(/^\d+$/, "O código deve conter apenas números.")
+    ),
   password: z
     .string()
     .min(6, errorMessages.passwordTooShort)

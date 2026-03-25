@@ -163,8 +163,6 @@ const DashboardContratante = () => {
     };
 
     fetchDashboard();
-    const interval = setInterval(fetchDashboard, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const vagasAbertas = vacancies.filter(v => v.status === "open" || v.status === "in hiring");

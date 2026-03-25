@@ -5,6 +5,7 @@ import { Star, MapPin, Shield, ChevronLeft, Building2, Home, Calendar, Briefcase
 import AppLayout from "@/components/layout/AppLayout";
 import { useEffect, useState } from "react";
 import { getContractorById, PublicContractorProfile } from "@/lib/api";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -31,7 +32,7 @@ const PerfilContratante = () => {
          setProfile(data);
        } catch (err) {
          console.error("[PerfilContratante] Erro ao buscar perfil:", err);
-         setError("Não foi possível carregar o perfil. Tente novamente.");
+         setError(errorMessages.profileLoadFailed);
        } finally {
          setLoading(false);
        }

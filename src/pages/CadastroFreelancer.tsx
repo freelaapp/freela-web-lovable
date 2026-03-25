@@ -15,6 +15,7 @@ import { ptBR } from "date-fns/locale";
 import { cn, validateCPF } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
+import { errorMessages } from "@/lib/error-messages";
 
 const estadosBR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
@@ -134,33 +135,33 @@ const CadastroFreelancer = () => {
 
   const previewFoto = useMemo(() => fotoPerfil ? URL.createObjectURL(fotoPerfil) : null, [fotoPerfil]);
 
-   const validate = () => {
-     const e: Record<string, string> = {};
-     if (!fotoPerfil) e.fotoPerfil = "Foto de perfil é obrigatória";
-     if (!cpf.replace(/\D/g, "") || !validateCPF(cpf)) e.cpf = "CPF inválido";
-     if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
-     else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
-     if (!sexo) e.sexo = "Sexo é obrigatório";
-     if (!endereco.trim()) e.endereco = "Endereço é obrigatório";
-     if (!numero.trim()) e.numero = "Número do endereço é obrigatório";
-     if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
-     if (!estado) e.estado = "Estado é obrigatório";
+const validate = () => {
+      const e: Record<string, string> = {};
+      if (!fotoPerfil) e.fotoPerfil = errorMessages.required(errorMessages.fields.foto);
+      if (!cpf.replace(/\D/g, "") || !validateCPF(cpf)) e.cpf = errorMessages.invalidCpf;
+      if (!dataNascimento) e.dataNascimento = errorMessages.required(errorMessages.fields.nascimento);
+      else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = errorMessages.minAge;
+      if (!sexo) e.sexo = errorMessages.required(errorMessages.fields.sexo);
+      if (!endereco.trim()) e.endereco = errorMessages.required(errorMessages.fields.endereco);
+      if (!numero.trim()) e.numero = errorMessages.required(errorMessages.fields.numero);
+      if (!cidade.trim()) e.cidade = errorMessages.required(errorMessages.fields.cidade);
+      if (!estado) e.estado = errorMessages.required(errorMessages.fields.estado);
 
-    // Validar contato de emergência: telefone não pode ser igual ao do usuário
-    if (contatoEmergTelefone) {
-      try {
-        const pendingData = JSON.parse(localStorage.getItem("pendingRegisterData") || "{}");
-        const userPhone = pendingData.phoneNumber || "";
-        const emergPhone = contatoEmergTelefone.replace(/\D/g, "");
-        if (userPhone && emergPhone && userPhone === emergPhone) {
-          e.contatoEmergTelefone = "O número do contato de emergência não pode ser o mesmo que o seu";
-        }
-      } catch {
-        // ignore parse errors
-      }
-    }
+     // Validar contato de emergência: telefone não pode ser igual ao do usuário
+     if (contatoEmergTelefone) {
+       try {
+         const pendingData = JSON.parse(localStorage.getItem("pendingRegisterData") || "{}");
+         const userPhone = pendingData.phoneNumber || "";
+         const emergPhone = contatoEmergTelefone.replace(/\D/g, "");
+         if (userPhone && emergPhone && userPhone === emergPhone) {
+           e.contatoEmergTelefone = "O número do contato de emergência não pode ser o mesmo que o seu";
+         }
+       } catch {
+         // ignore parse errors
+       }
+     }
 
-    if (!acceptTerms) e.terms = "Você deve aceitar os termos";
+     if (!acceptTerms) e.terms = errorMessages.mustAcceptTerms;
     setErrors(e);
 
     if (Object.keys(e).length > 0) {

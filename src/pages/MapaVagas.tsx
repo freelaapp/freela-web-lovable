@@ -166,6 +166,8 @@ const MapaVagas = () => {
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Extrair lista única de datas
