@@ -41,7 +41,7 @@ const Index = () => {
       <TestimonialsSection />
       <PartnersSection />
       <HowItWorksSection />
-      <AppDownloadCard />
+      {/* <AppDownloadCard /> — temporariamente desativado até o App estar pronto */}
       <CTASection />
     </AppLayout>
   );

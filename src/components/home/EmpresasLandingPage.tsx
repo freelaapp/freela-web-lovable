@@ -254,8 +254,7 @@ const EmpresasLandingPage = () => {
       {/* ========== BENEFÍCIOS PARCEIROS ========== */}
       <PartnersBenefitsSection />
 
-      {/* ========== BAIXE O APP ========== */}
-      <AppDownloadCard />
+      {/* <AppDownloadCard /> — temporariamente desativado até o App estar pronto */}
 
       {/* ========== CTA FINAL ========== */}
       <section className="section-padding hero-gradient relative overflow-hidden">

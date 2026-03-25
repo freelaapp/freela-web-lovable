@@ -10,11 +10,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Calendar, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { servicosPF, FREELA_COMMISSION } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
 import ServicoCard, { getServiceIcon, calcHours } from "./ServicoCard";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface SelectedService {
   id: string;
@@ -447,17 +452,45 @@ const CriarEventoEmpresas = () => {
         <div className="bg-card border border-border rounded-xl p-4 space-y-2">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-primary" />
+              <CalendarIcon className="w-4 h-4 text-primary" />
             </div>
             <h2 className="text-sm font-semibold text-foreground">Data do evento</h2>
           </div>
-          <Input
-            type="date"
-            value={dataEvento}
-            onChange={(e) => setDataEvento(e.target.value)}
-            className="h-10 rounded-lg max-w-xs text-sm"
-            required
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full h-12 justify-start text-left font-normal",
+                  !dataEvento && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dataEvento
+                  ? format(new Date(dataEvento + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })
+                  : "Selecione a data"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dataEvento ? new Date(dataEvento + "T12:00:00") : undefined}
+                onSelect={(date) => {
+                  if (date) setDataEvento(format(date, "yyyy-MM-dd"));
+                }}
+                initialFocus
+                className="pointer-events-auto"
+                captionLayout="dropdown-buttons"
+                fromYear={new Date().getFullYear()}
+                toYear={new Date().getFullYear() + 2}
+                locale={ptBR}
+                labels={{
+                  labelMonthDropdown: () => "Mês",
+                  labelYearDropdown: () => "Ano",
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* ========== STEP 4: Local ========== */}

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -11,7 +11,6 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import EsqueciMinhaSenha from "./pages/EsqueciMinhaSenha";
-import RedefinirSenha from "./pages/RedefinirSenha";
 import CriarEvento from "./pages/CriarEvento";
 import Freelancers from "./pages/Freelancers";
 import AceitarJob from "./pages/AceitarJob";
@@ -68,7 +67,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/esqueci-minha-senha" element={<EsqueciMinhaSenha />} />
-            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+            <Route path="/redefinir-senha" element={<Navigate to="/esqueci-minha-senha" replace />} />
             <Route path="/criar-evento" element={<CriarEvento />} />
             <Route path="/freelancers" element={<Freelancers />} />
             <Route path="/aceitar-job/:jobId" element={<AceitarJob />} />

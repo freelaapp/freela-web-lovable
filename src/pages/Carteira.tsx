@@ -10,6 +10,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { formatCurrency } from "@/lib/formatters";
+import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
 
 // Freelancer mocks
 const ganhosFreelancerMock = [
@@ -185,9 +186,13 @@ const Carteira = () => {
                 <><TrendingUp className="w-4 h-4 text-primary" /> Ganhos por dia</>
               )}
             </h3>
-            <div className="flex gap-2">
-              <Input type="date" value={filtroInicio} onChange={(e) => setFiltroInicio(e.target.value)} placeholder="De" className="text-xs" />
-              <Input type="date" value={filtroFim} onChange={(e) => setFiltroFim(e.target.value)} placeholder="Até" className="text-xs" />
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-medium">De</p>
+              <WheelDatePicker value={filtroInicio} onChange={setFiltroInicio} />
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-medium">Até</p>
+              <WheelDatePicker value={filtroFim} onChange={setFiltroFim} />
             </div>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Mail, RotateCcw } from "lucide-react";
@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { confirmEmail, generateEmailConfirmationCode, registerUser } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { onAuthSuccess } from "@/lib/auth";
+
+const RESEND_COOLDOWN = 60;
 
 const ConfirmarEmail = () => {
   const navigate = useNavigate();
@@ -16,7 +18,16 @@ const ConfirmarEmail = () => {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const startCooldown = useCallback(() => setCooldown(RESEND_COOLDOWN), []);
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -59,6 +70,7 @@ const ConfirmarEmail = () => {
     try {
       await generateEmailConfirmationCode(email);
       toast({ title: "Código reenviado!", description: "Verifique sua caixa de entrada." });
+      startCooldown();
     } catch {
       toast({ title: "Erro", description: "Não foi possível reenviar o código.", variant: "destructive" });
     } finally {
@@ -178,14 +190,22 @@ const ConfirmarEmail = () => {
           </Button>
         </form>
 
+        <p className="text-xs text-muted-foreground mt-4">
+          Não encontrou o código? Verifique também sua caixa de <strong>Spam</strong> e <strong>Lixeira</strong>.
+        </p>
+
         <button
           type="button"
           onClick={handleResend}
-          disabled={isResending || isLoading}
-          className="mt-6 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+          disabled={isResending || isLoading || cooldown > 0}
+          className="mt-3 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <RotateCcw className={`w-4 h-4 ${isResending ? "animate-spin" : ""}`} />
-          {isResending ? "Reenviando..." : "Reenviar código"}
+          {isResending
+            ? "Reenviando..."
+            : cooldown > 0
+              ? `Reenviar código em ${Math.floor(cooldown / 60)}:${String(cooldown % 60).padStart(2, "0")}`
+              : "Reenviar código"}
         </button>
       </div>
     </div>
