@@ -58,107 +58,113 @@ const DashboardContratante = () => {
   const [jobsPendentesAvaliacao, setJobsPendentesAvaliacao] = useState<ActiveJob[]>([]);
 
   useEffect(() => {
-    const tokenRaw = localStorage.getItem("authToken");
-    if (!tokenRaw) return;
-    let token: string;
-    try { token = JSON.parse(tokenRaw); } catch { return; }
+    const fetchDashboard = async () => {
+      const tokenRaw = localStorage.getItem("authToken");
+      if (!tokenRaw) return;
+      let token: string;
+      try { token = JSON.parse(tokenRaw); } catch { return; }
 
-    const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
+      const headers = { "Origin-type": ORIGIN_TYPE, Authorization: `Bearer ${token}` };
 
-    fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers })
-      .then(r => r.json())
-      .then(body => { if (body?.success && body?.data?.name) setUserName(body.data.name); })
-      .catch(err => console.error("Erro ao buscar usuário:", err));
+      fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers })
+        .then(r => r.json())
+        .then(body => { if (body?.success && body?.data?.name) setUserName(body.data.name); })
+        .catch(err => console.error("Erro ao buscar usuário:", err));
 
-    getContractorProfile(token)
-      .then(async (profile) => {
-        const contractorId = profile.id;
+      getContractorProfile(token)
+        .then(async (profile) => {
+          const contractorId = profile.id;
 
-        const vacRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, {
-          method: "GET", credentials: "include", headers,
-        });
-        const vacBody = await vacRes.json();
-        if (!vacRes.ok || !vacBody?.data) {
-          console.error("Erro ao buscar vagas:", vacBody);
-          return;
-        }
+          const vacRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/vacancies`, {
+            method: "GET", credentials: "include", headers,
+          });
+          const vacBody = await vacRes.json();
+          if (!vacRes.ok || !vacBody?.data) {
+            console.error("Erro ao buscar vagas:", vacBody);
+            return;
+          }
 
-        const rawVacancies: RawVacancy[] = Array.isArray(vacBody.data) ? vacBody.data : [];
-        const flattened: FlatVacancy[] = [];
-        for (const v of rawVacancies) {
-          if (Array.isArray(v.services) && v.services.length > 0) {
-            v.services.forEach((s, idx) => {
+          const rawVacancies: RawVacancy[] = Array.isArray(vacBody.data) ? vacBody.data : [];
+          const flattened: FlatVacancy[] = [];
+          for (const v of rawVacancies) {
+            if (Array.isArray(v.services) && v.services.length > 0) {
+              v.services.forEach((s, idx) => {
+                flattened.push({
+                  id: v.id,
+                  assignment: s.assignment || "Sem título",
+                  quantity: s.quantity ?? 1,
+                  jobDate: v.jobDate,
+                  status: v.status,
+                  createdAt: v.createdAt,
+                  serviceIndex: idx,
+                });
+              });
+            } else {
               flattened.push({
                 id: v.id,
-                assignment: s.assignment || "Sem título",
-                quantity: s.quantity ?? 1,
+                assignment: v.assignment || "Sem título",
+                quantity: v.quantity ?? 1,
                 jobDate: v.jobDate,
                 status: v.status,
                 createdAt: v.createdAt,
-                serviceIndex: idx,
+                serviceIndex: 0,
               });
-            });
-          } else {
-            flattened.push({
-              id: v.id,
-              assignment: v.assignment || "Sem título",
-              quantity: v.quantity ?? 1,
-              jobDate: v.jobDate,
-              status: v.status,
-              createdAt: v.createdAt,
-              serviceIndex: 0,
-            });
+            }
           }
-        }
-        setVacancies(flattened);
-        setTotalVagas(flattened.length);
+          setVacancies(flattened);
+          setTotalVagas(flattened.length);
 
-        // Total gasto (mês atual)
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        const currentMonthVacancies = rawVacancies.filter((v) => {
-          if (!v.createdAt) return false;
-          const d = new Date(v.createdAt);
-          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-        });
+          // Total gasto (mês atual)
+          const now = new Date();
+          const currentMonth = now.getMonth();
+          const currentYear = now.getFullYear();
+          const currentMonthVacancies = rawVacancies.filter((v) => {
+            if (!v.createdAt) return false;
+            const d = new Date(v.createdAt);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          });
 
-        if (currentMonthVacancies.length > 0) {
-          const values = await Promise.all(
-            currentMonthVacancies.map(async (v) => {
-              try {
-                const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, { method: "GET", credentials: "include", headers });
-                const jobBody = await jobRes.json();
-                if (jobRes.ok && jobBody?.data?.value != null) return Number(jobBody.data.value) || 0;
-              } catch (e) { console.error(`Erro ao buscar job ${v.id}:`, e); }
-              return 0;
-            })
-          );
-          const sum = values.reduce((a, b) => a + b, 0);
-          setTotalGasto(`R$ ${sum.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`);
-        }
-
-        // Feedbacks
-        try {
-          const fbRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, { method: "GET", credentials: "include", headers });
-          const fbBody = await fbRes.json();
-          if (fbRes.ok && Array.isArray(fbBody?.data) && fbBody.data.length > 0) {
-            const total = fbBody.data.reduce((acc: number, fb: any) => acc + (Number(fb.star) || 0), 0);
-            setMediaAvaliacao((total / fbBody.data.length).toFixed(1));
+          if (currentMonthVacancies.length > 0) {
+            const values = await Promise.all(
+              currentMonthVacancies.map(async (v) => {
+                try {
+                  const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, { method: "GET", credentials: "include", headers });
+                  const jobBody = await jobRes.json();
+                  if (jobRes.ok && jobBody?.data?.value != null) return Number(jobBody.data.value) || 0;
+                } catch (e) { console.error(`Erro ao buscar job ${v.id}:`, e); }
+                return 0;
+              })
+            );
+            const sum = values.reduce((a, b) => a + b, 0);
+            setTotalGasto(`R$ ${sum.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`);
           }
-        } catch (e) { console.error("Erro ao buscar feedbacks:", e); }
 
-        // Jobs pendentes de avaliação — filtra por status "completed"
-        try {
-          const activeJobsRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/active-jobs`, { method: "GET", credentials: "include", headers });
-          const activeJobsBody = await activeJobsRes.json();
-          if (activeJobsRes.ok && Array.isArray(activeJobsBody?.data)) {
-            const pendentes = activeJobsBody.data.filter((job: ActiveJob) => job.status === "completed");
-            setJobsPendentesAvaliacao(pendentes);
-          }
-        } catch (e) { console.error("Erro ao buscar active-jobs:", e); }
-      })
-      .catch(err => console.error("Erro ao buscar dados do contratante:", err));
+          // Feedbacks
+          try {
+            const fbRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, { method: "GET", credentials: "include", headers });
+            const fbBody = await fbRes.json();
+            if (fbRes.ok && Array.isArray(fbBody?.data) && fbBody.data.length > 0) {
+              const total = fbBody.data.reduce((acc: number, fb: any) => acc + (Number(fb.star) || 0), 0);
+              setMediaAvaliacao((total / fbBody.data.length).toFixed(1));
+            }
+          } catch (e) { console.error("Erro ao buscar feedbacks:", e); }
+
+          // Jobs pendentes de avaliação
+          try {
+            const activeJobsRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/active-jobs`, { method: "GET", credentials: "include", headers });
+            const activeJobsBody = await activeJobsRes.json();
+            if (activeJobsRes.ok && Array.isArray(activeJobsBody?.data)) {
+              const pendentes = activeJobsBody.data.filter((job: ActiveJob) => job.status === "completed");
+              setJobsPendentesAvaliacao(pendentes);
+            }
+          } catch (e) { console.error("Erro ao buscar active-jobs:", e); }
+        })
+        .catch(err => console.error("Erro ao buscar dados do contratante:", err));
+    };
+
+    fetchDashboard();
+    const interval = setInterval(fetchDashboard, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const vagasAbertas = vacancies.filter(v => v.status === "open" || v.status === "in hiring");
