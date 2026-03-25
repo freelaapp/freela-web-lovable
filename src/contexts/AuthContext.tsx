@@ -68,7 +68,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "/escolher-perfil",
         "/cadastro-contratante",
         "/cadastro-freelancer",
-        "/confirmar-email"
+        "/confirmar-email",
+        "/ajuda",
+        "/ajuda-contratante",
       ];
       if (!publicPaths.includes(window.location.pathname)) {
         navigateRef.current("/", { replace: true });
