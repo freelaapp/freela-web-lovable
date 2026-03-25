@@ -4,8 +4,9 @@ import { CalendarPlus, Users, ChevronRight, Star, DollarSign, AlertCircle, Brief
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useEffect, useState } from "react";
-import { getContractorProfile } from "@/lib/api";
+import { deleteVacancy, getContractorProfile } from "@/lib/api";
 import VagasBlock from "@/components/dashboard-contratante/VagasBlock";
+import { useToast } from "@/hooks/use-toast";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -50,12 +51,14 @@ interface ActiveJob {
 
 const DashboardContratante = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [userName, setUserName] = useState("");
   const [totalGasto, setTotalGasto] = useState("R$ 0");
   const [totalVagas, setTotalVagas] = useState(0);
   const [mediaAvaliacao, setMediaAvaliacao] = useState("0");
   const [vacancies, setVacancies] = useState<FlatVacancy[]>([]);
   const [jobsPendentesAvaliacao, setJobsPendentesAvaliacao] = useState<ActiveJob[]>([]);
+  const [deletingVacancyIds, setDeletingVacancyIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const tokenRaw = localStorage.getItem("authToken");
@@ -143,7 +146,7 @@ const DashboardContratante = () => {
           const fbRes = await fetch(`${API_BASE_URL}/contractors/${contractorId}/jobs/feedbacks`, { method: "GET", credentials: "include", headers });
           const fbBody = await fbRes.json();
           if (fbRes.ok && Array.isArray(fbBody?.data) && fbBody.data.length > 0) {
-            const total = fbBody.data.reduce((acc: number, fb: any) => acc + (Number(fb.star) || 0), 0);
+            const total = fbBody.data.reduce((acc: number, fb) => acc + (Number(fb.star) || 0), 0);
             setMediaAvaliacao((total / fbBody.data.length).toFixed(1));
           }
         } catch (e) { console.error("Erro ao buscar feedbacks:", e); }
@@ -164,6 +167,37 @@ const DashboardContratante = () => {
   const vagasAbertas = vacancies.filter(v => v.status === "open" || v.status === "in hiring");
   const vagasPreenchidas = vacancies.filter(v => v.status === "closed");
   const vagasConcluidas = vacancies.filter(v => v.status === "removed");
+
+  const handleDeleteVacancy = async (vacancyId: string) => {
+    const confirmed = window.confirm("Deseja realmente deletar esta vaga?");
+    if (!confirmed) return;
+
+    setDeletingVacancyIds(prev => new Set(prev).add(vacancyId));
+    try {
+      await deleteVacancy(vacancyId);
+      setVacancies(prev => {
+        const next = prev.filter(v => v.id !== vacancyId);
+        setTotalVagas(next.length);
+        return next;
+      });
+      toast({
+        title: "Vaga deletada",
+        description: "A vaga foi removida com sucesso.",
+      });
+    } catch (err) {
+      toast({
+        title: "Erro ao deletar vaga",
+        description: err?.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingVacancyIds(prev => {
+        const next = new Set(prev);
+        next.delete(vacancyId);
+        return next;
+      });
+    }
+  };
 
   return (
     <AppLayout showFooter={false}>
@@ -238,6 +272,8 @@ const DashboardContratante = () => {
           title="Vagas em Aberto"
           icon={<Briefcase className="w-5 h-5 text-primary" />}
           vacancies={vagasAbertas}
+          onDeleteVacancy={handleDeleteVacancy}
+          deletingVacancyIds={deletingVacancyIds}
         />
 
         {/* Vagas Preenchidas */}
@@ -245,6 +281,8 @@ const DashboardContratante = () => {
           title="Vagas Preenchidas"
           icon={<Users className="w-5 h-5 text-primary" />}
           vacancies={vagasPreenchidas}
+          onDeleteVacancy={handleDeleteVacancy}
+          deletingVacancyIds={deletingVacancyIds}
         />
 
         {/* Vagas Concluídas */}
@@ -252,6 +290,8 @@ const DashboardContratante = () => {
           title="Vagas Concluídas"
           icon={<CheckCircle className="w-5 h-5 text-primary" />}
           vacancies={vagasConcluidas}
+          onDeleteVacancy={handleDeleteVacancy}
+          deletingVacancyIds={deletingVacancyIds}
         />
       </div>
     </AppLayout>

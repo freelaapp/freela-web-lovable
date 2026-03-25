@@ -10,6 +10,7 @@ import VagaCard from "@/components/dashboard-contratante/VagaCard";
 import { useToast } from "@/hooks/use-toast";
 import { getDisplayValue } from "@/lib/values";
 import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
+import { deleteVacancy } from "@/lib/api";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -144,6 +145,7 @@ const Agenda = () => {
   // Fetch real vacancies for contratante (keeping existing logic)
   const [apiVacancies, setApiVacancies] = useState<any[]>([]);
   const [loadingVacancies, setLoadingVacancies] = useState(false);
+  const [deletingVacancyIds, setDeletingVacancyIds] = useState<Set<string>>(new Set());
   
   useEffect(() => {
     if (!isContratante) return;
@@ -250,6 +252,33 @@ const Agenda = () => {
   const listaTitle = selectedDate
     ? `${isContratante ? "Eventos" : "Vagas"} em ${selectedDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}`
     : isContratante ? "Todos os Eventos" : "Todas as Vagas";
+
+  const handleDeleteVacancy = async (vacancyId: string) => {
+    const confirmed = window.confirm("Deseja realmente deletar esta vaga?");
+    if (!confirmed) return;
+
+    setDeletingVacancyIds(prev => new Set(prev).add(vacancyId));
+    try {
+      await deleteVacancy(vacancyId);
+      setApiVacancies(prev => prev.filter(v => v.id !== vacancyId));
+      toast({
+        title: "Vaga deletada",
+        description: "A vaga foi removida com sucesso.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Erro ao deletar vaga",
+        description: err?.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingVacancyIds(prev => {
+        const next = new Set(prev);
+        next.delete(vacancyId);
+        return next;
+      });
+    }
+  };
 
   return (
     <AppLayout showFooter={false}>
@@ -424,7 +453,17 @@ const Agenda = () => {
                 <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
               ) : listaItens.length > 0 ? (
                 (listaItens as any[]).map((item, idx) => (
-                  <VagaCard key={`${item.id}-${item.serviceIndex ?? idx}`} id={String(item.id)} assignment={item.assignment} quantity={item.quantity} jobDate={item.jobDate} status={item.status} serviceIndex={item.serviceIndex} />
+                  <VagaCard
+                    key={`${item.id}-${item.serviceIndex ?? idx}`}
+                    id={String(item.id)}
+                    assignment={item.assignment}
+                    quantity={item.quantity}
+                    jobDate={item.jobDate}
+                    status={item.status}
+                    serviceIndex={item.serviceIndex}
+                    onDelete={handleDeleteVacancy}
+                    isDeleting={Boolean(deletingVacancyIds.has(String(item.id)))}
+                  />
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-6">
