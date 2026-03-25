@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -201,6 +201,28 @@ const DetalheEventoContratante = () => {
       console.error("[JobStatus] error fetching job status:", err);
     }
   };
+
+  // ── Polling: verificar mudanças de status do job a cada 5s ──────────
+  const fetchJobStatusRef = useRef(fetchJobStatus);
+  fetchJobStatusRef.current = fetchJobStatus;
+
+  useEffect(() => {
+    if (!eventoId) return;
+    if (timelineStep >= 5) return; // Não fazer polling se já atingiu estado final
+
+    const intervalId = setInterval(() => {
+      // Pausar se aba não está visível
+      if (document.visibilityState !== "visible") return;
+
+      // Pausar se já atingiu estado final
+      if (timelineStep >= 5) return;
+
+      console.log("[Polling] Verificando status do job...");
+      fetchJobStatusRef.current(eventoId);
+    }, 5000); // 5 segundos
+
+    return () => clearInterval(intervalId);
+  }, [eventoId, timelineStep]);
 
   // Helpers para verificação de limites por serviço
   const getServiceLimit = (assignment: string): number => {
@@ -878,7 +900,7 @@ const DetalheEventoContratante = () => {
                 const showPaymentBtn = item.key === "pagamento" && isInProgress && confirmados.length > 0;
                 const showCheckInBtn = item.key === "inicio" && isInProgress && confirmados.length > 0;
                 const showCheckOutBtn = item.key === "termino" && isInProgress && confirmados.length > 0 && timelineStep >= 2;
-                const showReviewBtn = item.key === "feedback" && isInProgress && confirmados.length > 0 && timelineStep >= 3 && timelineStep < 4;
+                const showReviewBtn = item.key === "feedback" && isInProgress && confirmados.length > 0;
 
                 return (
                   <div key={item.key} className="relative pb-6 last:pb-0">
