@@ -353,7 +353,8 @@ const Perfil = () => {
   };
 
   const handleProfileImageUpload = async (file: File) => {
-    // Apenas freelancer pode usar este endpoint
+    const previewUrl = URL.createObjectURL(file);
+
     if (isContratante) {
       toast.error("Apenas freelancers podem alterar a foto de perfil por este método.");
       return;
@@ -361,7 +362,7 @@ const Perfil = () => {
 
     try {
       await updateProviderProfileImage(file);
-      setAvatarUrl(URL.createObjectURL(file));
+      setFreelancerData((prev) => ({ ...prev, avatarUrl: previewUrl }));
       toast.success("Foto de perfil atualizada com sucesso!");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erro ao atualizar a foto de perfil.";

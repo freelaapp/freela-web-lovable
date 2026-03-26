@@ -33,6 +33,7 @@ interface FreelancerProfile {
   portfolio: { title: string; rating: number }[];
   testimonials: { name: string; text: string; rating: number }[];
   price: string;
+  horarios?: Horarios;
 }
 
 const levelConfig = {
@@ -97,27 +98,73 @@ const PerfilFreelancer = () => {
       setError(null);
       try {
         // Fetch provider details
+        console.log(`[PerfilFreelancer] Fetching provider: ${id}`);
         const providerRes = await apiFetch(`${API_BASE_URL}/providers/${id}`, { method: "GET" });
+        if (!providerRes.ok) {
+          console.error(`[PerfilFreelancer] Provider not found, status: ${providerRes.status}`);
+          throw new Error(`Erro ao buscar freelancer: ${providerRes.status}`);
+        }
         const providerBody = await providerRes.json();
         const providerData = providerBody?.data || providerBody;
+          console.log(`[PerfilFreelancer] Provider data:`, providerData);
+
+        if (!providerData || !providerData.id) {
+          throw new Error("Freelancer não encontrado");
+        }
+
+        const userId = providerData.userId;
+        if (!userId) {
+          console.error(`[PerfilFreelancer] No userId for provider:`, providerData);
+          throw new Error("ID do usuário não encontrado");
+        }
 
         // Fetch user details
-        const userRes = await apiFetch(`${API_BASE_URL}/users/${providerData.userId}`, { method: "GET" });
+        console.log(`[PerfilFreelancer] Fetching user: ${userId}`);
+        const userRes = await apiFetch(`${API_BASE_URL}/users/${userId}`, { method: "GET" });
+        if (!userRes.ok) {
+          console.error(`[PerfilFreelancer] User not found, status: ${userRes.status}`);
+          throw new Error(`Erro ao buscar usuário: ${userRes.status}`);
+        }
         const userBody = await userRes.json();
         const userData = userBody?.data || userBody;
+        console.log(`[PerfilFreelancer] User data:`, userData);
 
         const name = userData.name || providerData.name || "Freelancer";
-        const avatar = name
+        const avatarInitials = name
           .split(" ")
           .map((w: string) => w[0])
           .join("")
           .slice(0, 2)
           .toUpperCase();
+        
+        const bufferToDataUrl = (img: unknown): string | null => {
+          if (!img) return null;
+          if (typeof img === "string") return img;
+          if (typeof img === "object" && img !== null) {
+            const imgObj = img as Record<string, unknown>;
+            if (imgObj.type === "Buffer" && Array.isArray(imgObj.data)) {
+              const bytes = new Uint8Array(imgObj.data as number[]);
+              let binary = "";
+              for (let i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+              }
+              return `data:image/jpeg;base64,${btoa(binary)}`;
+            }
+          }
+          return null;
+        };
+        
+        const profileImageUrl = bufferToDataUrl(providerData.profileImage) || null;
+
+        const parseServicesFromApi = (value: string | undefined): string[] => {
+          if (!value) return [];
+          return value.split(",").map(s => s.trim()).filter(Boolean);
+        };
 
         const profile: FreelancerProfile = {
           id: providerData.id || id,
           name,
-          avatar,
+          avatar: profileImageUrl || avatarInitials,
           role: providerData.specialty || providerData.role || providerData.assignment || "",
           location: providerData.city && providerData.state
             ? `${providerData.city}, ${providerData.state}`
@@ -138,8 +185,8 @@ const PerfilFreelancer = () => {
           isPCD: providerData.isPCD ?? providerData.pcd ?? false,
           deficiencias: providerData.deficiencias || [],
           bio: providerData.bio || providerData.description || userData.bio || "",
-          skills: providerData.services || providerData.skills || providerData.specialties || [],
-          availability: providerData.availability || [],
+          skills: parseServicesFromApi(providerData.desiredJobVacancy),
+          availability: providerData.diasAtivos || providerData.availability || [],
           portfolio: (providerData.portfolio || providerData.jobs || []).map((p: Record<string, unknown>) => ({
             title: (p.title as string) || (p.name as string) || (p.description as string) || "",
             rating: (p.rating as number) || (p.stars as number) || 0,
@@ -155,11 +202,19 @@ const PerfilFreelancer = () => {
         };
 
         setFreelancerData(profile);
+        console.log(`[PerfilFreelancer] Profile set:`, profile);
+        setFreelancerData(profile);
         setSelectedDays([...profile.availability]);
         setSavedDays([...profile.availability]);
-        const initialHorarios = profile.availability.reduce(
-          (acc, day) => ({ ...acc, [day]: { de: "08h", ate: "18h" } }),
-          {} as Horarios
+        
+        const apiHorarios = providerData.horarios as Horarios | undefined;
+        const availabilityArray = Array.isArray(profile.availability) ? profile.availability : [];
+        const initialHorarios = apiHorarios || (availabilityArray.length > 0 
+          ? availabilityArray.reduce(
+              (acc: Horarios, day: string) => ({ ...acc, [day]: { de: "08h", ate: "18h" } }),
+              {} as Horarios
+            )
+          : {} as Horarios
         );
         setHorarios(initialHorarios);
         setSavedHorarios(initialHorarios);
@@ -318,9 +373,15 @@ const PerfilFreelancer = () => {
         {/* Profile Header */}
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-amber shrink-0">
-              {freelancerData.avatar}
-            </div>
+            {freelancerData.avatar && (freelancerData.avatar.startsWith("data:") || freelancerData.avatar.startsWith("http")) ? (
+              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-amber shrink-0 overflow-hidden">
+                <img src={freelancerData.avatar} alt={freelancerData.name} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-amber shrink-0">
+                {freelancerData.avatar}
+              </div>
+            )}
             {!contractorView && (
               <button className="absolute -bottom-1 -left-1 w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center shadow-sm">
                 <Pencil className="w-3 h-3 text-primary" />

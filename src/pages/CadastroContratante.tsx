@@ -128,6 +128,7 @@ const CadastroContratante = () => {
   const [rua, setRua] = useState("");
   const [numero, setNumero] = useState("");
   const [complemento, setComplemento] = useState("");
+  const [referencia, setReferencia] = useState("");
   const [bairro, setBairro] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
@@ -257,6 +258,7 @@ if (modo === "empresa") {
       fd.append("cep", cep.replace(/\D/g, ""));
       fd.append("logradouro", rua);
       fd.append("complemento", complemento);
+      fd.append("reference", referencia);
       fd.append("bairro", bairro);
       fd.append("number", numero);
       fd.append("localidade", cidade);
@@ -817,6 +819,15 @@ if (modo === "empresa") {
                     placeholder="Apto, Bloco..."
                     value={complemento}
                     onChange={(e) => setComplemento(e.target.value)}
+                    className="h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Referência</Label>
+                  <Input
+                    placeholder="Próximo a..."
+                    value={referencia}
+                    onChange={(e) => setReferencia(e.target.value)}
                     className="h-12"
                   />
                 </div>
