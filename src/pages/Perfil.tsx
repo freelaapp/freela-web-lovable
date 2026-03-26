@@ -92,6 +92,7 @@ const Perfil = () => {
   // Availability editing
   const [editingAvailability, setEditingAvailability] = useState(false);
   const [savingAvailability, setSavingAvailability] = useState(false);
+  const [providerId, setProviderId] = useState<string | null>(null);
   const [savedDiasAtivos, setSavedDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex"]);
   const [savedHorarios, setSavedHorarios] = useState<Horarios>({ ...horarios });
 
@@ -182,6 +183,8 @@ const Perfil = () => {
           const pBody = await providerRes.json();
           const raw = pBody?.data ?? pBody;
           providerData = Array.isArray(raw) ? raw[0] ?? {} : raw;
+          // Save provider ID for later use
+          if (providerData.id) setProviderId(providerData.id);
         }
 
         let userName = "";
@@ -499,7 +502,11 @@ const Perfil = () => {
       }
 
       setSavingAvailability(true);
-      await updateProviderAvailability({
+      if (!providerId) {
+        toast.error("ID do provider não encontrado.");
+        return;
+      }
+      await updateProviderAvailability(providerId, {
         diasAtivos,
         horarios,
       });

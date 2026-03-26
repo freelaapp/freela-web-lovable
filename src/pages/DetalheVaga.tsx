@@ -15,6 +15,22 @@ import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
+const statusLabels: Record<string, string> = {
+  open: "Aberta",
+  pending: "Pendente",
+  accepted: "Aceita",
+  rejected: "Recusada",
+  confirmed: "Confirmada",
+  closed: "Preenchida",
+  removed: "Concluída",
+  completed: "Concluída",
+  "in hiring": "Em contratação",
+  aberta: "Aberta",
+  aceita: "Aceita",
+  preenchida: "Preenchida",
+  concluida: "Concluída",
+};
+
 const defaultTimelineSteps = [
   { key: "aceite", label: "Aceite da Vaga", icon: CheckCircle },
   { key: "inicio", label: "Início do Trabalho", icon: Clock },
@@ -490,7 +506,7 @@ toast.error(errorMessages.checkinCodeRequired);
             status === "aberta" || status === "open" ? "bg-warning-light text-warning" :
             "bg-muted text-muted-foreground"
           }`}>
-            {isAgendada ? "Agendada" : (status === "concluida" ? "concluída" : status)}
+            {isAgendada ? "Agendada" : (statusLabels[status] || status)}
           </span>
         </div>
 

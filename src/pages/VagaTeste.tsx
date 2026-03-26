@@ -408,7 +408,7 @@ const VagaTeste = () => {
                     </Button>
                   ) : null}
 
-                  <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.id}`); }}>
+                  <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.providerId}`); }}>
                     <Eye className="w-4 h-4" /> Ver Perfil Completo <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
