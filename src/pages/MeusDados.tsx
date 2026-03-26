@@ -14,7 +14,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -629,7 +629,7 @@ const MeusDados = () => {
             </div>
             <div className="space-y-2">
               <Label>Data de Nascimento</Label>
-              <WheelDatePicker value={dataNascimento} onChange={setDataNascimento} />
+              <DatePicker value={dataNascimento} onChange={setDataNascimento} />
             </div>
             <div className="space-y-2">
               <Label>Sexo</Label>
