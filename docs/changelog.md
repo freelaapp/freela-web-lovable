@@ -7,6 +7,12 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ## [Unreleased]
 
 ### Fixed
+- **Imagem de perfil em fluxos de provider não renderizava em alguns cenários**
+  - Criado utilitário `src/lib/image.ts` para normalizar URLs de imagem (incluindo `http`→`https`, domínio sem protocolo, objetos com `url/src/location` e payloads em formato `Buffer`).
+  - Ajustado mapeamento de campos de imagem em `MeusDados`, `Perfil` e `DetalheEventoContratante` para suportar variantes de contrato (`profileImage`, `profileImageUrl`, `avatar`, `image`, `photoUrl`, etc.).
+  - Adicionados testes unitários em `src/lib/__tests__/image.test.ts` cobrindo normalização e fallback.
+
+### Fixed
 - **`src/pages/DetalheEventoContratante.tsx` — Renderização do bloco de freelancers em vaga fechada**
   - Quando a vaga está `closed`, o card agora exibe apenas o **freelancer selecionado** (em vez da lista de confirmados/inscritos).
   - O card passou a mostrar **foto de perfil** (com fallback para iniciais), **nome**, **avaliação** e **número de contato**.

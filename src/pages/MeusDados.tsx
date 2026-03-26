@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
 import { errorMessages } from "@/lib/error-messages";
+import { pickImageUrlFromPayload } from "@/lib/image";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -63,20 +64,6 @@ const getHeaders = (token: string) => ({
   "Origin-type": ORIGIN_TYPE,
   Authorization: `Bearer ${token}`,
 });
-
-const bufferToDataUrl = (img: any): string | null => {
-  if (!img) return null;
-  if (typeof img === "string") return img;
-  if (img.type === "Buffer" && Array.isArray(img.data)) {
-    const bytes = new Uint8Array(img.data);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return `data:image/jpeg;base64,${btoa(binary)}`;
-  }
-  return null;
-};
 
 // Snapshot helpers for change detection
 interface UserSnapshot { nome: string; email: string; telefone: string }
@@ -258,7 +245,15 @@ const MeusDados = () => {
             setIsPCD(pcd);
 
            // Profile image
-           const imgUrl = bufferToDataUrl(prov.profileImage);
+           const imgUrl = pickImageUrlFromPayload(prov, [
+             "profileImage",
+             "profileImageUrl",
+             "avatarUrl",
+             "avatar",
+             "image",
+             "imageUrl",
+             "photoUrl",
+           ]);
            if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
 
            // Desired job vacancy

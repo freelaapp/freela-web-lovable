@@ -12,6 +12,7 @@ import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJ
 import Pusher from "pusher-js";
 import { formatCurrency } from "@/lib/formatters";
 import { errorMessages } from "@/lib/error-messages";
+import { pickImageUrlFromPayload } from "@/lib/image";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -367,16 +368,26 @@ const DetalheEventoContratante = () => {
               const userData = c.userData || {};
               const candidateName = userData.name || c.providerName || c.name || "Freelancer";
               const avatarUrl =
-                userData.avatarUrl ||
-                userData.profilePicture ||
-                userData.profileImage ||
-                userData.photoUrl ||
-                userData.imageUrl ||
-                providerData.avatarUrl ||
-                providerData.profilePicture ||
-                providerData.profileImage ||
-                providerData.photoUrl ||
-                null;
+                pickImageUrlFromPayload(userData, [
+                  "avatarUrl",
+                  "profilePicture",
+                  "profileImage",
+                  "profileImageUrl",
+                  "photoUrl",
+                  "imageUrl",
+                  "image",
+                  "avatar",
+                ]) ||
+                pickImageUrlFromPayload(providerData, [
+                  "avatarUrl",
+                  "profilePicture",
+                  "profileImage",
+                  "profileImageUrl",
+                  "photoUrl",
+                  "imageUrl",
+                  "image",
+                  "avatar",
+                ]);
               const contactNumber =
                 userData.phoneNumber ||
                 userData.phone ||
