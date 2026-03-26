@@ -234,6 +234,7 @@ export interface ContractorProfile {
   fantasyName?: string;
   companyName?: string;
   name?: string;
+  reference?: string;
   [key: string]: unknown;
 }
 
@@ -417,6 +418,7 @@ export interface PublicContractorProfile {
   cep: string;
   street: string;
   complement: string | null;
+  reference: string | null;
   neighborhood: string;
   number: string;
   city: string;
@@ -720,11 +722,11 @@ export interface ProviderUpdateResponse {
 }
 
 /**
- * Atualiza dados completos do provider via PUT /providers.
+ * Atualiza dados completos do provider via PUT /users.
  * Requer todos os campos, combinando dados existentes com as alterações.
  */
 export async function updateProvider(payload: ProviderUpdatePayload): Promise<ProviderUpdateResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/providers`, {
+  const response = await apiFetch(`${API_BASE_URL}/users`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -749,7 +751,7 @@ export async function updateProviderProfileImage(
   const formData = new FormData();
   formData.append('profileImage', profileImage);
 
-  const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
+  const response = await apiFetch(`${API_BASE_URL}/users`, {
     method: 'PUT',
     body: formData,
   });

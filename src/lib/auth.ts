@@ -79,6 +79,8 @@ export function onAuthSuccess(newAuthToken: string): void {
     userData.role = mappedRole;
   }
   localStorage.setItem("authUser", JSON.stringify(userData));
+  
+  console.log("[Auth] onAuthSuccess - user saved:", userData);
 }
 
 /** Attempt to refresh the auth token using the httpOnly refresh cookie */
@@ -130,8 +132,14 @@ export function logout(): void {
 export async function initializeAuth(): Promise<boolean> {
   const tokenRaw = localStorage.getItem("authToken");
   const expRaw = localStorage.getItem("authTokenExpirationTime");
+  const authUserRaw = localStorage.getItem("authUser");
 
-  if (!tokenRaw) return false;
+  console.log("[initializeAuth] Checking auth - token exists:", !!tokenRaw, "user:", authUserRaw);
+
+  if (!tokenRaw) {
+    console.log("[initializeAuth] No token, returning false");
+    return false;
+  }
 
   const expirationTime = expRaw ? JSON.parse(expRaw) : 0;
   const now = Date.now();
@@ -191,6 +199,7 @@ export async function initializeAuth(): Promise<boolean> {
     }
   }
 
+  console.log("[initializeAuth] Returning true - user is authenticated");
   return true;
 }
 

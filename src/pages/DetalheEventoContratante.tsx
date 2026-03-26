@@ -90,7 +90,11 @@ interface Candidato {
 const DetalheEventoContratante = () => {
   const { eventoId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const location = useLocation();
+  const toast = useToast();
+
+  const serviceIndexFromState = (location.state as Record<string, unknown>)?.serviceIndex as number | undefined;
+  const [selectedServiceIndex, setSelectedServiceIndex] = useState<number>(serviceIndexFromState ?? 0);
 
   const [vacancy, setVacancy] = useState<VacancyDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -780,13 +784,16 @@ const DetalheEventoContratante = () => {
            </div>
          </div>
 
-         {/* Detalhes - Services Cards */}
-         {vacancy.services && vacancy.services.length > 0 ? (
-           <>
-             {vacancy.services.map((service, serviceIndex) => (
-               <Card key={serviceIndex} className="mb-4">
-                 <CardContent className="p-5">
-                   <div className="grid grid-cols-3 gap-3">
+          {/* Detalhes - Services Cards */}
+          {vacancy.services && vacancy.services.length > 0 ? (
+            <>
+              {vacancy.services.map((service, serviceIndex) => {
+                const isSelected = selectedServiceIndex === undefined || selectedServiceIndex === serviceIndex;
+                if (!isSelected) return null;
+                return (
+                <Card key={serviceIndex} className="mb-4">
+                  <CardContent className="p-5">
+                    <div className="grid grid-cols-3 gap-3">
                      {[
                        { icon: Calendar, value: formattedDate, label: "Data", color: "text-primary" },
                        { icon: Clock, value: service.jobTime, label: "Duração", color: "text-primary" },
@@ -805,16 +812,17 @@ const DetalheEventoContratante = () => {
                            {item.label !== "Valor/pessoa" && (
                              <p className="text-xs font-bold truncate max-w-[100px]">{item.value}</p>
                            )}
-                           <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                         </div>
-                       </div>
-                     ))}
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
-           </>
-          ) : (
+                            <p className="text-[10px] text-muted-foreground">{item.label}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+              })}
+            </>
+           ) : (
             /* Fallback to original layout if no services */
             <Card>
              <CardContent className="p-5">

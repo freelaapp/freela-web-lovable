@@ -106,7 +106,7 @@ const DashboardFreelancer = () => {
          }
 
          // 1. Get provider profile (id + services/areas)
-         const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
+          const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
            method: "GET", credentials: "include", headers,
          });
          const provBody = await provRes.json().catch(() => null);

@@ -130,11 +130,11 @@ const DetalheVaga = () => {
            const actualJobId = jobIdFromState || vagaId;
            const actualVacancyId = vacancyIdFromState || vagaId;
 
-           const [jobRes, candidacyRes, provRes] = await Promise.all([
-             apiFetch(`${API_BASE_URL}/jobs/${actualJobId}`, { method: "GET" }),
-             apiFetch(`${API_BASE_URL}/candidacies/${actualVacancyId}`, { method: "GET" }),
-             apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
-           ]);
+            const [jobRes, candidacyRes, provRes] = await Promise.all([
+              apiFetch(`${API_BASE_URL}/jobs/${actualJobId}`, { method: "GET" }),
+              apiFetch(`${API_BASE_URL}/candidacies/${actualVacancyId}`, { method: "GET" }),
+              apiFetch(`${API_BASE_URL}/providers`, { method: "GET" }),
+            ]);
 
            const jobBody = await jobRes.json().catch(() => null);
             const jobData = jobBody?.data ?? jobBody;
@@ -169,14 +169,14 @@ const DetalheVaga = () => {
            if (contractorIdFromJob) {
              setContractorId(contractorIdFromJob);
            }
-         } else {
-           // Default: fetch vacancy and provider in parallel
-           const [vacRes, provRes] = await Promise.all([
-             apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
-             apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
-           ]);
+          } else {
+            // Default: fetch vacancy and provider in parallel
+            const [vacRes, provRes] = await Promise.all([
+              apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
+              apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
+            ]);
 
-           const vacBody = await vacRes.json().catch(() => null);
+            const vacBody = await vacRes.json().catch(() => null);
            const vacData = vacBody?.data ?? vacBody;
            setVaga(vacData);
 

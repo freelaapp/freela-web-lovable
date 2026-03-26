@@ -49,6 +49,7 @@ interface AddressFieldsProps {
   cep: string;
   rua: string;
   complemento: string;
+  referencia: string;
   bairro: string;
   numero: string;
   cidade: string;
@@ -57,6 +58,7 @@ interface AddressFieldsProps {
   onCepChange: (v: string) => void;
   onRuaChange: (v: string) => void;
   onComplementoChange: (v: string) => void;
+  onReferenciaChange: (v: string) => void;
   onBairroChange: (v: string) => void;
   onNumeroChange: (v: string) => void;
   onCidadeChange: (v: string) => void;
@@ -64,8 +66,8 @@ interface AddressFieldsProps {
 }
 
 const AddressFields = ({
-  cep, rua, complemento, bairro, numero, cidade, estado, cepLoading,
-  onCepChange, onRuaChange, onComplementoChange, onBairroChange,
+  cep, rua, complemento, referencia, bairro, numero, cidade, estado, cepLoading,
+  onCepChange, onRuaChange, onComplementoChange, onReferenciaChange, onBairroChange,
   onNumeroChange, onCidadeChange, onEstadoChange,
 }: AddressFieldsProps) => (
   <Card>
@@ -95,6 +97,10 @@ const AddressFields = ({
           <Label>Complemento</Label>
           <Input value={complemento} onChange={(e) => onComplementoChange(e.target.value)} placeholder="Opcional" />
         </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Referência</Label>
+        <Input value={referencia} onChange={(e) => onReferenciaChange(e.target.value)} placeholder="Próximo a..." />
       </div>
       <div className="space-y-2">
         <Label>Bairro</Label>
@@ -222,7 +228,7 @@ const DeleteAccountCard = ({ onOpen }: { onOpen: () => void }) => (
 
 // ── Snapshot types for change detection ──────────────────────
 interface FieldSnapshot {
-  cep: string; rua: string; complemento: string; bairro: string;
+  cep: string; rua: string; complemento: string; referencia: string; bairro: string;
   numero: string; cidade: string; estado: string;
   cnpj: string; razaoSocial: string;
   ramo: string; nomeEstabelecimento: string;
@@ -257,6 +263,7 @@ const MeusDadosContratante = () => {
   const [cep, setCep] = useState("");
   const [rua, setRua] = useState("");
   const [complemento, setComplemento] = useState("");
+  const [referencia, setReferencia] = useState("");
   const [bairro, setBairro] = useState("");
   const [numero, setNumero] = useState("");
   const [cidade, setCidade] = useState("");
@@ -298,11 +305,11 @@ const MeusDadosContratante = () => {
 
   const getCurrentSnapshot = useCallback((): string => {
     return makeSnapshot({
-      cep, rua, complemento, bairro, numero, cidade, estado,
+      cep, rua, complemento, referencia, bairro, numero, cidade, estado,
       cnpj, razaoSocial, ramo, nomeEstabelecimento,
       responsavel, responsavelTelefone, cpf, dataNascimento,
     });
-  }, [cep, rua, complemento, bairro, numero, cidade, estado, cnpj, razaoSocial, ramo, nomeEstabelecimento, responsavel, responsavelTelefone, cpf, dataNascimento]);
+  }, [cep, rua, complemento, referencia, bairro, numero, cidade, estado, cnpj, razaoSocial, ramo, nomeEstabelecimento, responsavel, responsavelTelefone, cpf, dataNascimento]);
 
   const getCurrentUserSnapshot = useCallback((): string => {
     return makeUserSnapshot({ userName, userEmail, userPhone });
@@ -381,6 +388,7 @@ const MeusDadosContratante = () => {
           cep: d.cep ? maskCEP(d.cep) : "",
           rua: d.street || "",
           complemento: d.complement || "",
+          referencia: d.reference || "",
           bairro: d.neighborhood || "",
           numero: d.number || "",
           cidade: d.city || "",
@@ -408,6 +416,7 @@ const MeusDadosContratante = () => {
         setRua(snapValues.rua);
         setNumero(snapValues.numero);
         setComplemento(snapValues.complemento);
+        setReferencia(snapValues.referencia);
         setBairro(snapValues.bairro);
         setCidade(snapValues.cidade);
         setEstado(snapValues.estado);
@@ -525,6 +534,7 @@ const MeusDadosContratante = () => {
           cep: cepDigits,
           street: rua,
           complement: complemento,
+          reference: referencia,
           neighborhood: bairro,
           number: numero,
           city: cidade,
@@ -786,11 +796,11 @@ const MeusDadosContratante = () => {
 
         {/* Endereço – all variants */}
         <AddressFields
-          cep={cep} rua={rua} complemento={complemento} bairro={bairro}
+          cep={cep} rua={rua} complemento={complemento} referencia={referencia} bairro={bairro}
           numero={numero} cidade={cidade} estado={estado} cepLoading={cepLoading}
           onCepChange={handleCepChange} onRuaChange={setRua} onComplementoChange={setComplemento}
-          onBairroChange={setBairro} onNumeroChange={setNumero} onCidadeChange={setCidade}
-          onEstadoChange={setEstado}
+          onReferenciaChange={setReferencia} onBairroChange={setBairro} onNumeroChange={setNumero}
+          onCidadeChange={setCidade} onEstadoChange={setEstado}
         />
 
         {/* Save */}

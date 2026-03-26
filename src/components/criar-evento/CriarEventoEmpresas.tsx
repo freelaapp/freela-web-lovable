@@ -278,6 +278,7 @@ const CriarEventoEmpresas = () => {
         profile.city ? `, ${profile.city}` : "",
         profile.state ? ` - ${profile.state}` : "",
         profile.cep ? ` • CEP: ${profile.cep}` : "",
+        profile.reference ? ` • Ref: ${profile.reference}` : "",
       ];
       establishment = parts.join("").trim();
       if (!establishment) {
@@ -294,6 +295,7 @@ const CriarEventoEmpresas = () => {
         endereco.cidade ? `, ${endereco.cidade}` : "",
         endereco.estado ? ` - ${endereco.estado}` : "",
         endereco.cep ? ` • CEP: ${endereco.cep}` : "",
+        endereco.referencia ? ` • Ref: ${endereco.referencia}` : "",
       ];
       establishment = parts.join("").trim();
     }
@@ -538,6 +540,9 @@ const CriarEventoEmpresas = () => {
                       {String(contractorProfile.state || "")}
                       {contractorProfile.cep ? ` • CEP: ${String(contractorProfile.cep)}` : ""}
                     </p>
+                  )}
+                  {contractorProfile.reference && (
+                    <p className="text-muted-foreground/80">Ref: {String(contractorProfile.reference)}</p>
                   )}
                   {!contractorProfile.street && !contractorProfile.address && !contractorProfile.city && (
                     <p className="italic text-muted-foreground/70">Endereço não cadastrado. Atualize em Meus Dados.</p>
