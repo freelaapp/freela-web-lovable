@@ -94,7 +94,7 @@ const DetalheEventoContratante = () => {
   const toast = useToast();
 
   const serviceIndexFromState = (location.state as Record<string, unknown>)?.serviceIndex as number | undefined;
-  const [selectedServiceIndex, setSelectedServiceIndex] = useState<number | undefined>(serviceIndexFromState);
+  const [selectedServiceIndex, setSelectedServiceIndex] = useState<number>(serviceIndexFromState ?? 0);
 
   const [vacancy, setVacancy] = useState<VacancyDetail | null>(null);
   const [loading, setLoading] = useState(true);
