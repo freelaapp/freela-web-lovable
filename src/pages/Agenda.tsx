@@ -454,7 +454,7 @@ const Agenda = () => {
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
                       <p className={`text-sm font-bold ${item.status === "completed" ? "text-green-600" : "text-primary"}`}>
-                        {getDisplayValue(item.jobValue || "R$ 0,00", isFreelancer)}
+                        {getDisplayValue(item.jobValue || "R$ 0,00", false)}
                       </p>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${item.status === "completed" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-primary-light text-primary"}`}>
                         {item.status === "completed" ? "Concluído" : item.status === "accepted" ? "Aceita" : "Pendente"}
@@ -521,7 +521,7 @@ const Agenda = () => {
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-green-600">{getDisplayValue(historyItem.value || "R$ 0,00", isFreelancer)}</p>
+                      <p className="text-sm font-bold text-green-600">{getDisplayValue(historyItem.value || "R$ 0,00", false)}</p>
                       <span className="flex items-center justify-end gap-0.5 text-[10px] text-primary font-medium mt-0.5">
                         <Star className="w-3 h-3 fill-primary" /> {historyItem.rating || 0}
                       </span>

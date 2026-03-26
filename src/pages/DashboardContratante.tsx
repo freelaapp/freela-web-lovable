@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarPlus, Users, ChevronRight, Star, DollarSign, AlertCircle, Briefcase, CheckCircle, Clock } from "lucide-react";
+import { CalendarPlus, Users, ChevronRight, Star, CreditCard, AlertCircle, Briefcase, CheckCircle, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { useEffect, useState } from "react";
@@ -135,8 +135,9 @@ const DashboardContratante = () => {
                 return 0;
               })
             );
-            const sum = values.reduce((a, b) => a + b, 0);
-            setTotalGasto(`R$ ${sum.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`);
+            const sumCentavos = values.reduce((a, b) => a + b, 0);
+            const sumReais = sumCentavos / 100;
+            setTotalGasto(`R$ ${sumReais.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
           }
 
           // Feedbacks
@@ -188,7 +189,7 @@ const DashboardContratante = () => {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: DollarSign, label: "Total Gasto", value: totalGasto, bg: "bg-success-light", color: "text-success" },
+            { icon: CreditCard, label: "Total Gasto", value: totalGasto, bg: "bg-warning-light", color: "text-warning" },
             { icon: CalendarPlus, label: "Vagas", value: totalVagas.toString(), bg: "bg-primary-light", color: "text-primary" },
             { icon: Star, label: "Avaliação", value: mediaAvaliacao, bg: "bg-warning-light", color: "text-warning" },
           ].map((stat) => (
