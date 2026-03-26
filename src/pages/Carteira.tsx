@@ -79,13 +79,13 @@ const Carteira = () => {
             if (!date) continue;
 
             for (const svc of services) {
-              const valor = typeof svc.jobValue === "number" ? svc.jobValue
+              const valorCentavos = typeof svc.jobValue === "number" ? svc.jobValue
                 : typeof svc.value === "number" ? svc.value
                 : 0;
               items.push({
                 nome: svc.assignment || v.establishment || v.description || "Serviço",
                 dia: date.toLocaleDateString("pt-BR"),
-                valor: valor > 1000 ? valor / 100 : valor,
+                valor: valorCentavos / 100,
                 date,
               });
             }
@@ -152,14 +152,14 @@ const Carteira = () => {
             if (!date) continue;
 
             for (const svc of services) {
-              const valor = typeof svc.jobValue === "number" ? svc.jobValue
+              const valorCentavos = typeof svc.jobValue === "number" ? svc.jobValue
                 : typeof svc.value === "number" ? svc.value
                 : typeof svc.jobValue === "string" ? parseFloat(svc.jobValue.replace(/[^\d.,]/g, "").replace(",", "."))
                 : 0;
               items.push({
                 nome: v.establishment || v.description || svc.assignment || "Serviço",
                 dia: date.toLocaleDateString("pt-BR"),
-                valor: valor > 1000 ? valor / 100 : valor,
+                valor: valorCentavos / 100,
                 date,
               });
             }

@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
-import { getDisplayValue } from "@/lib/values";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { errorMessages } from "@/lib/error-messages";
@@ -278,7 +277,7 @@ const DetalheVaga = () => {
     const jobDate = vaga.jobDate ? formatDateDDMMYYYY(vaga.jobDate) : "--";
     const jobTime = serviceInfo.jobTime || "--";
     const jobValueRaw = serviceInfo.jobValue || "--";
-    const jobValue = getDisplayValue(jobValueRaw, isFreelancer);
+    const jobValue = jobValueRaw;
     const assignment = serviceInfo.assignment || "--";
     const location_ = extractNeighborhoodCity(vaga.establishment) || "--";
 
