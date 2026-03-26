@@ -790,8 +790,7 @@ const DetalheEventoContratante = () => {
           {vacancy.services && vacancy.services.length > 0 ? (
             <>
               {vacancy.services.map((service, serviceIndex) => {
-                const isSelected = selectedServiceIndex === undefined || selectedServiceIndex === serviceIndex;
-                if (!isSelected) return null;
+                if (selectedServiceIndex !== serviceIndex) return null;
                 return (
                 <Card key={serviceIndex} className="mb-4">
                   <CardContent className="p-5">
