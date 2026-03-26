@@ -7,7 +7,7 @@ Validar que horários definidos para sábado e domingo persistem após recarrega
 
 ### Teste 1: Adicionar Sábado e Domingo (Happy Path)
 **Pré-requisito:** Usuário autenticado como freelancer, na página `/perfil`
-
+...
 **Passos:**
 1. Clique no botão ✏️ (editar) na seção "Disponibilidade de horário"
 2. Clique em "Sáb" para ativar sábado
