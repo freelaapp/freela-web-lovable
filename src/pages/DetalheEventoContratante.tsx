@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound, MessageSquare, Trash2 } from "lucide-react";
@@ -719,12 +719,14 @@ const DetalheEventoContratante = () => {
       }
 
       // Terminate the job after successful feedback
-      await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
+      const terminateRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
         method: "PATCH",
       });
+      console.log("[Review] terminate response:", terminateRes.status, terminateRes.ok);
 
       // Always mark feedback as done after successful feedback submission
       setTimelineStep(5);
+      console.log("[Review] timelineStep set to 5");
 
       toast({ title: "Avaliação enviada!", description: "Obrigado pelo feedback." });
       setShowReviewModal(false);
@@ -788,8 +790,7 @@ const DetalheEventoContratante = () => {
           {vacancy.services && vacancy.services.length > 0 ? (
             <>
               {vacancy.services.map((service, serviceIndex) => {
-                const isSelected = selectedServiceIndex === undefined || selectedServiceIndex === serviceIndex;
-                if (!isSelected) return null;
+                if (selectedServiceIndex !== serviceIndex) return null;
                 return (
                 <Card key={serviceIndex} className="mb-4">
                   <CardContent className="p-5">
