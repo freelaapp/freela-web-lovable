@@ -9,7 +9,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import VagaCard from "@/components/dashboard-contratante/VagaCard";
 import { useToast } from "@/hooks/use-toast";
 import { getDisplayValue } from "@/lib/values";
-import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -311,15 +310,6 @@ const Agenda = () => {
                 />
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground font-medium mb-2">Selecionar data</p>
-                <WheelDatePicker
-                  value={selectedDate ? selectedDate.toISOString().split("T")[0] : ""}
-                  onChange={(v) => setSelectedDate(new Date(v + "T12:00:00"))}
-                />
-              </CardContent>
-            </Card>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-4 items-stretch">
@@ -358,15 +348,6 @@ const Agenda = () => {
                     aceita: "bg-primary/20 text-primary font-bold rounded-full",
                     executado: "bg-green-500/20 text-green-700 dark:text-green-400 font-bold rounded-full",
                   }}
-                />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground font-medium mb-2">Selecionar data</p>
-                <WheelDatePicker
-                  value={selectedDate ? selectedDate.toISOString().split("T")[0] : ""}
-                  onChange={(v) => setSelectedDate(new Date(v + "T12:00:00"))}
                 />
               </CardContent>
             </Card>

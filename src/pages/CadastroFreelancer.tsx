@@ -6,13 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CitySelect from "@/components/CitySelect";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowRight, ArrowLeft, CalendarIcon, Briefcase, CheckCircle, Camera, X, User, Phone, Heart } from "lucide-react";
+import { ArrowRight, ArrowLeft, Briefcase, CheckCircle, Camera, X, User, Phone, Heart } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { format, differenceInYears } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn, validateCPF } from "@/lib/utils";
+import { differenceInYears } from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker";
+import { validateCPF } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 
@@ -71,7 +69,7 @@ const CadastroFreelancer = () => {
   const [isLoading, setIsLoading] = useState(false);
    const [fotoPerfil, setFotoPerfil] = useState<File | null>(null);
    const [cpf, setCpf] = useState("");
-  const [dataNascimento, setDataNascimento] = useState<Date>();
+  const [dataNascimento, setDataNascimento] = useState("");
   const [sexo, setSexo] = useState("");
   const [isPCD, setIsPCD] = useState(false);
   const [deficienciasSelecionadas, setDeficienciasSelecionadas] = useState<string[]>([]);
@@ -139,7 +137,7 @@ const CadastroFreelancer = () => {
      if (!fotoPerfil) e.fotoPerfil = "Foto de perfil é obrigatória";
      if (!cpf.replace(/\D/g, "") || !validateCPF(cpf)) e.cpf = "CPF inválido";
      if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
-     else if (differenceInYears(new Date(), dataNascimento) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
+     else if (differenceInYears(new Date(), new Date(dataNascimento)) < 18) e.dataNascimento = "Você deve ter pelo menos 18 anos";
      if (!sexo) e.sexo = "Sexo é obrigatório";
      if (!endereco.trim()) e.endereco = "Endereço é obrigatório";
      if (!numero.trim()) e.numero = "Número do endereço é obrigatório";
@@ -201,7 +199,7 @@ const CadastroFreelancer = () => {
          fotoName: fotoPerfil?.name || "",
          fotoType: fotoPerfil?.type || "",
          cpf: cpf.replace(/\D/g, ""),
-         dataNascimento: dataNascimento?.toISOString() || "",
+         dataNascimento: dataNascimento ? new Date(dataNascimento).toISOString() : "",
          sexo,
          isPCD,
          deficienciasSelecionadas,
@@ -354,39 +352,7 @@ const CadastroFreelancer = () => {
               {/* Data de Nascimento */}
               <div className="space-y-2">
                 <Label>Data de Nascimento</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full h-12 justify-start text-left font-normal",
-                        !dataNascimento && "text-muted-foreground",
-                        errors.dataNascimento && "border-destructive"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataNascimento ? format(dataNascimento, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dataNascimento}
-                      onSelect={setDataNascimento}
-                      disabled={(date) => date > new Date()}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                      captionLayout="dropdown-buttons"
-                      fromYear={1940}
-                      toYear={new Date().getFullYear()}
-                      locale={ptBR}
-                      labels={{
-                        labelMonthDropdown: () => "Mês",
-                        labelYearDropdown: () => "Ano",
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <DatePicker value={dataNascimento} onChange={setDataNascimento} />
                 {errors.dataNascimento && <p className="text-sm text-destructive">{errors.dataNascimento}</p>}
               </div>
 
