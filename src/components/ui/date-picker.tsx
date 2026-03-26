@@ -1,7 +1,13 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { format, parse, isValid } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface DatePickerProps {
   value: string;
@@ -45,6 +51,7 @@ export function DatePicker({
   const [inputValue, setInputValue] = useState(
     isValidDate ? format(selectedDate, "dd/MM/yyyy") : ""
   );
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (isValidDate) {
@@ -77,15 +84,49 @@ export function DatePicker({
     }
   };
 
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      setInputValue(format(date, "dd/MM/yyyy"));
+      onChange(format(date, "yyyy-MM-dd"));
+      setOpen(false);
+    }
+  };
+
   return (
-    <Input
-      type="text"
-      inputMode="numeric"
-      value={inputValue}
-      onChange={handleInputChange}
-      onBlur={handleBlur}
-      disabled={disabled}
-      placeholder={placeholder}
-    />
+    <div className="relative flex items-center">
+      <Input
+        type="text"
+        inputMode="numeric"
+        value={inputValue}
+        onChange={handleInputChange}
+        onBlur={handleBlur}
+        disabled={disabled}
+        placeholder={placeholder}
+        className="pr-10"
+      />
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={disabled}
+            className="absolute right-0 h-10 w-10 text-muted-foreground hover:text-foreground"
+          >
+            <CalendarIcon className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={isValidDate ? selectedDate : undefined}
+            onSelect={handleCalendarSelect}
+            locale={ptBR}
+            disabled={(date) => date > new Date() || date < new Date("1940-01-01")}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
