@@ -252,7 +252,7 @@ const Perfil = () => {
           city: providerData.city || "",
           uf: providerData.uf || "",
           desiredJobVacancy: djv,
-          isPCD: !!providerData.deficiency,
+          isPCD: providerData.deficiency === true || providerData.deficiency === "true" || providerData.deficiency === 1,
         });
       } catch (err) {
         if ((err as Error).name !== "AbortError") {

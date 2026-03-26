@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound, MessageSquare, Trash2 } from "lucide-react";
@@ -74,6 +74,8 @@ interface Candidato {
   providerId: string;
   name: string;
   avatar: string;
+  avatarUrl?: string | null;
+  contactNumber: string;
   role: string;
   rating: number;
   reviews: number;
@@ -264,6 +266,28 @@ const DetalheEventoContratante = () => {
     }
   };
 
+  // ── Polling: verificar mudanças de status do job a cada 5s ──────────
+  const fetchJobStatusRef = useRef(fetchJobStatus);
+  fetchJobStatusRef.current = fetchJobStatus;
+
+  useEffect(() => {
+    if (!eventoId) return;
+    if (timelineStep >= 5) return; // Não fazer polling se já atingiu estado final
+
+    const intervalId = setInterval(() => {
+      // Pausar se aba não está visível
+      if (document.visibilityState !== "visible") return;
+
+      // Pausar se já atingiu estado final
+      if (timelineStep >= 5) return;
+
+      console.log("[Polling] Verificando status do job...");
+      fetchJobStatusRef.current(eventoId);
+    }, 5000); // 5 segundos
+
+    return () => clearInterval(intervalId);
+  }, [eventoId, timelineStep]);
+
   // Helpers para verificação de limites por serviço
   const getServiceLimit = (assignment: string): number => {
     if (!vacancy?.services) return vacancy?.quantity ?? 1;
@@ -338,23 +362,45 @@ const DetalheEventoContratante = () => {
            const enrichedCandidates = await Promise.all(candidatePromises);
            
            // Map to Candidato objects
-           const mapped: Candidato[] = enrichedCandidates.map((c: any) => {
-             const providerData = c.providerData || {};
-             const userData = c.userData || {};
-             
-             return {
-               id: c.id || "",
-               providerId: c.providerId || "",
-               name: userData.name || c.providerName || c.name || "Freelancer",
-               avatar: (userData.name || c.providerName || c.name || "FL")
-                 .split(" ")
-                 .map((w: string) => w[0])
-                 .join("")
-                 .slice(0, 2)
-                 .toUpperCase(),
-               role: c.assignment || c.role || "",
-               rating: providerData.feedbackStars ?? c.rating ?? 0,
-               reviews: c.reviews ?? 0,
+            const mapped: Candidato[] = enrichedCandidates.map((c: any) => {
+              const providerData = c.providerData || {};
+              const userData = c.userData || {};
+              const candidateName = userData.name || c.providerName || c.name || "Freelancer";
+              const avatarUrl =
+                userData.avatarUrl ||
+                userData.profilePicture ||
+                userData.profileImage ||
+                userData.photoUrl ||
+                userData.imageUrl ||
+                providerData.avatarUrl ||
+                providerData.profilePicture ||
+                providerData.profileImage ||
+                providerData.photoUrl ||
+                null;
+              const contactNumber =
+                userData.phoneNumber ||
+                userData.phone ||
+                providerData.phoneNumber ||
+                providerData.phone ||
+                c.phoneNumber ||
+                c.phone ||
+                "--";
+              
+              return {
+                id: c.id || "",
+                providerId: c.providerId || "",
+                name: candidateName,
+                avatar: candidateName
+                  .split(" ")
+                  .map((w: string) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase(),
+                avatarUrl,
+                contactNumber,
+                role: c.assignment || c.role || "",
+                rating: providerData.feedbackStars ?? c.rating ?? 0,
+                reviews: c.reviews ?? 0,
                jobs: c.jobs ?? 0,
                verified: c.verified ?? false,
                status: c.status === "accepted" ? "aceito" : c.status === "rejected" ? "recusado" : "pendente",
@@ -704,6 +750,7 @@ const DetalheEventoContratante = () => {
 
   const filteredCandidatos = filter === "todos" ? candidatos : candidatos.filter(c => c.status === filter);
   const confirmados = candidatos.filter(c => c.status === "aceito");
+  const selectedClosedFreelancer = confirmados[0] ?? null;
   const aceitos = confirmados.length;
 
   return (
@@ -920,37 +967,57 @@ const DetalheEventoContratante = () => {
           </Card>
         )}
 
-        {/* Freelancers Confirmados - status Fechado */}
+        {/* Freelancer Selecionado - status Fechado */}
         {vacancy.status === "closed" && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-success" /> Freelancers Confirmados
+                <UserCheck className="w-5 h-5 text-success" /> Freelancer Selecionado
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {confirmados.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer confirmado</p>
+              {!selectedClosedFreelancer ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer selecionado</p>
               ) : (
-                confirmados.map((candidato) => (
-                  <div key={candidato.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer" onClick={() => setSelectedFreelancer(candidato)}>
-                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
-                      {candidato.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{candidato.name}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <Star className="w-3 h-3 fill-primary text-primary" />
-                        <span className="text-xs font-medium">{candidato.rating}</span>
-                        <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
-                        <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
-                      </div>
-                    </div>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => setSelectedFreelancer(candidato)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                <div
+                  className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  onClick={() => setSelectedFreelancer(selectedClosedFreelancer)}
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold shrink-0 overflow-hidden">
+                    {selectedClosedFreelancer.avatarUrl ? (
+                      <img
+                        src={selectedClosedFreelancer.avatarUrl}
+                        alt={`Foto de perfil de ${selectedClosedFreelancer.name}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      selectedClosedFreelancer.avatar
+                    )}
                   </div>
-                ))
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{selectedClosedFreelancer.name}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Star className="w-3 h-3 fill-primary text-primary" />
+                      <span className="text-xs font-medium">{selectedClosedFreelancer.rating}</span>
+                      <span className="text-xs text-muted-foreground">({selectedClosedFreelancer.reviews})</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <MessageSquare className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground truncate">{selectedClosedFreelancer.contactNumber}</span>
+                    </div>
+                  </div>
+                  <button
+                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFreelancer(selectedClosedFreelancer);
+                    }}
+                  >
+                    <Eye className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
+                  </button>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -976,7 +1043,7 @@ const DetalheEventoContratante = () => {
                 const showPaymentBtn = item.key === "pagamento" && isInProgress && confirmados.length > 0;
                 const showCheckInBtn = item.key === "inicio" && isInProgress && confirmados.length > 0;
                 const showCheckOutBtn = item.key === "termino" && isInProgress && confirmados.length > 0 && timelineStep >= 2;
-                const showReviewBtn = item.key === "feedback" && isInProgress && confirmados.length > 0 && timelineStep >= 3 && timelineStep < 4;
+                const showReviewBtn = item.key === "feedback" && isInProgress && confirmados.length > 0;
 
                 return (
                   <div key={item.key} className="relative pb-6 last:pb-0">
