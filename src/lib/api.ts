@@ -607,21 +607,21 @@ export interface UpdateProviderAvailabilityResponse {
 
 /**
  * Atualiza a disponibilidade de horários do freelancer.
+ * @param providerId ID do provider
  * @param payload Dias ativos e horários para cada dia
  * @returns Confirmação da atualização
  * @throws Error se validação falhar ou houver problema na persistência
  */
 export async function updateProviderAvailability(
+  providerId: string,
   payload: UpdateProviderAvailabilityPayload,
 ): Promise<UpdateProviderAvailabilityResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
-    method: 'PUT',
+  const response = await apiFetch(`${API_BASE_URL}/providers/${providerId}/availability`, {
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      availability: JSON.stringify(payload)
-    }),
+    body: JSON.stringify(payload),
   });
 
   const body = await response.json().catch(() => null);

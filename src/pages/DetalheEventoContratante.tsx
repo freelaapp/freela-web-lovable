@@ -39,16 +39,34 @@ interface VacancyDetail {
 
 const statusLabels: Record<string, string> = {
   open: "Aberta",
-  "in hiring": "Em contratação",
+  pending: "Pendente",
+  accepted: "Aceita",
+  rejected: "Recusada",
+  confirmed: "Confirmada",
   closed: "Preenchida",
   removed: "Concluída",
+  completed: "Concluída",
+  "in hiring": "Em contratação",
+  "partially completed": "Parcialmente concluída",
+  unavailable: "Indisponível",
+  schedule: "Agendada",
+  "in progress": "Em andamento",
 };
 
 const statusStyles: Record<string, string> = {
   open: "bg-success-light text-success",
-  "in hiring": "bg-warning-light text-warning",
+  pending: "bg-warning-light text-warning",
+  accepted: "bg-success-light text-success",
+  rejected: "bg-destructive/10 text-destructive",
+  confirmed: "bg-success-light text-success",
   closed: "bg-primary-light text-primary",
   removed: "bg-muted text-muted-foreground",
+  completed: "bg-muted text-muted-foreground",
+  "in hiring": "bg-warning-light text-warning",
+  "partially completed": "bg-muted text-muted-foreground",
+  unavailable: "bg-muted text-muted-foreground",
+  schedule: "bg-primary-light text-primary",
+  "in progress": "bg-primary-light text-primary",
 };
 
 interface Candidato {
@@ -128,12 +146,13 @@ const DetalheEventoContratante = () => {
     }
   };
 
-  // ── Pusher: listen for payment updates ──────────────────────
+  // ── Pusher: listen for payment, check-in and check-out updates ──────────────────────
   useEffect(() => {
     const pusher = new Pusher("f8d94fc93946ed0f4e0b", { cluster: "sa1" });
-    const channel = pusher.subscribe("payments");
 
-    channel.bind("payment.updated", async (data: any) => {
+    // Payment channel
+    const paymentChannel = pusher.subscribe("payments");
+    paymentChannel.bind("payment.updated", async (data: any) => {
       console.log("[Pusher] payment.updated", data);
       if (data?.status) {
         setPaymentStatus(prev => ({ ...prev, [data.providerId ?? data.jobId ?? ""]: data.status }));
@@ -165,12 +184,48 @@ const DetalheEventoContratante = () => {
       }
     });
 
+    // Check-in channel
+    const checkInChannel = pusher.subscribe("check-ins");
+    checkInChannel.bind("checkin.completed", (data: any) => {
+      console.log("[Pusher] checkin.completed", data);
+      if (eventoId) {
+        fetchJobStatus(eventoId);
+      }
+      toast({ title: "Check-in realizado!", description: "O freelancer iniciou o trabalho." });
+    });
+
+    // Check-out channel
+    const checkOutChannel = pusher.subscribe("check-outs");
+    checkOutChannel.bind("checkout.completed", (data: any) => {
+      console.log("[Pusher] checkout.completed", data);
+      if (eventoId) {
+        fetchJobStatus(eventoId);
+      }
+      toast({ title: "Check-out realizado!", description: "O freelancer finalizou o trabalho." });
+    });
+
     return () => {
-      channel.unbind_all();
+      paymentChannel.unbind_all();
+      checkInChannel.unbind_all();
+      checkOutChannel.unbind_all();
       pusher.unsubscribe("payments");
+      pusher.unsubscribe("check-ins");
+      pusher.unsubscribe("check-outs");
       pusher.disconnect();
     };
-  }, [toast]);
+  }, [toast, eventoId]);
+
+  // ── Polling: always re-fetch job status to keep timeline in sync ──────────────────────
+  useEffect(() => {
+    if (!eventoId) return;
+
+    const interval = setInterval(() => {
+      console.log("[Polling] re-fetching job status for evento:", eventoId);
+      fetchJobStatus(eventoId);
+    }, 5000); // every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [eventoId]);
 
   // Helper: fetch job status and update timeline accordingly
   const fetchJobStatus = async (vacancyId: string) => {
@@ -614,13 +669,12 @@ const DetalheEventoContratante = () => {
       }
 
       // Terminate the job after successful feedback
-      const terminateRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
+      await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
         method: "PATCH",
       });
 
-      if (terminateRes.ok) {
-        setTimelineStep(5);
-      }
+      // Always mark feedback as done after successful feedback submission
+      setTimelineStep(5);
 
       toast({ title: "Avaliação enviada!", description: "Obrigado pelo feedback." });
       setShowReviewModal(false);
@@ -1082,7 +1136,7 @@ const DetalheEventoContratante = () => {
                   </Button>
                 ) : null}
 
-                <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.id}`); }}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.providerId}`); }}>
                   <Eye className="w-4 h-4" /> Ver Perfil Completo <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>

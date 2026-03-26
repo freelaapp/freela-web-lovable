@@ -12,16 +12,26 @@ interface VagaCardProps {
 
 const statusLabels: Record<string, string> = {
   open: "Aberta",
-  "in hiring": "Em contratação",
+  pending: "Pendente",
+  accepted: "Aceita",
+  rejected: "Recusada",
+  confirmed: "Confirmada",
   closed: "Preenchida",
   removed: "Concluída",
+  completed: "Concluída",
+  "in hiring": "Em contratação",
 };
 
 const statusStyles: Record<string, string> = {
   open: "bg-success-light text-success",
-  "in hiring": "bg-warning-light text-warning",
+  pending: "bg-warning-light text-warning",
+  accepted: "bg-success-light text-success",
+  rejected: "bg-destructive/10 text-destructive",
+  confirmed: "bg-success-light text-success",
   closed: "bg-primary-light text-primary",
   removed: "bg-muted text-muted-foreground",
+  completed: "bg-muted text-muted-foreground",
+  "in hiring": "bg-warning-light text-warning",
 };
 
 const VagaCard = ({ id, assignment, quantity, jobDate, status, serviceIndex = 0 }: VagaCardProps) => {
