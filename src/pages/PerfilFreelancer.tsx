@@ -1,11 +1,11 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Star, MapPin, MessageCircle, Shield, Clock, ChevronLeft, Heart, Share2, Send, Eye, Pencil, Car, X, Check, Play, Image as ImageIcon, Loader2 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { useState, useEffect } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, fetchImageWithAuth } from "@/lib/api";
 import pcdIcon from "@/assets/pcd-icon.jpg";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
@@ -59,10 +59,12 @@ type Horarios = Record<string, { de: string; ate: string }>;
 const PerfilFreelancer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const readonly = (location.state as Record<string, unknown>)?.readonly === true;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [freelancerData, setFreelancerData] = useState<FreelancerProfile | null>(null);
-  const [contractorView, setContractorView] = useState(true);
+  const contractorView = readonly;
 
   // Availability state
   const [editingAvailability, setEditingAvailability] = useState(false);
@@ -139,7 +141,14 @@ const PerfilFreelancer = () => {
         
         const bufferToDataUrl = (img: unknown): string | null => {
           if (!img) return null;
-          if (typeof img === "string") return img;
+          if (typeof img === "string") {
+            if (img.startsWith("data:") || img.startsWith("http") || img.startsWith("/")) return img;
+            if (img.startsWith("/9j/") || img.startsWith("iVBOR") || img.startsWith("R0lGO") || img.startsWith("UklGR")) {
+              const mime = img.startsWith("/9j/") ? "jpeg" : img.startsWith("iVBOR") ? "png" : img.startsWith("R0lGO") ? "gif" : "webp";
+              return `data:image/${mime};base64,${img}`;
+            }
+            return img;
+          }
           if (typeof img === "object" && img !== null) {
             const imgObj = img as Record<string, unknown>;
             if (imgObj.type === "Buffer" && Array.isArray(imgObj.data)) {
@@ -154,24 +163,39 @@ const PerfilFreelancer = () => {
           return null;
         };
         
-        const profileImageUrl = bufferToDataUrl(providerData.profileImage) || null;
+        const rawProfileUrl =
+          bufferToDataUrl(providerData.profileImage) ||
+          bufferToDataUrl(userData.profileImage) ||
+          providerData.profilePicture ||
+          providerData.avatarUrl ||
+          providerData.photoUrl ||
+          userData.profilePicture ||
+          userData.avatarUrl ||
+          userData.photoUrl ||
+          null;
+
+        const profileImageUrl = (rawProfileUrl && (rawProfileUrl.startsWith("data:") || rawProfileUrl.startsWith("http")))
+          ? rawProfileUrl
+          : null;
 
         const parseServicesFromApi = (value: string | undefined): string[] => {
           if (!value) return [];
           return value.split(",").map(s => s.trim()).filter(Boolean);
         };
 
+        const jobsCount = providerData.completedJobs ?? (typeof providerData.jobs === "number" ? providerData.jobs : 0);
+
         const profile: FreelancerProfile = {
           id: providerData.id || id,
           name,
           avatar: profileImageUrl || avatarInitials,
-          role: providerData.specialty || providerData.role || providerData.assignment || "",
+          role: providerData.specialty || providerData.role || providerData.assignment || providerData.desiredJobVacancy?.split(",")[0]?.trim() || "",
           location: providerData.city && providerData.state
             ? `${providerData.city}, ${providerData.state}`
             : providerData.location || userData.city || "",
           rating: providerData.feedbackStars ?? providerData.rating ?? 0,
-          reviews: providerData.feedbackCount ?? providerData.reviews ?? 0,
-          jobs: providerData.completedJobs ?? providerData.jobs ?? 0,
+          reviews: providerData.feedbackCount ?? (typeof providerData.reviews === "number" ? providerData.reviews : 0),
+          jobs: jobsCount,
           memberSince: providerData.createdAt
             ? new Date(providerData.createdAt).toLocaleDateString("pt-BR", { month: "short", year: "numeric" })
             : "",
@@ -184,19 +208,23 @@ const PerfilFreelancer = () => {
           hasTransport: providerData.hasTransport ?? false,
           isPCD: providerData.isPCD ?? providerData.pcd ?? false,
           deficiencias: providerData.deficiencias || [],
-          bio: providerData.bio || providerData.description || userData.bio || "",
-          skills: parseServicesFromApi(providerData.desiredJobVacancy),
-          availability: providerData.diasAtivos || providerData.availability || [],
-          portfolio: (providerData.portfolio || providerData.jobs || []).map((p: Record<string, unknown>) => ({
+          bio: providerData.bio || providerData.description || providerData.about || userData.bio || userData.description || "",
+          skills: parseServicesFromApi(providerData.desiredJobVacancy || providerData.services || providerData.skills),
+          availability: Array.isArray(providerData.diasAtivos) ? providerData.diasAtivos
+            : Array.isArray(providerData.availability) ? providerData.availability
+            : [],
+          portfolio: (Array.isArray(providerData.portfolio) ? providerData.portfolio : []).map((p: Record<string, unknown>) => ({
             title: (p.title as string) || (p.name as string) || (p.description as string) || "",
             rating: (p.rating as number) || (p.stars as number) || 0,
           })),
-          testimonials: (providerData.testimonials || providerData.reviews || providerData.feedback || []).map((t: Record<string, unknown>) => ({
+          testimonials: (Array.isArray(providerData.testimonials) ? providerData.testimonials
+            : Array.isArray(providerData.feedback) ? providerData.feedback
+            : []).map((t: Record<string, unknown>) => ({
             name: (t.reviewerName as string) || (t.name as string) || (t.author as string) || "Cliente",
             text: (t.comment as string) || (t.text as string) || (t.description as string) || "",
             rating: (t.rating as number) || (t.stars as number) || 5,
           })),
-          price: providerData.price || providerData.startingPrice
+          price: (providerData.price || providerData.startingPrice)
             ? `A partir de R$ ${providerData.price || providerData.startingPrice}`
             : "",
         };
@@ -342,7 +370,7 @@ const PerfilFreelancer = () => {
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-foreground">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-sm font-semibold font-display">{contractorView ? "Perfil do Freelancer" : "Meu Perfil"}</h1>
+          <h1 className="text-sm font-semibold font-display">Perfil do Freelancer</h1>
           <div className="flex gap-1">
             <button className="p-2 text-muted-foreground hover:text-foreground">
               <Heart className="w-5 h-5" />
@@ -355,25 +383,10 @@ const PerfilFreelancer = () => {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
-        {/* Contractor view toggle */}
-        <div className="flex justify-end">
-          <button
-            onClick={() => setContractorView(!contractorView)}
-            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
-              contractorView
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            <Eye className="w-3.5 h-3.5" />
-            Visão Contratante
-          </button>
-        </div>
-
         {/* Profile Header */}
         <div className="flex items-center gap-4">
           <div className="relative">
-            {freelancerData.avatar && (freelancerData.avatar.startsWith("data:") || freelancerData.avatar.startsWith("http")) ? (
+            {freelancerData.avatar && (freelancerData.avatar.startsWith("data:") || freelancerData.avatar.startsWith("http") || freelancerData.avatar.startsWith("/") || freelancerData.avatar.includes(".")) ? (
               <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-amber shrink-0 overflow-hidden">
                 <img src={freelancerData.avatar} alt={freelancerData.name} className="w-full h-full object-cover" />
               </div>
@@ -642,24 +655,9 @@ const PerfilFreelancer = () => {
           </div>
         )}
 
-        {/* Spacer for bottom bar */}
-        <div className="h-20" />
+        <div className="h-4" />
       </div>
 
-      {/* Fixed Bottom CTA - Contractor View */}
-      {contractorView && (
-        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border p-4">
-          <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">A partir de</p>
-              <p className="text-lg font-bold font-display text-primary">{freelancerData.price || "Consultar"}</p>
-            </div>
-            <Button size="lg" className="gap-2" onClick={() => navigate("/criar-evento")}>
-              <Send className="w-4 h-4" /> Contratar
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Time picker dialog */}
       <Dialog open={!!horarioDialog} onOpenChange={(open) => !open && setHorarioDialog(null)}>

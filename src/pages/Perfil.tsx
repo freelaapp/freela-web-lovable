@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
-import { updateProviderAvailability, updateProviderProfileImage } from "@/lib/api";
+import { updateProviderAvailability, updateProviderProfileImage, fetchImageWithAuth } from "@/lib/api";
 import { toast } from "sonner";
 import { errorMessages } from "@/lib/error-messages";
 
@@ -20,7 +20,14 @@ type ContractorType = "empresas" | "casa_cnpj" | "casa_cpf";
 
 const bufferToDataUrl = (img: any): string | null => {
   if (!img) return null;
-  if (typeof img === "string") return img;
+  if (typeof img === "string") {
+    if (img.startsWith("data:") || img.startsWith("http") || img.startsWith("/")) return img;
+    if (img.startsWith("/9j/") || img.startsWith("iVBOR") || img.startsWith("R0lGO") || img.startsWith("UklGR")) {
+      const mime = img.startsWith("/9j/") ? "jpeg" : img.startsWith("iVBOR") ? "png" : img.startsWith("R0lGO") ? "gif" : "webp";
+      return `data:image/${mime};base64,${img}`;
+    }
+    return img;
+  }
   if (img.type === "Buffer" && Array.isArray(img.data)) {
     const bytes = new Uint8Array(img.data);
     let binary = "";
@@ -169,7 +176,8 @@ const Perfil = () => {
         const token = JSON.parse(tokenRaw);
         const headers = { "Origin-type": "Web", "Authorization": `Bearer ${token}` };
 
-        const [providerRes, userRes] = await Promise.all([
+        // Step 1: get user info + provider ID
+        const [providerListRes, userRes] = await Promise.all([
           fetch(`${API_BASE_URL}/users/providers`, {
             method: "GET", credentials: "include", headers, signal: abortController.signal,
           }),
@@ -178,13 +186,15 @@ const Perfil = () => {
           }),
         ]);
 
-        let providerData: any = {};
-        if (providerRes.ok) {
-          const pBody = await providerRes.json();
+        let pId = "";
+        let providerListData: any = {};
+        if (providerListRes.ok) {
+          const pBody = await providerListRes.json();
           const raw = pBody?.data ?? pBody;
-          providerData = Array.isArray(raw) ? raw[0] ?? {} : raw;
-          // Save provider ID for later use
-          if (providerData.id) setProviderId(providerData.id);
+          const first = Array.isArray(raw) ? raw[0] ?? {} : raw;
+          pId = first?.id ?? "";
+          providerListData = first;
+          if (pId) setProviderId(pId);
         }
 
         let userName = "";
@@ -194,7 +204,32 @@ const Perfil = () => {
           userName = uData?.name || "";
         }
 
-        const avatar = bufferToDataUrl(providerData.profileImage);
+        // Step 2: GET /providers/{id} as primary data source for details
+        let providerData: any = { ...providerListData };
+        if (pId) {
+          const detailRes = await fetch(`${API_BASE_URL}/providers/${pId}`, {
+            method: "GET", credentials: "include", headers, signal: abortController.signal,
+          });
+          if (detailRes.ok) {
+            const detailBody = await detailRes.json();
+            const detailData = detailBody?.data ?? detailBody;
+            // Sempre usa o profileImage do GET /users/providers (fonte da verdade)
+            detailData.profileImage = providerListData.profileImage;
+            providerData = detailData;
+          }
+        }
+
+        const avatarRaw = bufferToDataUrl(providerData.profileImage);
+        let avatar: string | null = null;
+        if (avatarRaw) {
+          if (avatarRaw.startsWith("data:")) {
+            avatar = avatarRaw;
+          } else if (avatarRaw.startsWith("http")) {
+            avatar = avatarRaw;
+          } else if (avatarRaw.startsWith("/")) {
+            avatar = `${API_BASE_URL}${avatarRaw}`;
+          }
+        }
 
          // Process availability from 'availability' field (JSON string)
          const availabilityData = providerData.availability;
@@ -300,7 +335,15 @@ const Perfil = () => {
         else if (d.cnpj && !d.establishmentFacadeImage && !d.companyName) detected = "casa_cnpj";
         setContractorType(detected);
 
-        const avatar = bufferToDataUrl(d.establishmentFacadeImage) || bufferToDataUrl(d.profileImage);
+        const avatarRawC = bufferToDataUrl(d.profileImage) || bufferToDataUrl(d.establishmentFacadeImage);
+        let avatar: string | null = null;
+        if (avatarRawC) {
+          if (avatarRawC.startsWith("data:") || avatarRawC.startsWith("http")) {
+            avatar = avatarRawC;
+          } else if (avatarRawC.startsWith("/")) {
+            avatar = `${API_BASE_URL}${avatarRawC}`;
+          }
+        }
 
         const facadeUrl = bufferToDataUrl(d.establishmentFacadeImage);
         if (facadeUrl) setFotoFachada(facadeUrl);
@@ -355,12 +398,11 @@ const Perfil = () => {
   const handleProfileImageUpload = async (file: File) => {
     const previewUrl = URL.createObjectURL(file);
 
-    if (isContratante) {
-      toast.error("Apenas freelancers podem alterar a foto de perfil por este método.");
-      return;
-    }
-
     try {
+      if (isContratante) {
+        toast.error("Para alterar a foto de perfil, acesse Meus Dados");
+        return;
+      }
       await updateProviderProfileImage(file);
       setFreelancerData((prev) => ({ ...prev, avatarUrl: previewUrl }));
       toast.success("Foto de perfil atualizada com sucesso!");

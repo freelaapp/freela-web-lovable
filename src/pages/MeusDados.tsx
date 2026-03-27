@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
 import { errorMessages } from "@/lib/error-messages";
+import { fetchImageWithAuth, apiFetch } from "@/lib/api";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -66,7 +67,16 @@ const getHeaders = (token: string) => ({
 
 const bufferToDataUrl = (img: any): string | null => {
   if (!img) return null;
-  if (typeof img === "string") return img;
+  if (typeof img === "string") {
+    // Already a data URL or http(s) URL
+    if (img.startsWith("data:") || img.startsWith("http") || img.startsWith("/")) return img;
+    // Raw base64 string (no prefix) — detect by checking common image magic bytes
+    if (img.startsWith("/9j/") || img.startsWith("iVBOR") || img.startsWith("R0lGO") || img.startsWith("UklGR")) {
+      const mime = img.startsWith("/9j/") ? "jpeg" : img.startsWith("iVBOR") ? "png" : img.startsWith("R0lGO") ? "gif" : "webp";
+      return `data:image/${mime};base64,${img}`;
+    }
+    return img;
+  }
   if (img.type === "Buffer" && Array.isArray(img.data)) {
     const bytes = new Uint8Array(img.data);
     let binary = "";
@@ -217,7 +227,8 @@ const MeusDados = () => {
       const headers = getHeaders(token);
 
       try {
-        const [meRes, provRes] = await Promise.all([
+        // Step 1: user info + provider ID
+        const [meRes, provListRes] = await Promise.all([
           fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers }),
           fetch(`${API_BASE_URL}/users/providers`, { method: "GET", credentials: "include", headers }),
         ]);
@@ -226,83 +237,115 @@ const MeusDados = () => {
         if (meRes.ok) {
           const meBody = await meRes.json();
           const me = meBody?.data ?? meBody;
+          console.log("[DEBUG] GET /users/me:", me);
           const n = me?.name ?? "";
           const e = me?.email ?? "";
           const t = me?.phoneNumber ? maskPhone(me.phoneNumber) : "";
           setNome(n); setEmail(e); setTelefone(t);
           uSnap = { nome: n, email: e, telefone: t };
+        } else {
+          console.error("[DEBUG] GET /users/me failed:", meRes.status);
         }
         setOrigUser(snap(uSnap));
 
         let pId = "";
+        let providerProfileImage: string | null = null;
+        if (provListRes.ok) {
+          const provListBody = await provListRes.json();
+          console.log("[DEBUG] GET /users/providers:", provListBody);
+          const rawList = provListBody?.data ?? provListBody;
+          const first = Array.isArray(rawList) ? rawList[0] : rawList;
+          pId = first?.id ?? "";
+          providerProfileImage = first?.profileImage ?? null;
+          setProviderId(pId);
+          console.log("[DEBUG] pId:", pId);
+        } else {
+          console.error("[DEBUG] GET /users/providers failed:", provListRes.status);
+        }
+
         let pSnap: ProviderSnapshot = {
           dataNascimento: "", sexo: "", isPCD: false, desiredJobVacancy: "",
           contatoEmergNome: "", contatoEmergParentesco: "", contatoEmergTelefone: "",
           cep: "", rua: "", complemento: "", bairro: "", numero: "", cidade: "", estado: "",
         };
 
-         if (provRes.ok) {
-           const provBody = await provRes.json();
-           const rawProv = provBody?.data ?? provBody;
-           const prov = Array.isArray(rawProv) ? rawProv[0] ?? {} : rawProv;
+        // Step 2: full provider data from GET /providers/{id}
+        if (pId) {
+          const provRes = await fetch(`${API_BASE_URL}/providers/${pId}`, { method: "GET", credentials: "include", headers });
+          if (provRes.ok) {
+            const provBody = await provRes.json();
+            const prov = provBody?.data ?? provBody;
+            console.log("[DEBUG] GET /providers providerData:", prov);
+            // Usa profileImage do GET /users/providers como fonte da verdade
+            if (providerProfileImage) prov.profileImage = providerProfileImage;
 
-           pId = prov.id ?? "";
-           setProviderId(pId);
-           setCpf(prov.cpf ?? "");
+            setCpf(prov.cpf ?? "");
 
-           const bd = prov.birthdate ? prov.birthdate.split("T")[0] : "";
-           setDataNascimento(bd);
-           const g = prov.gender ?? "";
-           setSexo(g);
+            const bd = prov.birthdate ? prov.birthdate.split("T")[0] : "";
+            setDataNascimento(bd);
+            const g = prov.gender ?? "";
+            setSexo(g);
             const pcd = prov.deficiency === true || prov.deficiency === "true" || prov.deficiency === 1;
             setIsPCD(pcd);
 
-           // Profile image
-           const imgUrl = bufferToDataUrl(prov.profileImage);
-           if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
+            // Profile image — from GET /providers/{id}
+            const imgUrl = bufferToDataUrl(prov.profileImage);
+            if (imgUrl) {
+              if (imgUrl.startsWith("data:") || imgUrl.startsWith("http")) {
+                setProfileImageUrl(imgUrl);
+                setOrigProfileImage(imgUrl);
+              } else if (imgUrl.startsWith("/")) {
+                setProfileImageUrl(`${API_BASE_URL}${imgUrl}`);
+                setOrigProfileImage(`${API_BASE_URL}${imgUrl}`);
+              }
+            }
 
-           // Desired job vacancy
-           const djv = prov.desiredJobVacancy ?? "";
-           const areas = parseAreasFromApi(djv);
-           setAreasSelecionadas(areas);
+            // Desired job vacancy
+            const djv = prov.desiredJobVacancy ?? "";
+            const areas = parseAreasFromApi(djv);
+            setAreasSelecionadas(areas);
 
-           // Address
-           const cepVal = prov.cep ? maskCEP(prov.cep) : "";
-           setCep(cepVal);
-           setRua(prov.street ?? "");
-           setComplemento(prov.complement ?? "");
-           setBairro(prov.neighborhood ?? "");
-           setNumero(prov.number ?? "");
-           setCidade(prov.city ?? "");
-           setEstado(prov.uf ?? "");
+            // Address
+            console.log("[DEBUG] Address from API:", {
+              cep: prov.cep,
+              street: prov.street,
+              complement: prov.complement,
+              neighborhood: prov.neighborhood,
+              number: prov.number,
+              city: prov.city,
+              uf: prov.uf,
+            });
+            const cepVal = prov.cep ? maskCEP(prov.cep) : "";
+            setCep(cepVal);
+            setRua(prov.street ?? "");
+            setComplemento(prov.complement ?? "");
+            setBairro(prov.neighborhood ?? "");
+            setNumero(prov.number ?? "");
+            setCidade(prov.city ?? "");
+            setEstado(prov.uf ?? "");
 
-           // ViaCEP meta from API
-           if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
-             setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
-           }
+            if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
+              setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
+            }
 
-           // Emergency contact
-           const ecn = prov.emergencyContactName ?? "";
-           const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
-           const ecr = prov.emergencyContactRelationship ?? "";
-           setContatoEmergNome(ecn);
-           setContatoEmergTelefone(ect);
-           setContatoEmergParentesco(ecr);
+            const ecn = prov.emergencyContactName ?? "";
+            const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
+            const ecr = prov.emergencyContactRelationship ?? "";
+            setContatoEmergNome(ecn);
+            setContatoEmergTelefone(ect);
+            setContatoEmergParentesco(ecr);
 
-           const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
-           pSnap = {
-             dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
-             contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
-             cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
-             bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
-             cidade: prov.city ?? "", estado: prov.uf ?? "",
-           };
+            const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
+            pSnap = {
+              dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
+              contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
+              cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
+              bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
+              cidade: prov.city ?? "", estado: prov.uf ?? "",
+            };
 
-            // PIX - pegar da resposta de /users/providers
             const rawPixType = prov.pixKeyType ?? "";
             const rawPixValue = prov.pixKeyValue ?? "";
-            
-            // Normalizar tipo de PIX para corresponder aos valores do Select
             const normalizePixType = (type: string): string => {
               const typeLower = type.toLowerCase();
               if (typeLower === "cpf" || typeLower === "cnpj") return typeLower;
@@ -311,14 +354,15 @@ const MeusDados = () => {
               if (typeLower === "random" || typeLower === "aleatoria" || typeLower === "aleatório") return "aleatoria";
               return typeLower;
             };
-            
             const normalizedPixType = normalizePixType(rawPixType);
             setChavePixType(normalizedPixType);
             setChavePix(rawPixValue);
-            const pixSnapInit: PixSnapshot = { chavePixType: normalizedPixType, chavePix: rawPixValue };
-            setOrigPix(snap(pixSnapInit));
+            setOrigPix(snap({ chavePixType: normalizedPixType, chavePix: rawPixValue }));
             setHasExistingPixKey(!!rawPixValue);
-         }
+          }
+        }
+
+        setOrigProvider(snap(pSnap));
       } catch (err) {
         console.error("[MeusDados] erro ao carregar dados:", err);
       } finally {
@@ -505,18 +549,16 @@ const MeusDados = () => {
             fd.append("siafi", viacepMeta.siafi || "");
           }
 
-          const provRes = await fetch(`${API_BASE_URL}/users`, {
+          const provRes = await apiFetch(`${API_BASE_URL}/providers`, {
             method: "PUT",
-            credentials: "include",
-            headers: {
-              "Origin-type": ORIGIN_TYPE,
-              "Authorization": `Bearer ${token}`,
-            },
             body: fd,
           });
           if (provRes.ok) {
+            const provBody = await provRes.json().catch(() => null);
             setOrigProvider(currentProviderSnap());
-            setOrigProfileImage(URL.createObjectURL(profileImageFile));
+            const displayUrl = URL.createObjectURL(profileImageFile);
+            setProfileImageUrl(displayUrl);
+            setOrigProfileImage(displayUrl);
             setProfileImageFile(null);
             results.push(true);
           } else {
