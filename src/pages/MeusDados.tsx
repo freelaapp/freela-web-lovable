@@ -63,20 +63,6 @@ const getHeaders = (token: string) => ({
   Authorization: `Bearer ${token}`,
 });
 
-const bufferToDataUrl = (img: any): string | null => {
-  if (!img) return null;
-  if (typeof img === "string") return img;
-  if (img.type === "Buffer" && Array.isArray(img.data)) {
-    const bytes = new Uint8Array(img.data);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return `data:image/jpeg;base64,${btoa(binary)}`;
-  }
-  return null;
-};
-
 // Snapshot helpers for change detection
 interface UserSnapshot { nome: string; email: string; telefone: string }
 interface PixSnapshot { chavePixType: string; chavePix: string }
@@ -257,7 +243,15 @@ const MeusDados = () => {
             setIsPCD(pcd);
 
            // Profile image
-           const imgUrl = bufferToDataUrl(prov.profileImage);
+           const imgUrl = pickImageUrlFromPayload(prov, [
+             "profileImage",
+             "profileImageUrl",
+             "avatarUrl",
+             "avatar",
+             "image",
+             "imageUrl",
+             "photoUrl",
+           ]);
            if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
 
            // Desired job vacancy
@@ -340,7 +334,7 @@ const MeusDados = () => {
     const hasProviderChanges = currentProviderSnap() !== origProvider || profileImageFile !== null;
 
     if (!hasUserChanges && !hasPixChanges && !hasProviderChanges) {
-      toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
+      toast({ title: errorMessages.noChangesDetected, description: "Nenhum campo foi modificado." });
       return;
     }
 
@@ -442,72 +436,134 @@ const MeusDados = () => {
           .map((id) => areasAtuacao.find((a) => a.id === id)?.label || id)
           .join(", ");
 
-        const fd = new FormData();
+        const providerData: Record<string, unknown> = {};
 
-        // Profile image
-        if (profileImageFile) {
-          fd.append("profileImage", profileImageFile, profileImageFile.name);
-        } else if (profileImageUrl) {
-          // Send existing image as blob
-          try {
-            const imgRes = await fetch(profileImageUrl);
-            const blob = await imgRes.blob();
-            fd.append("profileImage", blob, "profile.jpg");
-          } catch { /* skip if can't convert */ }
+        let hasProviderFieldChanges = false;
+        try {
+          const orig = origProvider ? JSON.parse(origProvider) : {};
+          const current: ProviderSnapshot = {
+            dataNascimento, sexo, isPCD,
+            desiredJobVacancy: areasLabels,
+            contatoEmergNome, contatoEmergParentesco, contatoEmergTelefone,
+            cep, rua, complemento, bairro, numero, cidade, estado,
+          };
+          
+          const fieldsToCompare: (keyof ProviderSnapshot)[] = [
+            "dataNascimento", "sexo", "isPCD", "desiredJobVacancy",
+            "contatoEmergNome", "contatoEmergParentesco", "contatoEmergTelefone",
+            "cep", "rua", "complemento", "bairro", "numero", "cidade", "estado"
+          ];
+          
+          for (const field of fieldsToCompare) {
+            if (orig[field] !== current[field]) {
+              hasProviderFieldChanges = true;
+              (providerData as Record<string, string>)[field === "desiredJobVacancy" ? "desiredJobVacancy" : field] = current[field] as string;
+            }
+          }
+        } catch {
+          hasProviderFieldChanges = true;
         }
 
-         // Envia birthdate como Data (formato ISO YYYY-MM-DD)
-         if (dataNascimento) {
-           const date = new Date(dataNascimento);
-           if (!isNaN(date.getTime())) {
-             fd.append("birthdate", date.toISOString().split('T')[0]);
-           } else {
-             fd.append("birthdate", dataNascimento);
-           }
-         } else {
-           fd.append("birthdate", "");
-         }
-        fd.append("gender", sexo || "");
-        fd.append("deficiency", isPCD ? "true" : "false");
-        fd.append("desiredJobVacancy", areasLabels);
-        fd.append("emergencyContactName", contatoEmergNome || "");
-        fd.append("emergencyContactRelationship", contatoEmergParentesco || "");
-        fd.append("emergencyContactNumber", contatoEmergTelefone.replace(/\D/g, "") || "");
-        fd.append("cep", cep.replace(/\D/g, "") || "");
-        fd.append("street", rua || "");
-        fd.append("complement", complemento || "");
-        fd.append("neighborhood", bairro || "");
-        fd.append("number", numero || "");
-        fd.append("city", cidade || "");
-        fd.append("uf", estado || "");
-        fd.append("ibge", viacepMeta.ibge || "");
-        fd.append("gia", viacepMeta.gia || "");
-        fd.append("ddd", viacepMeta.ddd || "");
-        fd.append("siafi", viacepMeta.siafi || "");
-        fd.append("cpf", cpf.replace(/\D/g, "") || "");
-        fd.append("schooling", "");
-        fd.append("cnh", "");
-        fd.append("language", "");
+        const hasNewImage = profileImageFile !== null;
 
-        const provRes = await fetch(`${API_BASE_URL}/providers`, {
-          method: "PUT",
-          credentials: "include",
-          headers: {
-            "Origin-type": ORIGIN_TYPE,
-            "Authorization": `Bearer ${token}`,
-          },
-          body: fd,
-        });
-        if (provRes.ok) {
-          setOrigProvider(currentProviderSnap());
-          if (profileImageFile) {
+        if (hasNewImage) {
+          const fd = new FormData();
+          fd.append("profileImage", profileImageFile, profileImageFile.name);
+
+          if (hasProviderFieldChanges) {
+            if (dataNascimento) {
+              const date = new Date(dataNascimento);
+              if (!isNaN(date.getTime())) {
+                fd.append("birthdate", date.toISOString().split('T')[0]);
+              } else {
+                fd.append("birthdate", dataNascimento);
+              }
+            }
+            fd.append("gender", sexo || "");
+            fd.append("deficiency", isPCD ? "true" : "false");
+            fd.append("desiredJobVacancy", areasLabels);
+            fd.append("emergencyContactName", contatoEmergNome || "");
+            fd.append("emergencyContactRelationship", contatoEmergParentesco || "");
+            fd.append("emergencyContactNumber", contatoEmergTelefone.replace(/\D/g, "") || "");
+            fd.append("cep", cep.replace(/\D/g, "") || "");
+            fd.append("street", rua || "");
+            fd.append("complement", complemento || "");
+            fd.append("neighborhood", bairro || "");
+            fd.append("number", numero || "");
+            fd.append("city", cidade || "");
+            fd.append("uf", estado || "");
+            fd.append("ibge", viacepMeta.ibge || "");
+            fd.append("gia", viacepMeta.gia || "");
+            fd.append("ddd", viacepMeta.ddd || "");
+            fd.append("siafi", viacepMeta.siafi || "");
+          }
+
+          const provRes = await fetch(`${API_BASE_URL}/users`, {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+              "Origin-type": ORIGIN_TYPE,
+              "Authorization": `Bearer ${token}`,
+            },
+            body: fd,
+          });
+          if (provRes.ok) {
+            setOrigProvider(currentProviderSnap());
             setOrigProfileImage(URL.createObjectURL(profileImageFile));
             setProfileImageFile(null);
+            results.push(true);
+          } else {
+            console.error("[MeusDados] Provider save failed:", provRes.status);
+            results.push(false);
           }
-          results.push(true);
+        } else if (hasProviderFieldChanges) {
+          const payload: Record<string, unknown> = {};
+
+          if (dataNascimento) {
+            const date = new Date(dataNascimento);
+            if (!isNaN(date.getTime())) {
+              payload.birthdate = date.toISOString().split('T')[0];
+            } else {
+              payload.birthdate = dataNascimento;
+            }
+          }
+          payload.gender = sexo || "";
+          payload.deficiency = isPCD ? "true" : "false";
+          payload.desiredJobVacancy = areasLabels;
+          payload.emergencyContactName = contatoEmergNome || "";
+          payload.emergencyContactRelationship = contatoEmergParentesco || "";
+          payload.emergencyContactNumber = contatoEmergTelefone.replace(/\D/g, "") || "";
+          payload.cep = cep.replace(/\D/g, "") || "";
+          payload.street = rua || "";
+          payload.complement = complemento || "";
+          payload.neighborhood = bairro || "";
+          payload.number = numero || "";
+          payload.city = cidade || "";
+          payload.uf = estado || "";
+          payload.ibge = viacepMeta.ibge || "";
+          payload.gia = viacepMeta.gia || "";
+          payload.ddd = viacepMeta.ddd || "";
+          payload.siafi = viacepMeta.siafi || "";
+
+          const provRes = await fetch(`${API_BASE_URL}/users`, {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+              "Origin-type": ORIGIN_TYPE,
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+          if (provRes.ok) {
+            setOrigProvider(currentProviderSnap());
+            results.push(true);
+          } else {
+            console.error("[MeusDados] Provider save failed:", provRes.status);
+            results.push(false);
+          }
         } else {
-          console.error("[MeusDados] Provider save failed:", provRes.status);
-          results.push(false);
+          results.push(true);
         }
       }
 

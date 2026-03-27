@@ -100,37 +100,44 @@ const MapaVagas = () => {
         const vacBody = await vacRes.json();
         const vacancies = Array.isArray(vacBody?.data) ? vacBody.data : [];
 
+        // Buscar detalhes de cada vaga individualmente para pegar o jobValue correto
+        const uniqueVacancyIds: string[] = [...new Set(vacancies.map((v: any) => v.id).filter(Boolean))];
+        const vacancyDetailMap: Record<string, any> = {};
+        await Promise.all(
+          uniqueVacancyIds.map(async (vid) => {
+            try {
+              const res = await fetch(`${API_BASE_URL}/vacancies/${vid}`, {
+                method: "GET",
+                credentials: "include",
+                headers,
+              });
+              const body = await res.json().catch(() => null);
+              vacancyDetailMap[vid] = body?.data ?? body;
+            } catch {
+              // ignora falhas individuais
+            }
+          })
+        );
+
         // Função para converter valor monetário para número
         const parseMoney = (val: any): number => {
-          if (typeof val === 'number') return Math.round(val);
+          if (typeof val === 'number') return val;
           if (typeof val !== 'string') return 0;
-          // Remove tudo exceto dígitos, vírgulas e pontos
           const cleaned = val.replace(/[^\d,.]/g, '').replace(',', '.');
           const num = parseFloat(cleaned);
-          return isNaN(num) ? 0 : Math.round(num);
+          return isNaN(num) ? 0 : num;
         };
 
-        // Flatten services (mesma lógica do DashboardFreelancer)
+        // Flatten services usando dados detalhados para jobValue
         const flattened: FlatService[] = [];
         vacancies.forEach((vacancy: any) => {
-          const services = vacancy.services ?? vacancy.freelancers ?? [];
+          const detail = vacancyDetailMap[vacancy.id];
+          const services = detail?.services ?? detail?.freelancers ?? vacancy.services ?? vacancy.freelancers ?? [];
           if (Array.isArray(services)) {
             services.forEach((svc: any, idx: number) => {
               if (svc.assignment) {
-                // Extrair horas de jobTime (ex: "14h - 22h" -> 8)
                 const jobTimeStr = svc.jobTime || "";
-                const hoursMatch = jobTimeStr.match(/(\d+)h\s*-\s*(\d+)h/);
-                let hours = 0;
-                if (hoursMatch) {
-                  const start = parseInt(hoursMatch[1]);
-                  const end = parseInt(hoursMatch[2]);
-                  hours = end - start;
-                } else {
-                  // Se não estiver no formato esperado, usar valor default
-                  hours = 8;
-                }
 
-                // Extrair valor numérico de jobValue
                 const jobValueStr = svc.jobValue || "";
                 const value = parseMoney(jobValueStr);
 
@@ -141,15 +148,14 @@ const MapaVagas = () => {
                   jobTime: jobTimeStr,
                   jobValue: jobValueStr || "--",
                   value: value,
-                  jobDate: vacancy.jobDate || "",
-                  establishment: vacancy.establishment || vacancy.description || "",
-                  status: vacancy.status || "aberta",
+                  jobDate: detail?.jobDate ?? vacancy.jobDate ?? "",
+                  establishment: detail?.establishment ?? vacancy.establishment ?? vacancy.description ?? "",
+                  status: detail?.status ?? vacancy.status ?? "aberta",
                   serviceIndex: idx,
-                  // Coordenadas dummy (Jundiaí center com variação aleatória)
                   lat: -23.188 + (Math.random() - 0.5) * 0.05,
                   lng: -46.884 + (Math.random() - 0.5) * 0.05,
                   distance: Math.random() * 25 + 1,
-                  matchProfile: false, // Não temos essa informação nessa rota
+                  matchProfile: false,
                   type: Math.random() > 0.5 ? "casa" : "empresas",
                 });
               }
@@ -166,6 +172,8 @@ const MapaVagas = () => {
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Extrair lista única de datas
@@ -331,8 +339,7 @@ const MapaVagas = () => {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-primary">{getDisplayValue(vaga.jobValue, isFreelancer)}</p>
-                        <p className="text-[10px] text-muted-foreground">{Math.round(vaga.distance!)}km</p>
+                        <p className="text-sm font-bold text-primary">{getDisplayValue(vaga.jobValue, false)}</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
                     </div>

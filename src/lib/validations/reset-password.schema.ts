@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { errorMessages } from "../error-messages";
 
 /**
  * Schema para redefinição de senha com código de recuperação.
@@ -10,19 +11,26 @@ import { z } from "zod";
 export const resetPasswordSchema = z.object({
   email: z
     .string()
-    .min(1, "Email é obrigatório")
-    .email("Digite um email válido")
-    .transform((email) => email.toLowerCase().trim()),
+    .transform((email) => email.trim())
+    .pipe(
+      z.string()
+        .min(1, errorMessages.required(errorMessages.fields.email))
+        .email(errorMessages.invalidEmail)
+        .transform((email) => email.toLowerCase())
+    ),
   code: z
     .string()
-    .min(6, "Código deve ter 6 dígitos")
-    .max(6, "Código deve ter 6 dígitos")
-    .regex(/^\d+$/, "Código deve conter apenas números")
-    .transform((code) => code.trim()),
+    .transform((code) => code.trim())
+    .pipe(
+      z.string()
+        .min(6, errorMessages.checkinCodeRequired)
+        .max(6, errorMessages.checkinCodeRequired)
+        .regex(/^\d+$/, "O código deve conter apenas números.")
+    ),
   password: z
     .string()
-    .min(6, "Senha deve ter pelo menos 6 caracteres")
-    .max(100, "Senha muito longa"),
+    .min(6, errorMessages.passwordTooShort)
+    .max(100, errorMessages.passwordTooLong),
 });
 
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;

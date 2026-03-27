@@ -24,6 +24,7 @@ import { validateCPF } from "@/lib/utils";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { apiFetch } from "@/lib/api";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -124,6 +125,7 @@ const CadastroContratante = () => {
   const [rua, setRua] = useState("");
   const [numero, setNumero] = useState("");
   const [complemento, setComplemento] = useState("");
+  const [referencia, setReferencia] = useState("");
   const [bairro, setBairro] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
@@ -184,39 +186,39 @@ const CadastroContratante = () => {
 
   const isCasaCPF = modo === "casa" && tipoDoc === "cpf";
 
-  const validate = () => {
+const validate = () => {
     const e: Record<string, string> = {};
     if (modo === "empresa") {
-      if (!cnpj.replace(/\D/g, "") || cnpj.replace(/\D/g, "").length !== 14) e.cnpj = "CNPJ inválido";
-      if (!nomeOuRazao.trim()) e.nomeOuRazao = "Razão Social é obrigatória";
+      if (!cnpj.replace(/\D/g, "") || cnpj.replace(/\D/g, "").length !== 14) e.cnpj = errorMessages.invalidCnpj;
+      if (!nomeOuRazao.trim()) e.nomeOuRazao = errorMessages.required(errorMessages.fields.razaoSocial);
     } else {
-      if (!documento.replace(/\D/g, "")) e.documento = "Documento é obrigatório";
-      else if (tipoDoc === "cpf" && !validateCPF(documento)) e.documento = "CPF inválido";
-      else if (tipoDoc === "cnpj" && documento.replace(/\D/g, "").length !== 14) e.documento = "CNPJ inválido";
-      if (tipoDoc === "cnpj" && !nomeOuRazao.trim()) e.nomeOuRazao = "Razão Social é obrigatória";
+      if (!documento.replace(/\D/g, "")) e.documento = errorMessages.required(errorMessages.fields.documento);
+      else if (tipoDoc === "cpf" && !validateCPF(documento)) e.documento = errorMessages.invalidCpf;
+      else if (tipoDoc === "cnpj" && documento.replace(/\D/g, "").length !== 14) e.documento = errorMessages.invalidCnpj;
+      if (tipoDoc === "cnpj" && !nomeOuRazao.trim()) e.nomeOuRazao = errorMessages.required(errorMessages.fields.razaoSocial);
       if (isCasaCPF) {
         if (!dataNascimento) e.dataNascimento = "Data de nascimento é obrigatória";
         else if (differenceInYears(new Date(), new Date(dataNascimento)) < 18)
           e.dataNascimento = "Você deve ter pelo menos 18 anos";
       }
     }
-    if (!rua.trim()) e.rua = "Rua é obrigatória";
-    if (!numero.trim()) e.numero = "Número é obrigatório";
-    if (!bairro.trim()) e.bairro = "Bairro é obrigatório";
-    if (!cidade.trim()) e.cidade = "Cidade é obrigatória";
-    if (!estado) e.estado = "Estado é obrigatório";
-    if (!telefone.replace(/\D/g, "") || telefone.replace(/\D/g, "").length < 10) e.telefone = "Celular inválido";
+    if (!rua.trim()) e.rua = errorMessages.required(errorMessages.fields.endereco);
+    if (!numero.trim()) e.numero = errorMessages.required(errorMessages.fields.numero);
+    if (!bairro.trim()) e.bairro = errorMessages.required(errorMessages.fields.bairro);
+    if (!cidade.trim()) e.cidade = errorMessages.required(errorMessages.fields.cidade);
+    if (!estado) e.estado = errorMessages.required(errorMessages.fields.estado);
+    if (!telefone.replace(/\D/g, "") || telefone.replace(/\D/g, "").length < 10) e.telefone = errorMessages.invalidPhone;
 
     // Campos obrigatórios para empresa OU casa com CNPJ
     if (modo === "empresa" || (modo === "casa" && tipoDoc === "cnpj")) {
-      if (!ramo) e.ramo = "Ramo é obrigatório";
-      if (!responsavelNome.trim()) e.responsavelNome = "Nome do responsável é obrigatório";
+      if (!ramo) e.ramo = errorMessages.required(errorMessages.fields.ramo);
+      if (!responsavelNome.trim()) e.responsavelNome = errorMessages.required(errorMessages.fields.responsavel);
       if (!responsavelTelefone.replace(/\D/g, "") || responsavelTelefone.replace(/\D/g, "").length < 10)
-        e.responsavelTelefone = "Telefone inválido";
+        e.responsavelTelefone = errorMessages.invalidPhone;
     }
-    if (modo === "empresa") {
-      if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = "Nome do estabelecimento é obrigatório";
-      if (!fotoFachada) e.fotoFachada = "Foto da fachada é obrigatória";
+if (modo === "empresa") {
+      if (!nomeEstabelecimento.trim()) e.nomeEstabelecimento = errorMessages.required(errorMessages.fields.estabelecimento);
+      if (!fotoFachada) e.fotoFachada = errorMessages.required(errorMessages.fields.fachada);
     }
     setErrors(e);
 
@@ -253,6 +255,7 @@ const CadastroContratante = () => {
       fd.append("cep", cep.replace(/\D/g, ""));
       fd.append("logradouro", rua);
       fd.append("complemento", complemento);
+      fd.append("reference", referencia);
       fd.append("bairro", bairro);
       fd.append("number", numero);
       fd.append("localidade", cidade);
@@ -781,6 +784,15 @@ const CadastroContratante = () => {
                     placeholder="Apto, Bloco..."
                     value={complemento}
                     onChange={(e) => setComplemento(e.target.value)}
+                    className="h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Referência</Label>
+                  <Input
+                    placeholder="Próximo a..."
+                    value={referencia}
+                    onChange={(e) => setReferencia(e.target.value)}
                     className="h-12"
                   />
                 </div>

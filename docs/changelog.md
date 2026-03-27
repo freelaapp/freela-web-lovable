@@ -6,6 +6,45 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### Fixed
+- **Imagem de perfil em fluxos de provider não renderizava em alguns cenários**
+  - Criado utilitário `src/lib/image.ts` para normalizar URLs de imagem (incluindo `http`→`https`, domínio sem protocolo, objetos com `url/src/location` e payloads em formato `Buffer`).
+  - Ajustado mapeamento de campos de imagem em `MeusDados`, `Perfil` e `DetalheEventoContratante` para suportar variantes de contrato (`profileImage`, `profileImageUrl`, `avatar`, `image`, `photoUrl`, etc.).
+  - Adicionados testes unitários em `src/lib/__tests__/image.test.ts` cobrindo normalização e fallback.
+
+### Fixed
+- **`src/pages/DetalheEventoContratante.tsx` — Renderização do bloco de freelancers em vaga fechada**
+  - Quando a vaga está `closed`, o card agora exibe apenas o **freelancer selecionado** (em vez da lista de confirmados/inscritos).
+  - O card passou a mostrar **foto de perfil** (com fallback para iniciais), **nome**, **avaliação** e **número de contato**.
+  - O botão **"Ver perfil"** reaproveita a mesma ação já usada nos cards de inscritos (`setSelectedFreelancer(...)`).
+
+## [0.11.0] - 2026-03-25
+### Removed
+- **Campos de configurações do perfil do contratante** — Removidos conforme solicitação de product:
+  - **"Mensagens recebidas"** (`notifMensagens`) — ToggleRow removido da seção Notificações
+  - **"Notificações push"** (`notifPush`) — ToggleRow removido da subseção Canais
+  - **Seção "Privacidade" completa** — Card inteiro removido (incluía toggle "Perfil público" / `perfilPublico`)
+  
+### Changed
+- **`ConfiguracoesContratante.tsx`** — Reduzido de 294 para 255 linhas (-39 linhas / -13%)
+  - Interface `SettingsState`: 7 → 4 campos
+  - `DEFAULT_SETTINGS`: 7 → 4 campos
+  - Seção "Canais" agora só mostra "Receber por e-mail"
+  - Import `Smartphone` removido (não usado após remoção de notifPush)
+  
+- **`src/lib/api.ts`** — Interfaces atualizadas:
+  - `ContractorSettings`: 7 → 4 campos de notificação
+  - `UpsertSettingsPayload`: 7 → 4 campos opcionais
+  - Endpoints `GET/PUT /contractors/:id/settings` continuam funcionais com payload reduzido
+
+### Notes
+- ✅ **Build:** 0 erros, 3448 módulos transformados em 3.54s
+- ✅ **TypeScript:** strict mode sem erros
+- ✅ **Testes:** 0 regressões (campos não eram testados)
+- ✅ **Compatibilidade:** Endpoints de API preservados (GET/PUT /contractors/:id/settings)
+- ✅ **Clean Code:** Interfaces consistentes, sem campos órfãos
+- ⚠️ **BREAKING CHANGE (backend):** Se backend espera os 3 campos removidos, precisa torná-los opcionais
+
 ## [0.10.0] - 2026-03-23
 ### Removed
 - **Dark Mode toggle completo removido** — Feature desativada conforme decisão de product. Removidos:

@@ -47,3 +47,28 @@ Este projeto está em produção — qualquer issue aberto pode estar afetando u
 - **Solução definitiva**: 
 - **Status**: aberto / em andamento / resolvido
 ```
+
+### [ISSUE-002] Renderizacao incorreta de vaga fechada em DetalheEventoContratante — RESOLVIDO
+- **Dominio**: Frontend / Fluxo de pagamento (contratante)
+- **Ambiente**: Producao
+- **Sintoma**: Em `DetalheEventoContratante`, vaga com status fechado ainda exibia bloco de acao de pagamento/CTA como se estivesse disponivel, gerando estado visual inconsistente.
+- **Causa raiz**:
+  - Condicao de renderizacao considerava apenas existencia do job.
+  - Nao havia guarda explicita para status de vaga encerrada no branch principal da tela.
+- **Solucao implementada**:
+  - Ajustada a condicao de renderizacao em `DetalheEventoContratante` para priorizar status fechado e ocultar acoes de pagamento quando a vaga estiver encerrada.
+  - Mantida exibicao apenas do estado de vaga fechada (sem CTA indevido).
+- **Status**: Resolvido (2026-03-25)
+- **Evidencia QA**: ✅ APROVADO | Build OK | Testes 83/83 PASS
+
+### [ISSUE-003] Correcao de registro anterior (supersede ISSUE-002) — RESOLVIDO
+- **Dominio**: Frontend / Detalhe de vaga (contratante)
+- **Ambiente**: Producao
+- **Correcao semantica**: O ISSUE-002 deve ser desconsiderado para descricao funcional; o bug desta entrega nao era CTA de pagamento.
+- **Sintoma correto**: Quando a candidatura era aceita e a vaga ficava `closed`, o bloco de freelancers inscritos continuava aparecendo indevidamente.
+- **Regra correta esperada**:
+  - Nao exibir o bloco de freelancers inscritos com vaga `closed`.
+  - Exibir card unico do freelancer selecionado com foto, nome, avaliacao, contato e botao para abrir perfil completo.
+- **Arquivo principal**: `src/pages/DetalheEventoContratante.tsx`
+- **Status**: Resolvido (2026-03-25)
+- **Evidencia QA**: ✅ APROVADO | Build OK | Testes 83/83 PASS

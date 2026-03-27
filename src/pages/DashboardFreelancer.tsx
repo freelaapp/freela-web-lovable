@@ -106,7 +106,7 @@ const DashboardFreelancer = () => {
          }
 
          // 1. Get provider profile (id + services/areas)
-         const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
+          const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
            method: "GET", credentials: "include", headers,
          });
          const provBody = await provRes.json().catch(() => null);
@@ -170,79 +170,84 @@ const DashboardFreelancer = () => {
          }
          setLoadingAtivas(false);
 
-          // 3b. Get future/scheduled jobs (same logic as active jobs)
-          setLoadingAgendadas(true);
-          const futureJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
-            method: "GET", credentials: "include", headers,
-          });
-          const futureJobsBody = await futureJobsRes.json().catch(() => null);
-          const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
-          const futureIds: string[] = Array.isArray(futureJobsData)
-            ? futureJobsData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
-            : [];
+           // 3b. Get future/scheduled jobs
+           setLoadingAgendadas(true);
+           const futureJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
+             method: "GET", credentials: "include", headers,
+           });
+           const futureJobsBody = await futureJobsRes.json().catch(() => null);
+           const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
 
-          if (futureIds.length > 0) {
-            // Keep raw items to preserve jobId mapping
-            const rawFutureItems = Array.isArray(futureJobsData) ? futureJobsData : [];
-            const futureDetails = await Promise.all(
-              futureIds.filter(Boolean).map(async (vacId: string, idx: number) => {
-                try {
-                  const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
-                    method: "GET", credentials: "include", headers,
-                  });
-                  const body = await res.json().catch(() => null);
-                  const detail = body?.data ?? body ?? null;
-                  if (detail) {
-                    // Attach jobId from the raw future-jobs response
-                    const rawItem = rawFutureItems[idx];
-                    detail._jobId = rawItem?.jobId ?? rawItem?.id ?? vacId;
-                    detail._vacancyId = vacId;
-                  }
-                  return detail;
-                } catch { return null; }
-              })
-            );
-            setVagasAgendadas(futureDetails.filter(Boolean));
-          } else {
-            setVagasAgendadas([]);
-          }
-          setLoadingAgendadas(false);
+           if (Array.isArray(futureJobsData) && futureJobsData.length > 0) {
+             // Use data directly from future-jobs API (already contains full vacancy details)
+             const futureDetails = futureJobsData.map((item: any) => {
+               const vacId = item.vacancyId || item.id;
+               return {
+                 ...item,
+                 _jobId: item.jobId || item.id || vacId,
+                 _vacancyId: vacId,
+               };
+             });
+             setVagasAgendadas(futureDetails.filter(Boolean));
+           } else {
+             setVagasAgendadas([]);
+           }
+           setLoadingAgendadas(false);
 
           // 3c. Get applied vacancies (vagas pendentes)
-          setLoadingPendentes(true);
-          const appliedRes = await fetch(`${API_BASE_URL}/providers/${providerId}/applied-vacancies`, {
-            method: "GET", credentials: "include", headers,
-          });
-          const appliedBody = await appliedRes.json().catch(() => null);
-          const appliedData = appliedBody?.data ?? appliedBody;
-          const appliedIds: string[] = Array.isArray(appliedData)
-            ? appliedData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
-            : [];
+           setLoadingPendentes(true);
+           const appliedRes = await fetch(`${API_BASE_URL}/providers/${providerId}/applied-vacancies`, {
+             method: "GET", credentials: "include", headers,
+           });
+           const appliedBody = await appliedRes.json().catch(() => null);
+           const appliedData = appliedBody?.data ?? appliedBody;
 
-          if (appliedIds.length > 0) {
-            const rawAppliedItems = Array.isArray(appliedData) ? appliedData : [];
-            const appliedDetails = await Promise.all(
-              appliedIds.filter(Boolean).map(async (vacId: string, idx: number) => {
-                try {
-                  const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
-                    method: "GET", credentials: "include", headers,
-                  });
-                  const body = await res.json().catch(() => null);
-                  const detail = body?.data ?? body ?? null;
-                  if (detail) {
-                    const rawItem = rawAppliedItems[idx];
-                    detail._jobId = rawItem?.jobId ?? rawItem?.id ?? vacId;
-                    detail._vacancyId = vacId;
-                  }
-                  return detail;
-                } catch { return null; }
-              })
-            );
-            setVagasPendentes(appliedDetails.filter(Boolean));
-          } else {
-            setVagasPendentes([]);
-          }
-          setLoadingPendentes(false);
+           // Process applied vacancies with their application status
+           // Filter out paid/completed applications (they should be in Ativas/Agendadas)
+           const processedApplications = Array.isArray(appliedData)
+             ? appliedData.filter((app: any) => {
+                 const s = (app.status || "").toLowerCase();
+                 return s !== "paid" && s !== "pago" && s !== "completed" && s !== "concluído" && s !== "confirmado" && s !== "confirmed";
+               })
+             : [];
+
+           if (processedApplications.length > 0) {
+             const appliedDetailsWithStatus = await Promise.all(
+               processedApplications.map(async (application: any, idx: number) => {
+                 try {
+                   // Get vacancy details
+                   const vacancyId = application?.vacancyId || application?.id;
+                   if (!vacancyId) return null;
+
+                   const res = await fetch(`${API_BASE_URL}/vacancies/${vacancyId}`, {
+                     method: "GET", credentials: "include", headers,
+                   });
+                   const body = await res.json().catch(() => null);
+                   const detail = body?.data ?? body ?? null;
+                   
+                   if (detail) {
+                     // Preserve application status and other relevant data
+                     return {
+                       ...detail,
+                       _applicationId: application.id,
+                       _jobId: application.jobId || vacancyId,
+                       _vacancyId: vacancyId,
+                       _applicationStatus: application.status || "pendente", // Assume pendente if not specified
+                       _appliedAt: application.createdAt || application.appliedAt
+                     };
+                   }
+                   return null;
+                 } catch (err) {
+                   console.error(`Error fetching vacancy ${application?.vacancyId || application?.id}:`, err);
+                   return null;
+                 }
+               })
+             );
+             setVagasPendentes(appliedDetailsWithStatus.filter(Boolean));
+           } else {
+             setVagasPendentes([]);
+           }
+           setLoadingPendentes(false);
 
          // Count jobs for current month from both active and future jobs
          let currentMonthJobs = 0;
@@ -294,13 +299,13 @@ const DashboardFreelancer = () => {
             });
             const earningsBody = await earningsRes.json().catch(() => null);
             
-            // Extract totalAll from data.summary
-            const totalAll = earningsBody?.data?.summary?.totalAll;
-             if (typeof totalAll === "number") {
-               setMonthlyEarnings(formatCurrency(totalAll));
-             } else {
-               setMonthlyEarnings(formatCurrency(0));
-             }
+            // Extract totalAll from data.summary (API returns value in centavos)
+             const totalAll = earningsBody?.data?.summary?.totalAll;
+              if (typeof totalAll === "number") {
+                setMonthlyEarnings(formatCurrency(totalAll / 100));
+              } else {
+                setMonthlyEarnings(formatCurrency(0));
+              }
           } catch (err) {
             console.error("[DashboardFreelancer] Error fetching monthly earnings:", err);
             setMonthlyEarnings("R$ 0,00");
@@ -350,7 +355,7 @@ const DashboardFreelancer = () => {
          setLoadingVagas(false);
        }
      };
-     fetchData();
+      fetchData();
    }, []);
 
   return (
@@ -428,7 +433,7 @@ const DashboardFreelancer = () => {
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
                         )}
                         {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, isFreelancer)}</span>
+                           <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, false)}</span>
                         )}
                        </div>
                        {jobDate && jobDate !== "--" && (
@@ -516,38 +521,44 @@ const DashboardFreelancer = () => {
               ) : vagasPendentes.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga pendente</p>
               ) : (
-                 vagasPendentes.slice(0, 3).map((vaga: any) => {
-                   const service = vaga.services?.[0] || {};
-                   const assignment = service.assignment || "--";
-                   const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                   const jobTime = service.jobTime || "--";
-                   const jobValue = service.jobValue || "--";
-                   const jobDate = vaga.jobDate || "--";
+                  vagasPendentes.slice(0, 3).map((vaga: any) => {
+                    const service = vaga.services?.[0] || {};
+                    const assignment = service.assignment || "--";
+                    const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
+                    const jobTime = service.jobTime || "--";
+                    const jobValue = service.jobValue || "--";
+                    const jobDate = vaga.jobDate || "--";
+                    const applicationStatus = vaga._applicationStatus || "pendente";
+                    
+                    // Show "Recusado" badge if application was rejected
+                    const statusLabel = applicationStatus === "rejected" ? "Recusado" : "Pendente";
+                    const statusBg = applicationStatus === "rejected" ? "bg-destructive/10 text-destructive" : "bg-warning-light text-warning";
+                    
                     return (
-                     <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`, { state: { source: 'pendentes' } })}>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold truncate">{assignment}</p>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-warning-light text-warning">Pendente</span>
+                      <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-3" onClick={() => navigate(`/vaga/${vaga._vacancyId || vaga.id}`, { state: { source: 'pendentes', jobId: vaga._jobId } })}>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold truncate">{assignment}</p>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusBg}`}>{statusLabel}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          {neighborhoodCity && neighborhoodCity !== "--" && (
+                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
+                          )}
+                          {jobTime && jobTime !== "--" && (
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
+                          )}
+                          {jobValue && jobValue !== "--" && (
+                            <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, false)}</span>
+                          )}
+                        </div>
+                        {jobDate && jobDate !== "--" && (
+                         <p className="text-xs text-muted-foreground flex items-center gap-1">
+                           <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
+                         </p>
+                       )}
                       </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        {neighborhoodCity && neighborhoodCity !== "--" && (
-                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
-                        )}
-                        {jobTime && jobTime !== "--" && (
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
-                        )}
-                        {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, isFreelancer)}</span>
-                        )}
-                      </div>
-                      {jobDate && jobDate !== "--" && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })
+                    );
+                  })
               )}
             </CardContent>
           </Card>

@@ -30,7 +30,7 @@ describe("forgotPasswordSchema", () => {
     const result = forgotPasswordSchema.safeParse({ email: "" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0].message).toBe("Email é obrigatório");
+      expect(result.error.errors[0].message).toBe("Ops! Não esqueça de preencher o e-mail.");
     }
   });
 
@@ -38,7 +38,7 @@ describe("forgotPasswordSchema", () => {
     const result = forgotPasswordSchema.safeParse({ email: "invalid-email" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0].message).toBe("Digite um email válido");
+      expect(result.error.errors[0].message).toBe("Hmm, esse e-mail não parece válido. Verifique e tente novamente.");
     }
   });
 

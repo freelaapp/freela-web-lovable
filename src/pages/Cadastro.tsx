@@ -9,6 +9,7 @@ import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { generateEmailConfirmationCode } from "@/lib/api";
 import { onAuthSuccess } from "@/lib/auth";
+import { errorMessages } from "@/lib/error-messages";
 
 const Cadastro = () => {
   const navigate = useNavigate();
@@ -41,35 +42,35 @@ const Cadastro = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.nome.trim()) {
-      newErrors.nome = "Nome é obrigatório";
+      newErrors.nome = errorMessages.required(errorMessages.fields.nome);
     } else if (formData.nome.trim().length < 3) {
-      newErrors.nome = "Nome deve ter pelo menos 3 caracteres";
+      newErrors.nome = "Nome deve ter pelo menos 3 caracteres.";
     }
 
     if (!formData.email) {
-      newErrors.email = "Email é obrigatório";
+      newErrors.email = errorMessages.required(errorMessages.fields.email);
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Digite um email válido";
+      newErrors.email = errorMessages.invalidEmail;
     }
 
     if (!formData.celular) {
-      newErrors.celular = "Celular é obrigatório";
+      newErrors.celular = errorMessages.required(errorMessages.fields.celular);
     } else if (formData.celular.replace(/\D/g, "").length < 11) {
-      newErrors.celular = "Digite um celular válido com DDD";
+      newErrors.celular = errorMessages.invalidPhone;
     }
 
     if (!formData.password) {
-      newErrors.password = "Senha é obrigatória";
+      newErrors.password = errorMessages.required(errorMessages.fields.senha);
     } else if (!passwordRequirements.every((r) => r.valid)) {
-      newErrors.password = "Senha não atende os requisitos";
+      newErrors.password = errorMessages.passwordRequirements;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "As senhas não coincidem";
+      newErrors.confirmPassword = errorMessages.passwordsDontMatch;
     }
 
     if (!acceptTerms) {
-      newErrors.terms = "Você deve aceitar os termos de uso";
+      newErrors.terms = errorMessages.mustAcceptTerms;
     }
 
     setErrors(newErrors);
@@ -77,7 +78,7 @@ const Cadastro = () => {
     if (Object.keys(newErrors).length > 0) {
       console.log("[Cadastro] Validação falhou:", newErrors);
       toast({
-        title: "Campos pendentes ou incorretos",
+        title: "Ops! Alguns campos precisam de atenção",
         description: Object.values(newErrors).join(", "),
         variant: "destructive",
       });
@@ -108,8 +109,8 @@ const Cadastro = () => {
     } catch (error: any) {
       const message =
         error instanceof TypeError
-          ? "Falha de conexão. Verifique sua internet e tente novamente."
-          : error.message || "Não foi possível criar a conta. Tente novamente.";
+          ? errorMessages.connectionError
+          : error.message || errorMessages.registrationFailed;
 
       toast({
         title: "Erro ao criar conta",

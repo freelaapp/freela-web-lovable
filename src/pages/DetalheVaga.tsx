@@ -8,11 +8,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
-import { getDisplayValue } from "@/lib/values";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
+
+const statusLabels: Record<string, string> = {
+  open: "Aberta",
+  pending: "Pendente",
+  accepted: "Aceita",
+  rejected: "Recusada",
+  confirmed: "Confirmada",
+  closed: "Preenchida",
+  removed: "Concluída",
+  completed: "Concluída",
+  "in hiring": "Em contratação",
+  aberta: "Aberta",
+  aceita: "Aceita",
+  preenchida: "Preenchida",
+  concluida: "Concluída",
+};
 
 const defaultTimelineSteps = [
   { key: "aceite", label: "Aceite da Vaga", icon: CheckCircle },
@@ -114,15 +130,26 @@ const DetalheVaga = () => {
            const actualJobId = jobIdFromState || vagaId;
            const actualVacancyId = vacancyIdFromState || vagaId;
 
-           const [jobRes, candidacyRes, provRes] = await Promise.all([
-             apiFetch(`${API_BASE_URL}/jobs/${actualJobId}`, { method: "GET" }),
-             apiFetch(`${API_BASE_URL}/candidacies/${actualVacancyId}`, { method: "GET" }),
-             apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
-           ]);
+            const [jobRes, candidacyRes, provRes] = await Promise.all([
+              apiFetch(`${API_BASE_URL}/jobs/${actualJobId}`, { method: "GET" }),
+              apiFetch(`${API_BASE_URL}/candidacies/${actualVacancyId}`, { method: "GET" }),
+              apiFetch(`${API_BASE_URL}/providers`, { method: "GET" }),
+            ]);
 
            const jobBody = await jobRes.json().catch(() => null);
-           const jobData = jobBody?.data ?? jobBody;
-           setVaga(jobData);
+            const jobData = jobBody?.data ?? jobBody;
+            // Normalize job data to match vacancy structure
+            // Jobs API may return data in different structure
+            const normalizedJob = {
+              ...jobData,
+              services: jobData.services || jobData.vacancy?.services || jobData.freelancers || [],
+              establishment: jobData.establishment || jobData.vacancy?.establishment || jobData.location || "",
+              jobDate: jobData.jobDate || jobData.vacancy?.jobDate || jobData.date || "",
+              description: jobData.description || jobData.vacancy?.description || "",
+              status: jobData.status || "agendada",
+              contractorId: jobData.contractorId || jobData.contractor?.id || jobData.vacancy?.contractorId,
+            };
+            setVaga(normalizedJob);
 
            const candidacyBody = await candidacyRes.json().catch(() => null);
            const candidacyData = candidacyBody?.data ?? candidacyBody;
@@ -142,14 +169,14 @@ const DetalheVaga = () => {
            if (contractorIdFromJob) {
              setContractorId(contractorIdFromJob);
            }
-         } else {
-           // Default: fetch vacancy and provider in parallel
-           const [vacRes, provRes] = await Promise.all([
-             apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
-             apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
-           ]);
+          } else {
+            // Default: fetch vacancy and provider in parallel
+            const [vacRes, provRes] = await Promise.all([
+              apiFetch(`${API_BASE_URL}/vacancies/${vagaId}`, { method: "GET" }),
+              apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
+            ]);
 
-           const vacBody = await vacRes.json().catch(() => null);
+            const vacBody = await vacRes.json().catch(() => null);
            const vacData = vacBody?.data ?? vacBody;
            setVaga(vacData);
 
@@ -250,7 +277,7 @@ const DetalheVaga = () => {
     const jobDate = vaga.jobDate ? formatDateDDMMYYYY(vaga.jobDate) : "--";
     const jobTime = serviceInfo.jobTime || "--";
     const jobValueRaw = serviceInfo.jobValue || "--";
-    const jobValue = getDisplayValue(jobValueRaw, isFreelancer);
+    const jobValue = jobValueRaw;
     const assignment = serviceInfo.assignment || "--";
     const location_ = extractNeighborhoodCity(vaga.establishment) || "--";
 
@@ -311,7 +338,7 @@ const DetalheVaga = () => {
 
    const handleCheckoutValidate = async () => {
      if (checkoutCode.length !== 6) {
-       toast.error("Digite o código de 6 dígitos.");
+toast.error(errorMessages.checkinCodeRequired);
        return;
      }
      const jobId = jobIdFromState || vagaId;
@@ -478,7 +505,7 @@ const DetalheVaga = () => {
             status === "aberta" || status === "open" ? "bg-warning-light text-warning" :
             "bg-muted text-muted-foreground"
           }`}>
-            {isAgendada ? "Agendada" : (status === "concluida" ? "concluída" : status)}
+            {isAgendada ? "Agendada" : (statusLabels[status] || status)}
           </span>
         </div>
 

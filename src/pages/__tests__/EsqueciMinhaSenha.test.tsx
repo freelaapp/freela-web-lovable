@@ -57,7 +57,7 @@ describe("EsqueciMinhaSenha", () => {
     fireEvent.click(screen.getByRole("button", { name: /enviar código/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/digite um email válido/i)).toBeInTheDocument();
+      expect(screen.getByText(/não parece válido/i)).toBeInTheDocument();
     });
   });
 

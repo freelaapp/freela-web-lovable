@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound, MessageSquare } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, DollarSign, Briefcase, CheckCircle, X, ChevronRight, Star, Shield, MessageCircle, Send, Eye, UserCheck, UserX, Loader2, QrCode, Copy, KeyRound, MessageSquare, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, type JobPaymentResponse } from "@/lib/api";
+import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, deleteVacancy, type JobPaymentResponse } from "@/lib/api";
 import Pusher from "pusher-js";
 import { formatCurrency } from "@/lib/formatters";
+import { errorMessages } from "@/lib/error-messages";
+import { pickImageUrlFromPayload } from "@/lib/image";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -38,16 +40,34 @@ interface VacancyDetail {
 
 const statusLabels: Record<string, string> = {
   open: "Aberta",
-  "in hiring": "Em contratação",
+  pending: "Pendente",
+  accepted: "Aceita",
+  rejected: "Recusada",
+  confirmed: "Confirmada",
   closed: "Preenchida",
   removed: "Concluída",
+  completed: "Concluída",
+  "in hiring": "Em contratação",
+  "partially completed": "Parcialmente concluída",
+  unavailable: "Indisponível",
+  schedule: "Agendada",
+  "in progress": "Em andamento",
 };
 
 const statusStyles: Record<string, string> = {
   open: "bg-success-light text-success",
-  "in hiring": "bg-warning-light text-warning",
+  pending: "bg-warning-light text-warning",
+  accepted: "bg-success-light text-success",
+  rejected: "bg-destructive/10 text-destructive",
+  confirmed: "bg-success-light text-success",
   closed: "bg-primary-light text-primary",
   removed: "bg-muted text-muted-foreground",
+  completed: "bg-muted text-muted-foreground",
+  "in hiring": "bg-warning-light text-warning",
+  "partially completed": "bg-muted text-muted-foreground",
+  unavailable: "bg-muted text-muted-foreground",
+  schedule: "bg-primary-light text-primary",
+  "in progress": "bg-primary-light text-primary",
 };
 
 interface Candidato {
@@ -55,6 +75,8 @@ interface Candidato {
   providerId: string;
   name: string;
   avatar: string;
+  avatarUrl?: string | null;
+  contactNumber: string;
   role: string;
   rating: number;
   reviews: number;
@@ -69,7 +91,11 @@ interface Candidato {
 const DetalheEventoContratante = () => {
   const { eventoId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const location = useLocation();
+  const toast = useToast();
+
+  const serviceIndexFromState = (location.state as Record<string, unknown>)?.serviceIndex as number | undefined;
+  const [selectedServiceIndex, setSelectedServiceIndex] = useState<number>(serviceIndexFromState ?? 0);
 
   const [vacancy, setVacancy] = useState<VacancyDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,6 +129,8 @@ const DetalheEventoContratante = () => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAccept, setPendingAccept] = useState<{ id: string; assignment: string; providerId: string } | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Helper: fetch payment details for a job (no auto-schedule)
   const fetchJobPayments = async (jobId: string) => {
@@ -125,12 +153,13 @@ const DetalheEventoContratante = () => {
     }
   };
 
-  // ── Pusher: listen for payment updates ──────────────────────
+  // ── Pusher: listen for payment, check-in and check-out updates ──────────────────────
   useEffect(() => {
     const pusher = new Pusher("f8d94fc93946ed0f4e0b", { cluster: "sa1" });
-    const channel = pusher.subscribe("payments");
 
-    channel.bind("payment.updated", async (data: any) => {
+    // Payment channel
+    const paymentChannel = pusher.subscribe("payments");
+    paymentChannel.bind("payment.updated", async (data: any) => {
       console.log("[Pusher] payment.updated", data);
       if (data?.status) {
         setPaymentStatus(prev => ({ ...prev, [data.providerId ?? data.jobId ?? ""]: data.status }));
@@ -162,12 +191,48 @@ const DetalheEventoContratante = () => {
       }
     });
 
+    // Check-in channel
+    const checkInChannel = pusher.subscribe("check-ins");
+    checkInChannel.bind("checkin.completed", (data: any) => {
+      console.log("[Pusher] checkin.completed", data);
+      if (eventoId) {
+        fetchJobStatus(eventoId);
+      }
+      toast({ title: "Check-in realizado!", description: "O freelancer iniciou o trabalho." });
+    });
+
+    // Check-out channel
+    const checkOutChannel = pusher.subscribe("check-outs");
+    checkOutChannel.bind("checkout.completed", (data: any) => {
+      console.log("[Pusher] checkout.completed", data);
+      if (eventoId) {
+        fetchJobStatus(eventoId);
+      }
+      toast({ title: "Check-out realizado!", description: "O freelancer finalizou o trabalho." });
+    });
+
     return () => {
-      channel.unbind_all();
+      paymentChannel.unbind_all();
+      checkInChannel.unbind_all();
+      checkOutChannel.unbind_all();
       pusher.unsubscribe("payments");
+      pusher.unsubscribe("check-ins");
+      pusher.unsubscribe("check-outs");
       pusher.disconnect();
     };
-  }, [toast]);
+  }, [toast, eventoId]);
+
+  // ── Polling: always re-fetch job status to keep timeline in sync ──────────────────────
+  useEffect(() => {
+    if (!eventoId) return;
+
+    const interval = setInterval(() => {
+      console.log("[Polling] re-fetching job status for evento:", eventoId);
+      fetchJobStatus(eventoId);
+    }, 5000); // every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [eventoId]);
 
   // Helper: fetch job status and update timeline accordingly
   const fetchJobStatus = async (vacancyId: string) => {
@@ -298,23 +363,55 @@ const DetalheEventoContratante = () => {
            const enrichedCandidates = await Promise.all(candidatePromises);
            
            // Map to Candidato objects
-           const mapped: Candidato[] = enrichedCandidates.map((c: any) => {
-             const providerData = c.providerData || {};
-             const userData = c.userData || {};
-             
-             return {
-               id: c.id || "",
-               providerId: c.providerId || "",
-               name: userData.name || c.providerName || c.name || "Freelancer",
-               avatar: (userData.name || c.providerName || c.name || "FL")
-                 .split(" ")
-                 .map((w: string) => w[0])
-                 .join("")
-                 .slice(0, 2)
-                 .toUpperCase(),
-               role: c.assignment || c.role || "",
-               rating: providerData.feedbackStars ?? c.rating ?? 0,
-               reviews: c.reviews ?? 0,
+            const mapped: Candidato[] = enrichedCandidates.map((c: any) => {
+              const providerData = c.providerData || {};
+              const userData = c.userData || {};
+              const candidateName = userData.name || c.providerName || c.name || "Freelancer";
+              const avatarUrl =
+                pickImageUrlFromPayload(userData, [
+                  "avatarUrl",
+                  "profilePicture",
+                  "profileImage",
+                  "profileImageUrl",
+                  "photoUrl",
+                  "imageUrl",
+                  "image",
+                  "avatar",
+                ]) ||
+                pickImageUrlFromPayload(providerData, [
+                  "avatarUrl",
+                  "profilePicture",
+                  "profileImage",
+                  "profileImageUrl",
+                  "photoUrl",
+                  "imageUrl",
+                  "image",
+                  "avatar",
+                ]);
+              const contactNumber =
+                userData.phoneNumber ||
+                userData.phone ||
+                providerData.phoneNumber ||
+                providerData.phone ||
+                c.phoneNumber ||
+                c.phone ||
+                "--";
+              
+              return {
+                id: c.id || "",
+                providerId: c.providerId || "",
+                name: candidateName,
+                avatar: candidateName
+                  .split(" ")
+                  .map((w: string) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase(),
+                avatarUrl,
+                contactNumber,
+                role: c.assignment || c.role || "",
+                rating: providerData.feedbackStars ?? c.rating ?? 0,
+                reviews: c.reviews ?? 0,
                jobs: c.jobs ?? 0,
                verified: c.verified ?? false,
                status: c.status === "accepted" ? "aceito" : c.status === "rejected" ? "recusado" : "pendente",
@@ -398,18 +495,21 @@ const DetalheEventoContratante = () => {
      }
    };
 
-   const handleRecusar = async (id: string) => {
-     setActionLoadingIds(prev => new Set(prev).add(id));
-     try {
-       await rejectCandidacy(id);
-       setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
-       toast({ title: "Candidatura recusada", description: "O freelancer será notificado por e-mail." });
-     } catch (err: any) {
-       toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
-     } finally {
-       setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
-     }
-   };
+    const handleRecusar = async (id: string) => {
+      setActionLoadingIds(prev => new Set(prev).add(id));
+      try {
+        const result = await rejectCandidacy(id);
+        setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "recusado" as const } : c));
+        if (result?.vacancy?.status) {
+          setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
+        }
+        toast({ title: "Candidatura recusada", description: "O freelancer será notificado por e-mail." });
+      } catch (err: any) {
+        toast({ title: "Erro ao recusar", description: err.message || "Tente novamente.", variant: "destructive" });
+      } finally {
+        setActionLoadingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+      }
+    };
 
    const openConfirmDialog = (id: string, assignment: string, providerId: string) => {
      setPendingAccept({ id, assignment, providerId });
@@ -432,6 +532,21 @@ const DetalheEventoContratante = () => {
      }
      
      setPendingAccept(null);
+   };
+
+   const handleDeleteVaga = async () => {
+     if (!eventoId) return;
+     setShowDeleteDialog(false);
+     setDeleteLoading(true);
+     try {
+       await deleteVacancy(eventoId);
+       toast({ title: "Vaga excluída!", description: "A vaga foi removida com sucesso." });
+       navigate(-1);
+     } catch (err: any) {
+       toast({ title: "Erro ao excluir", description: err.message || "Tente novamente.", variant: "destructive" });
+     } finally {
+       setDeleteLoading(false);
+     }
    };
 
    const handlePagamento = async (providerId: string, candidatoId?: string) => {
@@ -618,10 +733,11 @@ const DetalheEventoContratante = () => {
       const terminateRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
         method: "PATCH",
       });
+      console.log("[Review] terminate response:", terminateRes.status, terminateRes.ok);
 
-      if (terminateRes.ok) {
-        setTimelineStep(5);
-      }
+      // Always mark feedback as done after successful feedback submission
+      setTimelineStep(5);
+      console.log("[Review] timelineStep set to 5");
 
       toast({ title: "Avaliação enviada!", description: "Obrigado pelo feedback." });
       setShowReviewModal(false);
@@ -647,6 +763,7 @@ const DetalheEventoContratante = () => {
 
   const filteredCandidatos = filter === "todos" ? candidatos : candidatos.filter(c => c.status === filter);
   const confirmados = candidatos.filter(c => c.status === "aceito");
+  const selectedClosedFreelancer = confirmados[0] ?? null;
   const aceitos = confirmados.length;
 
   return (
@@ -657,21 +774,38 @@ const DetalheEventoContratante = () => {
            <button onClick={() => navigate(-1)} className="text-sm text-primary flex items-center gap-1 mb-2 hover:underline">
              ← Voltar
            </button>
-           <h1 className="text-2xl font-display font-bold">
-             {vacancy.services?.[0]?.assignment || vacancy.assignment || "Vaga"}
-           </h1>
-           <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
-             statusStyles[vacancy.status] || "bg-muted text-muted-foreground"
-           }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
+           <div className="flex items-center justify-between">
+             <div>
+               <h1 className="text-2xl font-display font-bold">
+                 {vacancy.services?.[0]?.assignment || vacancy.assignment || "Vaga"}
+               </h1>
+               <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-medium ${
+                 statusStyles[vacancy.status] || "bg-muted text-muted-foreground"
+               }`}>{statusLabels[vacancy.status] || vacancy.status}</span>
+             </div>
+             {candidatos.length === 0 && (
+               <Button
+                 variant="destructive"
+                 size="sm"
+                 className="gap-2"
+                 onClick={() => setShowDeleteDialog(true)}
+               >
+                 <Trash2 className="w-4 h-4" />
+                 Excluir Vaga
+               </Button>
+             )}
+           </div>
          </div>
 
-         {/* Detalhes - Services Cards */}
-         {vacancy.services && vacancy.services.length > 0 ? (
-           <>
-             {vacancy.services.map((service, serviceIndex) => (
-               <Card key={serviceIndex} className="mb-4">
-                 <CardContent className="p-5">
-                   <div className="grid grid-cols-3 gap-3">
+          {/* Detalhes - Services Cards */}
+          {vacancy.services && vacancy.services.length > 0 ? (
+            <>
+              {vacancy.services.map((service, serviceIndex) => {
+                if (selectedServiceIndex !== serviceIndex) return null;
+                return (
+                <Card key={serviceIndex} className="mb-4">
+                  <CardContent className="p-5">
+                    <div className="grid grid-cols-3 gap-3">
                      {[
                        { icon: Calendar, value: formattedDate, label: "Data", color: "text-primary" },
                        { icon: Clock, value: service.jobTime, label: "Duração", color: "text-primary" },
@@ -690,16 +824,17 @@ const DetalheEventoContratante = () => {
                            {item.label !== "Valor/pessoa" && (
                              <p className="text-xs font-bold truncate max-w-[100px]">{item.value}</p>
                            )}
-                           <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                         </div>
-                       </div>
-                     ))}
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
-           </>
-          ) : (
+                            <p className="text-[10px] text-muted-foreground">{item.label}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+              })}
+            </>
+           ) : (
             /* Fallback to original layout if no services */
             <Card>
              <CardContent className="p-5">
@@ -844,37 +979,57 @@ const DetalheEventoContratante = () => {
           </Card>
         )}
 
-        {/* Freelancers Confirmados - status Fechado */}
+        {/* Freelancer Selecionado - status Fechado */}
         {vacancy.status === "closed" && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-success" /> Freelancers Confirmados
+                <UserCheck className="w-5 h-5 text-success" /> Freelancer Selecionado
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {confirmados.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer confirmado</p>
+              {!selectedClosedFreelancer ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Nenhum freelancer selecionado</p>
               ) : (
-                confirmados.map((candidato) => (
-                  <div key={candidato.id} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer" onClick={() => setSelectedFreelancer(candidato)}>
-                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shrink-0">
-                      {candidato.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{candidato.name}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <Star className="w-3 h-3 fill-primary text-primary" />
-                        <span className="text-xs font-medium">{candidato.rating}</span>
-                        <span className="text-xs text-muted-foreground">({candidato.reviews})</span>
-                        <span className="text-xs text-muted-foreground ml-1">• {candidato.jobs} jobs</span>
-                      </div>
-                    </div>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => setSelectedFreelancer(candidato)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                <div
+                  className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  onClick={() => setSelectedFreelancer(selectedClosedFreelancer)}
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold shrink-0 overflow-hidden">
+                    {selectedClosedFreelancer.avatarUrl ? (
+                      <img
+                        src={selectedClosedFreelancer.avatarUrl}
+                        alt={`Foto de perfil de ${selectedClosedFreelancer.name}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      selectedClosedFreelancer.avatar
+                    )}
                   </div>
-                ))
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{selectedClosedFreelancer.name}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Star className="w-3 h-3 fill-primary text-primary" />
+                      <span className="text-xs font-medium">{selectedClosedFreelancer.rating}</span>
+                      <span className="text-xs text-muted-foreground">({selectedClosedFreelancer.reviews})</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <MessageSquare className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground truncate">{selectedClosedFreelancer.contactNumber}</span>
+                    </div>
+                  </div>
+                  <button
+                    className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/80 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFreelancer(selectedClosedFreelancer);
+                    }}
+                  >
+                    <Eye className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[10px] font-medium text-muted-foreground">Ver perfil</span>
+                  </button>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -1068,7 +1223,7 @@ const DetalheEventoContratante = () => {
                   </Button>
                 ) : null}
 
-                <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.id}`); }}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.providerId}`); }}>
                   <Eye className="w-4 h-4" /> Ver Perfil Completo <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -1336,6 +1491,41 @@ const DetalheEventoContratante = () => {
               {reviewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Enviar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal Excluir Vaga ──────────────────────────────────── */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">Excluir Vaga?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+              <Trash2 className="w-8 h-8 text-destructive" />
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Tem certeza que deseja excluir esta vaga? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3 w-full">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowDeleteDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1 gap-2"
+                onClick={handleDeleteVaga}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Excluir
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

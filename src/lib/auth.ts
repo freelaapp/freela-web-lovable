@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
+import { errorMessages } from "./error-messages";
 
 type BackendRole = "contractor" | "provider";
 type FrontendRole = "freelancer" | "contratante";
@@ -52,7 +53,7 @@ let refreshPromise: Promise<boolean> | null = null;
 /** Decode a JWT payload without external libraries */
 function decodeJwt(token: string): { id: string; exp: number; [key: string]: unknown } {
   const base64Url = token.split(".")[1];
-  if (!base64Url) throw new Error("Token JWT inválido.");
+  if (!base64Url) throw new Error(errorMessages.tokenNotFound);
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
   const jsonPayload = decodeURIComponent(
     atob(base64)
@@ -78,6 +79,8 @@ export function onAuthSuccess(newAuthToken: string): void {
     userData.role = mappedRole;
   }
   localStorage.setItem("authUser", JSON.stringify(userData));
+  
+  console.log("[Auth] onAuthSuccess - user saved:", userData);
 }
 
 /** Attempt to refresh the auth token using the httpOnly refresh cookie */
@@ -129,8 +132,14 @@ export function logout(): void {
 export async function initializeAuth(): Promise<boolean> {
   const tokenRaw = localStorage.getItem("authToken");
   const expRaw = localStorage.getItem("authTokenExpirationTime");
+  const authUserRaw = localStorage.getItem("authUser");
 
-  if (!tokenRaw) return false;
+  console.log("[initializeAuth] Checking auth - token exists:", !!tokenRaw, "user:", authUserRaw);
+
+  if (!tokenRaw) {
+    console.log("[initializeAuth] No token, returning false");
+    return false;
+  }
 
   const expirationTime = expRaw ? JSON.parse(expRaw) : 0;
   const now = Date.now();
@@ -190,6 +199,7 @@ export async function initializeAuth(): Promise<boolean> {
     }
   }
 
+  console.log("[initializeAuth] Returning true - user is authenticated");
   return true;
 }
 

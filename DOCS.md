@@ -2,7 +2,7 @@
 
 Este documento descreve a arquitetura, a estrutura de pastas e a integração com a API do projeto Freela.
 
-## 🏗️ Arquitetura do Projeto
+## Arquitetura do Projeto.
 
 O projeto é uma aplicação web moderna construída com:
 

@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { registerProvider } from "@/lib/api";
 import { getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { errorMessages } from "@/lib/error-messages";
 
 const areasAtuacao = [
   { id: "barista", label: "Barista" },
@@ -92,9 +93,9 @@ const CadastroFreelancerAreas = () => {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (areasSelecionadas.length === 0) e.areas = "Selecione pelo menos uma área de atuação";
+    if (areasSelecionadas.length === 0) e.areas = errorMessages.selectAtLeastOne("área de atuação");
     if (diasAtivos.length === 0) {
-      e.dias = "Selecione pelo menos um dia disponível";
+      e.dias = errorMessages.selectAtLeastOne("dia disponível");
     } else {
       // Validação de 6 horas para cada dia ativo
       for (const diaKey of diasAtivos) {
@@ -103,7 +104,7 @@ const CadastroFreelancerAreas = () => {
         const hAte = parseInt(h.ate.replace("h", ""));
         if (hAte - hDe < 6) {
           const label = diasSemana.find((d) => d.key === diaKey)?.label;
-          e.dias = `O dia ${label} deve ter no mínimo 6 horas de disponibilidade.`;
+          e.dias = errorMessages.minHours(label || "", 6, hAte - hDe);
           break;
         }
       }
@@ -143,7 +144,7 @@ const CadastroFreelancerAreas = () => {
       const viacep = viacepRaw ? JSON.parse(viacepRaw) : { ibge: "", gia: "", ddd: "", siafi: "" };
 
       if (!userId) {
-        toast({ title: "Sessão expirada", description: "Faça login novamente.", variant: "destructive" });
+        toast({ title: errorMessages.sessionExpired, description: "Faça login novamente.", variant: "destructive" });
         navigate("/login");
         setIsLoading(false);
         return;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { loginUser, apiFetch, SessionExpiredError } from "@/lib/api";
 import { onAuthSuccess, getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
+import { errorMessages } from "@/lib/error-messages";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
@@ -60,21 +61,29 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { toast } = useToast();
-  const { loginSuccess } = useAuth();
+  const { loginSuccess, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      const userRole = localStorage.getItem("authUser");
+      const role = userRole ? JSON.parse(userRole).role : "freelancer";
+      navigate(role === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer", { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
 
     if (!email) {
-      newErrors.email = "Email é obrigatório";
+      newErrors.email = errorMessages.required(errorMessages.fields.email);
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Digite um email válido";
+      newErrors.email = errorMessages.invalidEmail;
     }
 
     if (!password) {
-      newErrors.password = "Senha é obrigatória";
+      newErrors.password = errorMessages.required(errorMessages.fields.senha);
     } else if (password.length < 6) {
-      newErrors.password = "Senha deve ter pelo menos 6 caracteres";
+      newErrors.password = errorMessages.passwordTooShort;
     }
 
     setErrors(newErrors);
@@ -100,6 +109,26 @@ const Login = () => {
       }
 
       const finalRole = userRole || "freelancer";
+      
+      if (!authUser?.id) {
+        const tokenRaw = localStorage.getItem("authToken");
+        if (tokenRaw) {
+          const token = JSON.parse(tokenRaw);
+          try {
+            const decoded = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+            localStorage.setItem("authUser", JSON.stringify({ id: decoded.id, role: finalRole }));
+          } catch {
+            const userRes = await apiFetch(`${API_BASE_URL}/users/me`, { method: "GET" });
+            if (userRes.ok) {
+              const userBody = await userRes.json();
+              if (userBody?.data?.id) {
+                localStorage.setItem("authUser", JSON.stringify({ id: userBody.data.id, role: finalRole }));
+              }
+            }
+          }
+        }
+      }
+
       loginSuccess(authUser?.id ?? "", finalRole);
 
       toast({
@@ -110,12 +139,12 @@ const Login = () => {
     } catch (err: unknown) {
       const message =
         err instanceof TypeError
-          ? "Falha de conexão. Verifique sua internet e tente novamente."
+          ? errorMessages.connectionError
           : err instanceof SessionExpiredError
-          ? "Sua sessão expirou. Faça login novamente."
+          ? errorMessages.sessionExpired
           : err instanceof Error
-          ? err.message || "E-mail ou senha inválidos. Tente novamente."
-          : "E-mail ou senha inválidos. Tente novamente.";
+          ? err.message || errorMessages.invalidCredentials
+          : errorMessages.invalidCredentials;
       toast({
         title: "Erro no login",
         description: message,

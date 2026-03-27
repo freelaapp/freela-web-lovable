@@ -1,5 +1,5 @@
 import { Clock, Users, Briefcase } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface VagaCardProps {
   id: string;
@@ -12,20 +12,31 @@ interface VagaCardProps {
 
 const statusLabels: Record<string, string> = {
   open: "Aberta",
-  "in hiring": "Em contratação",
+  pending: "Pendente",
+  accepted: "Aceita",
+  rejected: "Recusada",
+  confirmed: "Confirmada",
   closed: "Preenchida",
   removed: "Concluída",
+  completed: "Concluída",
+  "in hiring": "Em contratação",
 };
 
 const statusStyles: Record<string, string> = {
   open: "bg-success-light text-success",
-  "in hiring": "bg-warning-light text-warning",
+  pending: "bg-warning-light text-warning",
+  accepted: "bg-success-light text-success",
+  rejected: "bg-destructive/10 text-destructive",
+  confirmed: "bg-success-light text-success",
   closed: "bg-primary-light text-primary",
   removed: "bg-muted text-muted-foreground",
+  completed: "bg-muted text-muted-foreground",
+  "in hiring": "bg-warning-light text-warning",
 };
 
 const VagaCard = ({ id, assignment, quantity, jobDate, status, serviceIndex = 0 }: VagaCardProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const formattedDate = (() => {
     try {
@@ -35,10 +46,20 @@ const VagaCard = ({ id, assignment, quantity, jobDate, status, serviceIndex = 0 
     }
   })();
 
+  const handleClick = () => {
+    const currentState = location.state as Record<string, unknown> || {};
+    navigate(`/evento/${id}`, { 
+      state: { 
+        ...currentState,
+        serviceIndex 
+      } 
+    });
+  };
+
   return (
     <div
       className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-      onClick={() => navigate(`/evento/${id}`, { state: { serviceIndex } })}
+      onClick={handleClick}
     >
       <div className="w-12 h-12 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
         <Briefcase className="w-5 h-5 text-primary" />

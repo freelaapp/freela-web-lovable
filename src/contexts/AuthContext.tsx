@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { initializeAuth, logout as logoutUtil, getAuthUser, setUserRoleInStorage } from "@/lib/auth";
 import { registerSessionExpiredHandler } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { errorMessages } from "@/lib/error-messages";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
@@ -68,13 +69,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "/escolher-perfil",
         "/cadastro-contratante",
         "/cadastro-freelancer",
-        "/confirmar-email"
+        "/confirmar-email",
+        "/ajuda",
+        "/ajuda-contratante",
       ];
       if (!publicPaths.includes(window.location.pathname)) {
         navigateRef.current("/", { replace: true });
         toastRef.current({
           title: "Sessão expirada",
-          description: "Seu login expirou. Faça login novamente para continuar.",
+          description: errorMessages.sessionExpired,
           variant: "destructive",
         });
       }
@@ -91,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       navigateRef.current("/", { replace: true });
       toastRef.current({
         title: "Sessão expirada",
-        description: "Seu login expirou. Faça login novamente para continuar.",
+        description: errorMessages.sessionExpired,
         variant: "destructive",
       });
     });

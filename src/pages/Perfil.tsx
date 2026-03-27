@@ -12,22 +12,12 @@ import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
 import { updateProviderAvailability, updateProviderProfileImage } from "@/lib/api";
 import { toast } from "sonner";
+import { errorMessages } from "@/lib/error-messages";
+import { pickImageUrlFromPayload } from "@/lib/image";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 type ContractorType = "empresas" | "casa_cnpj" | "casa_cpf";
-
-const bufferToDataUrl = (img: any): string | null => {
-  if (!img) return null;
-  if (typeof img === "string") return img;
-  if (img.type === "Buffer" && Array.isArray(img.data)) {
-    const bytes = new Uint8Array(img.data);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    return `data:image/jpeg;base64,${btoa(binary)}`;
-  }
-  return null;
-};
 
 const freelancerMenuItems = [
 { icon: User, label: "Meus Dados", href: "/meus-dados", description: "Editar perfil e informações" },
@@ -91,6 +81,7 @@ const Perfil = () => {
   // Availability editing
   const [editingAvailability, setEditingAvailability] = useState(false);
   const [savingAvailability, setSavingAvailability] = useState(false);
+  const [providerId, setProviderId] = useState<string | null>(null);
   const [savedDiasAtivos, setSavedDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex"]);
   const [savedHorarios, setSavedHorarios] = useState<Horarios>({ ...horarios });
 
@@ -181,6 +172,8 @@ const Perfil = () => {
           const pBody = await providerRes.json();
           const raw = pBody?.data ?? pBody;
           providerData = Array.isArray(raw) ? raw[0] ?? {} : raw;
+          // Save provider ID for later use
+          if (providerData.id) setProviderId(providerData.id);
         }
 
         let userName = "";
@@ -190,7 +183,15 @@ const Perfil = () => {
           userName = uData?.name || "";
         }
 
-        const avatar = bufferToDataUrl(providerData.profileImage);
+        const avatar = pickImageUrlFromPayload(providerData, [
+          "profileImage",
+          "profileImageUrl",
+          "avatarUrl",
+          "avatar",
+          "image",
+          "imageUrl",
+          "photoUrl",
+        ]);
 
          // Process availability from 'availability' field (JSON string)
          const availabilityData = providerData.availability;
@@ -296,11 +297,17 @@ const Perfil = () => {
         else if (d.cnpj && !d.establishmentFacadeImage && !d.companyName) detected = "casa_cnpj";
         setContractorType(detected);
 
-        const avatar = bufferToDataUrl(d.establishmentFacadeImage) || bufferToDataUrl(d.profileImage);
+        const avatar = pickImageUrlFromPayload(d, [
+          "establishmentFacadeImage",
+          "profileImage",
+          "profileImageUrl",
+          "avatarUrl",
+          "image",
+        ]);
 
-        const facadeUrl = bufferToDataUrl(d.establishmentFacadeImage);
+        const facadeUrl = pickImageUrlFromPayload(d, ["establishmentFacadeImage", "facadeImage", "image"]);
         if (facadeUrl) setFotoFachada(facadeUrl);
-        const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
+        const interiorUrl = pickImageUrlFromPayload(d, ["establishmentInteriorImage", "interiorImage", "image"]);
         if (interiorUrl) setFotoInterno(interiorUrl);
 
         setContractorData({
@@ -349,7 +356,8 @@ const Perfil = () => {
   };
 
   const handleProfileImageUpload = async (file: File) => {
-    // Apenas freelancer pode usar este endpoint
+    const previewUrl = URL.createObjectURL(file);
+
     if (isContratante) {
       toast.error("Apenas freelancers podem alterar a foto de perfil por este método.");
       return;
@@ -357,7 +365,7 @@ const Perfil = () => {
 
     try {
       await updateProviderProfileImage(file);
-      setAvatarUrl(URL.createObjectURL(file));
+      setFreelancerData((prev) => ({ ...prev, avatarUrl: previewUrl }));
       toast.success("Foto de perfil atualizada com sucesso!");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erro ao atualizar a foto de perfil.";
@@ -414,7 +422,7 @@ const Perfil = () => {
         // Get auth token
         const tokenRaw = localStorage.getItem("authToken");
         if (!tokenRaw) {
-          toast.error("Sessão expirada. Faça login novamente.");
+          toast.error(errorMessages.sessionExpired);
           return;
         }
         const token = JSON.parse(tokenRaw);
@@ -498,7 +506,11 @@ const Perfil = () => {
       }
 
       setSavingAvailability(true);
-      await updateProviderAvailability({
+      if (!providerId) {
+        toast.error("ID do provider não encontrado.");
+        return;
+      }
+      await updateProviderAvailability(providerId, {
         diasAtivos,
         horarios,
       });

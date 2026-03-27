@@ -1,13 +1,13 @@
 # Testes de Persistência de Horários de Disponibilidade
 
-## 🎯 Objetivo
+##🎯 Objetivo
 Validar que horários definidos para sábado e domingo persistem após recarregar a página, navegar e fechar/reabrir o navegador.
 
 ## 📋 Casos de Teste
 
 ### Teste 1: Adicionar Sábado e Domingo (Happy Path)
 **Pré-requisito:** Usuário autenticado como freelancer, na página `/perfil`
-
+...
 **Passos:**
 1. Clique no botão ✏️ (editar) na seção "Disponibilidade de horário"
 2. Clique em "Sáb" para ativar sábado

@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { confirmEmail, generateEmailConfirmationCode, registerUser } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { onAuthSuccess } from "@/lib/auth";
+import { errorMessages } from "@/lib/error-messages";
 
 const RESEND_COOLDOWN = 60;
 
@@ -120,10 +121,10 @@ const ConfirmarEmail = () => {
       navigate("/escolher-perfil");
     } catch (err: any) {
        const msg = err?.message || "";
-       const message =
-         err instanceof TypeError
-           ? "Falha de conexão. Verifique sua internet e tente novamente."
-           : msg || "Código inválido ou expirado. Tente novamente.";
+const message =
+          err instanceof TypeError
+            ? errorMessages.connectionError
+            : msg || errorMessages.confirmationCodeInvalid;
        setError(message);
      } finally {
        setIsLoading(false);
