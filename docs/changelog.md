@@ -7,6 +7,12 @@ seguindo [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ## [Unreleased]
 
 ### Fixed
+- **`src/pages/DetalheEventoContratante.tsx` — exclusão de vaga sem redirecionamento consistente**
+  - Fluxo de exclusão atualizado para redirecionar **sempre** para `/dashboard-contratante` após sucesso (em vez de `navigate(-1)`).
+  - Estado local (`vacancy` e `candidatos`) é limpo antes da navegação para evitar resquício visual na tela.
+  - Em caso de erro na exclusão, o usuário permanece na tela com feedback claro via toast destrutivo (sem redirecionamento indevido).
+
+### Fixed
 - **Imagem de perfil em fluxos de provider não renderizava em alguns cenários**
   - Criado utilitário `src/lib/image.ts` para normalizar URLs de imagem (incluindo `http`→`https`, domínio sem protocolo, objetos com `url/src/location` e payloads em formato `Buffer`).
   - Ajustado mapeamento de campos de imagem em `MeusDados`, `Perfil` e `DetalheEventoContratante` para suportar variantes de contrato (`profileImage`, `profileImageUrl`, `avatar`, `image`, `photoUrl`, etc.).

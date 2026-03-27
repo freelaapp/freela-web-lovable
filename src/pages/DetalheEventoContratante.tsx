@@ -538,13 +538,18 @@ const DetalheEventoContratante = () => {
      if (!eventoId) return;
      setShowDeleteDialog(false);
      setDeleteLoading(true);
-     try {
-       await deleteVacancy(eventoId);
-       toast({ title: "Vaga excluída!", description: "A vaga foi removida com sucesso." });
-       navigate(-1);
-     } catch (err: any) {
-       toast({ title: "Erro ao excluir", description: err.message || "Tente novamente.", variant: "destructive" });
-     } finally {
+      try {
+        await deleteVacancy(eventoId);
+        // Limpa estado local para evitar qualquer resquício visual
+        // caso haja atraso entre resposta e navegação.
+        setVacancy(null);
+        setCandidatos([]);
+        toast({ title: "Vaga excluída!", description: "A vaga foi removida com sucesso." });
+        // Regra de produto: após exclusão, retornar imediatamente ao dashboard.
+        navigate("/dashboard-contratante", { replace: true });
+      } catch (err: any) {
+        toast({ title: "Erro ao excluir", description: err.message || "Tente novamente.", variant: "destructive" });
+      } finally {
        setDeleteLoading(false);
      }
    };
