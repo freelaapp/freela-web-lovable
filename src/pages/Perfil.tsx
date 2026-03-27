@@ -13,29 +13,11 @@ import { servicosPF } from "@/lib/services";
 import { updateProviderAvailability, updateProviderProfileImage, fetchImageWithAuth } from "@/lib/api";
 import { toast } from "sonner";
 import { errorMessages } from "@/lib/error-messages";
+import { pickImageUrlFromPayload } from "@/lib/image";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 type ContractorType = "empresas" | "casa_cnpj" | "casa_cpf";
-
-const bufferToDataUrl = (img: any): string | null => {
-  if (!img) return null;
-  if (typeof img === "string") {
-    if (img.startsWith("data:") || img.startsWith("http") || img.startsWith("/")) return img;
-    if (img.startsWith("/9j/") || img.startsWith("iVBOR") || img.startsWith("R0lGO") || img.startsWith("UklGR")) {
-      const mime = img.startsWith("/9j/") ? "jpeg" : img.startsWith("iVBOR") ? "png" : img.startsWith("R0lGO") ? "gif" : "webp";
-      return `data:image/${mime};base64,${img}`;
-    }
-    return img;
-  }
-  if (img.type === "Buffer" && Array.isArray(img.data)) {
-    const bytes = new Uint8Array(img.data);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    return `data:image/jpeg;base64,${btoa(binary)}`;
-  }
-  return null;
-};
 
 const freelancerMenuItems = [
 { icon: User, label: "Meus Dados", href: "/meus-dados", description: "Editar perfil e informações" },
@@ -204,32 +186,15 @@ const Perfil = () => {
           userName = uData?.name || "";
         }
 
-        // Step 2: GET /providers/{id} as primary data source for details
-        let providerData: any = { ...providerListData };
-        if (pId) {
-          const detailRes = await fetch(`${API_BASE_URL}/providers/${pId}`, {
-            method: "GET", credentials: "include", headers, signal: abortController.signal,
-          });
-          if (detailRes.ok) {
-            const detailBody = await detailRes.json();
-            const detailData = detailBody?.data ?? detailBody;
-            // Sempre usa o profileImage do GET /users/providers (fonte da verdade)
-            detailData.profileImage = providerListData.profileImage;
-            providerData = detailData;
-          }
-        }
-
-        const avatarRaw = bufferToDataUrl(providerData.profileImage);
-        let avatar: string | null = null;
-        if (avatarRaw) {
-          if (avatarRaw.startsWith("data:")) {
-            avatar = avatarRaw;
-          } else if (avatarRaw.startsWith("http")) {
-            avatar = avatarRaw;
-          } else if (avatarRaw.startsWith("/")) {
-            avatar = `${API_BASE_URL}${avatarRaw}`;
-          }
-        }
+        const avatar = pickImageUrlFromPayload(providerData, [
+          "profileImage",
+          "profileImageUrl",
+          "avatarUrl",
+          "avatar",
+          "image",
+          "imageUrl",
+          "photoUrl",
+        ]);
 
          // Process availability from 'availability' field (JSON string)
          const availabilityData = providerData.availability;
@@ -335,19 +300,17 @@ const Perfil = () => {
         else if (d.cnpj && !d.establishmentFacadeImage && !d.companyName) detected = "casa_cnpj";
         setContractorType(detected);
 
-        const avatarRawC = bufferToDataUrl(d.profileImage) || bufferToDataUrl(d.establishmentFacadeImage);
-        let avatar: string | null = null;
-        if (avatarRawC) {
-          if (avatarRawC.startsWith("data:") || avatarRawC.startsWith("http")) {
-            avatar = avatarRawC;
-          } else if (avatarRawC.startsWith("/")) {
-            avatar = `${API_BASE_URL}${avatarRawC}`;
-          }
-        }
+        const avatar = pickImageUrlFromPayload(d, [
+          "establishmentFacadeImage",
+          "profileImage",
+          "profileImageUrl",
+          "avatarUrl",
+          "image",
+        ]);
 
-        const facadeUrl = bufferToDataUrl(d.establishmentFacadeImage);
+        const facadeUrl = pickImageUrlFromPayload(d, ["establishmentFacadeImage", "facadeImage", "image"]);
         if (facadeUrl) setFotoFachada(facadeUrl);
-        const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
+        const interiorUrl = pickImageUrlFromPayload(d, ["establishmentInteriorImage", "interiorImage", "image"]);
         if (interiorUrl) setFotoInterno(interiorUrl);
 
         setContractorData({

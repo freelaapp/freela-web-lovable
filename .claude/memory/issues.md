@@ -72,3 +72,12 @@ Este projeto está em produção — qualquer issue aberto pode estar afetando u
 - **Arquivo principal**: `src/pages/DetalheEventoContratante.tsx`
 - **Status**: Resolvido (2026-03-25)
 - **Evidencia QA**: ✅ APROVADO | Build OK | Testes 83/83 PASS
+
+### [ISSUE-004] Exclusao de vaga sem redirecionamento consistente — RESOLVIDO
+- **Data**: 2026-03-27
+- **Dominio**: Frontend / Detalhe de vaga (contratante)
+- **Sintoma**: Apos excluir vaga, o fluxo de navegacao era inconsistente (dependia de `navigate(-1)`), podendo retornar para tela inadequada.
+- **Causa raiz**: Estrategia de pos-acao baseada em historico de navegacao, sem destino canonico para o sucesso da exclusao.
+- **Solucao implementada**: Redirecionamento fixo para `/dashboard-contratante` apos exclusao bem-sucedida; limpeza de estado local (`vacancy`, `candidatos`) antes de navegar; em erro, permanece na tela com toast destrutivo.
+- **Arquivo alterado**: `src/pages/DetalheEventoContratante.tsx`
+- **Evidencia QA**: ✅ APROVADO | Fluxo de exclusao validado | Build OK

@@ -14,9 +14,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
-import { errorMessages } from "@/lib/error-messages";
-import { fetchImageWithAuth, apiFetch } from "@/lib/api";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -64,29 +62,6 @@ const getHeaders = (token: string) => ({
   "Origin-type": ORIGIN_TYPE,
   Authorization: `Bearer ${token}`,
 });
-
-const bufferToDataUrl = (img: any): string | null => {
-  if (!img) return null;
-  if (typeof img === "string") {
-    // Already a data URL or http(s) URL
-    if (img.startsWith("data:") || img.startsWith("http") || img.startsWith("/")) return img;
-    // Raw base64 string (no prefix) — detect by checking common image magic bytes
-    if (img.startsWith("/9j/") || img.startsWith("iVBOR") || img.startsWith("R0lGO") || img.startsWith("UklGR")) {
-      const mime = img.startsWith("/9j/") ? "jpeg" : img.startsWith("iVBOR") ? "png" : img.startsWith("R0lGO") ? "gif" : "webp";
-      return `data:image/${mime};base64,${img}`;
-    }
-    return img;
-  }
-  if (img.type === "Buffer" && Array.isArray(img.data)) {
-    const bytes = new Uint8Array(img.data);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return `data:image/jpeg;base64,${btoa(binary)}`;
-  }
-  return null;
-};
 
 // Snapshot helpers for change detection
 interface UserSnapshot { nome: string; email: string; telefone: string }
@@ -288,62 +263,56 @@ const MeusDados = () => {
             const pcd = prov.deficiency === true || prov.deficiency === "true" || prov.deficiency === 1;
             setIsPCD(pcd);
 
-            // Profile image — from GET /providers/{id}
-            const imgUrl = bufferToDataUrl(prov.profileImage);
-            if (imgUrl) {
-              if (imgUrl.startsWith("data:") || imgUrl.startsWith("http")) {
-                setProfileImageUrl(imgUrl);
-                setOrigProfileImage(imgUrl);
-              } else if (imgUrl.startsWith("/")) {
-                setProfileImageUrl(`${API_BASE_URL}${imgUrl}`);
-                setOrigProfileImage(`${API_BASE_URL}${imgUrl}`);
-              }
-            }
+           // Profile image
+           const imgUrl = pickImageUrlFromPayload(prov, [
+             "profileImage",
+             "profileImageUrl",
+             "avatarUrl",
+             "avatar",
+             "image",
+             "imageUrl",
+             "photoUrl",
+           ]);
+           if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
 
-            // Desired job vacancy
-            const djv = prov.desiredJobVacancy ?? "";
-            const areas = parseAreasFromApi(djv);
-            setAreasSelecionadas(areas);
+           // Desired job vacancy
+           const djv = prov.desiredJobVacancy ?? "";
+           const areas = parseAreasFromApi(djv);
+           setAreasSelecionadas(areas);
 
-            // Address
-            console.log("[DEBUG] Address from API:", {
-              cep: prov.cep,
-              street: prov.street,
-              complement: prov.complement,
-              neighborhood: prov.neighborhood,
-              number: prov.number,
-              city: prov.city,
-              uf: prov.uf,
-            });
-            const cepVal = prov.cep ? maskCEP(prov.cep) : "";
-            setCep(cepVal);
-            setRua(prov.street ?? "");
-            setComplemento(prov.complement ?? "");
-            setBairro(prov.neighborhood ?? "");
-            setNumero(prov.number ?? "");
-            setCidade(prov.city ?? "");
-            setEstado(prov.uf ?? "");
+           // Address
+           const cepVal = prov.cep ? maskCEP(prov.cep) : "";
+           setCep(cepVal);
+           setRua(prov.street ?? "");
+           setComplemento(prov.complement ?? "");
+           setBairro(prov.neighborhood ?? "");
+           setNumero(prov.number ?? "");
+           setCidade(prov.city ?? "");
+           setEstado(prov.uf ?? "");
 
-            if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
-              setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
-            }
+           // ViaCEP meta from API
+           if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
+             setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
+           }
 
-            const ecn = prov.emergencyContactName ?? "";
-            const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
-            const ecr = prov.emergencyContactRelationship ?? "";
-            setContatoEmergNome(ecn);
-            setContatoEmergTelefone(ect);
-            setContatoEmergParentesco(ecr);
+           // Emergency contact
+           const ecn = prov.emergencyContactName ?? "";
+           const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
+           const ecr = prov.emergencyContactRelationship ?? "";
+           setContatoEmergNome(ecn);
+           setContatoEmergTelefone(ect);
+           setContatoEmergParentesco(ecr);
 
-            const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
-            pSnap = {
-              dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
-              contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
-              cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
-              bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
-              cidade: prov.city ?? "", estado: prov.uf ?? "",
-            };
+           const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
+           pSnap = {
+             dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
+             contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
+             cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
+             bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
+             cidade: prov.city ?? "", estado: prov.uf ?? "",
+           };
 
+            // PIX - pegar da resposta de /users/providers
             const rawPixType = prov.pixKeyType ?? "";
             const rawPixValue = prov.pixKeyValue ?? "";
             const normalizePixType = (type: string): string => {
@@ -734,7 +703,7 @@ const MeusDados = () => {
             </div>
             <div className="space-y-2">
               <Label>Data de Nascimento</Label>
-              <WheelDatePicker value={dataNascimento} onChange={setDataNascimento} />
+              <DatePicker value={dataNascimento} onChange={setDataNascimento} />
             </div>
             <div className="space-y-2">
               <Label>Sexo</Label>
