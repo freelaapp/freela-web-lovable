@@ -9,7 +9,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { formatCurrency } from "@/lib/formatters";
-import { WheelDatePicker } from "@/components/ui/wheel-date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface HistoryItem {
   nome: string;
@@ -245,11 +245,11 @@ const Carteira = () => {
             </h3>
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium">De</p>
-              <WheelDatePicker value={filtroInicio} onChange={setFiltroInicio} />
+              <DatePicker value={filtroInicio} onChange={setFiltroInicio} />
             </div>
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Até</p>
-              <WheelDatePicker value={filtroFim} onChange={setFiltroFim} />
+              <DatePicker value={filtroFim} onChange={setFiltroFim} />
             </div>
             {loading ? (
               <div className="h-48 flex items-center justify-center">
