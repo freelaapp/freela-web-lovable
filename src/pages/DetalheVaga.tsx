@@ -112,6 +112,7 @@ const DetalheVaga = () => {
    const [reviewComment, setReviewComment] = useState("");
    const [reviewLoading, setReviewLoading] = useState(false);
    const [reviewDone, setReviewDone] = useState(false);
+   const [paymentDone, setPaymentDone] = useState(false);
    // Contratante data
    const [contractorName, setContractorName] = useState<string>("--");
    const [contractorFeedback, setContractorFeedback] = useState<number>(0);
@@ -291,9 +292,14 @@ const DetalheVaga = () => {
        if (stepKey === "fim") {
          return checkoutDone ? "done" : "in_progress";
        }
+       if (stepKey === "pagamento") {
+         if (paymentDone) return "done";
+         if (checkoutDone) return "in_progress";
+         return "pending";
+       }
        if (stepKey === "feedback") {
          if (reviewDone) return "done";
-         if (checkoutDone) return "in_progress";
+         if (paymentDone) return "in_progress";
          return "pending";
        }
        return "pending";
@@ -353,14 +359,15 @@ toast.error(errorMessages.checkinCodeRequired);
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify({ jobId, providerId, code: checkoutCode }),
        });
-       if (!res.ok) {
-         const body = await res.json().catch(() => null);
-         throw new Error(body?.message || "Código inválido. Tente novamente.");
-       }
-       setCheckoutDone(true);
-       setShowCheckoutModal(false);
-       setCheckoutCode("");
-       toast.success("Check-out realizado com sucesso!");
+         if (!res.ok) {
+           const body = await res.json().catch(() => null);
+           throw new Error(body?.message || "Código inválido. Tente novamente.");
+         }
+
+         setCheckoutDone(true);
+         setShowCheckoutModal(false);
+         setCheckoutCode("");
+         toast.success("Check-out realizado com sucesso!");
      } catch (err: any) {
        console.error("[DetalheVaga] checkout error:", err);
        toast.error(err.message || "Erro ao validar código. Tente novamente.");
@@ -368,6 +375,34 @@ toast.error(errorMessages.checkinCodeRequired);
        setCheckoutLoading(false);
      }
    };
+
+   useEffect(() => {
+     if (!isAgendada || !checkoutDone || paymentDone) return;
+     const jobId = jobIdFromState || vagaId;
+     if (!jobId) return;
+
+     let cancelled = false;
+     const poll = async () => {
+       if (cancelled) return;
+       try {
+         const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
+         const data = await res.json().catch(() => null);
+         const jobStatus = data?.data?.status || data?.status;
+         if (jobStatus === "completed" || jobStatus === "partially completed") {
+           setPaymentDone(true);
+           return;
+         }
+       } catch (err) {
+         console.error("[DetalheVaga] payment poll error:", err);
+       }
+       if (!cancelled) {
+         setTimeout(poll, 10000);
+       }
+     };
+     poll();
+
+     return () => { cancelled = true; };
+   }, [isAgendada, checkoutDone, paymentDone, jobIdFromState, vagaId]);
 
    const handleSubmitReview = async () => {
      if (reviewStars === 0) {
