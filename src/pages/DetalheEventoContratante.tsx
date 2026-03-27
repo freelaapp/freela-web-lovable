@@ -50,7 +50,7 @@ const statusLabels: Record<string, string> = {
   "in hiring": "Em contratação",
   "partially completed": "Parcialmente concluída",
   unavailable: "Indisponível",
-  schedule: "Agendada",
+  scheduled: "Agendada",
   "in progress": "Em andamento",
 };
 
@@ -66,7 +66,7 @@ const statusStyles: Record<string, string> = {
   "in hiring": "bg-warning-light text-warning",
   "partially completed": "bg-muted text-muted-foreground",
   unavailable: "bg-muted text-muted-foreground",
-  schedule: "bg-primary-light text-primary",
+  scheduled: "bg-primary-light text-primary",
   "in progress": "bg-primary-light text-primary",
 };
 
@@ -179,7 +179,7 @@ const DetalheEventoContratante = () => {
            if (paid === true || paid === "true") {
              await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
              console.log("[Pusher] job scheduled after payment confirmation");
-             setTimelineStep(2);
+             setTimelineStep(prev => Math.max(prev, 2));
              setShowPixModal(false);
              toast({ title: "Pagamento confirmado!", description: "O job foi agendado com sucesso." });
            } else {
@@ -201,23 +201,11 @@ const DetalheEventoContratante = () => {
       toast({ title: "Check-in realizado!", description: "O freelancer iniciou o trabalho." });
     });
 
-    // Check-out channel
-    const checkOutChannel = pusher.subscribe("check-outs");
-    checkOutChannel.bind("checkout.completed", (data: any) => {
-      console.log("[Pusher] checkout.completed", data);
-      if (eventoId) {
-        fetchJobStatus(eventoId);
-      }
-      toast({ title: "Check-out realizado!", description: "O freelancer finalizou o trabalho." });
-    });
-
     return () => {
       paymentChannel.unbind_all();
       checkInChannel.unbind_all();
-      checkOutChannel.unbind_all();
       pusher.unsubscribe("payments");
       pusher.unsubscribe("check-ins");
-      pusher.unsubscribe("check-outs");
       pusher.disconnect();
     };
   }, [toast, eventoId]);
@@ -251,16 +239,24 @@ const DetalheEventoContratante = () => {
       }
       const body = await res.json().catch(() => null);
       const status = (body?.data?.status ?? body?.status ?? "").trim();
-      console.log("[JobStatus] job", jobId, "status:", JSON.stringify(status));
+      const paid = body?.data?.paid ?? body?.paid;
+      console.log("[JobStatus] job", jobId, "status:", JSON.stringify(status), "paid:", paid);
 
-      if (status === "unavailable") {
-        setTimelineStep(1);
-      } else if (status === "schedule") {
-        setTimelineStep(2);
+      if (status === "unavailable" && (paid === true || paid === "true")) {
+        // Pagamento manual detectado — agendar job automaticamente
+        await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
+        console.log("[JobStatus] Pagamento manual detectado, job agendado");
+        setTimelineStep(prev => Math.max(prev, 2));
+        setShowPixModal(false);
+        toast({ title: "Pagamento confirmado!", description: "O job foi agendado com sucesso." });
+      } else if (status === "scheduled") {
+        setTimelineStep(prev => Math.max(prev, 2));
       } else if (status === "in progress") {
-        setTimelineStep(3);
+        setTimelineStep(prev => Math.max(prev, 3));
       } else if (status === "completed" || status === "partially completed") {
-        setTimelineStep(4);
+        setTimelineStep(prev => Math.max(prev, 4));
+      } else if (status === "unavailable") {
+        setTimelineStep(prev => Math.max(prev, 1));
       }
     } catch (err) {
       console.error("[JobStatus] error fetching job status:", err);
@@ -480,8 +476,8 @@ const DetalheEventoContratante = () => {
      setActionLoadingIds(prev => new Set(prev).add(id));
      try {
        const result = await acceptCandidacy(id);
-       setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
-       if (timelineStep < 1) setTimelineStep(1);
+        setCandidatos(prev => prev.map(c => c.id === id ? { ...c, status: "aceito" as const } : c));
+        setTimelineStep(prev => Math.max(prev, 1));
        if (result?.vacancy?.status) {
          setVacancy(prev => prev ? { ...prev, status: result.vacancy.status } : prev);
        }
@@ -741,7 +737,7 @@ const DetalheEventoContratante = () => {
       console.log("[Review] terminate response:", terminateRes.status, terminateRes.ok);
 
       // Always mark feedback as done after successful feedback submission
-      setTimelineStep(5);
+      setTimelineStep(prev => Math.max(prev, 5));
       console.log("[Review] timelineStep set to 5");
 
       toast({ title: "Avaliação enviada!", description: "Obrigado pelo feedback." });
