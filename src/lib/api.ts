@@ -749,9 +749,9 @@ export async function updateProviderProfileImage(
   profileImage: File
 ): Promise<ProviderUpdateResponse> {
   const formData = new FormData();
-  formData.append('profileImage', profileImage);
+  formData.append('profileImage', profileImage, profileImage.name);
 
-  const response = await apiFetch(`${API_BASE_URL}/users`, {
+  const response = await apiFetch(`${API_BASE_URL}/providers`, {
     method: 'PUT',
     body: formData,
   });
@@ -763,6 +763,50 @@ export async function updateProviderProfileImage(
   }
 
   return body as ProviderUpdateResponse;
+}
+
+// ── Upload image to S3 via /images/upload ──────────────────────
+/**
+ * Uploads an image file to S3 via POST /images/upload.
+ * Returns the public S3 URL on success, or null on failure.
+ */
+export async function uploadImageToS3(file: File): Promise<string | null> {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const res = await apiFetch(`${API_BASE_URL}/images/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      console.error("[uploadImageToS3] failed:", body);
+      return null;
+    }
+    return body?.data?.url || body?.url || null;
+  } catch (err) {
+    console.error("[uploadImageToS3] error:", err);
+    return null;
+  }
+}
+
+// ── Fetch image with authentication ────────────────────────────
+/**
+ * Fetches a protected image URL using the Bearer token and returns a local blob URL.
+ * Use this instead of setting img src directly when the API requires auth for images.
+ */
+export async function fetchImageWithAuth(url: string): Promise<string | null> {
+  if (!url) return null;
+  if (url.startsWith("data:") || url.startsWith("blob:")) return url;
+  const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+  try {
+    const res = await apiFetch(fullUrl);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  } catch {
+    return null;
+  }
 }
 
 // ── Delete Vacancy ─────────────────────────────────────────────

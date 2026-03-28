@@ -7,6 +7,7 @@ import { ArrowLeft, Trash2, AlertTriangle, Building2, ImagePlus, MapPin, Loader2
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CitySelect from "@/components/CitySelect";
 import { errorMessages } from "@/lib/error-messages";
+import EditableAvatar from "@/components/EditableAvatar";
 
 const estadosBR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -290,6 +291,8 @@ const MeusDadosContratante = () => {
   // File objects for upload
   const [fachadaFile, setFachadaFile] = useState<File | null>(null);
   const [internoFile, setInternoFile] = useState<File | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
   // Casa CPF only
   const [cpf, setCpf] = useState("");
@@ -365,7 +368,14 @@ const MeusDadosContratante = () => {
         // Fotos (Buffer → base64 data URL)
         const bufferToDataUrl = (img: any): string | null => {
           if (!img) return null;
-          if (typeof img === "string") return img;
+          if (typeof img === "string") {
+            if (img.startsWith("data:") || img.startsWith("http") || img.startsWith("/")) return img;
+            if (img.startsWith("/9j/") || img.startsWith("iVBOR") || img.startsWith("R0lGO") || img.startsWith("UklGR")) {
+              const mime = img.startsWith("/9j/") ? "jpeg" : img.startsWith("iVBOR") ? "png" : img.startsWith("R0lGO") ? "gif" : "webp";
+              return `data:image/${mime};base64,${img}`;
+            }
+            return img;
+          }
           if (img.type === "Buffer" && Array.isArray(img.data)) {
             const bytes = new Uint8Array(img.data);
             let binary = "";
@@ -382,6 +392,10 @@ const MeusDadosContratante = () => {
 
         const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
         if (interiorUrl) { setFotoInterno(interiorUrl); setOriginalFotoInterno(interiorUrl); }
+
+        // Profile image
+        const profileUrl = bufferToDataUrl(d.profileImage);
+        if (profileUrl) { setProfileImagePreview(profileUrl); }
 
         // Collect values for snapshot
         const snapValues: FieldSnapshot = {
@@ -507,8 +521,9 @@ const MeusDadosContratante = () => {
     const hasUserChanges = currentUserSnap !== originalUserSnapshot;
     const hasFachadaChange = fachadaFile !== null;
     const hasInternoChange = internoFile !== null;
+    const hasProfileImageChange = profileImageFile !== null;
 
-    if (!hasFieldChanges && !hasUserChanges && !hasFachadaChange && !hasInternoChange) {
+    if (!hasFieldChanges && !hasUserChanges && !hasFachadaChange && !hasInternoChange && !hasProfileImageChange) {
       toast({ title: errorMessages.noChangesDetected, description: "Nenhum campo foi modificado." });
       return;
     }
@@ -528,7 +543,7 @@ const MeusDadosContratante = () => {
       const results: boolean[] = [];
 
       // 1. Update contractor fields if changed
-      if (hasFieldChanges || hasFachadaChange || hasInternoChange) {
+      if (hasFieldChanges || hasFachadaChange || hasInternoChange || hasProfileImageChange) {
         const cepDigits = cep.replace(/\D/g, "");
         const addressFields = {
           cep: cepDigits,
@@ -562,7 +577,9 @@ const MeusDadosContratante = () => {
           if (internoFile) formData.append("establishmentInteriorImage", internoFile);
         }
 
-        const res = await fetch(`${API_BASE_URL}/contractors/`, {
+        if (profileImageFile) formData.append("profileImage", profileImageFile, profileImageFile.name);
+
+        const res = await fetch(`${API_BASE_URL}/contractors`, {
           method: "PUT",
           credentials: "include",
           headers: {
@@ -576,6 +593,7 @@ const MeusDadosContratante = () => {
           setOriginalSnapshot(currentSnap);
           if (fachadaFile) { setOriginalFotoFachada(fotoFachada); setFachadaFile(null); }
           if (internoFile) { setOriginalFotoInterno(fotoInterno); setInternoFile(null); }
+          if (profileImageFile) setProfileImageFile(null);
           results.push(true);
         } else {
           const errBody = await res.text();
@@ -628,6 +646,14 @@ const MeusDadosContratante = () => {
     }
   };
 
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setProfileImagePreview(URL.createObjectURL(file));
+      setProfileImageFile(file);
+    }
+  };
+
   const handleFachadaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
@@ -665,6 +691,19 @@ const MeusDadosContratante = () => {
           </div>
         ) : (
         <>
+        {/* Foto de Perfil */}
+        <div className="flex justify-center">
+          <EditableAvatar
+            src={profileImagePreview}
+            fallback={userName?.[0] || "C"}
+            size="lg"
+            onFileSelect={(file) => {
+              setProfileImagePreview(URL.createObjectURL(file));
+              setProfileImageFile(file);
+            }}
+          />
+        </div>
+
         {/* Informações do Usuário */}
         <Card>
           <CardContent className="p-6 space-y-4">

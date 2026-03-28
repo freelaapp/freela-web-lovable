@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
-import { updateProviderAvailability, updateProviderProfileImage } from "@/lib/api";
+import { updateProviderAvailability, updateProviderProfileImage, fetchImageWithAuth } from "@/lib/api";
 import { toast } from "sonner";
 import { errorMessages } from "@/lib/error-messages";
 import { pickImageUrlFromPayload } from "@/lib/image";
@@ -158,7 +158,8 @@ const Perfil = () => {
         const token = JSON.parse(tokenRaw);
         const headers = { "Origin-type": "Web", "Authorization": `Bearer ${token}` };
 
-        const [providerRes, userRes] = await Promise.all([
+        // Step 1: get user info + provider ID
+        const [providerListRes, userRes] = await Promise.all([
           fetch(`${API_BASE_URL}/users/providers`, {
             method: "GET", credentials: "include", headers, signal: abortController.signal,
           }),
@@ -167,13 +168,15 @@ const Perfil = () => {
           }),
         ]);
 
-        let providerData: any = {};
-        if (providerRes.ok) {
-          const pBody = await providerRes.json();
+        let pId = "";
+        let providerListData: any = {};
+        if (providerListRes.ok) {
+          const pBody = await providerListRes.json();
           const raw = pBody?.data ?? pBody;
-          providerData = Array.isArray(raw) ? raw[0] ?? {} : raw;
-          // Save provider ID for later use
-          if (providerData.id) setProviderId(providerData.id);
+          const first = Array.isArray(raw) ? raw[0] ?? {} : raw;
+          pId = first?.id ?? "";
+          providerListData = first;
+          if (pId) setProviderId(pId);
         }
 
         let userName = "";
@@ -358,12 +361,11 @@ const Perfil = () => {
   const handleProfileImageUpload = async (file: File) => {
     const previewUrl = URL.createObjectURL(file);
 
-    if (isContratante) {
-      toast.error("Apenas freelancers podem alterar a foto de perfil por este método.");
-      return;
-    }
-
     try {
+      if (isContratante) {
+        toast.error("Para alterar a foto de perfil, acesse Meus Dados");
+        return;
+      }
       await updateProviderProfileImage(file);
       setFreelancerData((prev) => ({ ...prev, avatarUrl: previewUrl }));
       toast.success("Foto de perfil atualizada com sucesso!");

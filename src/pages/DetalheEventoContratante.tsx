@@ -86,6 +86,7 @@ interface Candidato {
   price: string;
   responseTime: string;
   bio: string;
+  gallery: string[];
 }
 
 const DetalheEventoContratante = () => {
@@ -406,14 +407,15 @@ const DetalheEventoContratante = () => {
                 avatarUrl,
                 contactNumber,
                 role: c.assignment || c.role || "",
-                rating: providerData.feedbackStars ?? c.rating ?? 0,
-                reviews: c.reviews ?? 0,
-               jobs: c.jobs ?? 0,
-               verified: c.verified ?? false,
+                rating: providerData.feedbackStars ?? providerData.rating ?? c.rating ?? 0,
+                reviews: providerData.feedbackCount ?? providerData.reviews ?? c.reviews ?? 0,
+               jobs: providerData.completedJobs ?? providerData.jobs ?? c.jobs ?? 0,
+               verified: providerData.verified ?? providerData.isVerified ?? c.verified ?? false,
                status: c.status === "accepted" ? "aceito" : c.status === "rejected" ? "recusado" : "pendente",
                price: c.price || c.jobValue || "",
                responseTime: c.responseTime || "",
-               bio: c.bio || c.description || "",
+               bio: providerData.bio || providerData.description || userData.bio || c.bio || c.description || "",
+               gallery: providerData.gallery || providerData.portfolioImages || providerData.photos || providerData.images || [],
              };
            });
            
@@ -1181,17 +1183,19 @@ const DetalheEventoContratante = () => {
                 </div>
 
 
-                {/* Placeholder fotos/vídeo */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">Galeria</h4>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="aspect-square rounded-xl bg-muted/50 flex items-center justify-center">
-                        <span className="text-xs text-muted-foreground">Foto {i}</span>
-                      </div>
-                    ))}
+                {/* Galeria */}
+                {selectedFreelancer.gallery && selectedFreelancer.gallery.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">Galeria</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {selectedFreelancer.gallery.slice(0, 6).map((url, i) => (
+                        <div key={i} className="aspect-square rounded-xl bg-muted/50 overflow-hidden">
+                          <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Actions */}
                  {selectedFreelancer.status === "pendente" ? (
@@ -1224,7 +1228,7 @@ const DetalheEventoContratante = () => {
                   </Button>
                 ) : null}
 
-                <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.providerId}`); }}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => { setSelectedFreelancer(null); navigate(`/freelancer/${selectedFreelancer.providerId}`, { state: { readonly: true } }); }}>
                   <Eye className="w-4 h-4" /> Ver Perfil Completo <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
