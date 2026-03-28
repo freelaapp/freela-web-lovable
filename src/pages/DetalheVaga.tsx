@@ -248,6 +248,34 @@ const DetalheVaga = () => {
      fetchContractorData();
    }, [contractorId]);
 
+   useEffect(() => {
+     if (!isAgendada || !checkoutDone || paymentDone) return;
+     const jobId = jobIdFromState || vagaId;
+     if (!jobId) return;
+
+     let cancelled = false;
+     const poll = async () => {
+       if (cancelled) return;
+       try {
+         const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
+         const data = await res.json().catch(() => null);
+         const jobStatus = data?.data?.status || data?.status;
+         if (jobStatus === "completed" || jobStatus === "partially completed") {
+           setPaymentDone(true);
+           return;
+         }
+       } catch (err) {
+         console.error("[DetalheVaga] payment poll error:", err);
+       }
+       if (!cancelled) {
+         setTimeout(poll, 10000);
+       }
+     };
+     poll();
+
+     return () => { cancelled = true; };
+   }, [isAgendada, checkoutDone, paymentDone, jobIdFromState, vagaId]);
+
   if (loading) {
     return (
       <AppLayout showFooter={false}>
@@ -375,34 +403,6 @@ toast.error(errorMessages.checkinCodeRequired);
        setCheckoutLoading(false);
      }
    };
-
-   useEffect(() => {
-     if (!isAgendada || !checkoutDone || paymentDone) return;
-     const jobId = jobIdFromState || vagaId;
-     if (!jobId) return;
-
-     let cancelled = false;
-     const poll = async () => {
-       if (cancelled) return;
-       try {
-         const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
-         const data = await res.json().catch(() => null);
-         const jobStatus = data?.data?.status || data?.status;
-         if (jobStatus === "completed" || jobStatus === "partially completed") {
-           setPaymentDone(true);
-           return;
-         }
-       } catch (err) {
-         console.error("[DetalheVaga] payment poll error:", err);
-       }
-       if (!cancelled) {
-         setTimeout(poll, 10000);
-       }
-     };
-     poll();
-
-     return () => { cancelled = true; };
-   }, [isAgendada, checkoutDone, paymentDone, jobIdFromState, vagaId]);
 
    const handleSubmitReview = async () => {
      if (reviewStars === 0) {
