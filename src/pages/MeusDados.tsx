@@ -15,6 +15,9 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { DatePicker } from "@/components/ui/date-picker";
+import { errorMessages } from "@/lib/error-messages";
+import { apiFetch } from "@/lib/api";
+import { pickImageUrlFromPayload } from "@/lib/image";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
 const ORIGIN_TYPE = "Web";
@@ -250,7 +253,30 @@ const MeusDados = () => {
           if (provRes.ok) {
             const provBody = await provRes.json();
             const prov = provBody?.data ?? provBody;
-            console.log("[DEBUG] GET /providers providerData:", prov);
+            console.log("=== PAYLOAD COMPLETO DO FREELANCER ===");
+            console.log("Todas as chaves retornadas pela API:", Object.keys(prov));
+            console.log("Payload bruto:", JSON.stringify(prov, null, 2));
+            console.table({
+              "cpf":                        prov.cpf                        ?? "❌ ausente",
+              "birthdate":                  prov.birthdate                  ?? "❌ ausente",
+              "gender":                     prov.gender                     ?? "❌ ausente",
+              "deficiency":                 prov.deficiency                 ?? "❌ ausente",
+              "desiredJobVacancy":          prov.desiredJobVacancy          ?? "❌ ausente",
+              "cep":                        prov.cep                        ?? "❌ ausente",
+              "street":                     prov.street                     ?? "❌ ausente",
+              "complement":                 prov.complement                 ?? "❌ ausente",
+              "neighborhood":              prov.neighborhood               ?? "❌ ausente",
+              "number":                     prov.number                     ?? "❌ ausente",
+              "city":                       prov.city                       ?? "❌ ausente",
+              "uf":                         prov.uf                         ?? "❌ ausente",
+              "emergencyContactName":       prov.emergencyContactName       ?? "❌ ausente",
+              "emergencyContactNumber":     prov.emergencyContactNumber     ?? "❌ ausente",
+              "emergencyContactRelationship": prov.emergencyContactRelationship ?? "❌ ausente",
+              "pixKeyValue":                prov.pixKeyValue                ?? "❌ ausente",
+              "pixKeyType":                 prov.pixKeyType                 ?? "❌ ausente",
+              "profileImage (tipo)":        typeof prov.profileImage,
+            });
+            console.log("======================================");
             // Usa profileImage do GET /users/providers como fonte da verdade
             if (providerProfileImage) prov.profileImage = providerProfileImage;
 
@@ -411,8 +437,8 @@ const MeusDados = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              key: chavePix,
-              type: chavePixType,
+              pixKeyValue: chavePix,
+              pixKeyType: chavePixType,
             }),
           });
           if (pixRes.ok) {
@@ -424,6 +450,13 @@ const MeusDados = () => {
           }
         } else {
           // Create new PIX key
+          const pixPayload = {
+            pixKeyValue: chavePix,
+            pixKeyType: chavePixType,
+            createdAt: new Date().toISOString(),
+            providerId: providerId,
+          };
+          console.log("[MeusDados] POST /providers/pix-keys payload:", pixPayload);
           const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
             method: "POST",
             credentials: "include",
@@ -432,19 +465,15 @@ const MeusDados = () => {
               "Authorization": `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              key: chavePix,
-              type: chavePixType,
-              createdAt: new Date().toISOString(),
-              providerId: providerId,
-            }),
+            body: JSON.stringify(pixPayload),
           });
           if (pixRes.ok) {
             setOrigPix(currentPixSnap());
             setHasExistingPixKey(true);
             results.push(true);
           } else {
-            console.error("[MeusDados] Pix create failed:", pixRes.status);
+            const errBody = await pixRes.json().catch(() => null);
+            console.error("[MeusDados] Pix create failed:", pixRes.status, errBody);
             results.push(false);
           }
         }
