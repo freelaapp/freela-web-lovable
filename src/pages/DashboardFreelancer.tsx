@@ -159,6 +159,7 @@ const DashboardFreelancer = () => {
                  const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
                    method: "GET", credentials: "include", headers,
                  });
+                 if (!res.ok) return null;
                  const body = await res.json().catch(() => null);
                  return body?.data ?? body ?? null;
                } catch { return null; }
@@ -222,9 +223,10 @@ const DashboardFreelancer = () => {
                    const res = await fetch(`${API_BASE_URL}/vacancies/${vacancyId}`, {
                      method: "GET", credentials: "include", headers,
                    });
+                   if (!res.ok) return null;
                    const body = await res.json().catch(() => null);
                    const detail = body?.data ?? body ?? null;
-                   
+
                    if (detail) {
                      // Preserve application status and other relevant data
                      return {

@@ -111,6 +111,7 @@ const MapaVagas = () => {
                 credentials: "include",
                 headers,
               });
+              if (!res.ok) return;
               const body = await res.json().catch(() => null);
               vacancyDetailMap[vid] = body?.data ?? body;
             } catch {
