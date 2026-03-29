@@ -425,7 +425,7 @@ const MeusDados = () => {
         }
       }
 
-      // 2. PUT /providers/pix-keys
+      // 2. POST/PUT /providers/pix-keys
       if (hasPixChanges) {
         if (hasExistingPixKey) {
           // Update existing PIX key
@@ -857,7 +857,7 @@ const MeusDados = () => {
             </h3>
             <div className="space-y-2">
               <Label>Tipo de Chave PIX</Label>
-              <Select value={chavePixType} onValueChange={setChavePixType}>
+              <Select value={chavePixType} onValueChange={(v) => { setChavePixType(v); setChavePix(""); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo de chave" />
                 </SelectTrigger>
@@ -870,17 +870,44 @@ const MeusDados = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Chave PIX</Label>
-              <Input
-                placeholder="Informe sua chave PIX"
-                value={chavePix}
-                onChange={(e) => setChavePix(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground italic">
-                Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
-              </p>
-            </div>
+            {chavePixType && (
+              <div className="space-y-2">
+                <Label>Chave PIX</Label>
+                <Input
+                  placeholder={
+                    chavePixType === "cpf" ? "000.000.000-00" :
+                    chavePixType === "cnpj" ? "00.000.000/0000-00" :
+                    chavePixType === "email" ? "seu@email.com" :
+                    chavePixType === "telefone" ? "(00) 00000-0000" :
+                    "Cole sua chave aleatória"
+                  }
+                  value={chavePix}
+                  onChange={(e) => {
+                    let v = e.target.value;
+                    if (chavePixType === "cpf") {
+                      v = v.replace(/\D/g, "").slice(0, 11);
+                      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                    } else if (chavePixType === "cnpj") {
+                      v = v.replace(/\D/g, "").slice(0, 14);
+                      v = v.replace(/(\d{2})(\d)/, "$1.$2");
+                      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                      v = v.replace(/(\d{3})(\d)/, "$1/$2");
+                      v = v.replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+                    } else if (chavePixType === "telefone") {
+                      v = v.replace(/\D/g, "").slice(0, 11);
+                      v = v.replace(/(\d{2})(\d)/, "($1) $2");
+                      v = v.replace(/(\d{5})(\d)/, "$1-$2");
+                    }
+                    setChavePix(v);
+                  }}
+                />
+                <p className="text-xs text-muted-foreground italic">
+                  Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
