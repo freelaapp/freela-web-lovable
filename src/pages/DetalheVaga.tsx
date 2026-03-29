@@ -293,6 +293,13 @@ const DetalheVaga = () => {
 
          // Fetch contractor by ID
          const contractorRes = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}`, { headers });
+         if (contractorRes.status === 403) {
+           // Freelancer doesn't have access to contractor profile — use vacancy data as fallback
+           const est = vaga.establishment || "--";
+           setContractorName(est);
+           setLoadingContractor(false);
+           return;
+         }
          const contractorBody = await contractorRes.json().catch(() => null);
          const contractorData = contractorBody?.data ?? contractorBody;
 
