@@ -100,27 +100,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  // Periodic token expiration check (every 60s)
+  // Check token validity
+  const checkTokenValid = useCallback(() => {
+    const tokenRaw = localStorage.getItem("authToken");
+    if (!tokenRaw) {
+      logoutUtil();
+      setIsAuthenticated(false);
+      setUserId(null);
+      setRoleState(null);
+      navigateRef.current("/login", { replace: true });
+      return false;
+    }
+    return true;
+  }, []);
+
+  // Periodic token check (every 10s) + when user returns to tab
   useEffect(() => {
     const interval = setInterval(() => {
-      const expRaw = localStorage.getItem("authTokenExpirationTime");
-      if (!expRaw) return;
-      const exp = JSON.parse(expRaw);
-      if (Date.now() >= exp) {
-        // Token expired — try refresh, if fails logout
-        refreshAuthToken().then((ok) => {
-          if (!ok) {
-            logoutUtil();
-            setIsAuthenticated(false);
-            setUserId(null);
-            setRoleState(null);
-            navigateRef.current("/login", { replace: true });
-          }
-        });
+      const tokenRaw = localStorage.getItem("authToken");
+      if (!tokenRaw) {
+        checkTokenValid();
+        return;
       }
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
+      const expRaw = localStorage.getItem("authTokenExpirationTime");
+      if (expRaw) {
+        const exp = JSON.parse(expRaw);
+        if (Date.now() >= exp) {
+          refreshAuthToken().then((ok) => {
+            if (!ok) {
+              logoutUtil();
+              setIsAuthenticated(false);
+              setUserId(null);
+              setRoleState(null);
+              navigateRef.current("/login", { replace: true });
+            }
+          });
+        }
+      }
+    }, 10000);
+
+    // Check when user returns to the tab
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        checkTokenValid();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [checkTokenValid]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
