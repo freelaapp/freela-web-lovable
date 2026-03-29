@@ -882,26 +882,7 @@ const MeusDados = () => {
                     "Cole sua chave aleatória"
                   }
                   value={chavePix}
-                  onChange={(e) => {
-                    let v = e.target.value;
-                    if (chavePixType === "cpf") {
-                      v = v.replace(/\D/g, "").slice(0, 11);
-                      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-                      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-                      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-                    } else if (chavePixType === "cnpj") {
-                      v = v.replace(/\D/g, "").slice(0, 14);
-                      v = v.replace(/(\d{2})(\d)/, "$1.$2");
-                      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-                      v = v.replace(/(\d{3})(\d)/, "$1/$2");
-                      v = v.replace(/(\d{4})(\d{1,2})$/, "$1-$2");
-                    } else if (chavePixType === "telefone") {
-                      v = v.replace(/\D/g, "").slice(0, 11);
-                      v = v.replace(/(\d{2})(\d)/, "($1) $2");
-                      v = v.replace(/(\d{5})(\d)/, "$1-$2");
-                    }
-                    setChavePix(v);
-                  }}
+                  onChange={(e) => setChavePix(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground italic">
                   Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
