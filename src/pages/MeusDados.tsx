@@ -138,6 +138,8 @@ const MeusDados = () => {
   const [origUser, setOrigUser] = useState("");
   const [origPix, setOrigPix] = useState("");
   const [origProvider, setOrigProvider] = useState("");
+  const [origProviderBirthdate, setOrigProviderBirthdate] = useState("");
+  const [origProviderIsPCD, setOrigProviderIsPCD] = useState(false);
   const [origProfileImage, setOrigProfileImage] = useState<string | null>(null);
 
   const currentUserSnap = useCallback((): string => snap({ nome, email, telefone } as UserSnapshot), [nome, email, telefone]);
@@ -234,6 +236,13 @@ const MeusDados = () => {
           pId = first?.id ?? "";
           providerProfileImage = first?.profileImage ?? null;
           setProviderId(pId);
+
+          // DEBUG: Log provider data from database
+          console.log("═══════════════════════════════════════════");
+          console.log("📦 PROVIDER DATA DO BANCO (GET /users/providers)");
+          console.log("═══════════════════════════════════════════");
+          console.log(JSON.stringify(first, null, 2));
+          console.log("═══════════════════════════════════════════");
         } else {
         }
 
@@ -269,6 +278,14 @@ const MeusDados = () => {
               "pixKeyType":                 prov.pixKeyType                 ?? "❌ ausente",
               "profileImage (tipo)":        typeof prov.profileImage,
             });
+
+            // DEBUG: Full provider data JSON
+            console.log("═══════════════════════════════════════════");
+            console.log("📦 PROVIDER DATA COMPLETO (GET /providers/{id})");
+            console.log("═══════════════════════════════════════════");
+            console.log(JSON.stringify(prov, null, 2));
+            console.log("═══════════════════════════════════════════");
+
             // Usa profileImage do GET /users/providers como fonte da verdade
             if (providerProfileImage) prov.profileImage = providerProfileImage;
 
@@ -368,7 +385,7 @@ const MeusDados = () => {
   };
 
   const handleSave = async () => {
-    const hasUserChanges = currentUserSnap() !== origUser;
+    const hasUserChanges = currentUserSnap() !== origUser || origProviderBirthdate !== dataNascimento || origProviderIsPCD !== isPCD;
     const hasPixChanges = currentPixSnap() !== origPix;
     const hasProviderChanges = currentProviderSnap() !== origProvider || profileImageFile !== null;
 
