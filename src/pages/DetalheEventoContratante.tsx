@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch, acceptCandidacy, rejectCandidacy, getProviderDetails, createJobPayment, deleteVacancy, type JobPaymentResponse } from "@/lib/api";
+import { useTimeline } from "@/contexts/TimelineContext";
 import Pusher from "pusher-js";
 import { formatCurrency } from "@/lib/formatters";
 import { errorMessages } from "@/lib/error-messages";
@@ -115,6 +116,26 @@ const DetalheEventoContratante = () => {
   const [pixCopied, setPixCopied] = useState(false);
   const [timelineStep, setTimelineStep] = useState(0);
   const lastJobIdRef = useRef<string | null>(null);
+
+  // Timeline context — shared state between freelancer and contractor
+  const { getTimeline, setStep: setTimelineContextStep } = useTimeline();
+
+  // Sync timelineStep to context
+  useEffect(() => {
+    if (!eventoId) return;
+    setTimelineContextStep(eventoId, timelineStep);
+  }, [eventoId, timelineStep, setTimelineContextStep]);
+
+  // Read from TimelineContext — freelancer actions update local state
+  useEffect(() => {
+    if (!eventoId) return;
+    const ctx = getTimeline(eventoId);
+    if (!ctx) return;
+    // Freelancer did check-in → advance to step 2
+    if (ctx.checkinDone && timelineStep < 2) setTimelineStep(2);
+    // Freelancer did check-out → advance to step 3
+    if (ctx.checkoutDone && timelineStep < 3) setTimelineStep(3);
+  }, [eventoId, getTimeline, timelineStep]);
   const [checkInCode, setCheckInCode] = useState<string | null>(null);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [checkInLoading, setCheckInLoading] = useState(false);

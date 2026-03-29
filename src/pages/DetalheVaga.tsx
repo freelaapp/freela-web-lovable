@@ -9,6 +9,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTimeline } from "@/contexts/TimelineContext";
 import { toast } from "sonner";
 import { errorMessages } from "@/lib/error-messages";
 
@@ -121,10 +122,39 @@ const DetalheVaga = () => {
    const [paymentDone, setPaymentDone] = useState(false);
    const [checkInTime, setCheckInTime] = useState<string | null>(null);
    const [checkOutTime, setCheckOutTime] = useState<string | null>(null);
-   // Contratante data
-   const [contractorName, setContractorName] = useState<string>("--");
-   const [contractorFeedback, setContractorFeedback] = useState<number>(0);
-   const [loadingContractor, setLoadingContractor] = useState(true);
+    // Contratante data
+    const [contractorName, setContractorName] = useState<string>("--");
+    const [contractorFeedback, setContractorFeedback] = useState<number>(0);
+    const [loadingContractor, setLoadingContractor] = useState(true);
+
+    // Timeline context — shared state between freelancer and contractor
+    const { getTimeline, updateTimeline } = useTimeline();
+    const jobIdForTimeline = vagaId || "";
+
+    // Sync local state to TimelineContext
+    useEffect(() => {
+      if (!jobIdForTimeline) return;
+      updateTimeline(jobIdForTimeline, {
+        checkinDone,
+        checkoutDone,
+        paid: paymentDone,
+        reviewDone,
+        aceite: applied,
+        inicio: checkinDone,
+        fim: checkoutDone,
+        pagamento: paymentDone,
+        feedback: reviewDone,
+      });
+    }, [jobIdForTimeline, checkinDone, checkoutDone, paymentDone, reviewDone, applied]);
+
+    // Read from TimelineContext — contractor actions update local state
+    useEffect(() => {
+      if (!jobIdForTimeline) return;
+      const ctx = getTimeline(jobIdForTimeline);
+      if (!ctx) return;
+      if (ctx.paid && !paymentDone) setPaymentDone(true);
+      if (ctx.feedback && !reviewDone) setReviewDone(true);
+    }, [jobIdForTimeline, getTimeline]);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -245,41 +275,49 @@ const DetalheVaga = () => {
      fetchData();
    }, [vagaId]);
 
-   // Fetch contractor data and user name
-   useEffect(() => {
-     const fetchContractorData = async () => {
-       if (!contractorId) {
-         return;
-       }
-       try {
-         setLoadingContractor(true);
-         const tokenRaw = localStorage.getItem("authToken");
-         const headers: any = {};
-         if (tokenRaw) {
-           const token = JSON.parse(tokenRaw);
-           headers.Authorization = `Bearer ${token}`;
-           headers["Origin-type"] = "Web";
-         }
+    // Fetch contractor data and user name
+    useEffect(() => {
+      const fetchContractorData = async () => {
+        if (!contractorId) return;
 
-         // Fetch contractor by ID
-         const contractorRes = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}`, { headers });
-         const contractorBody = await contractorRes.json().catch(() => null);
-         const contractorData = contractorBody?.data ?? contractorBody;
+        // Freelancer doesn't have access to /contractors/{id} — use vacancy data directly
+        const est = vaga?.establishment || "--";
+        setContractorName(est);
+        setLoadingContractor(false);
 
+        // Only fetch contractor details if user is the contractor (not freelancer)
+        try {
+          const authUser = localStorage.getItem("authUser");
+          const userRole = authUser ? JSON.parse(authUser)?.role : null;
+          if (userRole !== "contratante") return; // Skip API call for freelancer
 
-         if (contractorData) {
-           const feedbackStars = contractorData.feedbackStars ?? 0;
-           setContractorFeedback(feedbackStars);
-           const companyName = contractorData.companyName || contractorData.name || "--";
-           setContractorName(companyName);
-         }
-       } catch (err) {
-       } finally {
-         setLoadingContractor(false);
-       }
-     };
-     fetchContractorData();
-   }, [contractorId]);
+          setLoadingContractor(true);
+          const tokenRaw = localStorage.getItem("authToken");
+          const headers: any = {};
+          if (tokenRaw) {
+            const token = JSON.parse(tokenRaw);
+            headers.Authorization = `Bearer ${token}`;
+            headers["Origin-type"] = "Web";
+          }
+
+          const contractorRes = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}`, { headers });
+          if (!contractorRes.ok) return;
+          const contractorBody = await contractorRes.json().catch(() => null);
+          const contractorData = contractorBody?.data ?? contractorBody;
+
+          if (contractorData) {
+            const feedbackStars = contractorData.feedbackStars ?? 0;
+            setContractorFeedback(feedbackStars);
+            const companyName = contractorData.companyName || contractorData.name || "--";
+            setContractorName(companyName);
+          }
+        } catch (err) {
+        } finally {
+          setLoadingContractor(false);
+        }
+      };
+      fetchContractorData();
+    }, [contractorId]);
 
    useEffect(() => {
      if (!isAgendada || !checkoutDone || paymentDone) return;
@@ -506,11 +544,17 @@ toast.error(errorMessages.checkinCodeRequired);
   const agendadaTimeline = {
     aceite: true,
     inicio: checkinDone,
-    fim: false,
-    pagamento: false,
-    feedback: false,
+    fim: checkoutDone,
+    pagamento: paymentDone,
+    feedback: reviewDone,
   };
-  const timeline = isAgendada ? agendadaTimeline : defaultTimeline;
+  const localTimeline = isAgendada ? agendadaTimeline : defaultTimeline;
+
+  // Prefer context timeline if available
+  const contextTimeline = jobIdForTimeline ? getTimeline(jobIdForTimeline) : null;
+  const timeline = contextTimeline
+    ? { aceite: contextTimeline.aceite, inicio: contextTimeline.inicio, fim: contextTimeline.fim, pagamento: contextTimeline.pagamento, feedback: contextTimeline.feedback }
+    : localTimeline;
 
   const canConfirm = status === "aceita" && !timeline.inicio;
   const isOpen = status === "aberta" || status === "open";

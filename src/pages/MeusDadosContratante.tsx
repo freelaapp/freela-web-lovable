@@ -352,6 +352,13 @@ const MeusDadosContratante = () => {
         const body = await res.json();
         const d = body?.data ?? body;
 
+        // DEBUG: Log contractor data from database
+        console.log("═══════════════════════════════════════════");
+        console.log("📦 CONTRATANTE DATA DO BANCO (GET /users/contractors)");
+        console.log("═══════════════════════════════════════════");
+        console.log(JSON.stringify(d, null, 2));
+        console.log("═══════════════════════════════════════════");
+
         // Detect contractor type from API data
         let detectedType: ContractorType = "empresas";
         if (d.cpf && !d.cnpj) {

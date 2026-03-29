@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Eye, Car, Pencil, Play, Image as ImageIconLucide, X, Check, Loader2 } from "lucide-react";
+import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Car, Pencil, Play, Image as ImageIconLucide, X, Check, Loader2 } from "lucide-react";
 import EditableAvatar from "@/components/EditableAvatar";
 import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -51,7 +51,6 @@ const Perfil = () => {
   const navigate = useNavigate();
   const { logout, role, setRole } = useAuth();
   const isContratante = role === "contratante";
-  const [contractorView, setContractorView] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fachadaInputRef = useRef<HTMLInputElement>(null);
@@ -560,23 +559,6 @@ const Perfil = () => {
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 space-y-6">
-        {/* Contractor View Toggle - freelancer only */}
-        {!isContratante &&
-        <div className="flex justify-end">
-            <button
-            onClick={() => setContractorView(!contractorView)}
-            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
-            contractorView ?
-            "bg-primary text-primary-foreground" :
-            "bg-muted text-muted-foreground"}`
-            }>
-
-              <Eye className="w-3.5 h-3.5" />
-              Visão Contratante
-            </button>
-          </div>
-        }
-
         {/* Profile Card */}
           <Card>
             <CardContent className="p-5">
@@ -638,7 +620,7 @@ const Perfil = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-semibold">Serviços</p>
-                {!contractorView && !editingServices &&
+                {!editingServices &&
               <button onClick={startEditingServices} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
                     <Pencil className="w-3 h-3 text-primary" />
                   </button>
@@ -734,7 +716,7 @@ const Perfil = () => {
                 <h3 className="text-base font-display font-bold flex items-center gap-2">
                   <Clock className="w-5 h-5 text-primary" /> Disponibilidade de horário
                 </h3>
-                {!contractorView && !editingAvailability &&
+                {!editingAvailability &&
               <button onClick={startEditingAvailability} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
                     <Pencil className="w-3 h-3 text-primary" />
                   </button>
@@ -816,8 +798,7 @@ const Perfil = () => {
 
         {/* Mídia - hidden for now */}
 
-        {/* Menu - hidden in contractor view */}
-        {!contractorView &&
+        {/* Menu */}
         <Card>
             <CardContent className="p-2">
               {menuItems.map((item, i) =>
@@ -838,14 +819,11 @@ const Perfil = () => {
             )}
             </CardContent>
           </Card>
-        }
 
-        {/* Logout - hidden in contractor view */}
-        {!contractorView &&
+        {/* Logout */}
         <Button variant="ghost" onClick={logout} className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 gap-2">
             <LogOut className="w-4 h-4" /> Sair da conta
           </Button>
-        }
       </div>
 
       {/* Dialog de horário */}
