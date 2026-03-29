@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { TimelineProvider } from "@/contexts/TimelineContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
@@ -58,6 +59,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+          <TimelineProvider>
           <ScrollToTop />
           <Routes>
             {/* Public routes */}
@@ -111,6 +113,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </TimelineProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

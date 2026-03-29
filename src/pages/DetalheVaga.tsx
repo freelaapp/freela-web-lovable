@@ -9,6 +9,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AppLayout from "@/components/layout/AppLayout";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTimeline } from "@/contexts/TimelineContext";
 import { toast } from "sonner";
 import { errorMessages } from "@/lib/error-messages";
 
@@ -121,10 +122,30 @@ const DetalheVaga = () => {
    const [paymentDone, setPaymentDone] = useState(false);
    const [checkInTime, setCheckInTime] = useState<string | null>(null);
    const [checkOutTime, setCheckOutTime] = useState<string | null>(null);
-   // Contratante data
-   const [contractorName, setContractorName] = useState<string>("--");
-   const [contractorFeedback, setContractorFeedback] = useState<number>(0);
-   const [loadingContractor, setLoadingContractor] = useState(true);
+    // Contratante data
+    const [contractorName, setContractorName] = useState<string>("--");
+    const [contractorFeedback, setContractorFeedback] = useState<number>(0);
+    const [loadingContractor, setLoadingContractor] = useState(true);
+
+    // Timeline context — shared state between freelancer and contractor
+    const { getTimeline, updateTimeline } = useTimeline();
+    const jobIdForTimeline = vagaId || "";
+
+    // Sync local state to TimelineContext
+    useEffect(() => {
+      if (!jobIdForTimeline) return;
+      updateTimeline(jobIdForTimeline, {
+        checkinDone,
+        checkoutDone,
+        paid: paymentDone,
+        reviewDone,
+        aceite: applied,
+        inicio: checkinDone,
+        fim: checkoutDone,
+        pagamento: paymentDone,
+        feedback: reviewDone,
+      });
+    }, [jobIdForTimeline, checkinDone, checkoutDone, paymentDone, reviewDone, applied]);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -506,11 +527,17 @@ toast.error(errorMessages.checkinCodeRequired);
   const agendadaTimeline = {
     aceite: true,
     inicio: checkinDone,
-    fim: false,
-    pagamento: false,
-    feedback: false,
+    fim: checkoutDone,
+    pagamento: paymentDone,
+    feedback: reviewDone,
   };
-  const timeline = isAgendada ? agendadaTimeline : defaultTimeline;
+  const localTimeline = isAgendada ? agendadaTimeline : defaultTimeline;
+
+  // Prefer context timeline if available
+  const contextTimeline = jobIdForTimeline ? getTimeline(jobIdForTimeline) : null;
+  const timeline = contextTimeline
+    ? { aceite: contextTimeline.aceite, inicio: contextTimeline.inicio, fim: contextTimeline.fim, pagamento: contextTimeline.pagamento, feedback: contextTimeline.feedback }
+    : localTimeline;
 
   const canConfirm = status === "aceita" && !timeline.inicio;
   const isOpen = status === "aberta" || status === "open";
