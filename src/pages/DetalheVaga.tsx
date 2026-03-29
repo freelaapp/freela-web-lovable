@@ -275,48 +275,49 @@ const DetalheVaga = () => {
      fetchData();
    }, [vagaId]);
 
-   // Fetch contractor data and user name
-   useEffect(() => {
-     const fetchContractorData = async () => {
-       if (!contractorId) {
-         return;
-       }
-       try {
-         setLoadingContractor(true);
-         const tokenRaw = localStorage.getItem("authToken");
-         const headers: any = {};
-         if (tokenRaw) {
-           const token = JSON.parse(tokenRaw);
-           headers.Authorization = `Bearer ${token}`;
-           headers["Origin-type"] = "Web";
-         }
+    // Fetch contractor data and user name
+    useEffect(() => {
+      const fetchContractorData = async () => {
+        if (!contractorId) return;
 
-         // Fetch contractor by ID
-         const contractorRes = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}`, { headers });
-         if (contractorRes.status === 403) {
-           // Freelancer doesn't have access to contractor profile — use vacancy data as fallback
-           const est = vaga.establishment || "--";
-           setContractorName(est);
-           setLoadingContractor(false);
-           return;
-         }
-         const contractorBody = await contractorRes.json().catch(() => null);
-         const contractorData = contractorBody?.data ?? contractorBody;
+        // Freelancer doesn't have access to /contractors/{id} — use vacancy data directly
+        const est = vaga?.establishment || "--";
+        setContractorName(est);
+        setLoadingContractor(false);
 
+        // Only fetch contractor details if user is the contractor (not freelancer)
+        try {
+          const authUser = localStorage.getItem("authUser");
+          const userRole = authUser ? JSON.parse(authUser)?.role : null;
+          if (userRole !== "contratante") return; // Skip API call for freelancer
 
-         if (contractorData) {
-           const feedbackStars = contractorData.feedbackStars ?? 0;
-           setContractorFeedback(feedbackStars);
-           const companyName = contractorData.companyName || contractorData.name || "--";
-           setContractorName(companyName);
-         }
-       } catch (err) {
-       } finally {
-         setLoadingContractor(false);
-       }
-     };
-     fetchContractorData();
-   }, [contractorId]);
+          setLoadingContractor(true);
+          const tokenRaw = localStorage.getItem("authToken");
+          const headers: any = {};
+          if (tokenRaw) {
+            const token = JSON.parse(tokenRaw);
+            headers.Authorization = `Bearer ${token}`;
+            headers["Origin-type"] = "Web";
+          }
+
+          const contractorRes = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}`, { headers });
+          if (!contractorRes.ok) return;
+          const contractorBody = await contractorRes.json().catch(() => null);
+          const contractorData = contractorBody?.data ?? contractorBody;
+
+          if (contractorData) {
+            const feedbackStars = contractorData.feedbackStars ?? 0;
+            setContractorFeedback(feedbackStars);
+            const companyName = contractorData.companyName || contractorData.name || "--";
+            setContractorName(companyName);
+          }
+        } catch (err) {
+        } finally {
+          setLoadingContractor(false);
+        }
+      };
+      fetchContractorData();
+    }, [contractorId]);
 
    useEffect(() => {
      if (!isAgendada || !checkoutDone || paymentDone) return;
