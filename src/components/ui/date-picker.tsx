@@ -124,9 +124,6 @@ export function DatePicker({
             locale={ptBR}
             disabled={(date) => date > new Date() || date < new Date("1940-01-01")}
             initialFocus
-            captionLayout="dropdown"
-            fromYear={1940}
-            toYear={new Date().getFullYear()}
           />
         </PopoverContent>
       </Popover>
