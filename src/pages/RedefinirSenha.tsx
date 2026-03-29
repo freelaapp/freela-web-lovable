@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { resetPassword } from "@/lib/api";
 import { z } from "zod";
-import { errorMessages } from "@/lib/error-messages";
+import { extractApiError } from "@/lib/api-error";
 
 // Schema only for the password step
 const newPasswordSchema = z.object({
@@ -81,7 +81,7 @@ const RedefinirSenha = () => {
     e.preventDefault();
     const fullCode = code.join("");
     if (fullCode.length < 6 || !/^\d{6}$/.test(fullCode)) {
-      setCodeError(errorMessages.checkinCodeRequired);
+      setCodeError("Digite o código de 6 dígitos");
       return;
     }
     setStep("password");
@@ -103,8 +103,8 @@ const RedefinirSenha = () => {
       reset();
     } catch (err) {
       toast({
-        title: errorMessages.resetPasswordFailed,
-        description: err instanceof Error ? err.message : errorMessages.confirmationCodeInvalid,
+        title: "Erro ao redefinir senha",
+        description: extractApiError(err),
         variant: "destructive",
       });
     } finally {

@@ -17,6 +17,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { DatePicker } from "@/components/ui/date-picker";
 import { errorMessages } from "@/lib/error-messages";
 import { apiFetch } from "@/lib/api";
+import { extractApiError, throwApiError } from "@/lib/api-error";
 import { pickImageUrlFromPayload } from "@/lib/image";
 
 const API_BASE_URL = import.meta.env.API_BASE_URL;
@@ -427,7 +428,8 @@ const MeusDados = () => {
           setOrigUser(currentUserSnap());
           results.push(true);
         } else {
-          results.push(false);
+          const body = await userRes.json().catch(() => null);
+          throw new Error(body?.message || "Erro ao atualizar dados do usuário");
         }
       }
 
@@ -488,10 +490,12 @@ const MeusDados = () => {
             setOrigPix(currentPixSnap());
             results.push(true);
           } else {
-            results.push(false);
+            const body = await pixRes.json().catch(() => null);
+            throw new Error(body?.message || "Erro ao atualizar chave PIX");
           }
         } else {
-          results.push(false);
+          const body = await postRes.json().catch(() => null);
+          throw new Error(body?.message || "Erro ao salvar chave PIX");
         }
       }
 
@@ -633,10 +637,10 @@ const MeusDados = () => {
       } else if (results.some((r) => r)) {
         toast({ title: "Atualização parcial", description: "Alguns dados foram salvos, mas houve erro em parte da atualização.", variant: "destructive" });
       } else {
-        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
+        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados.", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Erro ao salvar", description: "Ocorreu um erro inesperado. Tente novamente.", variant: "destructive" });
+      toast({ title: "Erro ao salvar", description: extractApiError(err), variant: "destructive" });
     } finally {
       setSaving(false);
     }

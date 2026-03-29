@@ -1,15 +1,47 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, Lock, Eye, EyeOff, RotateCcw, ShieldCheck, Check, CheckCircle2 } from "lucide-react";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
 import { forgotPassword, resetPassword } from "@/lib/api";
-import { errorMessages } from "@/lib/error-messages";
+import { extractApiError } from "@/lib/api-error";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const RESEND_COOLDOWN = 60;
+
+const emailSchema = z.object({
+  email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
+});
+
+const resetSchema = z
+  .object({
+    password: z
+      .string()
+      .min(6, "Mínimo 6 caracteres")
+      .regex(/[A-Z]/, "Precisa de uma letra maiúscula")
+      .regex(/[a-z]/, "Precisa de uma letra minúscula")
+      .regex(/\d/, "Precisa de um número"),
+    confirmPassword: z.string().min(1, "Confirme sua senha"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não conferem",
+    path: ["confirmPassword"],
+  });
+
+type EmailFormData = z.infer<typeof emailSchema>;
+type ResetFormData = z.infer<typeof resetSchema>;
 
 const getPasswordRequirements = (pwd: string) => [
   { label: "Mínimo 6 caracteres", met: pwd.length >= 6 },
@@ -27,24 +59,29 @@ const EsqueciMinhaSenha = () => {
   const [step, setStep] = useState<Step>("email");
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState("");
 
-  // Code
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [codeError, setCodeError] = useState("");
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
   const [isResending, setIsResending] = useState(false);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Password
   const [codeVerified, setCodeVerified] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [resetError, setResetError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Cooldown timer
+  const emailForm = useForm<EmailFormData>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { email: "" },
+  });
+
+  const resetForm = useForm<ResetFormData>({
+    resolver: zodResolver(resetSchema),
+    defaultValues: { password: "", confirmPassword: "" },
+  });
+
+  const password = resetForm.watch("password");
+
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
@@ -53,19 +90,11 @@ const EsqueciMinhaSenha = () => {
 
   const startCooldown = useCallback(() => setCooldown(RESEND_COOLDOWN), []);
 
-  // Step 1: Email
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailError("");
-
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError(errorMessages.invalidEmail);
-      return;
-    }
-
+  const handleEmailSubmit = async (data: EmailFormData) => {
     setIsLoading(true);
     try {
-      await forgotPassword({ email });
+      await forgotPassword({ email: data.email });
+      setEmail(data.email);
       toast({
         title: "Código enviado!",
         description: "Verifique sua caixa de entrada.",
@@ -73,29 +102,33 @@ const EsqueciMinhaSenha = () => {
       startCooldown();
       setStep("reset");
     } catch (err) {
-      setEmailError(
-        err instanceof Error ? err.message : "Erro ao verificar email. Tente novamente."
-      );
+      toast({
+        title: "Erro",
+        description: extractApiError(err),
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Resend code
   const handleResend = async () => {
     setIsResending(true);
     try {
       await forgotPassword({ email });
       toast({ title: "Código reenviado!", description: "Verifique sua caixa de entrada." });
       startCooldown();
-    } catch {
-      toast({ title: "Erro", description: "Não foi possível reenviar o código.", variant: "destructive" });
+    } catch (err) {
+      toast({
+        title: "Erro",
+        description: extractApiError(err),
+        variant: "destructive",
+      });
     } finally {
       setIsResending(false);
     }
   };
 
-  // Code input handlers
   const handleCodeChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
     const newCode = [...code];
@@ -126,7 +159,6 @@ const EsqueciMinhaSenha = () => {
     inputsRef.current[nextIndex]?.focus();
   };
 
-  // Verify code format
   const handleVerifyCode = (e: React.FormEvent) => {
     e.preventDefault();
     setCodeError("");
@@ -138,27 +170,15 @@ const EsqueciMinhaSenha = () => {
     setCodeVerified(true);
   };
 
-  // Step 2: Password reset (code already verified)
-  const handleResetSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setResetError("");
-
+  const handleResetSubmit = async (data: ResetFormData) => {
     const fullCode = code.join("");
-    if (password.length < 6) {
-      setResetError("A senha deve ter pelo menos 6 caracteres");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setResetError("As senhas não coincidem");
-      return;
-    }
 
     setIsLoading(true);
     try {
       await resetPassword({
         email,
         code: fullCode,
-        password,
+        password: data.password,
       });
       toast({
         title: "Senha alterada!",
@@ -166,9 +186,11 @@ const EsqueciMinhaSenha = () => {
       });
       setStep("success");
     } catch (err) {
-      setResetError(
-        err instanceof Error ? err.message : "Erro ao redefinir senha. Tente novamente."
-      );
+      toast({
+        title: "Erro ao redefinir senha",
+        description: extractApiError(err),
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -204,32 +226,26 @@ const EsqueciMinhaSenha = () => {
         </Link>
 
         {step !== "success" && (
-          <>
-            {/* Step indicator */}
-            <div className="flex items-center gap-2 mb-8">
-              {[1, 2].map((s) => (
-                <div key={s} className="flex items-center gap-2">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                      s <= stepNumber
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {s}
-                  </div>
-                  {s < 2 && (
-                    <div
-                      className={`w-8 h-0.5 ${s < stepNumber ? "bg-primary" : "bg-muted"}`}
-                    />
-                  )}
+          <div className="flex items-center gap-2 mb-8">
+            {[1, 2].map((s) => (
+              <div key={s} className="flex items-center gap-2">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                    s <= stepNumber
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {s}
                 </div>
-              ))}
-            </div>
-          </>
+                {s < 2 && (
+                  <div className={`w-8 h-0.5 ${s < stepNumber ? "bg-primary" : "bg-muted"}`} />
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
-        {/* STEP 1: Email */}
         {step === "email" && (
           <>
             <div className="mb-8">
@@ -239,38 +255,45 @@ const EsqueciMinhaSenha = () => {
               </p>
             </div>
 
-            <form onSubmit={handleEmailSubmit} className="space-y-5" noValidate>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => { setEmail(e.target.value); setEmailError(""); }}
-                    className={`pl-10 h-12 ${emailError ? "border-destructive" : ""}`}
-                  />
-                </div>
-                {emailError && <p className="text-sm text-destructive">{emailError}</p>}
-              </div>
+            <Form {...emailForm}>
+              <form onSubmit={emailForm.handleSubmit(handleEmailSubmit)} className="space-y-5">
+                <FormField
+                  control={emailForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                          <Input
+                            type="email"
+                            placeholder="seu@email.com"
+                            className="pl-10 h-12"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Verificando...
-                  </span>
-                ) : (
-                  "Enviar código"
-                )}
-              </Button>
-            </form>
+                <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                      Verificando...
+                    </span>
+                  ) : (
+                    "Enviar código"
+                  )}
+                </Button>
+              </form>
+            </Form>
           </>
         )}
 
-        {/* STEP 2: Code + New password */}
         {step === "reset" && (
           <>
             <div className="mb-8">
@@ -288,9 +311,9 @@ const EsqueciMinhaSenha = () => {
             </div>
 
             {!codeVerified ? (
-              <form onSubmit={handleVerifyCode} className="space-y-6" noValidate>
+              <form onSubmit={handleVerifyCode} className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Código de verificação</Label>
+                  <FormLabel>Código de verificação</FormLabel>
                   <div className="flex justify-center gap-3">
                     {code.map((digit, index) => (
                       <input
@@ -315,86 +338,100 @@ const EsqueciMinhaSenha = () => {
                 </Button>
               </form>
             ) : (
-              <form onSubmit={handleResetSubmit} className="space-y-6" noValidate>
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <ShieldCheck className="w-4 h-4 text-green-500" />
-                  <span>Código: <strong className="text-foreground">{code.join("")}</strong></span>
-                  <button
-                    type="button"
-                    onClick={() => setCodeVerified(false)}
-                    className="text-primary hover:underline ml-1"
-                  >
-                    Alterar
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Nova senha</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => { setPassword(e.target.value); setResetError(""); }}
-                      className={`pl-10 pr-10 h-12 ${resetError ? "border-destructive" : ""}`}
-                    />
+              <Form {...resetForm}>
+                <form onSubmit={resetForm.handleSubmit(handleResetSubmit)} className="space-y-6">
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <ShieldCheck className="w-4 h-4 text-green-500" />
+                    <span>Código: <strong className="text-foreground">{code.join("")}</strong></span>
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setCodeVerified(false)}
+                      className="text-primary hover:underline ml-1"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      Alterar
                     </button>
                   </div>
-                  {password.length > 0 && (
-                    <ul className="space-y-1 mt-2">
-                      {getPasswordRequirements(password).map((req) => (
-                        <li key={req.label} className="flex items-center gap-2 text-xs">
-                          <Check className={`w-3.5 h-3.5 ${req.met ? "text-green-500" : "text-muted-foreground/40"}`} />
-                          <span className={req.met ? "text-green-500" : "text-muted-foreground"}>{req.label}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirmar senha</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirm ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => { setConfirmPassword(e.target.value); setResetError(""); }}
-                      className={`pl-10 pr-10 h-12 ${resetError ? "border-destructive" : ""}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
+                  <FormField
+                    control={resetForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nova senha</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                              className="pl-10 pr-10 h-12"
+                              {...field}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                          </div>
+                        </FormControl>
+                        {password.length > 0 && (
+                          <ul className="space-y-1 mt-2">
+                            {getPasswordRequirements(password).map((req) => (
+                              <li key={req.label} className="flex items-center gap-2 text-xs">
+                                <Check className={`w-3.5 h-3.5 ${req.met ? "text-green-500" : "text-muted-foreground/40"}`} />
+                                <span className={req.met ? "text-green-500" : "text-muted-foreground"}>{req.label}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {resetError && <p className="text-sm text-destructive">{resetError}</p>}
+                  <FormField
+                    control={resetForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirmar senha</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                              type={showConfirm ? "text" : "password"}
+                              placeholder="••••••••"
+                              className="pl-10 pr-10 h-12"
+                              {...field}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirm(!showConfirm)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Redefinindo...
-                    </span>
-                  ) : (
-                    "Redefinir senha"
-                  )}
-                </Button>
-              </form>
+                  <Button type="submit" className="w-full h-12" size="lg" disabled={isLoading}>
+                    {isLoading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                        Redefinindo...
+                      </span>
+                    ) : (
+                      "Redefinir senha"
+                    )}
+                  </Button>
+                </form>
+              </Form>
             )}
 
             <p className="text-xs text-muted-foreground text-center mt-4">
@@ -419,7 +456,6 @@ const EsqueciMinhaSenha = () => {
           </>
         )}
 
-        {/* STEP 3: Success */}
         {step === "success" && (
           <>
             <div className="mb-8 text-center">

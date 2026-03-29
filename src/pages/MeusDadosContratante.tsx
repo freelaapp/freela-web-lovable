@@ -7,7 +7,9 @@ import { ArrowLeft, Trash2, AlertTriangle, Building2, ImagePlus, MapPin, Loader2
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CitySelect from "@/components/CitySelect";
 import { errorMessages } from "@/lib/error-messages";
+import { extractApiError } from "@/lib/api-error";
 import EditableAvatar from "@/components/EditableAvatar";
+import { format, parseISO, isValid } from "date-fns";
 
 const estadosBR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -32,6 +34,21 @@ const formatPhone = (value: string) => {
   if (digits.length <= 2) return digits;
   if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const formatBirthdateDisplay = (value: string): string => {
+  if (!value) return "";
+  try {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length === 8 && !value.includes("-") && !value.includes("/")) {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    }
+    const date = value.includes("T") ? parseISO(value) : parseISO(value + "T00:00:00");
+    if (isValid(date)) return format(date, "dd/MM/yyyy");
+    return value;
+  } catch {
+    return value;
+  }
 };
 
 // ── Type detection ───────────────────────────────────────────
@@ -300,6 +317,9 @@ const MeusDadosContratante = () => {
 
   const [deleteDialog, setDeleteDialog] = useState(false);
 
+  // Track if contractor exists (POST vs PUT)
+  const [contractorExists, setContractorExists] = useState(false);
+
   // Change detection: snapshot of original values
   const [originalSnapshot, setOriginalSnapshot] = useState("");
   const [originalUserSnapshot, setOriginalUserSnapshot] = useState("");
@@ -358,6 +378,10 @@ const MeusDadosContratante = () => {
         console.log("═══════════════════════════════════════════");
         console.log(JSON.stringify(d, null, 2));
         console.log("═══════════════════════════════════════════");
+
+        // Detect if contractor already exists in the database
+        const hasContractorData = d && (d.id || d.cpf || d.cnpj || d.street || d.cep);
+        setContractorExists(!!hasContractorData);
 
         // Detect contractor type from API data
         let detectedType: ContractorType = "empresas";
@@ -548,43 +572,47 @@ const MeusDadosContratante = () => {
 
       // 1. Update contractor fields if changed
       if (hasFieldChanges || hasFachadaChange || hasInternoChange || hasProfileImageChange) {
-        const cepDigits = cep.replace(/\D/g, "");
-        const addressFields = {
-          cep: cepDigits,
-          street: rua,
-          complement: complemento,
-          reference: referencia,
-          neighborhood: bairro,
-          number: numero,
-          city: cidade,
-          uf: estado,
-          ibge: viacepMeta.ibge,
-          gia: viacepMeta.gia,
-          ddd: viacepMeta.ddd,
-          siafi: viacepMeta.siafi,
-        };
-
         const formData = new FormData();
-        Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
 
-        if (type === "casa_cpf") {
-          formData.append("birthdate", dataNascimento);
-        } else if (type === "casa_cnpj") {
-          formData.append("corporateReason", razaoSocial);
-        } else if (type === "empresas") {
-          formData.append("corporateReason", razaoSocial);
-          formData.append("companySegment", ramo);
-          formData.append("companyName", nomeEstabelecimento);
-          formData.append("nameOperationResponsible", responsavel);
-          formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
-          if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
-          if (internoFile) formData.append("establishmentInteriorImage", internoFile);
+        if (hasFieldChanges || hasFachadaChange || hasInternoChange) {
+          const cepDigits = cep.replace(/\D/g, "");
+          const addressFields = {
+            cep: cepDigits,
+            street: rua,
+            complement: complemento,
+            reference: referencia,
+            neighborhood: bairro,
+            number: numero,
+            city: cidade,
+            uf: estado,
+            ibge: viacepMeta.ibge,
+            gia: viacepMeta.gia,
+            ddd: viacepMeta.ddd,
+            siafi: viacepMeta.siafi,
+          };
+
+          Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
+
+          if (type === "casa_cpf") {
+            formData.append("birthdate", dataNascimento);
+          } else if (type === "casa_cnpj") {
+            formData.append("corporateReason", razaoSocial);
+          } else if (type === "empresas") {
+            formData.append("corporateReason", razaoSocial);
+            formData.append("companySegment", ramo);
+            formData.append("companyName", nomeEstabelecimento);
+            formData.append("nameOperationResponsible", responsavel);
+            formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
+            if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
+            if (internoFile) formData.append("establishmentInteriorImage", internoFile);
+          }
         }
 
         if (profileImageFile) formData.append("profileImage", profileImageFile, profileImageFile.name);
 
+        const method = contractorExists ? "PUT" : "POST";
         const res = await fetch(`${API_BASE_URL}/contractors`, {
-          method: "PUT",
+          method,
           credentials: "include",
           headers: {
             "Origin-type": "Web",
@@ -598,10 +626,11 @@ const MeusDadosContratante = () => {
           if (fachadaFile) { setOriginalFotoFachada(fotoFachada); setFachadaFile(null); }
           if (internoFile) { setOriginalFotoInterno(fotoInterno); setInternoFile(null); }
           if (profileImageFile) setProfileImageFile(null);
+          setContractorExists(true);
           results.push(true);
         } else {
-          const errBody = await res.text();
-          results.push(false);
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.message || "Erro ao atualizar dados do contratante");
         }
       }
 
@@ -628,8 +657,8 @@ const MeusDadosContratante = () => {
           setOriginalUserSnapshot(currentUserSnap);
           results.push(true);
         } else {
-          const errBody = await userRes.text();
-          results.push(false);
+          const body = await userRes.json().catch(() => null);
+          throw new Error(body?.message || "Erro ao atualizar dados do usuário");
         }
       }
 
@@ -638,10 +667,10 @@ const MeusDadosContratante = () => {
       } else if (results.some(r => r)) {
         toast({ title: "Atualização parcial", description: "Alguns dados foram salvos, mas houve erro em parte da atualização.", variant: "destructive" });
       } else {
-        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
+        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados.", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Erro ao salvar", description: "Ocorreu um erro inesperado. Tente novamente.", variant: "destructive" });
+      toast({ title: "Erro ao salvar", description: extractApiError(err), variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -828,7 +857,7 @@ const MeusDadosContratante = () => {
               </div>
               <div className="space-y-2">
                 <Label>Data de Nascimento</Label>
-                <Input value={dataNascimento} disabled className="opacity-60 cursor-not-allowed" />
+                <Input value={formatBirthdateDisplay(dataNascimento)} disabled className="opacity-60 cursor-not-allowed" />
               </div>
             </CardContent>
           </Card>
