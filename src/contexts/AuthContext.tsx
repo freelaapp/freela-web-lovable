@@ -49,6 +49,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  const PUBLIC_PATHS = [
+    "/",
+    "/login",
+    "/cadastro",
+    "/inicio",
+    "/esqueci-minha-senha",
+    "/escolher-perfil",
+    "/cadastro-contratante",
+    "/cadastro-freelancer",
+    "/confirmar-email",
+    "/ajuda",
+    "/ajuda-contratante",
+    "/termos",
+    "/privacidade",
+    "/freelancers",
+  ];
+
+  const isPublicPath = useCallback(() => {
+    return PUBLIC_PATHS.some(
+      (p) =>
+        window.location.pathname === p ||
+        window.location.pathname.startsWith("/freelancer/")
+    );
+  }, []);
+
   const checkAuth = useCallback(async () => {
     setIsLoading(true);
     const hadToken = !!localStorage.getItem("authToken");
@@ -60,20 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (!valid && hadToken) {
       logoutUtil();
-      const publicPaths = [
-        "/", 
-        "/login", 
-        "/cadastro", 
-        "/inicio", 
-        "/esqueci-minha-senha",
-        "/escolher-perfil",
-        "/cadastro-contratante",
-        "/cadastro-freelancer",
-        "/confirmar-email",
-        "/ajuda",
-        "/ajuda-contratante",
-      ];
-      if (!publicPaths.includes(window.location.pathname)) {
+      if (!isPublicPath()) {
         navigateRef.current("/login", { replace: true });
         toastRef.current({
           title: "Sessão expirada",
@@ -83,32 +95,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     setIsLoading(false);
-  }, []);
-
-  const PUBLIC_PATHS = [
-    "/",
-    "/login",
-    "/cadastro",
-    "/inicio",
-    "/esqueci-minha-senha",
-    "/escolher-perfil",
-    "/cadastro-contratante",
-    "/cadastro-freelancer",
-    "/confirmar-email",
-    "/termos",
-    "/privacidade",
-    "/freelancers",
-  ];
+  }, [isPublicPath]);
 
   useEffect(() => {
     registerSessionExpiredHandler(() => {
-      const isPublicPath = PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith("/freelancer/"));
       logoutUtil();
       setIsAuthenticated(false);
       setUserId(null);
       setRoleState(null);
       // Only redirect to login if NOT on a public page
-      if (!isPublicPath) {
+      if (!isPublicPath()) {
         navigateRef.current("/login", { replace: true });
       }
       toastRef.current({
@@ -117,13 +113,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isPublicPath]);
 
   // Check token validity
   const checkTokenValid = useCallback(() => {
     const tokenRaw = localStorage.getItem("authToken");
-    const isPublicPath = PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith("/freelancer/"));
-    if (!tokenRaw && !isPublicPath) {
+    if (!tokenRaw && !isPublicPath()) {
       logoutUtil();
       setIsAuthenticated(false);
       setUserId(null);
@@ -132,16 +127,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return false;
     }
     return true;
-  }, []);
+  }, [isPublicPath]);
 
   // Periodic token check (every 10s) + when user returns to tab
   useEffect(() => {
     const interval = setInterval(() => {
-      const isPublicPath = PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith("/freelancer/"));
       const tokenRaw = localStorage.getItem("authToken");
       if (!tokenRaw) {
         // Only redirect to login if NOT on a public page
-        if (!isPublicPath) {
+        if (!isPublicPath()) {
           checkTokenValid();
         }
         return;
@@ -157,7 +151,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setUserId(null);
               setRoleState(null);
               // Only redirect to login if NOT on a public page
-              if (!isPublicPath) {
+              if (!isPublicPath()) {
                 navigateRef.current("/login", { replace: true });
               }
             }
