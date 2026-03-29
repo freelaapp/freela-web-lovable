@@ -85,25 +85,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
+  const PUBLIC_PATHS = [
+    "/",
+    "/login",
+    "/cadastro",
+    "/inicio",
+    "/esqueci-minha-senha",
+    "/escolher-perfil",
+    "/cadastro-contratante",
+    "/cadastro-freelancer",
+    "/confirmar-email",
+    "/termos",
+    "/privacidade",
+    "/freelancers",
+  ];
+
   useEffect(() => {
     registerSessionExpiredHandler(() => {
+      const isPublicPath = PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith("/freelancer/"));
       logoutUtil();
       setIsAuthenticated(false);
       setUserId(null);
       setRoleState(null);
-      navigateRef.current("/login", { replace: true });
+      // Only redirect to login if NOT on a public page
+      if (!isPublicPath) {
+        navigateRef.current("/login", { replace: true });
+      }
       toastRef.current({
         title: "Sessão expirada",
         description: errorMessages.sessionExpired,
         variant: "destructive",
       });
     });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check token validity
   const checkTokenValid = useCallback(() => {
     const tokenRaw = localStorage.getItem("authToken");
-    if (!tokenRaw) {
+    const isPublicPath = PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith("/freelancer/"));
+    if (!tokenRaw && !isPublicPath) {
       logoutUtil();
       setIsAuthenticated(false);
       setUserId(null);
@@ -117,9 +137,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Periodic token check (every 10s) + when user returns to tab
   useEffect(() => {
     const interval = setInterval(() => {
+      const isPublicPath = PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith("/freelancer/"));
       const tokenRaw = localStorage.getItem("authToken");
       if (!tokenRaw) {
-        checkTokenValid();
+        // Only redirect to login if NOT on a public page
+        if (!isPublicPath) {
+          checkTokenValid();
+        }
         return;
       }
       const expRaw = localStorage.getItem("authTokenExpirationTime");
@@ -132,7 +156,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setIsAuthenticated(false);
               setUserId(null);
               setRoleState(null);
-              navigateRef.current("/login", { replace: true });
+              // Only redirect to login if NOT on a public page
+              if (!isPublicPath) {
+                navigateRef.current("/login", { replace: true });
+              }
             }
           });
         }
