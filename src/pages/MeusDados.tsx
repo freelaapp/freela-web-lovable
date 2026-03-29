@@ -427,13 +427,22 @@ const MeusDados = () => {
 
       // 2. POST/PUT /providers/pix-keys
       if (hasPixChanges) {
-        // Always try POST first, if 409 then PUT
-        const pixBody = JSON.stringify({
-          providerId: providerId,
-          type: chavePixType,
-          key: chavePix,
-        });
+        // Map frontend type to backend type
+        const pixTypeMap: Record<string, string> = {
+          cpf: "cpf",
+          cnpj: "cpf",
+          email: "email",
+          telefone: "phone",
+          aleatoria: "random",
+        };
+        const apiPixType = pixTypeMap[chavePixType] || chavePixType;
 
+        const pixPayload = {
+          key: chavePix,
+          type: apiPixType,
+        };
+
+        // Always try POST first
         const postRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
           method: "POST",
           credentials: "include",
@@ -442,7 +451,7 @@ const MeusDados = () => {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: pixBody,
+          body: JSON.stringify(pixPayload),
         });
 
         if (postRes.ok) {
@@ -454,10 +463,6 @@ const MeusDados = () => {
           results.push(true);
         } else if (postRes.status === 409) {
           // Already exists — update via PUT
-          const existingId = existingPixId || (() => {
-            try { return postRes.json().then(b => b?.data?.id ?? b?.id); } catch { return null; }
-          })();
-
           const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
             method: "PUT",
             credentials: "include",
@@ -468,20 +473,16 @@ const MeusDados = () => {
             },
             body: JSON.stringify({
               id: existingPixId,
-              providerId: providerId,
-              type: chavePixType,
-              key: chavePix,
+              ...pixPayload,
             }),
           });
           if (pixRes.ok) {
             setOrigPix(currentPixSnap());
             results.push(true);
           } else {
-            const errBody = await pixRes.json().catch(() => null);
             results.push(false);
           }
         } else {
-          const errBody = await postRes.json().catch(() => null);
           results.push(false);
         }
       }
@@ -868,7 +869,6 @@ const MeusDados = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cpf">CPF</SelectItem>
-                  <SelectItem value="cnpj">CNPJ</SelectItem>
                   <SelectItem value="email">E-mail</SelectItem>
                   <SelectItem value="telefone">Telefone</SelectItem>
                   <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
