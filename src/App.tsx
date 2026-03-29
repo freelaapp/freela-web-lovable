@@ -100,7 +100,7 @@ const App = () => (
             {/* Contratante-only routes */}
             <Route path="/dashboard-contratante" element={<ProtectedRoute requiredRole="contratante"><DashboardContratante /></ProtectedRoute>} />
             <Route path="/criar-evento" element={<ProtectedRoute requiredRole="contratante"><CriarEvento /></ProtectedRoute>} />
-            <Route path="/agenda" element={<ProtectedRoute requiredRole="contratante"><Agenda /></ProtectedRoute>} />
+            <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
             <Route path="/evento/:eventoId" element={<ProtectedRoute requiredRole="contratante"><DetalheEventoContratante /></ProtectedRoute>} />
             <Route path="/meus-dados-contratante" element={<ProtectedRoute requiredRole="contratante"><MeusDadosContratante /></ProtectedRoute>} />
             <Route path="/configuracoes-contratante" element={<ProtectedRoute requiredRole="contratante"><ConfiguracoesContratante /></ProtectedRoute>} />
