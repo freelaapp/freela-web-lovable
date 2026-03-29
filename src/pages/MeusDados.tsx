@@ -427,8 +427,37 @@ const MeusDados = () => {
 
       // 2. POST/PUT /providers/pix-keys
       if (hasPixChanges) {
-        if (hasExistingPixKey) {
-          // Update existing PIX key
+        // Always try POST first, if 409 then PUT
+        const pixBody = JSON.stringify({
+          providerId: providerId,
+          type: chavePixType,
+          key: chavePix,
+        });
+
+        const postRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Origin-type": ORIGIN_TYPE,
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: pixBody,
+        });
+
+        if (postRes.ok) {
+          const resBody = await postRes.json().catch(() => null);
+          const resData = resBody?.data ?? resBody;
+          if (resData?.id) setExistingPixId(resData.id);
+          setOrigPix(currentPixSnap());
+          setHasExistingPixKey(true);
+          results.push(true);
+        } else if (postRes.status === 409) {
+          // Already exists — update via PUT
+          const existingId = existingPixId || (() => {
+            try { return postRes.json().then(b => b?.data?.id ?? b?.id); } catch { return null; }
+          })();
+
           const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
             method: "PUT",
             credentials: "include",
@@ -448,36 +477,12 @@ const MeusDados = () => {
             setOrigPix(currentPixSnap());
             results.push(true);
           } else {
+            const errBody = await pixRes.json().catch(() => null);
             results.push(false);
           }
         } else {
-          // Create new PIX key
-          const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Origin-type": ORIGIN_TYPE,
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              providerId: providerId,
-              type: chavePixType,
-              key: chavePix,
-            }),
-          });
-          if (pixRes.ok) {
-            const resBody = await pixRes.json().catch(() => null);
-            const resData = resBody?.data ?? resBody;
-            if (resData?.id) setExistingPixId(resData.id);
-            setOrigPix(currentPixSnap());
-            setHasExistingPixKey(true);
-            results.push(true);
-          } else {
-            const errBody = await pixRes.json().catch(() => null);
-            console.error("[MeusDados] Pix create failed:", pixRes.status, errBody);
-            results.push(false);
-          }
+          const errBody = await postRes.json().catch(() => null);
+          results.push(false);
         }
       }
 
