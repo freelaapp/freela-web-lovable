@@ -100,10 +100,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const PUBLIC_PATHS = [
+    "/",
+    "/login",
+    "/cadastro",
+    "/inicio",
+    "/esqueci-minha-senha",
+    "/escolher-perfil",
+    "/cadastro-contratante",
+    "/cadastro-freelancer",
+    "/confirmar-email",
+    "/termos",
+    "/privacidade",
+    "/freelancers",
+  ];
+
   // Check token validity
   const checkTokenValid = useCallback(() => {
     const tokenRaw = localStorage.getItem("authToken");
-    if (!tokenRaw) {
+    const isPublicPath = PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith("/freelancer/"));
+    if (!tokenRaw && !isPublicPath) {
       logoutUtil();
       setIsAuthenticated(false);
       setUserId(null);
