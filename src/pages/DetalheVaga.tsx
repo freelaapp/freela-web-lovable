@@ -147,6 +147,15 @@ const DetalheVaga = () => {
       });
     }, [jobIdForTimeline, checkinDone, checkoutDone, paymentDone, reviewDone, applied]);
 
+    // Read from TimelineContext — contractor actions update local state
+    useEffect(() => {
+      if (!jobIdForTimeline) return;
+      const ctx = getTimeline(jobIdForTimeline);
+      if (!ctx) return;
+      if (ctx.paid && !paymentDone) setPaymentDone(true);
+      if (ctx.feedback && !reviewDone) setReviewDone(true);
+    }, [jobIdForTimeline, getTimeline]);
+
     useEffect(() => {
       const fetchData = async () => {
         if (!vagaId) return;

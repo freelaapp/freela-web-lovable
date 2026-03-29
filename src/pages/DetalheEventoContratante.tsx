@@ -125,6 +125,17 @@ const DetalheEventoContratante = () => {
     if (!eventoId) return;
     setTimelineContextStep(eventoId, timelineStep);
   }, [eventoId, timelineStep, setTimelineContextStep]);
+
+  // Read from TimelineContext — freelancer actions update local state
+  useEffect(() => {
+    if (!eventoId) return;
+    const ctx = getTimeline(eventoId);
+    if (!ctx) return;
+    // Freelancer did check-in → advance to step 2
+    if (ctx.checkinDone && timelineStep < 2) setTimelineStep(2);
+    // Freelancer did check-out → advance to step 3
+    if (ctx.checkoutDone && timelineStep < 3) setTimelineStep(3);
+  }, [eventoId, getTimeline, timelineStep]);
   const [checkInCode, setCheckInCode] = useState<string | null>(null);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [checkInLoading, setCheckInLoading] = useState(false);
