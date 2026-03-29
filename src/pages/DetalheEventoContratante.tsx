@@ -138,7 +138,6 @@ const DetalheEventoContratante = () => {
     try {
       const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, { method: "GET" });
       const body = await res.json().catch(() => null);
-      console.log("[Payment] GET /jobs/{jobId}/payments:", body);
       const paymentInfo = body?.data ?? body;
       if (paymentInfo) {
         setPixData(prev => {
@@ -156,12 +155,12 @@ const DetalheEventoContratante = () => {
 
   // ── Pusher: listen for payment, check-in and check-out updates ──────────────────────
   useEffect(() => {
-    const pusher = new Pusher("f8d94fc93946ed0f4e0b", { cluster: "sa1" });
+    const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY || "", { cluster: import.meta.env.VITE_PUSHER_CLUSTER || "sa1" });
+    let paymentConfirmed = false;
 
     // Payment channel
     const paymentChannel = pusher.subscribe("payments");
     paymentChannel.bind("payment.updated", async (data: any) => {
-      console.log("[Pusher] payment.updated", data);
       if (data?.status) {
         setPaymentStatus(prev => ({ ...prev, [data.providerId ?? data.jobId ?? ""]: data.status }));
       }
@@ -175,11 +174,10 @@ const DetalheEventoContratante = () => {
           const jobRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
           const jobBody = await jobRes.json().catch(() => null);
           const paid = jobBody?.data?.paid ?? jobBody?.paid;
-          console.log("[Pusher] job paid status:", paid);
 
            if (paid === true || paid === "true") {
+             paymentConfirmed = true;
              await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
-             console.log("[Pusher] job scheduled after payment confirmation");
              setTimelineStep(prev => Math.max(prev, 2));
              setShowPixModal(false);
              toast({ title: "Pagamento confirmado!", description: "O job foi agendado com sucesso." });
@@ -195,14 +193,28 @@ const DetalheEventoContratante = () => {
     // Check-in channel
     const checkInChannel = pusher.subscribe("check-ins");
     checkInChannel.bind("checkin.completed", (data: any) => {
-      console.log("[Pusher] checkin.completed", data);
       if (eventoId) {
         fetchJobStatus(eventoId);
       }
       toast({ title: "Check-in realizado!", description: "O freelancer iniciou o trabalho." });
     });
 
+    // ── Payment timeout: alert user after 30s if payment not confirmed ──
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const startPaymentTimeout = () => {
+      timeoutId = setTimeout(() => {
+        if (!paymentConfirmed) {
+          toast({
+            title: "Pagamento ainda não confirmado",
+            description: "Isso pode levar alguns minutos. A página atualizará automaticamente quando confirmado.",
+          });
+        }
+      }, 30000); // 30 seconds
+    };
+    startPaymentTimeout();
+
     return () => {
+      clearTimeout(timeoutId);
       paymentChannel.unbind_all();
       checkInChannel.unbind_all();
       pusher.unsubscribe("payments");
@@ -580,7 +592,6 @@ const DetalheEventoContratante = () => {
          vacancyId: vacancyId,
        });
 
-       console.log("[Payment] POST result:", JSON.stringify(paymentResult));
        lastJobIdRef.current = jobId;
 
        // Store POST result immediately (has pixQrCode & pixQrCodeImage)

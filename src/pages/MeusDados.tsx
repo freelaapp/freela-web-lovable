@@ -125,6 +125,7 @@ const MeusDados = () => {
   // Pix
   const [chavePixType, setChavePixType] = useState("");
   const [chavePix, setChavePix] = useState("");
+  const [existingPixId, setExistingPixId] = useState<string | null>(null);
 
   // Delete account
   const [deleteDialog, setDeleteDialog] = useState(false);
@@ -339,8 +340,9 @@ const MeusDados = () => {
            };
 
             // PIX - pegar da resposta de /users/providers
-            const rawPixType = prov.pixKeyType ?? "";
-            const rawPixValue = prov.pixKeyValue ?? "";
+            const rawPixType = prov.type ?? prov.pixKeyType ?? "";
+            const rawPixValue = prov.key ?? prov.pixKeyValue ?? "";
+            const rawPixId = prov.pixKeyId ?? prov.id ?? null;
             const normalizePixType = (type: string): string => {
               const typeLower = type.toLowerCase();
               if (typeLower === "cpf" || typeLower === "cnpj") return typeLower;
@@ -353,7 +355,8 @@ const MeusDados = () => {
             setChavePixType(normalizedPixType);
             setChavePix(rawPixValue);
             setOrigPix(snap({ chavePixType: normalizedPixType, chavePix: rawPixValue }));
-            setHasExistingPixKey(!!rawPixValue);
+            setHasExistingPixKey(!!rawPixValue && !!rawPixId);
+            if (rawPixId) setExistingPixId(rawPixId);
           }
         }
 
@@ -408,11 +411,9 @@ const MeusDados = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            id: userId,
             name: nome,
             email: email,
             phoneNumber: telefone.replace(/\D/g, ""),
-            status: "active",
           }),
         });
         if (userRes.ok) {
@@ -437,26 +438,20 @@ const MeusDados = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              pixKeyValue: chavePix,
-              pixKeyType: chavePixType,
+              id: existingPixId,
+              providerId: providerId,
+              type: chavePixType,
+              key: chavePix,
             }),
           });
           if (pixRes.ok) {
             setOrigPix(currentPixSnap());
             results.push(true);
           } else {
-            console.error("[MeusDados] Pix update failed:", pixRes.status);
             results.push(false);
           }
         } else {
           // Create new PIX key
-          const pixPayload = {
-            pixKeyValue: chavePix,
-            pixKeyType: chavePixType,
-            createdAt: new Date().toISOString(),
-            providerId: providerId,
-          };
-          console.log("[MeusDados] POST /providers/pix-keys payload:", pixPayload);
           const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
             method: "POST",
             credentials: "include",
@@ -465,9 +460,16 @@ const MeusDados = () => {
               "Authorization": `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(pixPayload),
+            body: JSON.stringify({
+              providerId: providerId,
+              type: chavePixType,
+              key: chavePix,
+            }),
           });
           if (pixRes.ok) {
+            const resBody = await pixRes.json().catch(() => null);
+            const resData = resBody?.data ?? resBody;
+            if (resData?.id) setExistingPixId(resData.id);
             setOrigPix(currentPixSnap());
             setHasExistingPixKey(true);
             results.push(true);

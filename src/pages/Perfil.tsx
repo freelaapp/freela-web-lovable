@@ -186,7 +186,7 @@ const Perfil = () => {
           userName = uData?.name || "";
         }
 
-        const avatar = pickImageUrlFromPayload(providerData, [
+        const avatar = pickImageUrlFromPayload(providerListData, [
           "profileImage",
           "profileImageUrl",
           "avatarUrl",
@@ -197,7 +197,7 @@ const Perfil = () => {
         ]);
 
          // Process availability from 'availability' field (JSON string)
-         const availabilityData = providerData.availability;
+         const availabilityData = providerListData.availability;
          if (availabilityData) {
            let availability: any = null;
            if (typeof availabilityData === 'string') {
@@ -234,7 +234,7 @@ const Perfil = () => {
            setSavedHorarios({});
          }
 
-        const djv = providerData.desiredJobVacancy || "";
+        const djv = providerListData.desiredJobVacancy || "";
         if (djv) {
           const ids = djv.split(",").map((s: string) => s.trim().toLowerCase());
           const matched = servicosPF.filter(sv => ids.some((id: string) => sv.id === id || sv.label.toLowerCase() === id));
@@ -248,11 +248,11 @@ const Perfil = () => {
         setFreelancerData({
           name: userName,
           avatarUrl: avatar,
-          rating: providerData.feedbackStars ? String(providerData.feedbackStars) : "0",
-          city: providerData.city || "",
-          uf: providerData.uf || "",
+          rating: providerListData.feedbackStars ? String(providerListData.feedbackStars) : "0",
+          city: providerListData.city || "",
+          uf: providerListData.uf || "",
           desiredJobVacancy: djv,
-          isPCD: providerData.deficiency === true || providerData.deficiency === "true" || providerData.deficiency === 1,
+          isPCD: providerListData.deficiency === true || providerListData.deficiency === "true" || providerListData.deficiency === 1,
         });
       } catch (err) {
         if ((err as Error).name !== "AbortError") {

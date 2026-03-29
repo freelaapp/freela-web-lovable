@@ -117,6 +117,7 @@ const DashboardFreelancer = () => {
           // Extract freelancer's service areas from profile (desiredJobVacancy)
          const providerServices: string[] = [];
          const rawServices = provData?.desiredJobVacancy ?? [];
+         console.log("[DashboardFreelancer] desiredJobVacancy raw:", JSON.stringify(rawServices));
          if (Array.isArray(rawServices)) {
            rawServices.forEach((s: any) => {
              if (typeof s === "string") providerServices.push(s.toLowerCase().trim());
@@ -124,6 +125,7 @@ const DashboardFreelancer = () => {
              else if (s?.assignment) providerServices.push(s.assignment.toLowerCase().trim());
            });
          }
+         console.log("[DashboardFreelancer] providerServices extraídos:", providerServices);
 
          // 2. Get feedbacks
          const fbRes = await fetch(`${API_BASE_URL}/providers/${providerId}/jobs/feedbacks`, {
@@ -176,8 +178,9 @@ const DashboardFreelancer = () => {
            const futureJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
              method: "GET", credentials: "include", headers,
            });
-           const futureJobsBody = await futureJobsRes.json().catch(() => null);
-           const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
+            const futureJobsBody = await futureJobsRes.json().catch(() => null);
+            const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
+            console.log("[DashboardFreelancer] future-jobs resposta:", JSON.stringify(futureJobsData, null, 2));
 
            if (Array.isArray(futureJobsData) && futureJobsData.length > 0) {
              // Use data directly from future-jobs API (already contains full vacancy details)
@@ -202,15 +205,13 @@ const DashboardFreelancer = () => {
            });
            const appliedBody = await appliedRes.json().catch(() => null);
            const appliedData = appliedBody?.data ?? appliedBody;
+           console.log("[DashboardFreelancer] applied-vacancies resposta:", JSON.stringify(appliedData, null, 2));
 
            // Process applied vacancies with their application status
-           // Filter out paid/completed applications (they should be in Ativas/Agendadas)
-           const processedApplications = Array.isArray(appliedData)
-             ? appliedData.filter((app: any) => {
-                 const s = (app.status || "").toLowerCase();
-                 return s !== "paid" && s !== "pago" && s !== "completed" && s !== "concluído" && s !== "confirmado" && s !== "confirmed";
-               })
-             : [];
+           // The /applied-vacancies endpoint returns vacancy objects (status = vacancy status like "open")
+           // NOT candidacy objects (status = "pending"/"accepted")
+           // So we keep all results - they are already filtered by the API
+           const processedApplications = Array.isArray(appliedData) ? appliedData : [];
 
            if (processedApplications.length > 0) {
              const appliedDetailsWithStatus = await Promise.all(
@@ -323,6 +324,8 @@ const DashboardFreelancer = () => {
          const filteredBody = await filteredRes.json().catch(() => null);
          const filteredData = filteredBody?.data ?? filteredBody;
          const vacancies = Array.isArray(filteredData) ? filteredData : [];
+         console.log("[DashboardFreelancer] filtered-vacancies resposta:", JSON.stringify(vacancies, null, 2));
+         console.log("[DashboardFreelancer] total vacancies recebidas:", vacancies.length);
 
          // Flatten: each service inside each vacancy becomes a card
          // Filter by matching assignment with provider's profile services
@@ -349,6 +352,7 @@ const DashboardFreelancer = () => {
          });
 
          setVagasDisponiveis(flattened);
+         console.log("[DashboardFreelancer] vagasDisponiveis flatten:", flattened.length, flattened);
        } catch (err) {
          console.error("[DashboardFreelancer] error fetching data:", err);
          // Ensure userNameLoading is false even if we error out before reaching the user fetch finally block

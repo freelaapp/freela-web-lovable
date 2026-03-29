@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star, Send } from "lucide-react";
+import { Calendar, Clock, MapPin, User, ShieldCheck, CheckCircle, DollarSign, Briefcase, ExternalLink, Check, Loader2, Star, Send, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -28,6 +28,10 @@ const statusLabels: Record<string, string> = {
   aceita: "Aceita",
   preenchida: "Preenchida",
   concluida: "Concluída",
+  scheduled: "Agendada",
+  "in progress": "Em andamento",
+  "partially completed": "Parcialmente concluída",
+  unavailable: "Indisponível",
 };
 
 const defaultTimelineSteps = [
@@ -99,6 +103,8 @@ const DetalheVaga = () => {
    const [providerId, setProviderId] = useState<string | null>(null);
    const [contractorId, setContractorId] = useState<string | null>(null);
    const [candidacyStatus, setCandidacyStatus] = useState<string | null>(null);
+   const [candidacyId, setCandidacyId] = useState<string | null>(null);
+   const [cancelling, setCancelling] = useState(false);
    const [showCheckinModal, setShowCheckinModal] = useState(false);
    const [checkinCode, setCheckinCode] = useState("");
    const [checkinLoading, setCheckinLoading] = useState(false);
@@ -113,6 +119,8 @@ const DetalheVaga = () => {
    const [reviewLoading, setReviewLoading] = useState(false);
    const [reviewDone, setReviewDone] = useState(false);
    const [paymentDone, setPaymentDone] = useState(false);
+   const [checkInTime, setCheckInTime] = useState<string | null>(null);
+   const [checkOutTime, setCheckOutTime] = useState<string | null>(null);
    // Contratante data
    const [contractorName, setContractorName] = useState<string>("--");
    const [contractorFeedback, setContractorFeedback] = useState<number>(0);
@@ -152,6 +160,14 @@ const DetalheVaga = () => {
             };
             setVaga(normalizedJob);
 
+            // DEBUG: Log job data from API
+            console.log("[DetalheVaga] jobData completo:", JSON.stringify(jobData, null, 2));
+            console.log("[DetalheVaga] startTime:", jobData.startTime, "| endTime:", jobData.endTime);
+
+            // Extract start/end times from job data
+            if (jobData.startTime) setCheckInTime(jobData.startTime);
+            if (jobData.endTime) setCheckOutTime(jobData.endTime);
+
            const candidacyBody = await candidacyRes.json().catch(() => null);
            const candidacyData = candidacyBody?.data ?? candidacyBody;
            if (candidacyData?.status) {
@@ -177,19 +193,49 @@ const DetalheVaga = () => {
               apiFetch(`${API_BASE_URL}/users/providers`, { method: "GET" }),
             ]);
 
+            if (vacRes.status === 404) {
+              console.warn("[DetalheVaga] Vaga não encontrada:", vagaId);
+              toast.error("Vaga não encontrada. Ela pode ter sido removida.");
+              navigate("/dashboard");
+              return;
+            }
+
             const vacBody = await vacRes.json().catch(() => null);
            const vacData = vacBody?.data ?? vacBody;
            setVaga(vacData);
+
+           // DEBUG: Log vacancy data from API
+           console.log("[DetalheVaga] vacData completo:", JSON.stringify(vacData, null, 2));
+           console.log("[DetalheVaga] startTime:", vacData.startTime, "| endTime:", vacData.endTime);
+
+           // Extract start/end times from vacancy data
+           if (vacData.startTime) setCheckInTime(vacData.startTime);
+           if (vacData.endTime) setCheckOutTime(vacData.endTime);
 
            const provBody = await provRes.json().catch(() => null);
            const provData = Array.isArray(provBody?.data) ? provBody.data[0] : (provBody?.data ?? provBody);
            if (provData?.id) setProviderId(provData.id);
 
-           if (vacData?.candidacies && Array.isArray(vacData.candidacies) && provData?.id) {
-             const alreadyApplied = vacData.candidacies.some(
-               (c: any) => c.providerId === provData.id && c.status !== "rejected"
-             );
-             if (alreadyApplied) setApplied(true);
+           // Fetch candidacies separately to check if already applied
+           try {
+             const candRes = await apiFetch(`${API_BASE_URL}/vacancies/candidacies?vacancyId=${vagaId}`, { method: "GET" });
+             const candBody = await candRes.json().catch(() => null);
+             const candData = candBody?.data ?? candBody;
+             const candidacies = Array.isArray(candData) ? candData : [];
+             console.log("[DetalheVaga] candidacies da vaga:", JSON.stringify(candidacies, null, 2));
+
+             if (provData?.id) {
+               const myCandidacy = candidacies.find(
+                 (c: any) => c.providerId === provData.id && c.status !== "rejected"
+               );
+               if (myCandidacy) {
+                 setApplied(true);
+                 setCandidacyStatus(myCandidacy.status || "pending");
+                 if (myCandidacy.id) setCandidacyId(myCandidacy.id);
+               }
+             }
+           } catch (candErr) {
+             console.error("[DetalheVaga] erro ao buscar candidacies:", candErr);
            }
 
            // Extract contractorId from vacancy data
@@ -358,6 +404,11 @@ const DetalheVaga = () => {
         const body = await res.json().catch(() => null);
         throw new Error(body?.message || "Código inválido. Tente novamente.");
       }
+      const resBody = await res.json().catch(() => null);
+      const resData = resBody?.data ?? resBody;
+      if (resData?.startTime) {
+        setCheckInTime(resData.startTime);
+      }
       setCheckinDone(true);
       setShowCheckinModal(false);
       setCheckinCode("");
@@ -387,12 +438,17 @@ toast.error(errorMessages.checkinCodeRequired);
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify({ jobId, providerId, code: checkoutCode }),
        });
-         if (!res.ok) {
-           const body = await res.json().catch(() => null);
-           throw new Error(body?.message || "Código inválido. Tente novamente.");
-         }
+          if (!res.ok) {
+            const body = await res.json().catch(() => null);
+            throw new Error(body?.message || "Código inválido. Tente novamente.");
+          }
 
-         setCheckoutDone(true);
+          const resBody = await res.json().catch(() => null);
+          const resData = resBody?.data ?? resBody;
+          if (resData?.endTime) {
+            setCheckOutTime(resData.endTime);
+          }
+          setCheckoutDone(true);
          setShowCheckoutModal(false);
          setCheckoutCode("");
          toast.success("Check-out realizado com sucesso!");
@@ -494,8 +550,18 @@ toast.error(errorMessages.checkinCodeRequired);
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
+        if (res.status === 409) {
+          // Already applied - update state
+          setApplied(true);
+          toast.info("Você já se candidatou a esta vaga.");
+          return;
+        }
         throw new Error(body?.message || "Erro ao se candidatar.");
       }
+      const resBody = await res.json().catch(() => null);
+      const resData = resBody?.data ?? resBody;
+      const newCandidacyId = resData?.id || resData?.data?.id;
+      if (newCandidacyId) setCandidacyId(newCandidacyId);
       setApplied(true);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
@@ -506,6 +572,34 @@ toast.error(errorMessages.checkinCodeRequired);
       setApplying(false);
     }
   };
+
+  const handleCancelCandidacy = async () => {
+    if (!candidacyId) {
+      toast.error("Candidatura não encontrada.");
+      return;
+    }
+    setCancelling(true);
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/candidacies/${candidacyId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || "Erro ao cancelar candidatura.");
+      }
+      setApplied(false);
+      setCandidacyId(null);
+      toast.success("Candidatura cancelada com sucesso!");
+    } catch (err: any) {
+      console.error("[DetalheVaga] cancel error:", err);
+      toast.error(err.message || "Erro ao cancelar candidatura. Tente novamente.");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  // DEBUG: Log final state values for check-in/check-out
+  console.log("[DetalheVaga] Render - checkInTime:", checkInTime, "| checkOutTime:", checkOutTime);
 
   return (
     <AppLayout showFooter={false}>
@@ -526,6 +620,18 @@ toast.error(errorMessages.checkinCodeRequired);
             {!isAgendada && isOpen && applied && (
               <Button
                 size="lg"
+                variant="destructive"
+                className="gap-2 text-base"
+                onClick={handleCancelCandidacy}
+                disabled={cancelling}
+              >
+                {cancelling ? <Loader2 className="w-5 h-5 animate-spin" /> : <X className="w-5 h-5" />}
+                {cancelling ? "Cancelando..." : "Cancelar Candidatura"}
+              </Button>
+            )}
+            {!isAgendada && !isOpen && applied && (
+              <Button
+                size="lg"
                 className="gap-2 text-base bg-emerald-500 text-white cursor-default"
                 disabled
               >
@@ -538,6 +644,9 @@ toast.error(errorMessages.checkinCodeRequired);
             status === "aceita" || status === "accepted" ? "bg-primary-light text-primary" :
             status === "preenchida" || status === "confirmed" ? "bg-success-light text-success" :
             status === "aberta" || status === "open" ? "bg-warning-light text-warning" :
+            status === "scheduled" || status === "closed" ? "bg-primary-light text-primary" :
+            status === "in progress" ? "bg-success-light text-success" :
+            status === "completed" || status === "partially completed" ? "bg-green-100 text-green-700" :
             "bg-muted text-muted-foreground"
           }`}>
             {isAgendada ? "Agendada" : (statusLabels[status] || status)}
@@ -560,9 +669,16 @@ toast.error(errorMessages.checkinCodeRequired);
               </div>
               <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-default text-center">
                 <Clock className="w-6 h-6 text-primary" />
-                <div>
-                  <p className="text-sm font-bold">{jobTime}</p>
-                  <p className="text-[10px] text-muted-foreground">Horário</p>
+                <div className="flex items-center gap-2">
+                  <div>
+                    <p className="text-sm font-bold">{checkInTime || "--"}</p>
+                    <p className="text-[10px] text-muted-foreground">Entrada</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">-</span>
+                  <div>
+                    <p className="text-sm font-bold">{checkOutTime || "--"}</p>
+                    <p className="text-[10px] text-muted-foreground">Saída</p>
+                  </div>
                 </div>
               </div>
               <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-success-light/50 hover:bg-success-light transition-colors cursor-default text-center">
