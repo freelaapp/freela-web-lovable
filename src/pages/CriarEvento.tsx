@@ -63,14 +63,6 @@ const CriarEvento = () => {
       // Add R$ 1,00 for Pix payment (secure)
       const totalComPix = baseCalc.total + 1.00;
       
-      console.log('[CriarEvento] Debug calculation:', {
-        pricePerHour: servicoSelecionado.pricePerHour,
-        hours,
-        quantidade: formData.quantidade,
-        baseTotal: baseCalc.total,
-        totalComPix: totalComPix.toFixed(2)
-      });
-      
       return {
         ...baseCalc,
         total: totalComPix

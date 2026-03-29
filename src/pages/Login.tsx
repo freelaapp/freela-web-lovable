@@ -24,7 +24,6 @@ export async function detectUserRole(): Promise<"freelancer" | "contratante"> {
     }
 
     if (!response.ok) {
-      console.warn(`[detectUserRole] Profiles check failed: ${response.status}`);
       return "freelancer";
     }
 
@@ -48,7 +47,6 @@ export async function detectUserRole(): Promise<"freelancer" | "contratante"> {
     if (err instanceof SessionExpiredError) {
       throw err;
     }
-    console.error("[detectUserRole] Error detecting role:", err);
     return "freelancer";
   }
 }

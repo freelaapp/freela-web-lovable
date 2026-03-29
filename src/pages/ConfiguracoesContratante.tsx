@@ -63,7 +63,6 @@ const ConfiguracoesContratante = () => {
         const cid = Array.isArray(contractorData) ? contractorData[0]?.id : contractorData?.id;
 
         if (!cid) {
-          console.warn("[ConfiguracoesContratante] Contractor ID não encontrado");
           setLoading(false);
           return;
         }
@@ -79,7 +78,6 @@ const ConfiguracoesContratante = () => {
           notifEmail: settingsData.notifEmail,
         });
       } catch (err) {
-        console.error("[ConfiguracoesContratante] Erro ao carregar dados:", err);
         // Mantém defaults em caso de erro
       } finally {
         setLoading(false);
@@ -116,7 +114,6 @@ const ConfiguracoesContratante = () => {
         description: "Suas preferências foram atualizadas.",
       });
     } catch (err) {
-      console.error("[ConfiguracoesContratante] Erro ao salvar:", err);
       toast({
         title: "Erro",
         description: "Não foi possível salvar as configurações. Tente novamente.",

@@ -143,7 +143,6 @@ const DetalheAvaliacao = () => {
           setError("Avaliação não encontrada.");
         }
       } catch (err) {
-        console.error("Erro ao carregar detalhes:", err);
         setError("Erro ao carregar os dados. Tente novamente.");
       } finally {
         setLoading(false);

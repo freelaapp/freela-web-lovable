@@ -182,7 +182,6 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
     throw new Error(body?.message || errorMessages.unexpectedError);
   }
 
-  console.log("[register] status:", response.status, "message:", body.message);
 
   return body as RegisterResponse;
 }
@@ -244,7 +243,6 @@ export async function getContractorProfile(token: string): Promise<ContractorPro
   });
 
   const body = await response.json().catch(() => null);
-  console.log("[getContractorProfile] response bruto:", JSON.stringify(body));
 
   if (!response.ok) {
     throw new Error(body?.message || "Não foi possível carregar o perfil do contratante.");
@@ -253,7 +251,6 @@ export async function getContractorProfile(token: string): Promise<ContractorPro
   // body.data pode ser objeto direto ou array com um item
   const raw = body?.data ?? body;
   const data = Array.isArray(raw) ? raw[0] : raw;
-  console.log("[getContractorProfile] data resolvido:", JSON.stringify(data));
   return data as ContractorProfile;
 }
 
@@ -757,12 +754,10 @@ export async function uploadImageToS3(file: File): Promise<string | null> {
     });
     const body = await res.json().catch(() => null);
     if (!res.ok) {
-      console.error("[uploadImageToS3] failed:", body);
       return null;
     }
     return body?.data?.url || body?.url || null;
   } catch (err) {
-    console.error("[uploadImageToS3] error:", err);
     return null;
   }
 }

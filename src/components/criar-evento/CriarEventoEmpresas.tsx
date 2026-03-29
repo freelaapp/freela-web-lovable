@@ -102,12 +102,10 @@ const CriarEventoEmpresas = () => {
       const token = JSON.parse(tokenRaw);
       getContractorProfile(token)
         .then((p) => {
-          console.log("[CriarEvento] profile carregado no mount:", JSON.stringify(p));
           setContractorProfile(p);
         })
-        .catch((err) => console.error("[CriarEvento] Contractor profile error:", err));
+        ;
     } catch {
-      console.error("[CriarEvento] Failed to parse authToken");
     }
   }, []);
 
@@ -266,7 +264,6 @@ const CriarEventoEmpresas = () => {
       }
     }
 
-    console.log("[CriarEvento] contractor profile completo:", JSON.stringify(profile));
 
     // Build establishment from "Local do Evento"
     let establishment = "";

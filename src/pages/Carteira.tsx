@@ -133,7 +133,6 @@ const Carteira = () => {
             setTotalPending(summary?.totalPending ?? 0);
             setTotalConfirmed(summary?.totalConfirmed ?? 0);
           } catch (err) {
-            console.error("[Carteira] Error fetching monthly earnings:", err);
           }
 
           // Fetch filtered-vacancies for history + chart
@@ -169,7 +168,6 @@ const Carteira = () => {
           setChartData(buildChartData(items));
         }
       } catch (err) {
-        console.error("[Carteira] Error fetching data:", err);
       } finally {
         setLoading(false);
       }

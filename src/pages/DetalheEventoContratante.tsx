@@ -149,7 +149,6 @@ const DetalheEventoContratante = () => {
       }
       return paymentInfo;
     } catch (err) {
-      console.error("[Payment] Erro ao buscar detalhes do pagamento:", err);
     }
   };
 
@@ -185,7 +184,6 @@ const DetalheEventoContratante = () => {
              toast({ title: "Pagamento atualizado", description: data?.message || `Status: ${data?.status}` });
            }
         } catch (scheduleErr: any) {
-          console.error("[Pusher] failed to check/schedule job:", scheduleErr);
         }
       }
     });
@@ -228,7 +226,6 @@ const DetalheEventoContratante = () => {
     if (!eventoId) return;
 
     const interval = setInterval(() => {
-      console.log("[Polling] re-fetching job status for evento:", eventoId);
       fetchJobStatus(eventoId);
     }, 5000); // every 5 seconds
 
@@ -253,12 +250,10 @@ const DetalheEventoContratante = () => {
       const body = await res.json().catch(() => null);
       const status = (body?.data?.status ?? body?.status ?? "").trim();
       const paid = body?.data?.paid ?? body?.paid;
-      console.log("[JobStatus] job", jobId, "status:", JSON.stringify(status), "paid:", paid);
 
       if (status === "unavailable" && (paid === true || paid === "true")) {
         // Pagamento manual detectado — agendar job automaticamente
         await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
-        console.log("[JobStatus] Pagamento manual detectado, job agendado");
         setTimelineStep(prev => Math.max(prev, 2));
         setShowPixModal(false);
         toast({ title: "Pagamento confirmado!", description: "O job foi agendado com sucesso." });
@@ -272,7 +267,6 @@ const DetalheEventoContratante = () => {
         setTimelineStep(prev => Math.max(prev, 1));
       }
     } catch (err) {
-      console.error("[JobStatus] error fetching job status:", err);
     }
   };
 
@@ -291,7 +285,6 @@ const DetalheEventoContratante = () => {
       // Pausar se já atingiu estado final
       if (timelineStep >= 5) return;
 
-      console.log("[Polling] Verificando status do job...");
       fetchJobStatusRef.current(eventoId);
     }, 5000); // 5 segundos
 
@@ -334,7 +327,7 @@ const DetalheEventoContratante = () => {
           setVacancy(v);
         }
       })
-      .catch(err => console.error("Erro ao buscar vaga:", err))
+      
       .finally(() => setLoading(false));
 
      // Fetch candidacies
@@ -364,7 +357,6 @@ const DetalheEventoContratante = () => {
                  userData
                };
              } catch (err) {
-               console.error(`Erro ao buscar dados para candidato ${c.id}:`, err);
                return { ...c, providerData: null, userData: null };
              }
            });
@@ -437,10 +429,9 @@ const DetalheEventoContratante = () => {
            }
            setCandidatos(mapped);
          } catch (err) {
-           console.error("Erro ao processar candidatos:", err);
          }
        })
-       .catch(err => console.error("Erro ao buscar candidatos:", err))
+       
        .finally(() => setLoadingCandidatos(false));
 
     // Fetch job status to determine timeline position
@@ -537,7 +528,6 @@ const DetalheEventoContratante = () => {
        try {
          await handlePagamento(providerId, id);
        } catch (err) {
-         console.error("Erro ao abrir pagamento após aceite:", err);
        }
      }
      
@@ -601,7 +591,6 @@ const DetalheEventoContratante = () => {
        // Fetch extra payment info but do NOT schedule — wait for payment confirmation via Pusher
        fetchJobPayments(jobId);
      } catch (err: any) {
-       console.error("[Payment] error:", err);
        toast({ title: "Erro ao criar pagamento", description: err.message || "Tente novamente.", variant: "destructive" });
      } finally {
        setActionLoadingIds(prev => { const next = new Set(prev); next.delete(loadingId); return next; });
@@ -747,11 +736,9 @@ const DetalheEventoContratante = () => {
       const terminateRes = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/terminate`, {
         method: "PATCH",
       });
-      console.log("[Review] terminate response:", terminateRes.status, terminateRes.ok);
 
       // Always mark feedback as done after successful feedback submission
       setTimelineStep(prev => Math.max(prev, 5));
-      console.log("[Review] timelineStep set to 5");
 
       toast({ title: "Avaliação enviada!", description: "Obrigado pelo feedback." });
       setShowReviewModal(false);

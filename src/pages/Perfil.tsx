@@ -204,7 +204,6 @@ const Perfil = () => {
              try {
                availability = JSON.parse(availabilityData);
              } catch (e) {
-               console.error('Erro ao parsear availability:', e);
                availability = null;
              }
            } else {
@@ -256,7 +255,6 @@ const Perfil = () => {
         });
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          console.error("[Perfil] freelancer fetch error:", err);
         }
       } finally {
         setFreelancerLoading(false);
@@ -323,7 +321,6 @@ const Perfil = () => {
         });
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          console.error("[Perfil] contractor fetch error:", err);
         }
       } finally {
         setContractorLoading(false);

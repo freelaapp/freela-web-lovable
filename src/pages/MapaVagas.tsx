@@ -166,7 +166,6 @@ const MapaVagas = () => {
 
         setApiServices(flattened);
       } catch (err) {
-        console.error("[MapaVagas] Erro ao buscar vagas:", err);
       } finally {
         setLoading(false);
       }

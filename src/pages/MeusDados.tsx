@@ -138,6 +138,8 @@ const MeusDados = () => {
   const [origUser, setOrigUser] = useState("");
   const [origPix, setOrigPix] = useState("");
   const [origProvider, setOrigProvider] = useState("");
+  const [origProviderBirthdate, setOrigProviderBirthdate] = useState("");
+  const [origProviderIsPCD, setOrigProviderIsPCD] = useState(false);
   const [origProfileImage, setOrigProfileImage] = useState<string | null>(null);
 
   const currentUserSnap = useCallback((): string => snap({ nome, email, telefone } as UserSnapshot), [nome, email, telefone]);
@@ -216,14 +218,12 @@ const MeusDados = () => {
         if (meRes.ok) {
           const meBody = await meRes.json();
           const me = meBody?.data ?? meBody;
-          console.log("[DEBUG] GET /users/me:", me);
           const n = me?.name ?? "";
           const e = me?.email ?? "";
           const t = me?.phoneNumber ? maskPhone(me.phoneNumber) : "";
           setNome(n); setEmail(e); setTelefone(t);
           uSnap = { nome: n, email: e, telefone: t };
         } else {
-          console.error("[DEBUG] GET /users/me failed:", meRes.status);
         }
         setOrigUser(snap(uSnap));
 
@@ -231,15 +231,19 @@ const MeusDados = () => {
         let providerProfileImage: string | null = null;
         if (provListRes.ok) {
           const provListBody = await provListRes.json();
-          console.log("[DEBUG] GET /users/providers:", provListBody);
           const rawList = provListBody?.data ?? provListBody;
           const first = Array.isArray(rawList) ? rawList[0] : rawList;
           pId = first?.id ?? "";
           providerProfileImage = first?.profileImage ?? null;
           setProviderId(pId);
-          console.log("[DEBUG] pId:", pId);
+
+          // DEBUG: Log provider data from database
+          console.log("═══════════════════════════════════════════");
+          console.log("📦 PROVIDER DATA DO BANCO (GET /users/providers)");
+          console.log("═══════════════════════════════════════════");
+          console.log(JSON.stringify(first, null, 2));
+          console.log("═══════════════════════════════════════════");
         } else {
-          console.error("[DEBUG] GET /users/providers failed:", provListRes.status);
         }
 
         let pSnap: ProviderSnapshot = {
@@ -254,9 +258,6 @@ const MeusDados = () => {
           if (provRes.ok) {
             const provBody = await provRes.json();
             const prov = provBody?.data ?? provBody;
-            console.log("=== PAYLOAD COMPLETO DO FREELANCER ===");
-            console.log("Todas as chaves retornadas pela API:", Object.keys(prov));
-            console.log("Payload bruto:", JSON.stringify(prov, null, 2));
             console.table({
               "cpf":                        prov.cpf                        ?? "❌ ausente",
               "birthdate":                  prov.birthdate                  ?? "❌ ausente",
@@ -277,7 +278,14 @@ const MeusDados = () => {
               "pixKeyType":                 prov.pixKeyType                 ?? "❌ ausente",
               "profileImage (tipo)":        typeof prov.profileImage,
             });
-            console.log("======================================");
+
+            // DEBUG: Full provider data JSON
+            console.log("═══════════════════════════════════════════");
+            console.log("📦 PROVIDER DATA COMPLETO (GET /providers/{id})");
+            console.log("═══════════════════════════════════════════");
+            console.log(JSON.stringify(prov, null, 2));
+            console.log("═══════════════════════════════════════════");
+
             // Usa profileImage do GET /users/providers como fonte da verdade
             if (providerProfileImage) prov.profileImage = providerProfileImage;
 
@@ -362,7 +370,6 @@ const MeusDados = () => {
 
         setOrigProvider(snap(pSnap));
       } catch (err) {
-        console.error("[MeusDados] erro ao carregar dados:", err);
       } finally {
         setLoading(false);
       }
@@ -378,7 +385,7 @@ const MeusDados = () => {
   };
 
   const handleSave = async () => {
-    const hasUserChanges = currentUserSnap() !== origUser;
+    const hasUserChanges = currentUserSnap() !== origUser || origProviderBirthdate !== dataNascimento || origProviderIsPCD !== isPCD;
     const hasPixChanges = currentPixSnap() !== origPix;
     const hasProviderChanges = currentProviderSnap() !== origProvider || profileImageFile !== null;
 
@@ -420,20 +427,30 @@ const MeusDados = () => {
           setOrigUser(currentUserSnap());
           results.push(true);
         } else {
-          console.error("[MeusDados] User save failed:", userRes.status);
           results.push(false);
         }
       }
 
       // 2. POST/PUT /providers/pix-keys
       if (hasPixChanges) {
-        // Always try POST first, if 409 then PUT
-        const pixBody = JSON.stringify({
-          providerId: providerId,
-          type: chavePixType,
-          key: chavePix,
-        });
+        // Map frontend type to backend type (lowercase, exact values)
+        const pixTypeMap: Record<string, string> = {
+          cpf: "cpf",
+          cnpj: "cpf",
+          email: "email",
+          telefone: "phone",
+          phone: "phone",
+          aleatoria: "random",
+          random: "random",
+        };
+        const apiPixType = pixTypeMap[chavePixType.toLowerCase()] || "cpf";
 
+        const pixPayload = {
+          key: chavePix,
+          type: apiPixType,
+        };
+
+        // Always try POST first
         const postRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
           method: "POST",
           credentials: "include",
@@ -442,7 +459,7 @@ const MeusDados = () => {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: pixBody,
+          body: JSON.stringify(pixPayload),
         });
 
         if (postRes.ok) {
@@ -454,10 +471,6 @@ const MeusDados = () => {
           results.push(true);
         } else if (postRes.status === 409) {
           // Already exists — update via PUT
-          const existingId = existingPixId || (() => {
-            try { return postRes.json().then(b => b?.data?.id ?? b?.id); } catch { return null; }
-          })();
-
           const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
             method: "PUT",
             credentials: "include",
@@ -468,20 +481,16 @@ const MeusDados = () => {
             },
             body: JSON.stringify({
               id: existingPixId,
-              providerId: providerId,
-              type: chavePixType,
-              key: chavePix,
+              ...pixPayload,
             }),
           });
           if (pixRes.ok) {
             setOrigPix(currentPixSnap());
             results.push(true);
           } else {
-            const errBody = await pixRes.json().catch(() => null);
             results.push(false);
           }
         } else {
-          const errBody = await postRes.json().catch(() => null);
           results.push(false);
         }
       }
@@ -567,7 +576,6 @@ const MeusDados = () => {
             setProfileImageFile(null);
             results.push(true);
           } else {
-            console.error("[MeusDados] Provider save failed:", provRes.status);
             results.push(false);
           }
         } else if (hasProviderFieldChanges) {
@@ -599,7 +607,7 @@ const MeusDados = () => {
           payload.ddd = viacepMeta.ddd || "";
           payload.siafi = viacepMeta.siafi || "";
 
-          const provRes = await fetch(`${API_BASE_URL}/users`, {
+          const provRes = await fetch(`${API_BASE_URL}/providers`, {
             method: "PUT",
             credentials: "include",
             headers: {
@@ -613,7 +621,6 @@ const MeusDados = () => {
             setOrigProvider(currentProviderSnap());
             results.push(true);
           } else {
-            console.error("[MeusDados] Provider save failed:", provRes.status);
             results.push(false);
           }
         } else {
@@ -629,7 +636,6 @@ const MeusDados = () => {
         toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
       }
     } catch (err) {
-      console.error("[MeusDados] Save error:", err);
       toast({ title: "Erro ao salvar", description: "Ocorreu um erro inesperado. Tente novamente.", variant: "destructive" });
     } finally {
       setSaving(false);
@@ -868,7 +874,6 @@ const MeusDados = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cpf">CPF</SelectItem>
-                  <SelectItem value="cnpj">CNPJ</SelectItem>
                   <SelectItem value="email">E-mail</SelectItem>
                   <SelectItem value="telefone">Telefone</SelectItem>
                   <SelectItem value="aleatoria">Chave Aleatória</SelectItem>

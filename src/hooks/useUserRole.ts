@@ -39,5 +39,4 @@ export const useUserRole = (): UserRole => {
 };
 
 export const setUserRole = (_role: UserRole) => {
-  console.warn("setUserRole is deprecated. Role is now managed by AuthContext.");
 };
