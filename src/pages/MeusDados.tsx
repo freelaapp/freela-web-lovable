@@ -427,15 +427,17 @@ const MeusDados = () => {
 
       // 2. POST/PUT /providers/pix-keys
       if (hasPixChanges) {
-        // Map frontend type to backend type
+        // Map frontend type to backend type (lowercase, exact values)
         const pixTypeMap: Record<string, string> = {
           cpf: "cpf",
           cnpj: "cpf",
           email: "email",
           telefone: "phone",
+          phone: "phone",
           aleatoria: "random",
+          random: "random",
         };
-        const apiPixType = pixTypeMap[chavePixType] || chavePixType;
+        const apiPixType = pixTypeMap[chavePixType.toLowerCase()] || "cpf";
 
         const pixPayload = {
           key: chavePix,
