@@ -179,13 +179,6 @@ const CadastroFreelancerAreas = () => {
          horarios: horariosFiltrados
        };
        
-        // Debug logs
-          diasAtivos,
-          horariosOriginal: horarios,
-          horariosFiltrados,
-          availabilityPayload
-        });
-       
         const availabilityString = JSON.stringify(availabilityPayload);
         fd.append("availability", availabilityString);
 

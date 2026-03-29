@@ -130,7 +130,7 @@ const DashboardContratante = () => {
                   const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, { method: "GET", credentials: "include", headers });
                   const jobBody = await jobRes.json();
                   if (jobRes.ok && jobBody?.data?.value != null) return Number(jobBody.data.value) || 0;
-                }
+                } catch { /* ignore */ }
                 return 0;
               })
             );
@@ -147,7 +147,7 @@ const DashboardContratante = () => {
               const total = fbBody.data.reduce((acc: number, fb: any) => acc + (Number(fb.star) || 0), 0);
               setMediaAvaliacao((total / fbBody.data.length).toFixed(1));
             }
-          }
+          } catch { /* ignore */ }
 
           // Jobs pendentes de avaliação
           try {
@@ -157,7 +157,7 @@ const DashboardContratante = () => {
               const pendentes = activeJobsBody.data.filter((job: ActiveJob) => job.status === "completed");
               setJobsPendentesAvaliacao(pendentes);
             }
-          }
+          } catch { /* ignore */ }
         })
         ;
     };
