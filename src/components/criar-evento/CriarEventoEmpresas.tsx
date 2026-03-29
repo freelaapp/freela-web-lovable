@@ -325,16 +325,19 @@ const CriarEventoEmpresas = () => {
           jobValue: s.total.toFixed(2),
         }));
 
-      await createVacancy(
-        {
-          establishment,
-          description: descricaoVaga.trim(),
-          jobDate: new Date(dataEvento + "T12:00:00").toISOString(),
-          contractorId,
-          freelancers,
-        },
-        parsedToken
-      );
+      const payload = {
+        establishment,
+        description: descricaoVaga.trim(),
+        jobDate: new Date(dataEvento + "T12:00:00").toISOString(),
+        contractorId,
+        freelancers,
+      };
+
+      console.log("=== PAYLOAD PUBLICAR VAGA ===");
+      console.log(JSON.stringify(payload, null, 2));
+      console.log("=============================");
+
+      await createVacancy(payload, parsedToken);
 
       toast({
         title: "✅ Vaga criada com sucesso!",

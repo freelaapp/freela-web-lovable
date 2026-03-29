@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { initializeAuth, logout as logoutUtil, getAuthUser, setUserRoleInStorage } from "@/lib/auth";
+import { initializeAuth, logout as logoutUtil, getAuthUser, setUserRoleInStorage, refreshAuthToken } from "@/lib/auth";
 import { registerSessionExpiredHandler } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { errorMessages } from "@/lib/error-messages";
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "/ajuda-contratante",
       ];
       if (!publicPaths.includes(window.location.pathname)) {
-        navigateRef.current("/", { replace: true });
+        navigateRef.current("/login", { replace: true });
         toastRef.current({
           title: "Sessão expirada",
           description: errorMessages.sessionExpired,
@@ -91,13 +91,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsAuthenticated(false);
       setUserId(null);
       setRoleState(null);
-      navigateRef.current("/", { replace: true });
+      navigateRef.current("/login", { replace: true });
       toastRef.current({
         title: "Sessão expirada",
         description: errorMessages.sessionExpired,
         variant: "destructive",
       });
     });
+  }, []);
+
+  // Periodic token expiration check (every 60s)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const expRaw = localStorage.getItem("authTokenExpirationTime");
+      if (!expRaw) return;
+      const exp = JSON.parse(expRaw);
+      if (Date.now() >= exp) {
+        // Token expired — try refresh, if fails logout
+        refreshAuthToken().then((ok) => {
+          if (!ok) {
+            logoutUtil();
+            setIsAuthenticated(false);
+            setUserId(null);
+            setRoleState(null);
+            navigateRef.current("/login", { replace: true });
+          }
+        });
+      }
+    }, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
