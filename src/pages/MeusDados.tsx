@@ -602,7 +602,7 @@ const MeusDados = () => {
           payload.ddd = viacepMeta.ddd || "";
           payload.siafi = viacepMeta.siafi || "";
 
-          const provRes = await fetch(`${API_BASE_URL}/users`, {
+          const provRes = await fetch(`${API_BASE_URL}/providers`, {
             method: "PUT",
             credentials: "include",
             headers: {
