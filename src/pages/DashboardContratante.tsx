@@ -69,7 +69,7 @@ const DashboardContratante = () => {
       fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers })
         .then(r => r.json())
         .then(body => { if (body?.success && body?.data?.name) setUserName(body.data.name); })
-        .catch(err => console.error("Erro ao buscar usuário:", err));
+        ;
 
       getContractorProfile(token)
         .then(async (profile) => {
@@ -80,7 +80,6 @@ const DashboardContratante = () => {
           });
           const vacBody = await vacRes.json();
           if (!vacRes.ok || !vacBody?.data) {
-            console.error("Erro ao buscar vagas:", vacBody);
             return;
           }
 
@@ -131,7 +130,7 @@ const DashboardContratante = () => {
                   const jobRes = await fetch(`${API_BASE_URL}/jobs/${v.id}`, { method: "GET", credentials: "include", headers });
                   const jobBody = await jobRes.json();
                   if (jobRes.ok && jobBody?.data?.value != null) return Number(jobBody.data.value) || 0;
-                } catch (e) { console.error(`Erro ao buscar job ${v.id}:`, e); }
+                }
                 return 0;
               })
             );
@@ -148,7 +147,7 @@ const DashboardContratante = () => {
               const total = fbBody.data.reduce((acc: number, fb: any) => acc + (Number(fb.star) || 0), 0);
               setMediaAvaliacao((total / fbBody.data.length).toFixed(1));
             }
-          } catch (e) { console.error("Erro ao buscar feedbacks:", e); }
+          }
 
           // Jobs pendentes de avaliação
           try {
@@ -158,9 +157,9 @@ const DashboardContratante = () => {
               const pendentes = activeJobsBody.data.filter((job: ActiveJob) => job.status === "completed");
               setJobsPendentesAvaliacao(pendentes);
             }
-          } catch (e) { console.error("Erro ao buscar active-jobs:", e); }
+          }
         })
-        .catch(err => console.error("Erro ao buscar dados do contratante:", err));
+        ;
     };
 
     fetchDashboard();

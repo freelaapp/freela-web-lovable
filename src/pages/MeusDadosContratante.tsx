@@ -345,7 +345,6 @@ const MeusDadosContratante = () => {
         });
 
         if (!res.ok) {
-          console.error("[MeusDados] Fetch failed:", res.status);
           setLoading(false);
           return;
         }
@@ -470,10 +469,8 @@ const MeusDadosContratante = () => {
             setOriginalUserSnapshot(makeUserSnapshot({ userName: uName, userEmail: uEmail, userPhone: uPhone }));
           }
         } catch (err) {
-          console.error("[MeusDados] Error fetching user info:", err);
         }
       } catch (err) {
-        console.error("[MeusDados] Error fetching profile:", err);
       } finally {
         setLoading(false);
       }
@@ -597,7 +594,6 @@ const MeusDadosContratante = () => {
           results.push(true);
         } else {
           const errBody = await res.text();
-          console.error("[MeusDados] Contractor save failed:", res.status, errBody);
           results.push(false);
         }
       }
@@ -626,7 +622,6 @@ const MeusDadosContratante = () => {
           results.push(true);
         } else {
           const errBody = await userRes.text();
-          console.error("[MeusDados] User save failed:", userRes.status, errBody);
           results.push(false);
         }
       }
@@ -639,7 +634,6 @@ const MeusDadosContratante = () => {
         toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
       }
     } catch (err) {
-      console.error("[MeusDados] Save error:", err);
       toast({ title: "Erro ao salvar", description: "Ocorreu um erro inesperado. Tente novamente.", variant: "destructive" });
     } finally {
       setSaving(false);

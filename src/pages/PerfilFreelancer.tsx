@@ -100,15 +100,12 @@ const PerfilFreelancer = () => {
       setError(null);
       try {
         // Fetch provider details
-        console.log(`[PerfilFreelancer] Fetching provider: ${id}`);
         const providerRes = await apiFetch(`${API_BASE_URL}/providers/${id}`, { method: "GET" });
         if (!providerRes.ok) {
-          console.error(`[PerfilFreelancer] Provider not found, status: ${providerRes.status}`);
           throw new Error(`Erro ao buscar freelancer: ${providerRes.status}`);
         }
         const providerBody = await providerRes.json();
         const providerData = providerBody?.data || providerBody;
-          console.log(`[PerfilFreelancer] Provider data:`, providerData);
 
         if (!providerData || !providerData.id) {
           throw new Error("Freelancer não encontrado");
@@ -116,20 +113,16 @@ const PerfilFreelancer = () => {
 
         const userId = providerData.userId;
         if (!userId) {
-          console.error(`[PerfilFreelancer] No userId for provider:`, providerData);
           throw new Error("ID do usuário não encontrado");
         }
 
         // Fetch user details
-        console.log(`[PerfilFreelancer] Fetching user: ${userId}`);
         const userRes = await apiFetch(`${API_BASE_URL}/users/${userId}`, { method: "GET" });
         if (!userRes.ok) {
-          console.error(`[PerfilFreelancer] User not found, status: ${userRes.status}`);
           throw new Error(`Erro ao buscar usuário: ${userRes.status}`);
         }
         const userBody = await userRes.json();
         const userData = userBody?.data || userBody;
-        console.log(`[PerfilFreelancer] User data:`, userData);
 
         const name = userData.name || providerData.name || "Freelancer";
         const avatarInitials = name
@@ -230,7 +223,6 @@ const PerfilFreelancer = () => {
         };
 
         setFreelancerData(profile);
-        console.log(`[PerfilFreelancer] Profile set:`, profile);
         setFreelancerData(profile);
         setSelectedDays([...profile.availability]);
         setSavedDays([...profile.availability]);
@@ -249,7 +241,6 @@ const PerfilFreelancer = () => {
         setSavedServices([...profile.skills].sort());
         setTempServices([...profile.skills].sort());
       } catch (err: unknown) {
-        console.error("Erro ao buscar perfil do freelancer:", err);
         setError(err instanceof Error ? err.message : "Erro ao carregar perfil do freelancer");
       } finally {
         setLoading(false);

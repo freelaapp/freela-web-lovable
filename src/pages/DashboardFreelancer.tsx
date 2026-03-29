@@ -99,7 +99,6 @@ const DashboardFreelancer = () => {
              setUserName("Usuário");
            }
          } catch (userError) {
-           console.warn("[DashboardFreelancer] Failed to fetch user name:", userError);
            setUserName("Usuário"); // Fallback on error
          } finally {
            setUserNameLoading(false); // Always stop loading for user name
@@ -117,7 +116,6 @@ const DashboardFreelancer = () => {
           // Extract freelancer's service areas from profile (desiredJobVacancy)
          const providerServices: string[] = [];
          const rawServices = provData?.desiredJobVacancy ?? [];
-         console.log("[DashboardFreelancer] desiredJobVacancy raw:", JSON.stringify(rawServices));
          if (Array.isArray(rawServices)) {
            rawServices.forEach((s: any) => {
              if (typeof s === "string") providerServices.push(s.toLowerCase().trim());
@@ -125,7 +123,6 @@ const DashboardFreelancer = () => {
              else if (s?.assignment) providerServices.push(s.assignment.toLowerCase().trim());
            });
          }
-         console.log("[DashboardFreelancer] providerServices extraídos:", providerServices);
 
          // 2. Get feedbacks
          const fbRes = await fetch(`${API_BASE_URL}/providers/${providerId}/jobs/feedbacks`, {
@@ -180,7 +177,6 @@ const DashboardFreelancer = () => {
            });
             const futureJobsBody = await futureJobsRes.json().catch(() => null);
             const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
-            console.log("[DashboardFreelancer] future-jobs resposta:", JSON.stringify(futureJobsData, null, 2));
 
            if (Array.isArray(futureJobsData) && futureJobsData.length > 0) {
              // Use data directly from future-jobs API (already contains full vacancy details)
@@ -205,7 +201,6 @@ const DashboardFreelancer = () => {
            });
            const appliedBody = await appliedRes.json().catch(() => null);
            const appliedData = appliedBody?.data ?? appliedBody;
-           console.log("[DashboardFreelancer] applied-vacancies resposta:", JSON.stringify(appliedData, null, 2));
 
            // Process applied vacancies with their application status
            // The /applied-vacancies endpoint returns vacancy objects (status = vacancy status like "open")
@@ -241,7 +236,6 @@ const DashboardFreelancer = () => {
                    }
                    return null;
                  } catch (err) {
-                   console.error(`Error fetching vacancy ${application?.vacancyId || application?.id}:`, err);
                    return null;
                  }
                })
@@ -310,7 +304,6 @@ const DashboardFreelancer = () => {
                 setMonthlyEarnings(formatCurrency(0));
               }
           } catch (err) {
-            console.error("[DashboardFreelancer] Error fetching monthly earnings:", err);
             setMonthlyEarnings("R$ 0,00");
           } finally {
             setLoadingEarnings(false);
@@ -324,8 +317,6 @@ const DashboardFreelancer = () => {
          const filteredBody = await filteredRes.json().catch(() => null);
          const filteredData = filteredBody?.data ?? filteredBody;
          const vacancies = Array.isArray(filteredData) ? filteredData : [];
-         console.log("[DashboardFreelancer] filtered-vacancies resposta:", JSON.stringify(vacancies, null, 2));
-         console.log("[DashboardFreelancer] total vacancies recebidas:", vacancies.length);
 
          // Flatten: each service inside each vacancy becomes a card
          // Filter by matching assignment with provider's profile services
@@ -352,9 +343,7 @@ const DashboardFreelancer = () => {
          });
 
          setVagasDisponiveis(flattened);
-         console.log("[DashboardFreelancer] vagasDisponiveis flatten:", flattened.length, flattened);
        } catch (err) {
-         console.error("[DashboardFreelancer] error fetching data:", err);
          // Ensure userNameLoading is false even if we error out before reaching the user fetch finally block
          setUserNameLoading(false);
        } finally {

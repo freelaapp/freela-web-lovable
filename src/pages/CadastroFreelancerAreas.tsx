@@ -76,10 +76,8 @@ const CadastroFreelancerAreas = () => {
   };
 
    const toggleDia = (key: string) => {
-     console.log('[CadastroFreelancerAreas] toggleDia clicado:', key, 'diasAtivos antes:', diasAtivos);
      setDiasAtivos((prev) => {
        const novo = prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key];
-       console.log('[CadastroFreelancerAreas] diasAtivos depois:', novo);
        return novo;
      });
    };
@@ -116,7 +114,6 @@ const CadastroFreelancerAreas = () => {
    const handleSubmit = async (e: React.FormEvent) => {
      e.preventDefault();
      e.stopPropagation();
-     console.log('[CadastroFreelancerAreas] handleSubmit chamado! Form target:', e.target);
      if (!validate()) {
       if (errors.dias) {
         toast({
@@ -183,7 +180,6 @@ const CadastroFreelancerAreas = () => {
        };
        
         // Debug logs
-        console.log('[CadastroFreelancerAreas] Debug final:', {
           diasAtivos,
           horariosOriginal: horarios,
           horariosFiltrados,
@@ -192,7 +188,6 @@ const CadastroFreelancerAreas = () => {
        
         const availabilityString = JSON.stringify(availabilityPayload);
         fd.append("availability", availabilityString);
-        console.log('[CadastroFreelancerAreas] Enviando availability string:', availabilityString);
 
        fd.append("emergencyContactName", saved.emergencyContactName || "");
       fd.append("emergencyContactRelationship", saved.emergencyContactRelationship || "");
@@ -217,12 +212,9 @@ const CadastroFreelancerAreas = () => {
        fd.append("feedbackStars", "0");
 
        // Log de todos os campos do FormData antes do envio
-       console.log('[CadastroFreelancerAreas] FormData completo:');
        for (const [key, value] of fd.entries()) {
          if (key === 'availability' || key === 'profileImage') {
-           console.log(`  ${key}: ${value instanceof Blob ? '[Blob/FILE]' : value}`);
          } else {
-           console.log(`  ${key}: ${value}`);
          }
        }
 

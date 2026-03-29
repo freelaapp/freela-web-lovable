@@ -31,7 +31,6 @@ const PerfilContratante = () => {
          const data = await getContractorById(clientId);
          setProfile(data);
        } catch (err) {
-         console.error("[PerfilContratante] Erro ao buscar perfil:", err);
          setError(errorMessages.profileLoadFailed);
        } finally {
          setLoading(false);
@@ -63,11 +62,9 @@ const PerfilContratante = () => {
            // Últimas 3 avaliações (mais recentes primeiro)
            setReviews(reviewsArray.slice(0, 3));
          } else {
-           console.warn("[PerfilContratante] Failed to fetch reviews:", res.status);
            setReviews([]);
          }
        } catch (err) {
-         console.error("[PerfilContratante] Erro ao buscar avaliações:", err);
          setReviews([]);
        } finally {
          setLoadingReviews(false);

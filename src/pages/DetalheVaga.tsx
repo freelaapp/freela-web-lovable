@@ -161,8 +161,6 @@ const DetalheVaga = () => {
             setVaga(normalizedJob);
 
             // DEBUG: Log job data from API
-            console.log("[DetalheVaga] jobData completo:", JSON.stringify(jobData, null, 2));
-            console.log("[DetalheVaga] startTime:", jobData.startTime, "| endTime:", jobData.endTime);
 
             // Extract start/end times from job data
             if (jobData.startTime) setCheckInTime(jobData.startTime);
@@ -194,7 +192,6 @@ const DetalheVaga = () => {
             ]);
 
             if (vacRes.status === 404) {
-              console.warn("[DetalheVaga] Vaga não encontrada:", vagaId);
               toast.error("Vaga não encontrada. Ela pode ter sido removida.");
               navigate("/dashboard");
               return;
@@ -205,8 +202,6 @@ const DetalheVaga = () => {
            setVaga(vacData);
 
            // DEBUG: Log vacancy data from API
-           console.log("[DetalheVaga] vacData completo:", JSON.stringify(vacData, null, 2));
-           console.log("[DetalheVaga] startTime:", vacData.startTime, "| endTime:", vacData.endTime);
 
            // Extract start/end times from vacancy data
            if (vacData.startTime) setCheckInTime(vacData.startTime);
@@ -222,7 +217,6 @@ const DetalheVaga = () => {
              const candBody = await candRes.json().catch(() => null);
              const candData = candBody?.data ?? candBody;
              const candidacies = Array.isArray(candData) ? candData : [];
-             console.log("[DetalheVaga] candidacies da vaga:", JSON.stringify(candidacies, null, 2));
 
              if (provData?.id) {
                const myCandidacy = candidacies.find(
@@ -235,18 +229,15 @@ const DetalheVaga = () => {
                }
              }
            } catch (candErr) {
-             console.error("[DetalheVaga] erro ao buscar candidacies:", candErr);
            }
 
            // Extract contractorId from vacancy data
            const contractorIdFromVaga = vacData?.contractorId || vacData?.contractor?.id;
-           console.log("[DetalheVaga] Extracted contractorId from vacancy:", contractorIdFromVaga, "Vacancy data:", vacData);
            if (contractorIdFromVaga) {
              setContractorId(contractorIdFromVaga);
            }
          }
        } catch (err) {
-         console.error("[DetalheVaga] error fetching data:", err);
        } finally {
          setLoading(false);
        }
@@ -258,10 +249,8 @@ const DetalheVaga = () => {
    useEffect(() => {
      const fetchContractorData = async () => {
        if (!contractorId) {
-         console.log("[DetalheVaga] No contractorId, skipping fetch");
          return;
        }
-       console.log("[DetalheVaga] Fetching contractor data for ID:", contractorId);
        try {
          setLoadingContractor(true);
          const tokenRaw = localStorage.getItem("authToken");
@@ -277,7 +266,6 @@ const DetalheVaga = () => {
          const contractorBody = await contractorRes.json().catch(() => null);
          const contractorData = contractorBody?.data ?? contractorBody;
 
-         console.log("[DetalheVaga] Contractor data:", contractorData);
 
          if (contractorData) {
            const feedbackStars = contractorData.feedbackStars ?? 0;
@@ -286,7 +274,6 @@ const DetalheVaga = () => {
            setContractorName(companyName);
          }
        } catch (err) {
-         console.error("[DetalheVaga] Error fetching contractor data:", err);
        } finally {
          setLoadingContractor(false);
        }
@@ -311,7 +298,6 @@ const DetalheVaga = () => {
            return;
          }
        } catch (err) {
-         console.error("[DetalheVaga] payment poll error:", err);
        }
        if (!cancelled) {
          setTimeout(poll, 10000);
@@ -414,7 +400,6 @@ const DetalheVaga = () => {
       setCheckinCode("");
       toast.success("Check-in realizado com sucesso!");
     } catch (err: any) {
-      console.error("[DetalheVaga] checkin error:", err);
       toast.error(err.message || "Erro ao validar código. Tente novamente.");
     } finally {
       setCheckinLoading(false);
@@ -453,7 +438,6 @@ toast.error(errorMessages.checkinCodeRequired);
          setCheckoutCode("");
          toast.success("Check-out realizado com sucesso!");
      } catch (err: any) {
-       console.error("[DetalheVaga] checkout error:", err);
        toast.error(err.message || "Erro ao validar código. Tente novamente.");
      } finally {
        setCheckoutLoading(false);
@@ -566,7 +550,6 @@ toast.error(errorMessages.checkinCodeRequired);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2500);
     } catch (err: any) {
-      console.error("[DetalheVaga] apply error:", err);
       toast.error(err.message || "Erro ao se candidatar. Tente novamente.");
     } finally {
       setApplying(false);
@@ -591,7 +574,6 @@ toast.error(errorMessages.checkinCodeRequired);
       setCandidacyId(null);
       toast.success("Candidatura cancelada com sucesso!");
     } catch (err: any) {
-      console.error("[DetalheVaga] cancel error:", err);
       toast.error(err.message || "Erro ao cancelar candidatura. Tente novamente.");
     } finally {
       setCancelling(false);
@@ -599,7 +581,6 @@ toast.error(errorMessages.checkinCodeRequired);
   };
 
   // DEBUG: Log final state values for check-in/check-out
-  console.log("[DetalheVaga] Render - checkInTime:", checkInTime, "| checkOutTime:", checkOutTime);
 
   return (
     <AppLayout showFooter={false}>

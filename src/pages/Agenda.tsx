@@ -125,7 +125,6 @@ const Agenda = () => {
           setTotalGanho(`R$ ${totalGanhoValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
         }
       } catch (err) {
-        console.error("Erro ao buscar dados do freelancer:", err);
         toast({
           title: "Erro",
           description: "Falha ao carregar dados da agenda. Tente novamente mais tarde.",
@@ -196,7 +195,6 @@ const Agenda = () => {
 
         setApiVacancies(flattened);
       } catch (err) {
-        console.error("Erro ao buscar vagas:", err);
       } finally {
         setLoadingVacancies(false);
       }

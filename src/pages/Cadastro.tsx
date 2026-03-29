@@ -37,7 +37,6 @@ const Cadastro = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("[Cadastro] handleSubmit chamado");
 
     const newErrors: Record<string, string> = {};
 
@@ -76,7 +75,6 @@ const Cadastro = () => {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      console.log("[Cadastro] Validação falhou:", newErrors);
       toast({
         title: "Ops! Alguns campos precisam de atenção",
         description: Object.values(newErrors).join(", "),
@@ -84,7 +82,6 @@ const Cadastro = () => {
       });
       return;
     }
-    console.log("[Cadastro] Validação OK, enviando código...");
 
     // Dados para o registro
     const emailNormalizado = formData.email.toLowerCase().trim();

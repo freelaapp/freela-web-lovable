@@ -174,7 +174,6 @@ const Avaliacoes = () => {
         setGivenFeedbacks(givenList);
 
       } catch (err) {
-        console.error("Erro ao buscar feedbacks do freelancer:", err);
         setPendingFeedbacks([]);
         setJobsFeedbacks([]);
         setGivenFeedbacks([]);
@@ -272,7 +271,6 @@ const Avaliacoes = () => {
         setRecebidasApi(recebidasList.map(f => ({ ...f, senderName: nameMap[f.sender], vacancyId: jobVacancyMap[f.jobId] })));
         setFeitasApi(feitasList.map(f => ({ ...f, senderName: nameMap[f.receiver], vacancyId: jobVacancyMap[f.jobId] })));
       } catch (err) {
-        console.error("Erro ao buscar feedbacks:", err);
         setRecebidasApi([]);
         setFeitasApi([]);
       } finally {
