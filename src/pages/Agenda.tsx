@@ -159,7 +159,8 @@ const Agenda = () => {
         // Get contractor id
         const cRes = await fetch(`${API_BASE_URL}/users/contractors`, { method: "GET", credentials: "include", headers });
         const cBody = await cRes.json();
-        const contractorId = cBody?.data?.id;
+        const cData = cBody?.data ?? cBody;
+        const contractorId = Array.isArray(cData) ? cData[0]?.id : cData?.id;
         if (!contractorId) return;
 
         // Get vacancies
@@ -232,10 +233,10 @@ const Agenda = () => {
   const vagasConcluidas = isContratante ? apiVacancies.filter(v => v.status === "removed") : [];
 
   const pendentes = items.filter(v =>
-    isContratante ? (v.status === "open" || v.status === "in hiring") : (v.status === "accepted")
+    isContratante ? (v.status === "open" || v.status === "in hiring") : (v.status === "accepted" || v.status === "scheduled")
   );
   const finalizados = items.filter(v =>
-    isContratante ? (v.status === "closed" || v.status === "removed") : (v.status === "completed")
+    isContratante ? (v.status === "closed" || v.status === "removed") : (v.status === "completed" || v.status === "partially completed")
   );
 
   const pendenteDates = pendentes.map(v => v.dateObj);
@@ -437,7 +438,7 @@ const Agenda = () => {
                         {getDisplayValue(item.jobValue || "R$ 0,00", false)}
                       </p>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${item.status === "completed" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-primary-light text-primary"}`}>
-                        {item.status === "completed" ? "Concluído" : item.status === "accepted" ? "Aceita" : "Pendente"}
+                        {item.status === "completed" || item.status === "partially completed" ? "Concluído" : item.status === "accepted" || item.status === "scheduled" ? "Agendada" : item.status === "in progress" ? "Em andamento" : "Pendente"}
                       </span>
                     </div>
                   </div>

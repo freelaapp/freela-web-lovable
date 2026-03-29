@@ -59,7 +59,8 @@ const ConfiguracoesContratante = () => {
         });
 
         const contractorBody = await contractorRes.json();
-        const cid = contractorBody?.data?.id;
+        const contractorData = contractorBody?.data ?? contractorBody;
+        const cid = Array.isArray(contractorData) ? contractorData[0]?.id : contractorData?.id;
 
         if (!cid) {
           console.warn("[ConfiguracoesContratante] Contractor ID não encontrado");

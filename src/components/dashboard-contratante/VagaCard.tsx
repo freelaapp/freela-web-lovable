@@ -20,6 +20,10 @@ const statusLabels: Record<string, string> = {
   removed: "Concluída",
   completed: "Concluída",
   "in hiring": "Em contratação",
+  scheduled: "Agendada",
+  "in progress": "Em andamento",
+  "partially completed": "Parcialmente concluída",
+  unavailable: "Indisponível",
 };
 
 const statusStyles: Record<string, string> = {

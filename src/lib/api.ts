@@ -690,29 +690,6 @@ export interface ProviderUpdatePayload {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  pixKeyValue?: string;
-  pixKeyType?: string;
-  city?: string;
-  uf?: string;
-  cnhCategories?: string[];
-  deficiency?: boolean;
-  establishmentName?: string;
-  fantasyName?: string;
-  companyName?: string;
-  cnpj?: string;
-  street?: string;
-  number?: string;
-  complement?: string;
-  neighborhood?: string;
-  profileImage?: string | null;
-  establishmentFacadeImage?: string | null;
-  establishmentInteriorImage?: string | null;
-  feedbackStars?: number;
-  isPCD?: boolean;
-  // Provider specific
-  desiredJobVacancy?: string;
-  DiasAtivos?: string[];
-  horarios?: Record<string, { de: string; ate: string }>;
 }
 
 export interface ProviderUpdateResponse {

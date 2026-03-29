@@ -125,6 +125,7 @@ const MeusDados = () => {
   // Pix
   const [chavePixType, setChavePixType] = useState("");
   const [chavePix, setChavePix] = useState("");
+  const [existingPixId, setExistingPixId] = useState<string | null>(null);
 
   // Delete account
   const [deleteDialog, setDeleteDialog] = useState(false);
@@ -339,8 +340,9 @@ const MeusDados = () => {
            };
 
             // PIX - pegar da resposta de /users/providers
-            const rawPixType = prov.pixKeyType ?? "";
-            const rawPixValue = prov.pixKeyValue ?? "";
+            const rawPixType = prov.type ?? prov.pixKeyType ?? "";
+            const rawPixValue = prov.key ?? prov.pixKeyValue ?? "";
+            const rawPixId = prov.pixKeyId ?? prov.id ?? null;
             const normalizePixType = (type: string): string => {
               const typeLower = type.toLowerCase();
               if (typeLower === "cpf" || typeLower === "cnpj") return typeLower;
@@ -353,7 +355,8 @@ const MeusDados = () => {
             setChavePixType(normalizedPixType);
             setChavePix(rawPixValue);
             setOrigPix(snap({ chavePixType: normalizedPixType, chavePix: rawPixValue }));
-            setHasExistingPixKey(!!rawPixValue);
+            setHasExistingPixKey(!!rawPixValue && !!rawPixId);
+            if (rawPixId) setExistingPixId(rawPixId);
           }
         }
 
@@ -408,11 +411,9 @@ const MeusDados = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            id: userId,
             name: nome,
             email: email,
             phoneNumber: telefone.replace(/\D/g, ""),
-            status: "active",
           }),
         });
         if (userRes.ok) {
@@ -424,10 +425,39 @@ const MeusDados = () => {
         }
       }
 
-      // 2. PUT /providers/pix-keys
+      // 2. POST/PUT /providers/pix-keys
       if (hasPixChanges) {
-        if (hasExistingPixKey) {
-          // Update existing PIX key
+        // Always try POST first, if 409 then PUT
+        const pixBody = JSON.stringify({
+          providerId: providerId,
+          type: chavePixType,
+          key: chavePix,
+        });
+
+        const postRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Origin-type": ORIGIN_TYPE,
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: pixBody,
+        });
+
+        if (postRes.ok) {
+          const resBody = await postRes.json().catch(() => null);
+          const resData = resBody?.data ?? resBody;
+          if (resData?.id) setExistingPixId(resData.id);
+          setOrigPix(currentPixSnap());
+          setHasExistingPixKey(true);
+          results.push(true);
+        } else if (postRes.status === 409) {
+          // Already exists — update via PUT
+          const existingId = existingPixId || (() => {
+            try { return postRes.json().then(b => b?.data?.id ?? b?.id); } catch { return null; }
+          })();
+
           const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
             method: "PUT",
             credentials: "include",
@@ -437,45 +467,22 @@ const MeusDados = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              pixKeyValue: chavePix,
-              pixKeyType: chavePixType,
+              id: existingPixId,
+              providerId: providerId,
+              type: chavePixType,
+              key: chavePix,
             }),
           });
           if (pixRes.ok) {
             setOrigPix(currentPixSnap());
             results.push(true);
           } else {
-            console.error("[MeusDados] Pix update failed:", pixRes.status);
+            const errBody = await pixRes.json().catch(() => null);
             results.push(false);
           }
         } else {
-          // Create new PIX key
-          const pixPayload = {
-            pixKeyValue: chavePix,
-            pixKeyType: chavePixType,
-            createdAt: new Date().toISOString(),
-            providerId: providerId,
-          };
-          console.log("[MeusDados] POST /providers/pix-keys payload:", pixPayload);
-          const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Origin-type": ORIGIN_TYPE,
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(pixPayload),
-          });
-          if (pixRes.ok) {
-            setOrigPix(currentPixSnap());
-            setHasExistingPixKey(true);
-            results.push(true);
-          } else {
-            const errBody = await pixRes.json().catch(() => null);
-            console.error("[MeusDados] Pix create failed:", pixRes.status, errBody);
-            results.push(false);
-          }
+          const errBody = await postRes.json().catch(() => null);
+          results.push(false);
         }
       }
 
@@ -855,7 +862,7 @@ const MeusDados = () => {
             </h3>
             <div className="space-y-2">
               <Label>Tipo de Chave PIX</Label>
-              <Select value={chavePixType} onValueChange={setChavePixType}>
+              <Select value={chavePixType} onValueChange={(v) => { setChavePixType(v); setChavePix(""); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo de chave" />
                 </SelectTrigger>
@@ -868,17 +875,25 @@ const MeusDados = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Chave PIX</Label>
-              <Input
-                placeholder="Informe sua chave PIX"
-                value={chavePix}
-                onChange={(e) => setChavePix(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground italic">
-                Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
-              </p>
-            </div>
+            {chavePixType && (
+              <div className="space-y-2">
+                <Label>Chave PIX</Label>
+                <Input
+                  placeholder={
+                    chavePixType === "cpf" ? "000.000.000-00" :
+                    chavePixType === "cnpj" ? "00.000.000/0000-00" :
+                    chavePixType === "email" ? "seu@email.com" :
+                    chavePixType === "telefone" ? "(00) 00000-0000" :
+                    "Cole sua chave aleatória"
+                  }
+                  value={chavePix}
+                  onChange={(e) => setChavePix(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground italic">
+                  Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
