@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, Lock, Eye, EyeOff, RotateCcw, ShieldCheck, Check, CheckCircle2 } from "lucide-react";
 import logoFreela from "@/assets/logo-freela-new.png";
 import { useToast } from "@/hooks/use-toast";
@@ -313,7 +314,7 @@ const EsqueciMinhaSenha = () => {
             {!codeVerified ? (
               <form onSubmit={handleVerifyCode} className="space-y-6">
                 <div className="space-y-2">
-                  <FormLabel>Código de verificação</FormLabel>
+                  <Label>Código de verificação</Label>
                   <div className="flex justify-center gap-3">
                     {code.map((digit, index) => (
                       <input

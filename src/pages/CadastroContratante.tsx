@@ -27,6 +27,7 @@ import {
   Phone,
   Loader2,
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -618,7 +619,7 @@ const CadastroContratante = () => {
             /* MODO CASA */
             <div className="space-y-5">
               <div className="space-y-2">
-                <FormLabel>Tipo de Documento</FormLabel>
+                <Label>Tipo de Documento</Label>
                 <Select value={tipoDoc} onValueChange={(v) => {
                   setTipoDoc(v as TipoDoc);
                   casaCPFForm.reset({ documento: "", telefone: getInitialPhone(), dataNascimento: "", cep: "", rua: "", numero: "", complemento: "", referencia: "", bairro: "", cidade: "", estado: "" });
