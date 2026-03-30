@@ -186,7 +186,7 @@ const Login = () => {
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           type="email"
-                          placeholder="seu@email.com"
+                          placeholder="Digite seu email"
                           className="pl-10 h-12"
                           {...field}
                         />
@@ -208,7 +208,7 @@ const Login = () => {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
+                          placeholder="Digite sua senha"
                           className="pl-10 pr-10 h-12"
                           {...field}
                         />
