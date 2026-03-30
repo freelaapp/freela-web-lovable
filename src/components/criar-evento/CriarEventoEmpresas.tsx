@@ -566,7 +566,7 @@ const CriarEventoEmpresas = () => {
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">CEP</Label>
                   <Input
-                    placeholder="00000-000"
+                    placeholder="Digite o CEP"
                     value={endereco.cep}
                     onChange={(e) => handleCepChange(e.target.value)}
                     className="h-9 rounded-lg text-sm"
@@ -580,7 +580,7 @@ const CriarEventoEmpresas = () => {
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Logradouro</Label>
                   <Input
-                    placeholder="Rua, Avenida..."
+                    placeholder="Digite o logradouro"
                     value={endereco.logradouro}
                     onChange={(e) => setEndereco({ ...endereco, logradouro: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -590,7 +590,7 @@ const CriarEventoEmpresas = () => {
                 <div className="space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Número</Label>
                   <Input
-                    placeholder="123"
+                    placeholder="Digite o número"
                     value={endereco.numero}
                     onChange={(e) => setEndereco({ ...endereco, numero: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -609,7 +609,7 @@ const CriarEventoEmpresas = () => {
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Referência</Label>
                   <Input
-                    placeholder="Próximo a..."
+                    placeholder="Ponto de referência..."
                     value={endereco.referencia}
                     onChange={(e) => setEndereco({ ...endereco, referencia: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -618,7 +618,7 @@ const CriarEventoEmpresas = () => {
                 <div className="sm:col-span-2 space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Bairro</Label>
                   <Input
-                    placeholder="Bairro"
+                    placeholder="Digite o bairro"
                     value={endereco.bairro}
                     onChange={(e) => setEndereco({ ...endereco, bairro: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -627,7 +627,7 @@ const CriarEventoEmpresas = () => {
                 <div className="space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Cidade</Label>
                   <Input
-                    placeholder="São Paulo"
+                    placeholder="Digite a cidade"
                     value={endereco.cidade}
                     onChange={(e) => setEndereco({ ...endereco, cidade: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -637,7 +637,7 @@ const CriarEventoEmpresas = () => {
                 <div className="space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Estado</Label>
                   <Input
-                    placeholder="SP"
+                    placeholder="UF"
                     value={endereco.estado}
                     onChange={(e) => setEndereco({ ...endereco, estado: e.target.value })}
                     className="h-9 rounded-lg text-sm"

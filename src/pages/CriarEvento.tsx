@@ -294,7 +294,7 @@ const CriarEvento = () => {
                   <Input
                     id="endereco"
                     type="text"
-                    placeholder="Sua casa ou local do evento"
+                    placeholder="Digite o endereço do evento"
                     value={formData.endereco}
                     onChange={(e) => handleChange("endereco", e.target.value)}
                     className="h-12"

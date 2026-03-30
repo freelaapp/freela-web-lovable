@@ -889,10 +889,10 @@ const MeusDados = () => {
                 <Label>Chave PIX</Label>
                 <Input
                   placeholder={
-                    chavePixType === "cpf" ? "000.000.000-00" :
-                    chavePixType === "cnpj" ? "00.000.000/0000-00" :
-                    chavePixType === "email" ? "seu@email.com" :
-                    chavePixType === "telefone" ? "(00) 00000-0000" :
+                    chavePixType === "cpf" ? "Digite seu CPF" :
+                    chavePixType === "cnpj" ? "Digite seu CNPJ" :
+                    chavePixType === "email" ? "Digite seu email" :
+                    chavePixType === "telefone" ? "Digite seu telefone" :
                     "Cole sua chave aleatória"
                   }
                   value={chavePix}
