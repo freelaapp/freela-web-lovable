@@ -173,7 +173,7 @@ const Cadastro = () => {
                     <FormControl>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input placeholder="Seu nome" className="pl-10 h-12" {...field} />
+                        <Input placeholder="Digite seu nome" className="pl-10 h-12" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -192,7 +192,7 @@ const Cadastro = () => {
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           type="email"
-                          placeholder="seu@email.com"
+                          placeholder="Digite seu email"
                           className="pl-10 h-12"
                           {...field}
                           onChange={(e) => field.onChange(e.target.value.toLowerCase())}
@@ -215,7 +215,7 @@ const Cadastro = () => {
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           type="tel"
-                          placeholder="(11) 99999-9999"
+                          placeholder="Digite seu celular"
                           className="pl-10 h-12"
                           {...field}
                           onChange={(e) => field.onChange(formatCelular(e.target.value))}
@@ -238,7 +238,7 @@ const Cadastro = () => {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
+                          placeholder="Digite sua senha"
                           className="pl-10 pr-10 h-12"
                           {...field}
                         />
@@ -282,7 +282,7 @@ const Cadastro = () => {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
                           type={showConfirmPassword ? "text" : "password"}
-                          placeholder="••••••••"
+                          placeholder="Digite sua senha"
                           className="pl-10 pr-10 h-12"
                           {...field}
                         />

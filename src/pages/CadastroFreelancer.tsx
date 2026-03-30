@@ -278,7 +278,7 @@ const CadastroFreelancer = () => {
                 <FormItem>
                   <FormLabel>CPF</FormLabel>
                   <FormControl>
-                    <Input placeholder="000.000.000-00" className="h-12" {...field}
+                    <Input placeholder="Digite seu CPF" className="h-12" {...field}
                       onChange={(e) => field.onChange(maskCPF(e.target.value))} />
                   </FormControl>
                   <p className="text-xs text-muted-foreground italic">
@@ -349,7 +349,7 @@ const CadastroFreelancer = () => {
                   <FormItem>
                     <FormLabel>CEP</FormLabel>
                     <FormControl>
-                      <Input placeholder="00000-000" className="h-12" {...field}
+                      <Input placeholder="Digite seu CEP" className="h-12" {...field}
                         onChange={(e) => handleCepChange(e.target.value)} />
                     </FormControl>
                     {cepLoading && <p className="text-xs text-muted-foreground">Buscando endereço...</p>}
@@ -360,7 +360,7 @@ const CadastroFreelancer = () => {
                 <FormField control={form.control} name="endereco" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Rua</FormLabel>
-                    <FormControl><Input placeholder="Nome da rua" className="h-12" {...field} /></FormControl>
+                    <FormControl><Input placeholder="Digite o nome da rua" className="h-12" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -369,14 +369,14 @@ const CadastroFreelancer = () => {
                   <FormField control={form.control} name="numero" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Número</FormLabel>
-                      <FormControl><Input placeholder="Nº" className="h-12" {...field} /></FormControl>
+                      <FormControl><Input placeholder="Digite o número" className="h-12" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="complemento" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Complemento</FormLabel>
-                      <FormControl><Input placeholder="Apto, bloco..." className="h-12" {...field} /></FormControl>
+                      <FormControl><Input placeholder="Apartamento, bloco..." className="h-12" {...field} /></FormControl>
                     </FormItem>
                   )} />
                 </div>
@@ -384,7 +384,7 @@ const CadastroFreelancer = () => {
                 <FormField control={form.control} name="bairro" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Bairro</FormLabel>
-                    <FormControl><Input placeholder="Bairro" className="h-12" {...field} /></FormControl>
+                    <FormControl><Input placeholder="Digite o bairro" className="h-12" {...field} /></FormControl>
                   </FormItem>
                 )} />
 
@@ -429,7 +429,7 @@ const CadastroFreelancer = () => {
               <FormField control={form.control} name="chavePix" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Chave PIX</FormLabel>
-                  <FormControl><Input placeholder="Informe sua chave PIX" className="h-12" {...field} /></FormControl>
+                  <FormControl><Input placeholder="Digite sua chave PIX" className="h-12" {...field} /></FormControl>
                   <p className="text-xs text-muted-foreground italic">
                     Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
                   </p>
@@ -445,7 +445,7 @@ const CadastroFreelancer = () => {
                 <FormField control={form.control} name="contatoEmergNome" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nome</FormLabel>
-                    <FormControl><Input placeholder="Nome do contato" className="h-12" {...field} /></FormControl>
+                    <FormControl><Input placeholder="Digite o nome do contato" className="h-12" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -465,7 +465,7 @@ const CadastroFreelancer = () => {
                   <FormItem>
                     <FormLabel>DDD + Número</FormLabel>
                     <FormControl>
-                      <Input placeholder="(00) 00000-0000" className="h-12" {...field}
+                      <Input placeholder="Digite o telefone" className="h-12" {...field}
                         onChange={(e) => field.onChange(maskPhone(e.target.value))} />
                     </FormControl>
                     <FormMessage />

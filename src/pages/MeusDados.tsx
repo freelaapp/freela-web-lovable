@@ -789,7 +789,7 @@ const MeusDados = () => {
               <Input
                 value={cep}
                 onChange={(e) => handleCepChange(e.target.value)}
-                placeholder="00000-000"
+                placeholder="Digite o CEP"
               />
               {cepLoading && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -837,7 +837,7 @@ const MeusDados = () => {
             <div className="space-y-2">
               <Label>Nome</Label>
               <Input
-                placeholder="Nome do contato"
+                placeholder="Digite o nome do contato"
                 value={contatoEmergNome}
                 onChange={(e) => setContatoEmergNome(e.target.value)}
               />
@@ -856,7 +856,7 @@ const MeusDados = () => {
             <div className="space-y-2">
               <Label>DDD + Número</Label>
               <Input
-                placeholder="(00) 00000-0000"
+                placeholder="Digite o telefone"
                 value={contatoEmergTelefone}
                 onChange={(e) => setContatoEmergTelefone(maskPhone(e.target.value))}
               />

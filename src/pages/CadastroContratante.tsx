@@ -355,7 +355,7 @@ const CadastroContratante = () => {
                       <FormLabel>CNPJ</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="00.000.000/0000-00"
+                          placeholder="Digite o CNPJ"
                           className="h-12"
                           {...field}
                           onChange={(e) => {
@@ -385,7 +385,7 @@ const CadastroContratante = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Razão Social</FormLabel>
-                      <FormControl><Input placeholder="Razão Social da empresa" className="h-12" {...field} /></FormControl>
+                      <FormControl><Input placeholder="Digite a razão social" className="h-12" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -418,7 +418,7 @@ const CadastroContratante = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nome do Estabelecimento</FormLabel>
-                      <FormControl><Input placeholder="Nome do estabelecimento" className="h-12" {...field} /></FormControl>
+                      <FormControl><Input placeholder="Digite o nome do estabelecimento" className="h-12" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -433,7 +433,7 @@ const CadastroContratante = () => {
                       <FormControl>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input placeholder="(11) 99999-9999" className="pl-10 h-12" {...field}
+                          <Input placeholder="Digite o telefone" className="pl-10 h-12" {...field}
                             onChange={(e) => field.onChange(formatPhone(e.target.value))} />
                         </div>
                       </FormControl>
@@ -513,7 +513,7 @@ const CadastroContratante = () => {
                     <FormField control={empresaForm.control} name="cep" render={({ field }) => (
                       <FormItem>
                         <FormLabel>CEP</FormLabel>
-                        <FormControl><Input placeholder="00000-000" className="h-12" {...field}
+                        <FormControl><Input placeholder="Digite o CEP" className="h-12" {...field}
                           onChange={(e) => handleCepChange(e.target.value, empresaForm)} /></FormControl>
                         {cepLoading && <p className="text-xs text-muted-foreground">Buscando CEP...</p>}
                         <FormMessage />
@@ -533,7 +533,7 @@ const CadastroContratante = () => {
                   <FormField control={empresaForm.control} name="rua" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Rua</FormLabel>
-                      <FormControl><Input placeholder="Nome da rua" className="h-12" {...field} /></FormControl>
+                      <FormControl><Input placeholder="Digite o nome da rua" className="h-12" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -541,20 +541,20 @@ const CadastroContratante = () => {
                     <FormField control={empresaForm.control} name="numero" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Número</FormLabel>
-                        <FormControl><Input placeholder="Nº" className="h-12" {...field} /></FormControl>
+                        <FormControl><Input placeholder="Digite o número" className="h-12" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={empresaForm.control} name="complemento" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Complemento</FormLabel>
-                        <FormControl><Input placeholder="Apto, Bloco..." className="h-12" {...field} /></FormControl>
+                        <FormControl><Input placeholder="Apartamento, bloco..." className="h-12" {...field} /></FormControl>
                       </FormItem>
                     )} />
                     <FormField control={empresaForm.control} name="referencia" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Referência</FormLabel>
-                        <FormControl><Input placeholder="Próximo a..." className="h-12" {...field} /></FormControl>
+                        <FormControl><Input placeholder="Ponto de referência..." className="h-12" {...field} /></FormControl>
                       </FormItem>
                     )} />
                   </div>
@@ -562,7 +562,7 @@ const CadastroContratante = () => {
                     <FormField control={empresaForm.control} name="bairro" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Bairro</FormLabel>
-                        <FormControl><Input placeholder="Bairro" className="h-12" {...field} /></FormControl>
+                        <FormControl><Input placeholder="Digite o bairro" className="h-12" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -583,7 +583,7 @@ const CadastroContratante = () => {
                   <FormField control={empresaForm.control} name="responsavelNome" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nome e Sobrenome</FormLabel>
-                      <FormControl><Input placeholder="Nome completo do responsável" className="h-12" {...field} /></FormControl>
+                      <FormControl><Input placeholder="Digite o nome do responsável" className="h-12" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -591,7 +591,7 @@ const CadastroContratante = () => {
                     <FormItem>
                       <FormLabel>DDD + Telefone</FormLabel>
                       <FormControl>
-                        <Input placeholder="(00) 00000-0000" className="h-12" {...field}
+                        <Input placeholder="Digite o telefone" className="h-12" {...field}
                           onChange={(e) => {
                             const d = e.target.value.replace(/\D/g, "").slice(0, 11);
                             let f = d;
@@ -638,7 +638,7 @@ const CadastroContratante = () => {
                       <FormField control={casaCPFForm.control} name="documento" render={({ field }) => (
                         <FormItem>
                           <FormLabel>CPF</FormLabel>
-                          <FormControl><Input placeholder="000.000.000-00" className="h-12" {...field}
+                          <FormControl><Input placeholder="Digite o CPF" className="h-12" {...field}
                             onChange={(e) => field.onChange(maskCPF(e.target.value))} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -650,7 +650,7 @@ const CadastroContratante = () => {
                           <FormControl>
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                              <Input placeholder="(11) 99999-9999" className="pl-10 h-12" {...field}
+                              <Input placeholder="Digite o telefone" className="pl-10 h-12" {...field}
                                 onChange={(e) => field.onChange(formatPhone(e.target.value))} />
                             </div>
                           </FormControl>
@@ -675,9 +675,9 @@ const CadastroContratante = () => {
                           <FormField control={casaCPFForm.control} name="cep" render={({ field }) => (
                             <FormItem>
                               <FormLabel>CEP</FormLabel>
-                              <FormControl><Input placeholder="00000-000" className="h-12" {...field}
+<FormControl><Input placeholder="Digite o CEP" className="h-12" {...field}
                                 onChange={(e) => handleCepChange(e.target.value, casaCPFForm)} /></FormControl>
-                              {cepLoading && <p className="text-xs text-muted-foreground">Buscando CEP...</p>}
+                                {cepLoading && <p className="text-xs text-muted-foreground">Buscando CEP...</p>}
                               <FormMessage />
                             </FormItem>
                           )} />
@@ -693,22 +693,22 @@ const CadastroContratante = () => {
                           )} />
                         </div>
                         <FormField control={casaCPFForm.control} name="rua" render={({ field }) => (
-                          <FormItem><FormLabel>Rua</FormLabel><FormControl><Input placeholder="Nome da rua" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem><FormLabel>Rua</FormLabel><FormControl><Input placeholder="Digite o nome da rua" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <div className="grid grid-cols-2 gap-4">
                           <FormField control={casaCPFForm.control} name="numero" render={({ field }) => (
-                            <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="Nº" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="Digite o número" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
                           )} />
                           <FormField control={casaCPFForm.control} name="complemento" render={({ field }) => (
-                            <FormItem><FormLabel>Complemento</FormLabel><FormControl><Input placeholder="Apto, Bloco..." className="h-12" {...field} /></FormControl></FormItem>
+                            <FormItem><FormLabel>Complemento</FormLabel><FormControl><Input placeholder="Apartamento, bloco..." className="h-12" {...field} /></FormControl></FormItem>
                           )} />
                           <FormField control={casaCPFForm.control} name="referencia" render={({ field }) => (
-                            <FormItem><FormLabel>Referência</FormLabel><FormControl><Input placeholder="Próximo a..." className="h-12" {...field} /></FormControl></FormItem>
+                            <FormItem><FormLabel>Referência</FormLabel><FormControl><Input placeholder="Ponto de referência..." className="h-12" {...field} /></FormControl></FormItem>
                           )} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <FormField control={casaCPFForm.control} name="bairro" render={({ field }) => (
-                            <FormItem><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Bairro" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Digite o bairro" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
                           )} />
                           <FormField control={casaCPFForm.control} name="cidade" render={({ field }) => (
                             <FormItem><FormLabel>Cidade</FormLabel><FormControl><CitySelect value={field.value} onValueChange={field.onChange} /></FormControl><FormMessage /></FormItem>
@@ -732,7 +732,7 @@ const CadastroContratante = () => {
                       <FormField control={casaCNPJForm.control} name="documento" render={({ field }) => (
                         <FormItem>
                           <FormLabel>CNPJ</FormLabel>
-                          <FormControl><Input placeholder="00.000.000/0000-00" className="h-12" {...field}
+                          <FormControl><Input placeholder="Digite o CNPJ" className="h-12" {...field}
                             onChange={(e) => field.onChange(maskCNPJ(e.target.value))} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -741,7 +741,7 @@ const CadastroContratante = () => {
                       <FormField control={casaCNPJForm.control} name="nomeOuRazao" render={({ field }) => (
                         <FormItem>
                           <FormLabel>Razão Social</FormLabel>
-                          <FormControl><Input placeholder="Razão Social da empresa" className="h-12" {...field} /></FormControl>
+                          <FormControl><Input placeholder="Digite a razão social" className="h-12" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
@@ -764,7 +764,7 @@ const CadastroContratante = () => {
                         <FormField control={casaCNPJForm.control} name="responsavelNome" render={({ field }) => (
                           <FormItem>
                             <FormLabel>Nome e Sobrenome</FormLabel>
-                            <FormControl><Input placeholder="Nome completo do responsável" className="h-12" {...field} /></FormControl>
+                            <FormControl><Input placeholder="Digite o nome do responsável" className="h-12" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
@@ -772,7 +772,7 @@ const CadastroContratante = () => {
                           <FormItem>
                             <FormLabel>DDD + Telefone do Responsável</FormLabel>
                             <FormControl>
-                              <Input placeholder="(00) 00000-0000" className="h-12" {...field}
+                              <Input placeholder="Digite o telefone" className="h-12" {...field}
                                 onChange={(e) => {
                                   const d = e.target.value.replace(/\D/g, "").slice(0, 11);
                                   let f = d;
@@ -792,7 +792,7 @@ const CadastroContratante = () => {
                           <FormControl>
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                              <Input placeholder="(11) 99999-9999" className="pl-10 h-12" {...field}
+                              <Input placeholder="Digite o telefone" className="pl-10 h-12" {...field}
                                 onChange={(e) => field.onChange(formatPhone(e.target.value))} />
                             </div>
                           </FormControl>
@@ -807,9 +807,9 @@ const CadastroContratante = () => {
                           <FormField control={casaCNPJForm.control} name="cep" render={({ field }) => (
                             <FormItem>
                               <FormLabel>CEP</FormLabel>
-                              <FormControl><Input placeholder="00000-000" className="h-12" {...field}
+<FormControl><Input placeholder="Digite o CEP" className="h-12" {...field}
                                 onChange={(e) => handleCepChange(e.target.value, casaCNPJForm)} /></FormControl>
-                              {cepLoading && <p className="text-xs text-muted-foreground">Buscando CEP...</p>}
+                                {cepLoading && <p className="text-xs text-muted-foreground">Buscando CEP...</p>}
                               <FormMessage />
                             </FormItem>
                           )} />
@@ -825,22 +825,22 @@ const CadastroContratante = () => {
                           )} />
                         </div>
                         <FormField control={casaCNPJForm.control} name="rua" render={({ field }) => (
-                          <FormItem><FormLabel>Rua</FormLabel><FormControl><Input placeholder="Nome da rua" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem><FormLabel>Rua</FormLabel><FormControl><Input placeholder="Digite o nome da rua" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <div className="grid grid-cols-2 gap-4">
                           <FormField control={casaCNPJForm.control} name="numero" render={({ field }) => (
-                            <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="Nº" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="Digite o número" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
                           )} />
                           <FormField control={casaCNPJForm.control} name="complemento" render={({ field }) => (
-                            <FormItem><FormLabel>Complemento</FormLabel><FormControl><Input placeholder="Apto, Bloco..." className="h-12" {...field} /></FormControl></FormItem>
+                            <FormItem><FormLabel>Complemento</FormLabel><FormControl><Input placeholder="Apartamento, bloco..." className="h-12" {...field} /></FormControl></FormItem>
                           )} />
                           <FormField control={casaCNPJForm.control} name="referencia" render={({ field }) => (
-                            <FormItem><FormLabel>Referência</FormLabel><FormControl><Input placeholder="Próximo a..." className="h-12" {...field} /></FormControl></FormItem>
+                            <FormItem><FormLabel>Referência</FormLabel><FormControl><Input placeholder="Ponto de referência..." className="h-12" {...field} /></FormControl></FormItem>
                           )} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <FormField control={casaCNPJForm.control} name="bairro" render={({ field }) => (
-                            <FormItem><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Bairro" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Digite o bairro" className="h-12" {...field} /></FormControl><FormMessage /></FormItem>
                           )} />
                           <FormField control={casaCNPJForm.control} name="cidade" render={({ field }) => (
                             <FormItem><FormLabel>Cidade</FormLabel><FormControl><CitySelect value={field.value} onValueChange={field.onChange} /></FormControl><FormMessage /></FormItem>

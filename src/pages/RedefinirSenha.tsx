@@ -191,7 +191,7 @@ const RedefinirSenha = () => {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Digite sua nova senha"
                     {...register("password")}
                     className={`pl-10 pr-10 h-12 ${errors.password ? "border-destructive" : ""}`}
                   />

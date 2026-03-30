@@ -95,7 +95,7 @@ const AddressFields = ({
       </h3>
       <div className="space-y-2">
         <Label>CEP</Label>
-        <Input value={cep} onChange={(e) => onCepChange(e.target.value)} placeholder="00000-000" />
+        <Input value={cep} onChange={(e) => onCepChange(e.target.value)} placeholder="Digite o CEP" />
         {cepLoading && (
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             <Loader2 className="w-3 h-3 animate-spin" /> Buscando endereço...
@@ -118,7 +118,7 @@ const AddressFields = ({
       </div>
       <div className="space-y-2">
         <Label>Referência</Label>
-        <Input value={referencia} onChange={(e) => onReferenciaChange(e.target.value)} placeholder="Próximo a..." />
+        <Input value={referencia} onChange={(e) => onReferenciaChange(e.target.value)} placeholder="Ponto de referência..." />
       </div>
       <div className="space-y-2">
         <Label>Bairro</Label>
@@ -742,18 +742,18 @@ const MeusDadosContratante = () => {
             </h3>
             <div className="space-y-2">
               <Label>Nome</Label>
-              <Input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Seu nome completo" />
+              <Input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Digite seu nome completo" />
             </div>
             <div className="space-y-2">
               <Label>E-mail</Label>
-              <Input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="seu@email.com" />
+              <Input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="Digite seu email" />
             </div>
             <div className="space-y-2">
               <Label>Celular</Label>
               <Input
                 value={userPhone}
                 onChange={(e) => setUserPhone(formatPhone(e.target.value))}
-                placeholder="(00) 00000-0000"
+                placeholder="Digite o telefone"
               />
             </div>
           </CardContent>
@@ -820,7 +820,7 @@ const MeusDadosContratante = () => {
                   <Input
                     value={responsavelTelefone}
                     onChange={(e) => setResponsavelTelefone(formatPhone(e.target.value))}
-                    placeholder="(00) 00000-0000"
+placeholder="Digite o telefone"
                   />
                 </div>
               </CardContent>
