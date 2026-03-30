@@ -1,0 +1,167 @@
+name: validate-pr-template
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+jobs:
+  validate:
+    name: Validar template da PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validar preenchimento e checklist
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+
+          with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as f:
+              event = json.load(f)
+
+          body = ((event.get("pull_request") or {}).get("body") or "").replace("\r\n", "\n").strip()
+          errors = []
+
+          if not body:
+              print("O corpo da PR está vazio.")
+              sys.exit(1)
+
+          sections = [
+              ("descricao", "Descrição", "<!-- pr:section:descricao -->"),
+              ("contexto", "Contexto / motivação", "<!-- pr:section:contexto -->"),
+              ("issue", "Issue relacionada", "<!-- pr:section:issue -->"),
+              ("tipo", "Tipo de alteração", "<!-- pr:section:tipo -->"),
+              ("testes", "Como testar", "<!-- pr:section:testes -->"),
+              ("evidencias", "Evidências", "<!-- pr:section:evidencias -->"),
+              ("checklist", "Checklist", "<!-- pr:section:checklist -->"),
+          ]
+
+          by_key = {key: {"label": label, "marker": marker} for key, label, marker in sections}
+          positions = {}
+
+          for key, label, marker in sections:
+              idx = body.find(marker)
+              if idx == -1:
+                  errors.append(f'Seção obrigatória ausente: "{label}".')
+              else:
+                  positions[key] = idx
+
+          def section_text(key: str) -> str:
+              marker = by_key[key]["marker"]
+              start = positions[key] + len(marker)
+              next_positions = [
+                  positions[k]
+                  for k, _, _ in sections
+                  if k in positions and positions[k] > positions[key]
+              ]
+              end = min(next_positions) if next_positions else len(body)
+
+              chunk = body[start:end]
+              chunk = re.sub(r"<!--.*?-->", "", chunk, flags=re.S)
+
+              visible_lines = []
+              for line in chunk.splitlines():
+                  if line.strip().startswith("## "):
+                      continue
+                  visible_lines.append(line)
+
+              return "\n".join(visible_lines).strip()
+
+          def normalized_len(text: str) -> int:
+              return len(re.sub(r"[\W_]+", "", text, flags=re.UNICODE))
+
+          def has_placeholder(text: str) -> bool:
+              lowered = text.casefold()
+              placeholders = [
+                  "[preencha aqui]",
+                  "1. [preencha aqui]",
+                  "2. [preencha aqui]",
+              ]
+              return any(p in lowered for p in placeholders)
+
+          def is_checked(check_id: str) -> bool:
+              pattern = rf"^- \[(x|X)\]\s*<!--\s*{re.escape(check_id)}\s*-->"
+              return re.search(pattern, body, flags=re.M) is not None
+
+          text_rules = {
+              "descricao": 20,
+              "contexto": 20,
+              "issue": 10,
+              "testes": 15,
+              "evidencias": 10,
+          }
+
+          for key, min_len in text_rules.items():
+              if key in positions:
+                  text = section_text(key)
+
+                  if has_placeholder(text):
+                      errors.append(f'A seção "{by_key[key]["label"]}" ainda contém placeholder.')
+                  elif normalized_len(text) < min_len:
+                      errors.append(f'A seção "{by_key[key]["label"]}" precisa de mais detalhes.')
+
+          if "issue" in positions:
+              issue_text = section_text("issue").casefold()
+
+              has_issue_ref = re.search(
+                  r"(corrige|fecha|fixes|closes|relacionada a)\s+#\d+\b",
+                  issue_text,
+              )
+              sem_issue = re.search(r"^sem issue\b", issue_text)
+
+              if not (has_issue_ref or sem_issue):
+                  errors.append(
+                      'A seção "Issue relacionada" deve conter '
+                      '"Corrige #123", "Relacionada a #123" ou "Sem issue (motivo)".'
+                  )
+              elif sem_issue and normalized_len(issue_text) < 15:
+                  errors.append('Se usar "Sem issue", informe o motivo.')
+
+          selected_types = re.findall(
+              r"^- \[(x|X)\]\s*<!--\s*pr:type:[^>]+\s*-->",
+              body,
+              flags=re.M,
+          )
+          if len(selected_types) < 1:
+              errors.append('Marque pelo menos um item em "Tipo de alteração".')
+
+          required_checks = [
+              ("pr:check:style", "Marque que o código segue os padrões do projeto."),
+              ("pr:check:self-review", "Marque que fez auto-revisão do código."),
+              ("pr:check:no-secrets", "Marque que verificou segredos e dados sensíveis."),
+          ]
+
+          for check_id, message in required_checks:
+              if not is_checked(check_id):
+                  errors.append(message)
+
+          tests_checks = sum([
+              is_checked("pr:check:tests-run"),
+              is_checked("pr:check:tests-na"),
+          ])
+          if tests_checks != 1:
+              errors.append(
+                  'Marque exatamente uma opção de testes: '
+                  '"Rodei os testes relevantes" ou "Não se aplica".'
+              )
+
+          docs_checks = sum([
+              is_checked("pr:check:docs-updated"),
+              is_checked("pr:check:docs-na"),
+          ])
+          if docs_checks != 1:
+              errors.append(
+                  'Marque exatamente uma opção de documentação: '
+                  '"Atualizei a documentação" ou "Não se aplica".'
+              )
+
+          if errors:
+              print("Falha na validação da PR:\n")
+              for err in errors:
+                  print(f"- {err}")
+              sys.exit(1)
+
+          print("PR válida.")
+          PY
