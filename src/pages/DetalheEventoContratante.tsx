@@ -118,19 +118,22 @@ const DetalheEventoContratante = () => {
   const lastJobIdRef = useRef<string | null>(null);
 
   // Timeline context — shared state between freelancer and contractor
-  const { getTimeline, setStep: setTimelineContextStep } = useTimeline();
+  const { getTimeline, setStep: setTimelineContextStep, subscribeTimeline, unsubscribeTimeline } = useTimeline();
 
-  // Sync timelineStep to context
+  // Subscribe to polling via context (replaces local polling intervals)
   useEffect(() => {
     if (!eventoId) return;
-    setTimelineContextStep(eventoId, timelineStep);
-  }, [eventoId, timelineStep, setTimelineContextStep]);
+    subscribeTimeline(eventoId);
+    return () => unsubscribeTimeline(eventoId);
+  }, [eventoId, subscribeTimeline, unsubscribeTimeline]);
 
-  // Read from TimelineContext — freelancer actions update local state
+  // Read from TimelineContext — sync context step to local state
   useEffect(() => {
     if (!eventoId) return;
     const ctx = getTimeline(eventoId);
     if (!ctx) return;
+    // Update local step from context
+    if (ctx.step > timelineStep) setTimelineStep(ctx.step);
     // Freelancer did check-in → advance to step 2
     if (ctx.checkinDone && timelineStep < 2) setTimelineStep(2);
     // Freelancer did check-out → advance to step 3
@@ -242,18 +245,7 @@ const DetalheEventoContratante = () => {
     };
   }, [toast, eventoId]);
 
-  // ── Polling: always re-fetch job status to keep timeline in sync ──────────────────────
-  useEffect(() => {
-    if (!eventoId) return;
-
-    const interval = setInterval(() => {
-      fetchJobStatus(eventoId);
-    }, 5000); // every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [eventoId]);
-
-  // Helper: fetch job status and update timeline accordingly
+  // Helper: fetch job status and handle payment auto-schedule
   const fetchJobStatus = async (vacancyId: string) => {
     try {
       const jobsRes = await apiFetch(`${API_BASE_URL}/vacancies/jobs?vacancyId=${vacancyId}`, { method: "GET" });
@@ -261,56 +253,33 @@ const DetalheEventoContratante = () => {
       const jobData = jobsBody?.data ?? jobsBody;
       const jobId = Array.isArray(jobData) ? jobData[0]?.id ?? "" : jobData?.id ?? "";
 
-      if (!jobId) return; // no job yet — stay at step 0
+      if (!jobId) return;
 
       const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
-      if (res.status === 404) {
-        // 404 means job is in the first stage still
-        return;
-      }
+      if (res.status === 404) return;
       const body = await res.json().catch(() => null);
       const status = (body?.data?.status ?? body?.status ?? "").trim();
       const paid = body?.data?.paid ?? body?.paid;
 
       if (status === "unavailable" && (paid === true || paid === "true")) {
-        // Pagamento manual detectado — agendar job automaticamente
         await apiFetch(`${API_BASE_URL}/jobs/${jobId}/schedule`, { method: "PATCH" });
         setTimelineStep(prev => Math.max(prev, 2));
         setShowPixModal(false);
         toast({ title: "Pagamento confirmado!", description: "O job foi agendado com sucesso." });
-      } else if (status === "scheduled") {
-        setTimelineStep(prev => Math.max(prev, 2));
-      } else if (status === "in progress") {
-        setTimelineStep(prev => Math.max(prev, 3));
-      } else if (status === "completed" || status === "partially completed") {
-        setTimelineStep(prev => Math.max(prev, 4));
-      } else if (status === "unavailable") {
-        setTimelineStep(prev => Math.max(prev, 1));
       }
-    } catch (err) {
+    } catch {
     }
   };
 
-  // ── Polling: verificar mudanças de status do job a cada 5s ──────────
-  const fetchJobStatusRef = useRef(fetchJobStatus);
-  fetchJobStatusRef.current = fetchJobStatus;
-
+  // Auto-check payment when context timeline advances to payment step
   useEffect(() => {
     if (!eventoId) return;
-    if (timelineStep >= 5) return; // Não fazer polling se já atingiu estado final
-
-    const intervalId = setInterval(() => {
-      // Pausar se aba não está visível
-      if (document.visibilityState !== "visible") return;
-
-      // Pausar se já atingiu estado final
-      if (timelineStep >= 5) return;
-
-      fetchJobStatusRef.current(eventoId);
-    }, 5000); // 5 segundos
-
-    return () => clearInterval(intervalId);
-  }, [eventoId, timelineStep]);
+    const ctx = getTimeline(eventoId);
+    if (!ctx) return;
+    if (ctx.paid && timelineStep < 2) {
+      fetchJobStatus(eventoId);
+    }
+  }, [eventoId, getTimeline, timelineStep]);
 
   // Helpers para verificação de limites por serviço
   const getServiceLimit = (assignment: string): number => {

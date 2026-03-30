@@ -128,13 +128,22 @@ const DetalheVaga = () => {
     const [loadingContractor, setLoadingContractor] = useState(true);
 
     // Timeline context — shared state between freelancer and contractor
-    const { getTimeline, updateTimeline } = useTimeline();
+    const { getTimeline, updateTimeline, subscribeTimeline, unsubscribeTimeline } = useTimeline();
     const jobIdForTimeline = vagaId || "";
+
+    // Subscribe to polling for agendada jobs
+    useEffect(() => {
+      const realJobId = jobIdFromState || (isAgendada ? vagaId : "");
+      if (!realJobId || !isAgendada) return;
+      subscribeTimeline(realJobId);
+      return () => unsubscribeTimeline(realJobId);
+    }, [jobIdFromState, vagaId, isAgendada, subscribeTimeline, unsubscribeTimeline]);
 
     // Sync local state to TimelineContext
     useEffect(() => {
-      if (!jobIdForTimeline) return;
-      updateTimeline(jobIdForTimeline, {
+      const id = jobIdFromState || jobIdForTimeline;
+      if (!id) return;
+      updateTimeline(id, {
         checkinDone,
         checkoutDone,
         paid: paymentDone,
@@ -145,16 +154,17 @@ const DetalheVaga = () => {
         pagamento: paymentDone,
         feedback: reviewDone,
       });
-    }, [jobIdForTimeline, checkinDone, checkoutDone, paymentDone, reviewDone, applied]);
+    }, [jobIdFromState, jobIdForTimeline, checkinDone, checkoutDone, paymentDone, reviewDone, applied]);
 
     // Read from TimelineContext — contractor actions update local state
     useEffect(() => {
-      if (!jobIdForTimeline) return;
-      const ctx = getTimeline(jobIdForTimeline);
+      const id = jobIdFromState || jobIdForTimeline;
+      if (!id) return;
+      const ctx = getTimeline(id);
       if (!ctx) return;
       if (ctx.paid && !paymentDone) setPaymentDone(true);
       if (ctx.feedback && !reviewDone) setReviewDone(true);
-    }, [jobIdForTimeline, getTimeline]);
+    }, [jobIdFromState, jobIdForTimeline, getTimeline]);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -550,8 +560,9 @@ toast.error(errorMessages.checkinCodeRequired);
   };
   const localTimeline = isAgendada ? agendadaTimeline : defaultTimeline;
 
-  // Prefer context timeline if available
-  const contextTimeline = jobIdForTimeline ? getTimeline(jobIdForTimeline) : null;
+  // Prefer context timeline if available — use real jobId for agendadas
+  const realJobId = jobIdFromState || (isAgendada ? vagaId : jobIdForTimeline);
+  const contextTimeline = realJobId ? getTimeline(realJobId) : null;
   const timeline = contextTimeline
     ? { aceite: contextTimeline.aceite, inicio: contextTimeline.inicio, fim: contextTimeline.fim, pagamento: contextTimeline.pagamento, feedback: contextTimeline.feedback }
     : localTimeline;

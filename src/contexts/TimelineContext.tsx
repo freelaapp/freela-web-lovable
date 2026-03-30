@@ -1,4 +1,7 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
+import { apiFetch } from "@/lib/api";
+
+const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 export interface TimelineState {
   jobId: string;
@@ -7,16 +10,20 @@ export interface TimelineState {
   inicio: boolean;
   fim: boolean;
   feedback: boolean;
-  step: number; // 0=contratação, 1=pagamento, 2=inicio, 3=fim, 4=feedback
+  step: number;
   paid: boolean;
   checkinDone: boolean;
   checkoutDone: boolean;
   reviewDone: boolean;
+  jobStatus: string;
 }
 
 interface TimelineContextValue {
   getTimeline: (jobId: string) => TimelineState | null;
   updateTimeline: (jobId: string, updates: Partial<TimelineState>) => void;
+  fetchTimelineFromAPI: (jobId: string) => Promise<void>;
+  subscribeTimeline: (jobId: string) => void;
+  unsubscribeTimeline: (jobId: string) => void;
   advanceStep: (jobId: string) => void;
   setStep: (jobId: string, step: number) => void;
   resetTimeline: (jobId: string) => void;
@@ -33,11 +40,15 @@ const defaultTimeline: Omit<TimelineState, "jobId"> = {
   checkinDone: false,
   checkoutDone: false,
   reviewDone: false,
+  jobStatus: "",
 };
 
 const TimelineContext = createContext<TimelineContextValue>({
   getTimeline: () => null,
   updateTimeline: () => {},
+  fetchTimelineFromAPI: async () => {},
+  subscribeTimeline: () => {},
+  unsubscribeTimeline: () => {},
   advanceStep: () => {},
   setStep: () => {},
   resetTimeline: () => {},
@@ -45,8 +56,30 @@ const TimelineContext = createContext<TimelineContextValue>({
 
 export const useTimeline = () => useContext(TimelineContext);
 
+function mapStatusToStep(status: string, paid?: boolean): { step: number; updates: Partial<TimelineState> } {
+  const s = status.toLowerCase().trim();
+  if (s === "completed" || s === "partially completed") {
+    return { step: 4, updates: { inicio: true, fim: true, pagamento: true, feedback: true } };
+  }
+  if (s === "in progress") {
+    return { step: 3, updates: { inicio: true, pagamento: true } };
+  }
+  if (s === "scheduled") {
+    return { step: 2, updates: { inicio: true, pagamento: true } };
+  }
+  if (s === "unavailable" && paid) {
+    return { step: 2, updates: { inicio: true, pagamento: true, paid: true } };
+  }
+  if (s === "unavailable") {
+    return { step: 1, updates: { pagamento: true } };
+  }
+  return { step: 0, updates: {} };
+}
+
 export const TimelineProvider = ({ children }: { children: ReactNode }) => {
   const [timelines, setTimelines] = useState<Record<string, TimelineState>>({});
+  const intervalsRef = useRef<Record<string, ReturnType<typeof setInterval>>>({});
+  const subscribedRef = useRef<Set<string>>(new Set());
 
   const getTimeline = useCallback(
     (jobId: string): TimelineState | null => timelines[jobId] || null,
@@ -58,7 +91,6 @@ export const TimelineProvider = ({ children }: { children: ReactNode }) => {
       const current = prev[jobId] || { ...defaultTimeline, jobId };
       const merged = { ...current, ...updates };
 
-      // Auto-derive step from boolean states
       if (updates.aceite !== undefined || updates.pagamento !== undefined || updates.inicio !== undefined || updates.fim !== undefined || updates.feedback !== undefined) {
         if (merged.feedback) merged.step = 4;
         else if (merged.fim) merged.step = 3;
@@ -71,13 +103,81 @@ export const TimelineProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  const fetchTimelineFromAPI = useCallback(async (jobId: string) => {
+    if (!jobId) return;
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, { method: "GET" });
+      if (res.status === 404) return;
+      const body = await res.json().catch(() => null);
+      const status = (body?.data?.status ?? body?.status ?? "").trim();
+      const paid = body?.data?.paid ?? body?.paid;
+
+      if (!status) return;
+
+      const { step, updates } = mapStatusToStep(status, paid === true || paid === "true");
+
+      setTimelines((prev) => {
+        const current = prev[jobId] || { ...defaultTimeline, jobId };
+        if (step <= current.step && status === current.jobStatus) return prev;
+        return {
+          ...prev,
+          [jobId]: {
+            ...current,
+            ...updates,
+            step: Math.max(step, current.step),
+            paid: paid === true || paid === "true" || current.paid,
+            jobStatus: status,
+          },
+        };
+      });
+    } catch {
+      // silently fail
+    }
+  }, []);
+
+  const subscribeTimeline = useCallback((jobId: string) => {
+    if (!jobId || subscribedRef.current.has(jobId)) return;
+    subscribedRef.current.add(jobId);
+
+    fetchTimelineFromAPI(jobId);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      const current = timelines[jobId];
+      if (current && current.step >= 4) {
+        clearInterval(interval);
+        delete intervalsRef.current[jobId];
+        return;
+      }
+      fetchTimelineFromAPI(jobId);
+    }, 5000);
+
+    intervalsRef.current[jobId] = interval;
+  }, [fetchTimelineFromAPI, timelines]);
+
+  const unsubscribeTimeline = useCallback((jobId: string) => {
+    if (!jobId) return;
+    subscribedRef.current.delete(jobId);
+    if (intervalsRef.current[jobId]) {
+      clearInterval(intervalsRef.current[jobId]);
+      delete intervalsRef.current[jobId];
+    }
+  }, []);
+
+  // Cleanup all intervals on unmount
+  useEffect(() => {
+    const intervals = intervalsRef.current;
+    return () => {
+      Object.values(intervals).forEach(clearInterval);
+    };
+  }, []);
+
   const advanceStep = useCallback((jobId: string) => {
     setTimelines((prev) => {
       const current = prev[jobId] || { ...defaultTimeline, jobId };
       const nextStep = Math.min(current.step + 1, 4);
       const merged = { ...current, step: nextStep };
 
-      // Update booleans based on step
       if (nextStep >= 1) merged.pagamento = true;
       if (nextStep >= 2) { merged.pagamento = true; merged.inicio = true; }
       if (nextStep >= 3) { merged.pagamento = true; merged.inicio = true; merged.fim = true; }
@@ -93,7 +193,6 @@ export const TimelineProvider = ({ children }: { children: ReactNode }) => {
       const s = Math.max(0, Math.min(step, 4));
       const merged = { ...current, step: s };
 
-      // Update booleans based on step
       merged.aceite = s >= 0;
       merged.pagamento = s >= 1;
       merged.inicio = s >= 2;
@@ -109,7 +208,7 @@ export const TimelineProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <TimelineContext.Provider value={{ getTimeline, updateTimeline, advanceStep, setStep, resetTimeline }}>
+    <TimelineContext.Provider value={{ getTimeline, updateTimeline, fetchTimelineFromAPI, subscribeTimeline, unsubscribeTimeline, advanceStep, setStep, resetTimeline }}>
       {children}
     </TimelineContext.Provider>
   );
