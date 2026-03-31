@@ -81,34 +81,34 @@ const App = () => (
             <Route path="/video-apresentacao" element={<VideoApresentacao />} />
             <Route path="/perfil-contratante/:clientId" element={<PerfilContratante />} />
 
-            {/* Authenticated routes (any role) */}
-            <Route path="/mensagens" element={<ProtectedRoute><Mensagens /></ProtectedRoute>} />
-            <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-            <Route path="/avaliacoes" element={<ProtectedRoute><Avaliacoes /></ProtectedRoute>} />
-            <Route path="/avaliacao/:avaliacaoId" element={<ProtectedRoute><DetalheAvaliacao /></ProtectedRoute>} />
-            <Route path="/carteira" element={<ProtectedRoute><Carteira /></ProtectedRoute>} />
+            {/* Previously authenticated routes - now public for demo */}
+            <Route path="/mensagens" element={<Mensagens />} />
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/avaliacoes" element={<Avaliacoes />} />
+            <Route path="/avaliacao/:avaliacaoId" element={<DetalheAvaliacao />} />
+            <Route path="/carteira" element={<Carteira />} />
 
-            {/* Freelancer-only routes */}
-            <Route path="/dashboard-freelancer" element={<ProtectedRoute requiredRole="freelancer"><DashboardFreelancer /></ProtectedRoute>} />
-            <Route path="/mapa-vagas" element={<ProtectedRoute requiredRole="freelancer"><MapaVagas /></ProtectedRoute>} />
-            <Route path="/vaga/:vagaId" element={<ProtectedRoute requiredRole="freelancer"><DetalheVaga /></ProtectedRoute>} />
-            <Route path="/aceitar-job/:jobId" element={<ProtectedRoute requiredRole="freelancer"><AceitarJob /></ProtectedRoute>} />
-            <Route path="/confirmar-servico/:vagaId" element={<ProtectedRoute requiredRole="freelancer"><ConfirmarServico /></ProtectedRoute>} />
-            <Route path="/historico" element={<ProtectedRoute requiredRole="freelancer"><Historico /></ProtectedRoute>} />
-            <Route path="/meus-dados" element={<ProtectedRoute requiredRole="freelancer"><MeusDados /></ProtectedRoute>} />
-            <Route path="/configuracoes" element={<ProtectedRoute requiredRole="freelancer"><Configuracoes /></ProtectedRoute>} />
-            <Route path="/ajuda" element={<ProtectedRoute requiredRole="freelancer"><Ajuda /></ProtectedRoute>} />
+            {/* Freelancer routes */}
+            <Route path="/dashboard-freelancer" element={<DashboardFreelancer />} />
+            <Route path="/mapa-vagas" element={<MapaVagas />} />
+            <Route path="/vaga/:vagaId" element={<DetalheVaga />} />
+            <Route path="/aceitar-job/:jobId" element={<AceitarJob />} />
+            <Route path="/confirmar-servico/:vagaId" element={<ConfirmarServico />} />
+            <Route path="/historico" element={<Historico />} />
+            <Route path="/meus-dados" element={<MeusDados />} />
+            <Route path="/configuracoes" element={<Configuracoes />} />
+            <Route path="/ajuda" element={<Ajuda />} />
 
-            {/* Contratante-only routes */}
-            <Route path="/dashboard-contratante" element={<ProtectedRoute requiredRole="contratante"><DashboardContratante /></ProtectedRoute>} />
-            <Route path="/criar-evento" element={<ProtectedRoute requiredRole="contratante"><CriarEvento /></ProtectedRoute>} />
-            <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
-            <Route path="/evento/:eventoId" element={<ProtectedRoute requiredRole="contratante"><DetalheEventoContratante /></ProtectedRoute>} />
-            <Route path="/meus-dados-contratante" element={<ProtectedRoute requiredRole="contratante"><MeusDadosContratante /></ProtectedRoute>} />
-            <Route path="/configuracoes-contratante" element={<ProtectedRoute requiredRole="contratante"><ConfiguracoesContratante /></ProtectedRoute>} />
-            <Route path="/ajuda-contratante" element={<ProtectedRoute requiredRole="contratante"><AjudaContratante /></ProtectedRoute>} />
-            <Route path="/tela-pix" element={<ProtectedRoute requiredRole="contratante"><TelaPix /></ProtectedRoute>} />
-            <Route path="/obrigado-contratante" element={<ProtectedRoute requiredRole="contratante"><ObrigadoContratante /></ProtectedRoute>} />
+            {/* Contratante routes */}
+            <Route path="/dashboard-contratante" element={<DashboardContratante />} />
+            <Route path="/criar-evento" element={<CriarEvento />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/evento/:eventoId" element={<DetalheEventoContratante />} />
+            <Route path="/meus-dados-contratante" element={<MeusDadosContratante />} />
+            <Route path="/configuracoes-contratante" element={<ConfiguracoesContratante />} />
+            <Route path="/ajuda-contratante" element={<AjudaContratante />} />
+            <Route path="/tela-pix" element={<TelaPix />} />
+            <Route path="/obrigado-contratante" element={<ObrigadoContratante />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
