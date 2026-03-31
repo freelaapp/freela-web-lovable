@@ -94,7 +94,7 @@ const DetalheEventoContratante = () => {
   const { eventoId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const toast = useToast();
+  const { toast } = useToast();
 
   const serviceIndexFromState = (location.state as Record<string, unknown>)?.serviceIndex as number | undefined;
   const [selectedServiceIndex, setSelectedServiceIndex] = useState<number>(serviceIndexFromState ?? 0);

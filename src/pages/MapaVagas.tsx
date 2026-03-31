@@ -101,7 +101,7 @@ const MapaVagas = () => {
         const vacancies = Array.isArray(vacBody?.data) ? vacBody.data : [];
 
         // Buscar detalhes de cada vaga individualmente para pegar o jobValue correto
-        const uniqueVacancyIds: string[] = [...new Set(vacancies.map((v: any) => v.id).filter(Boolean))];
+        const uniqueVacancyIds: string[] = [...new Set(vacancies.map((v: any) => v.id).filter(Boolean))] as string[];
         const vacancyDetailMap: Record<string, any> = {};
         await Promise.all(
           uniqueVacancyIds.map(async (vid) => {
