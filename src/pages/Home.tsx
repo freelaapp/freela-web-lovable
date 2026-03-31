@@ -24,7 +24,7 @@ import {
   MessageCircle,
   TrendingUp,
   Eye,
-  Scale,
+  
   GraduationCap,
   HelpCircle,
   DollarSign,
