@@ -134,51 +134,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return true;
   }, []);
 
-  // Periodic token check (every 10s) + when user returns to tab
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const isPublicPath = PUBLIC_PATHS.some(p => window.location.pathname === p || window.location.pathname.startsWith("/freelancer/"));
-      const tokenRaw = localStorage.getItem("authToken");
-      if (!tokenRaw) {
-        // Only redirect to login if NOT on a public page
-        if (!isPublicPath) {
-          checkTokenValid();
-        }
-        return;
-      }
-      const expRaw = localStorage.getItem("authTokenExpirationTime");
-      if (expRaw) {
-        const exp = JSON.parse(expRaw);
-        if (Date.now() >= exp) {
-          refreshAuthToken().then((ok) => {
-            if (!ok) {
-              logoutUtil();
-              setIsAuthenticated(false);
-              setUserId(null);
-              setRoleState(null);
-              // Only redirect to login if NOT on a public page
-              if (!isPublicPath) {
-                navigateRef.current("/login", { replace: true });
-              }
-            }
-          });
-        }
-      }
-    }, 10000);
-
-    // Check when user returns to the tab
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        checkTokenValid();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
-  }, [checkTokenValid]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
