@@ -7,20 +7,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trash2, AlertTriangle, Wallet, Phone, User, MapPin, Loader2, Camera, X, Briefcase } from "lucide-react";
-import EditableAvatar from "@/components/EditableAvatar";
-import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { DatePicker } from "@/components/ui/date-picker";
-import { errorMessages } from "@/lib/error-messages";
-import { apiFetch } from "@/lib/api";
-import { extractApiError, throwApiError } from "@/lib/api-error";
-import { pickImageUrlFromPayload } from "@/lib/image";
 
-const API_BASE_URL = import.meta.env.API_BASE_URL;
+const API_BASE_URL = "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
 const areasAtuacao = [
@@ -66,6 +59,20 @@ const getHeaders = (token: string) => ({
   "Origin-type": ORIGIN_TYPE,
   Authorization: `Bearer ${token}`,
 });
+
+const bufferToDataUrl = (img: any): string | null => {
+  if (!img) return null;
+  if (typeof img === "string") return img;
+  if (img.type === "Buffer" && Array.isArray(img.data)) {
+    const bytes = new Uint8Array(img.data);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return `data:image/jpeg;base64,${btoa(binary)}`;
+  }
+  return null;
+};
 
 // Snapshot helpers for change detection
 interface UserSnapshot { nome: string; email: string; telefone: string }
@@ -126,7 +133,6 @@ const MeusDados = () => {
   // Pix
   const [chavePixType, setChavePixType] = useState("");
   const [chavePix, setChavePix] = useState("");
-  const [existingPixId, setExistingPixId] = useState<string | null>(null);
 
   // Delete account
   const [deleteDialog, setDeleteDialog] = useState(false);
@@ -139,8 +145,6 @@ const MeusDados = () => {
   const [origUser, setOrigUser] = useState("");
   const [origPix, setOrigPix] = useState("");
   const [origProvider, setOrigProvider] = useState("");
-  const [origProviderBirthdate, setOrigProviderBirthdate] = useState("");
-  const [origProviderIsPCD, setOrigProviderIsPCD] = useState(false);
   const [origProfileImage, setOrigProfileImage] = useState<string | null>(null);
 
   const currentUserSnap = useCallback((): string => snap({ nome, email, telefone } as UserSnapshot), [nome, email, telefone]);
@@ -209,8 +213,7 @@ const MeusDados = () => {
       const headers = getHeaders(token);
 
       try {
-        // Step 1: user info + provider ID
-        const [meRes, provListRes] = await Promise.all([
+        const [meRes, provRes] = await Promise.all([
           fetch(`${API_BASE_URL}/users/me`, { method: "GET", credentials: "include", headers }),
           fetch(`${API_BASE_URL}/users/providers`, { method: "GET", credentials: "include", headers }),
         ]);
@@ -224,153 +227,100 @@ const MeusDados = () => {
           const t = me?.phoneNumber ? maskPhone(me.phoneNumber) : "";
           setNome(n); setEmail(e); setTelefone(t);
           uSnap = { nome: n, email: e, telefone: t };
-        } else {
         }
         setOrigUser(snap(uSnap));
 
         let pId = "";
-        let providerProfileImage: string | null = null;
-        if (provListRes.ok) {
-          const provListBody = await provListRes.json();
-          const rawList = provListBody?.data ?? provListBody;
-          const first = Array.isArray(rawList) ? rawList[0] : rawList;
-          pId = first?.id ?? "";
-          providerProfileImage = first?.profileImage ?? null;
-          setProviderId(pId);
-
-          // DEBUG: Log provider data from database
-          console.log("═══════════════════════════════════════════");
-          console.log("📦 PROVIDER DATA DO BANCO (GET /users/providers)");
-          console.log("═══════════════════════════════════════════");
-          console.log(JSON.stringify(first, null, 2));
-          console.log("═══════════════════════════════════════════");
-        } else {
-        }
-
         let pSnap: ProviderSnapshot = {
           dataNascimento: "", sexo: "", isPCD: false, desiredJobVacancy: "",
           contatoEmergNome: "", contatoEmergParentesco: "", contatoEmergTelefone: "",
           cep: "", rua: "", complemento: "", bairro: "", numero: "", cidade: "", estado: "",
         };
 
-        // Step 2: full provider data from GET /providers/{id}
+        if (provRes.ok) {
+          const provBody = await provRes.json();
+          const rawProv = provBody?.data ?? provBody;
+          const prov = Array.isArray(rawProv) ? rawProv[0] ?? {} : rawProv;
+
+          pId = prov.id ?? "";
+          setProviderId(pId);
+          setCpf(prov.cpf ?? "");
+
+          const bd = prov.birthdate ? prov.birthdate.split("T")[0] : "";
+          setDataNascimento(bd);
+          const g = prov.gender ?? "";
+          setSexo(g);
+          const pcd = !!prov.deficiency;
+          setIsPCD(pcd);
+
+          // Profile image
+          const imgUrl = bufferToDataUrl(prov.profileImage);
+          if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
+
+          // Desired job vacancy
+          const djv = prov.desiredJobVacancy ?? "";
+          const areas = parseAreasFromApi(djv);
+          setAreasSelecionadas(areas);
+
+          // Address
+          const cepVal = prov.cep ? maskCEP(prov.cep) : "";
+          setCep(cepVal);
+          setRua(prov.street ?? "");
+          setComplemento(prov.complement ?? "");
+          setBairro(prov.neighborhood ?? "");
+          setNumero(prov.number ?? "");
+          setCidade(prov.city ?? "");
+          setEstado(prov.uf ?? "");
+
+          // ViaCEP meta from API
+          if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
+            setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
+          }
+
+          // Emergency contact
+          const ecn = prov.emergencyContactName ?? "";
+          const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
+          const ecr = prov.emergencyContactRelationship ?? "";
+          setContatoEmergNome(ecn);
+          setContatoEmergTelefone(ect);
+          setContatoEmergParentesco(ecr);
+
+          const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
+          pSnap = {
+            dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
+            contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
+            cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
+            bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
+            cidade: prov.city ?? "", estado: prov.uf ?? "",
+          };
+        }
+        setOrigProvider(snap(pSnap));
+
+        // PIX
+        let pixSnap: PixSnapshot = { chavePixType: "", chavePix: "" };
         if (pId) {
-          const provRes = await fetch(`${API_BASE_URL}/providers/${pId}`, { method: "GET", credentials: "include", headers });
-          if (provRes.ok) {
-            const provBody = await provRes.json();
-            const prov = provBody?.data ?? provBody;
-            console.table({
-              "cpf":                        prov.cpf                        ?? "❌ ausente",
-              "birthdate":                  prov.birthdate                  ?? "❌ ausente",
-              "gender":                     prov.gender                     ?? "❌ ausente",
-              "deficiency":                 prov.deficiency                 ?? "❌ ausente",
-              "desiredJobVacancy":          prov.desiredJobVacancy          ?? "❌ ausente",
-              "cep":                        prov.cep                        ?? "❌ ausente",
-              "street":                     prov.street                     ?? "❌ ausente",
-              "complement":                 prov.complement                 ?? "❌ ausente",
-              "neighborhood":              prov.neighborhood               ?? "❌ ausente",
-              "number":                     prov.number                     ?? "❌ ausente",
-              "city":                       prov.city                       ?? "❌ ausente",
-              "uf":                         prov.uf                         ?? "❌ ausente",
-              "emergencyContactName":       prov.emergencyContactName       ?? "❌ ausente",
-              "emergencyContactNumber":     prov.emergencyContactNumber     ?? "❌ ausente",
-              "emergencyContactRelationship": prov.emergencyContactRelationship ?? "❌ ausente",
-              "pixKeyValue":                prov.pixKeyValue                ?? "❌ ausente",
-              "pixKeyType":                 prov.pixKeyType                 ?? "❌ ausente",
-              "profileImage (tipo)":        typeof prov.profileImage,
-            });
-
-            // DEBUG: Full provider data JSON
-            console.log("═══════════════════════════════════════════");
-            console.log("📦 PROVIDER DATA COMPLETO (GET /providers/{id})");
-            console.log("═══════════════════════════════════════════");
-            console.log(JSON.stringify(prov, null, 2));
-            console.log("═══════════════════════════════════════════");
-
-            // Usa profileImage do GET /users/providers como fonte da verdade
-            if (providerProfileImage) prov.profileImage = providerProfileImage;
-
-            setCpf(prov.cpf ?? "");
-
-            const bd = prov.birthdate ? prov.birthdate.split("T")[0] : "";
-            setDataNascimento(bd);
-            const g = prov.gender ?? "";
-            setSexo(g);
-            const pcd = prov.deficiency === true || prov.deficiency === "true" || prov.deficiency === 1;
-            setIsPCD(pcd);
-
-           // Profile image
-           const imgUrl = pickImageUrlFromPayload(prov, [
-             "profileImage",
-             "profileImageUrl",
-             "avatarUrl",
-             "avatar",
-             "image",
-             "imageUrl",
-             "photoUrl",
-           ]);
-           if (imgUrl) { setProfileImageUrl(imgUrl); setOrigProfileImage(imgUrl); }
-
-           // Desired job vacancy
-           const djv = prov.desiredJobVacancy ?? "";
-           const areas = parseAreasFromApi(djv);
-           setAreasSelecionadas(areas);
-
-           // Address
-           const cepVal = prov.cep ? maskCEP(prov.cep) : "";
-           setCep(cepVal);
-           setRua(prov.street ?? "");
-           setComplemento(prov.complement ?? "");
-           setBairro(prov.neighborhood ?? "");
-           setNumero(prov.number ?? "");
-           setCidade(prov.city ?? "");
-           setEstado(prov.uf ?? "");
-
-           // ViaCEP meta from API
-           if (prov.ibge || prov.gia || prov.ddd || prov.siafi) {
-             setViacepMeta({ ibge: prov.ibge || "", gia: prov.gia || "", ddd: prov.ddd || "", siafi: prov.siafi || "" });
-           }
-
-           // Emergency contact
-           const ecn = prov.emergencyContactName ?? "";
-           const ect = prov.emergencyContactNumber ? maskPhone(prov.emergencyContactNumber) : "";
-           const ecr = prov.emergencyContactRelationship ?? "";
-           setContatoEmergNome(ecn);
-           setContatoEmergTelefone(ect);
-           setContatoEmergParentesco(ecr);
-
-           const areasLabels = areas.map((id) => areasAtuacao.find((a) => a.id === id)?.label || id).join(", ");
-           pSnap = {
-             dataNascimento: bd, sexo: g, isPCD: pcd, desiredJobVacancy: areasLabels,
-             contatoEmergNome: ecn, contatoEmergParentesco: ecr, contatoEmergTelefone: ect,
-             cep: cepVal, rua: prov.street ?? "", complemento: prov.complement ?? "",
-             bairro: prov.neighborhood ?? "", numero: prov.number ?? "",
-             cidade: prov.city ?? "", estado: prov.uf ?? "",
-           };
-
-            // PIX - pegar da resposta de /users/providers
-            const rawPixType = prov.type ?? prov.pixKeyType ?? "";
-            const rawPixValue = prov.key ?? prov.pixKeyValue ?? "";
-            const rawPixId = prov.pixKeyId ?? prov.id ?? null;
-            const normalizePixType = (type: string): string => {
-              const typeLower = type.toLowerCase();
-              if (typeLower === "cpf" || typeLower === "cnpj") return typeLower;
-              if (typeLower === "email" || typeLower === "e-mail") return "email";
-              if (typeLower === "phone" || typeLower === "telefone" || typeLower === "celular") return "telefone";
-              if (typeLower === "random" || typeLower === "aleatoria" || typeLower === "aleatório") return "aleatoria";
-              return typeLower;
-            };
-            const normalizedPixType = normalizePixType(rawPixType);
-            setChavePixType(normalizedPixType);
-            setChavePix(rawPixValue);
-            setOrigPix(snap({ chavePixType: normalizedPixType, chavePix: rawPixValue }));
-            setHasExistingPixKey(!!rawPixValue && !!rawPixId);
-            if (rawPixId) setExistingPixId(rawPixId);
+          const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
+            method: "GET", credentials: "include", headers,
+          });
+          if (pixRes.ok) {
+            const pixBody = await pixRes.json();
+            const pixList = pixBody?.data ?? pixBody;
+            if (Array.isArray(pixList)) {
+              const myPix = pixList.find((p: any) => p.providerId === pId);
+              if (myPix) {
+                const pt = myPix.type ?? "";
+                const pk = myPix.key ?? "";
+                setChavePixType(pt);
+                setChavePix(pk);
+                pixSnap = { chavePixType: pt, chavePix: pk };
+                setHasExistingPixKey(true);
+              }
+            }
           }
         }
-
-        setOrigProvider(snap(pSnap));
+        setOrigPix(snap(pixSnap));
       } catch (err) {
+        console.error("[MeusDados] erro ao carregar dados:", err);
       } finally {
         setLoading(false);
       }
@@ -386,12 +336,12 @@ const MeusDados = () => {
   };
 
   const handleSave = async () => {
-    const hasUserChanges = currentUserSnap() !== origUser || origProviderBirthdate !== dataNascimento || origProviderIsPCD !== isPCD;
+    const hasUserChanges = currentUserSnap() !== origUser;
     const hasPixChanges = currentPixSnap() !== origPix;
     const hasProviderChanges = currentProviderSnap() !== origProvider || profileImageFile !== null;
 
     if (!hasUserChanges && !hasPixChanges && !hasProviderChanges) {
-      toast({ title: errorMessages.noChangesDetected, description: "Nenhum campo foi modificado." });
+      toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
       return;
     }
 
@@ -419,60 +369,26 @@ const MeusDados = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            id: userId,
             name: nome,
             email: email,
             phoneNumber: telefone.replace(/\D/g, ""),
+            status: "active",
           }),
         });
         if (userRes.ok) {
           setOrigUser(currentUserSnap());
           results.push(true);
         } else {
-          const body = await userRes.json().catch(() => null);
-          throw new Error(body?.message || "Erro ao atualizar dados do usuário");
+          console.error("[MeusDados] User save failed:", userRes.status);
+          results.push(false);
         }
       }
 
-      // 2. POST/PUT /providers/pix-keys
+      // 2. PUT /providers/pix-keys
       if (hasPixChanges) {
-        // Map frontend type to backend type (lowercase, exact values)
-        const pixTypeMap: Record<string, string> = {
-          cpf: "cpf",
-          cnpj: "cpf",
-          email: "email",
-          telefone: "phone",
-          phone: "phone",
-          aleatoria: "random",
-          random: "random",
-        };
-        const apiPixType = pixTypeMap[chavePixType.toLowerCase()] || "cpf";
-
-        const pixPayload = {
-          key: chavePix,
-          type: apiPixType,
-        };
-
-        // Always try POST first
-        const postRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Origin-type": ORIGIN_TYPE,
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(pixPayload),
-        });
-
-        if (postRes.ok) {
-          const resBody = await postRes.json().catch(() => null);
-          const resData = resBody?.data ?? resBody;
-          if (resData?.id) setExistingPixId(resData.id);
-          setOrigPix(currentPixSnap());
-          setHasExistingPixKey(true);
-          results.push(true);
-        } else if (postRes.status === 409) {
-          // Already exists — update via PUT
+        if (hasExistingPixKey) {
+          // Update existing PIX key
           const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
             method: "PUT",
             credentials: "include",
@@ -482,20 +398,42 @@ const MeusDados = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              id: existingPixId,
-              ...pixPayload,
+              key: chavePix,
+              type: chavePixType,
             }),
           });
           if (pixRes.ok) {
             setOrigPix(currentPixSnap());
             results.push(true);
           } else {
-            const body = await pixRes.json().catch(() => null);
-            throw new Error(body?.message || "Erro ao atualizar chave PIX");
+            console.error("[MeusDados] Pix update failed:", pixRes.status);
+            results.push(false);
           }
         } else {
-          const body = await postRes.json().catch(() => null);
-          throw new Error(body?.message || "Erro ao salvar chave PIX");
+          // Create new PIX key
+          const pixRes = await fetch(`${API_BASE_URL}/providers/pix-keys`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Origin-type": ORIGIN_TYPE,
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              key: chavePix,
+              type: chavePixType,
+              createdAt: new Date().toISOString(),
+              providerId: providerId,
+            }),
+          });
+          if (pixRes.ok) {
+            setOrigPix(currentPixSnap());
+            setHasExistingPixKey(true);
+            results.push(true);
+          } else {
+            console.error("[MeusDados] Pix create failed:", pixRes.status);
+            results.push(false);
+          }
         }
       }
 
@@ -505,130 +443,62 @@ const MeusDados = () => {
           .map((id) => areasAtuacao.find((a) => a.id === id)?.label || id)
           .join(", ");
 
-        const providerData: Record<string, unknown> = {};
+        const fd = new FormData();
 
-        let hasProviderFieldChanges = false;
-        try {
-          const orig = origProvider ? JSON.parse(origProvider) : {};
-          const current: ProviderSnapshot = {
-            dataNascimento, sexo, isPCD,
-            desiredJobVacancy: areasLabels,
-            contatoEmergNome, contatoEmergParentesco, contatoEmergTelefone,
-            cep, rua, complemento, bairro, numero, cidade, estado,
-          };
-          
-          const fieldsToCompare: (keyof ProviderSnapshot)[] = [
-            "dataNascimento", "sexo", "isPCD", "desiredJobVacancy",
-            "contatoEmergNome", "contatoEmergParentesco", "contatoEmergTelefone",
-            "cep", "rua", "complemento", "bairro", "numero", "cidade", "estado"
-          ];
-          
-          for (const field of fieldsToCompare) {
-            if (orig[field] !== current[field]) {
-              hasProviderFieldChanges = true;
-              (providerData as Record<string, string>)[field === "desiredJobVacancy" ? "desiredJobVacancy" : field] = current[field] as string;
-            }
-          }
-        } catch {
-          hasProviderFieldChanges = true;
+        // Profile image
+        if (profileImageFile) {
+          fd.append("profileImage", profileImageFile, profileImageFile.name);
+        } else if (profileImageUrl) {
+          // Send existing image as blob
+          try {
+            const imgRes = await fetch(profileImageUrl);
+            const blob = await imgRes.blob();
+            fd.append("profileImage", blob, "profile.jpg");
+          } catch { /* skip if can't convert */ }
         }
 
-        const hasNewImage = profileImageFile !== null;
+        fd.append("birthdate", dataNascimento || "");
+        fd.append("gender", sexo || "");
+        fd.append("deficiency", isPCD ? "true" : "false");
+        fd.append("desiredJobVacancy", areasLabels);
+        fd.append("emergencyContactName", contatoEmergNome || "");
+        fd.append("emergencyContactRelationship", contatoEmergParentesco || "");
+        fd.append("emergencyContactNumber", contatoEmergTelefone.replace(/\D/g, "") || "");
+        fd.append("cep", cep.replace(/\D/g, "") || "");
+        fd.append("street", rua || "");
+        fd.append("complement", complemento || "");
+        fd.append("neighborhood", bairro || "");
+        fd.append("number", numero || "");
+        fd.append("city", cidade || "");
+        fd.append("uf", estado || "");
+        fd.append("ibge", viacepMeta.ibge || "");
+        fd.append("gia", viacepMeta.gia || "");
+        fd.append("ddd", viacepMeta.ddd || "");
+        fd.append("siafi", viacepMeta.siafi || "");
+        fd.append("cpf", cpf.replace(/\D/g, "") || "");
+        fd.append("schooling", "");
+        fd.append("cnh", "");
+        fd.append("language", "");
 
-        if (hasNewImage) {
-          const fd = new FormData();
-          fd.append("profileImage", profileImageFile, profileImageFile.name);
-
-          if (hasProviderFieldChanges) {
-            if (dataNascimento) {
-              const date = new Date(dataNascimento);
-              if (!isNaN(date.getTime())) {
-                fd.append("birthdate", date.toISOString().split('T')[0]);
-              } else {
-                fd.append("birthdate", dataNascimento);
-              }
-            }
-            fd.append("gender", sexo || "");
-            fd.append("deficiency", isPCD ? "true" : "false");
-            fd.append("desiredJobVacancy", areasLabels);
-            fd.append("emergencyContactName", contatoEmergNome || "");
-            fd.append("emergencyContactRelationship", contatoEmergParentesco || "");
-            fd.append("emergencyContactNumber", contatoEmergTelefone.replace(/\D/g, "") || "");
-            fd.append("cep", cep.replace(/\D/g, "") || "");
-            fd.append("street", rua || "");
-            fd.append("complement", complemento || "");
-            fd.append("neighborhood", bairro || "");
-            fd.append("number", numero || "");
-            fd.append("city", cidade || "");
-            fd.append("uf", estado || "");
-            fd.append("ibge", viacepMeta.ibge || "");
-            fd.append("gia", viacepMeta.gia || "");
-            fd.append("ddd", viacepMeta.ddd || "");
-            fd.append("siafi", viacepMeta.siafi || "");
-          }
-
-          const provRes = await apiFetch(`${API_BASE_URL}/providers`, {
-            method: "PUT",
-            body: fd,
-          });
-          if (provRes.ok) {
-            const provBody = await provRes.json().catch(() => null);
-            setOrigProvider(currentProviderSnap());
-            const displayUrl = URL.createObjectURL(profileImageFile);
-            setProfileImageUrl(displayUrl);
-            setOrigProfileImage(displayUrl);
+        const provRes = await fetch(`${API_BASE_URL}/providers`, {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Origin-type": ORIGIN_TYPE,
+            "Authorization": `Bearer ${token}`,
+          },
+          body: fd,
+        });
+        if (provRes.ok) {
+          setOrigProvider(currentProviderSnap());
+          if (profileImageFile) {
+            setOrigProfileImage(URL.createObjectURL(profileImageFile));
             setProfileImageFile(null);
-            results.push(true);
-          } else {
-            results.push(false);
           }
-        } else if (hasProviderFieldChanges) {
-          const payload: Record<string, unknown> = {};
-
-          if (dataNascimento) {
-            const date = new Date(dataNascimento);
-            if (!isNaN(date.getTime())) {
-              payload.birthdate = date.toISOString().split('T')[0];
-            } else {
-              payload.birthdate = dataNascimento;
-            }
-          }
-          payload.gender = sexo || "";
-          payload.deficiency = isPCD ? "true" : "false";
-          payload.desiredJobVacancy = areasLabels;
-          payload.emergencyContactName = contatoEmergNome || "";
-          payload.emergencyContactRelationship = contatoEmergParentesco || "";
-          payload.emergencyContactNumber = contatoEmergTelefone.replace(/\D/g, "") || "";
-          payload.cep = cep.replace(/\D/g, "") || "";
-          payload.street = rua || "";
-          payload.complement = complemento || "";
-          payload.neighborhood = bairro || "";
-          payload.number = numero || "";
-          payload.city = cidade || "";
-          payload.uf = estado || "";
-          payload.ibge = viacepMeta.ibge || "";
-          payload.gia = viacepMeta.gia || "";
-          payload.ddd = viacepMeta.ddd || "";
-          payload.siafi = viacepMeta.siafi || "";
-
-          const provRes = await fetch(`${API_BASE_URL}/providers`, {
-            method: "PUT",
-            credentials: "include",
-            headers: {
-              "Origin-type": ORIGIN_TYPE,
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
-          if (provRes.ok) {
-            setOrigProvider(currentProviderSnap());
-            results.push(true);
-          } else {
-            results.push(false);
-          }
-        } else {
           results.push(true);
+        } else {
+          console.error("[MeusDados] Provider save failed:", provRes.status);
+          results.push(false);
         }
       }
 
@@ -637,10 +507,11 @@ const MeusDados = () => {
       } else if (results.some((r) => r)) {
         toast({ title: "Atualização parcial", description: "Alguns dados foram salvos, mas houve erro em parte da atualização.", variant: "destructive" });
       } else {
-        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados.", variant: "destructive" });
+        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Erro ao salvar", description: extractApiError(err), variant: "destructive" });
+      console.error("[MeusDados] Save error:", err);
+      toast({ title: "Erro ao salvar", description: "Ocorreu um erro inesperado. Tente novamente.", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -690,26 +561,32 @@ const MeusDados = () => {
               <Camera className="w-5 h-5 text-primary" /> Foto de Perfil
             </h3>
             <div className="flex items-center gap-4">
-               <div className="relative">
-                 <EditableAvatar
-                   src={previewFoto}
-                   fallback="?"
-                   size="lg"
-                   onFileSelect={(file) => setProfileImageFile(file)}
-                 />
-                 {isPCD && (
-                   <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
-                 )}
-                 {previewFoto && (
-                   <button
-                     type="button"
-                     onClick={() => { setProfileImageFile(null); setProfileImageUrl(null); }}
-                     className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 z-20"
-                   >
-                     <X className="w-3 h-3" />
-                   </button>
-                 )}
-               </div>
+              {previewFoto ? (
+                <div className="relative">
+                  <img src={previewFoto} alt="Foto de perfil" className="w-24 h-24 rounded-full object-cover border-2 border-primary" />
+                  <button
+                    type="button"
+                    onClick={() => { setProfileImageFile(null); setProfileImageUrl(null); }}
+                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <label className="w-24 h-24 rounded-full border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                  <Camera className="w-6 h-6 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground mt-1">Adicionar</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && file.type.startsWith("image/")) setProfileImageFile(file);
+                    }}
+                  />
+                </label>
+              )}
               <p className="text-sm text-muted-foreground">Escolha uma foto profissional e com boa iluminação.</p>
             </div>
           </CardContent>
@@ -721,7 +598,7 @@ const MeusDados = () => {
             <h3 className="text-base font-display font-bold flex items-center gap-2">
               <User className="w-5 h-5 text-primary" /> Dados de Usuário
             </h3>
-            <div className="space-y-2 hidden">
+            <div className="space-y-2">
               <Label>Nome Completo</Label>
               <Input value={nome} onChange={(e) => setNome(e.target.value)} />
             </div>
@@ -749,7 +626,7 @@ const MeusDados = () => {
             </div>
             <div className="space-y-2">
               <Label>Data de Nascimento</Label>
-              <DatePicker value={dataNascimento} onChange={setDataNascimento} />
+              <Input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Sexo</Label>
@@ -789,7 +666,7 @@ const MeusDados = () => {
               <Input
                 value={cep}
                 onChange={(e) => handleCepChange(e.target.value)}
-                placeholder="Digite o CEP"
+                placeholder="00000-000"
               />
               {cepLoading && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -837,7 +714,7 @@ const MeusDados = () => {
             <div className="space-y-2">
               <Label>Nome</Label>
               <Input
-                placeholder="Digite o nome do contato"
+                placeholder="Nome do contato"
                 value={contatoEmergNome}
                 onChange={(e) => setContatoEmergNome(e.target.value)}
               />
@@ -856,7 +733,7 @@ const MeusDados = () => {
             <div className="space-y-2">
               <Label>DDD + Número</Label>
               <Input
-                placeholder="Digite o telefone"
+                placeholder="(00) 00000-0000"
                 value={contatoEmergTelefone}
                 onChange={(e) => setContatoEmergTelefone(maskPhone(e.target.value))}
               />
@@ -872,37 +749,30 @@ const MeusDados = () => {
             </h3>
             <div className="space-y-2">
               <Label>Tipo de Chave PIX</Label>
-              <Select value={chavePixType} onValueChange={(v) => { setChavePixType(v); setChavePix(""); }}>
+              <Select value={chavePixType} onValueChange={setChavePixType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo de chave" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cpf">CPF</SelectItem>
+                  <SelectItem value="cnpj">CNPJ</SelectItem>
                   <SelectItem value="email">E-mail</SelectItem>
                   <SelectItem value="telefone">Telefone</SelectItem>
                   <SelectItem value="aleatoria">Chave Aleatória</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {chavePixType && (
-              <div className="space-y-2">
-                <Label>Chave PIX</Label>
-                <Input
-                  placeholder={
-                    chavePixType === "cpf" ? "Digite seu CPF" :
-                    chavePixType === "cnpj" ? "Digite seu CNPJ" :
-                    chavePixType === "email" ? "Digite seu email" :
-                    chavePixType === "telefone" ? "Digite seu telefone" :
-                    "Cole sua chave aleatória"
-                  }
-                  value={chavePix}
-                  onChange={(e) => setChavePix(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground italic">
-                  Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
-                </p>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>Chave PIX</Label>
+              <Input
+                placeholder="Informe sua chave PIX"
+                value={chavePix}
+                onChange={(e) => setChavePix(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground italic">
+                Sua chave PIX será usada para receber os pagamentos pelos serviços realizados.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -1009,9 +879,9 @@ const MeusDados = () => {
               </DialogFooter>
             </>
           )}
-         </DialogContent>
-       </Dialog>
-     </AppLayout>
+        </DialogContent>
+      </Dialog>
+    </AppLayout>
   );
 };
 

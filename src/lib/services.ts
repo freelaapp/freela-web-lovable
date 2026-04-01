@@ -13,7 +13,7 @@ export const servicosPF = [
   { id: "seguranca", label: "Segurança (Não Armado)", pricePerHour: 20, minHoursCasa: 4, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "hostess", label: "Hostess/Recepcionista", pricePerHour: 16.67, minHoursCasa: 4, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "manobrista", label: "Manobrista", pricePerHour: 20, minHoursCasa: 4, minHoursEmpresa: 6, insuranceFee: 1 },
-  { id: "dj", label: "DJ", pricePerHour: 0.62, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
+  { id: "dj", label: "DJ", pricePerHour: 116.67, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
   { id: "musico-sertanejo", label: "Músico (Sertanejo)", pricePerHour: 150, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
   { id: "musico-rock", label: "Músico (Rock)", pricePerHour: 150, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
   { id: "musico-samba-pagode", label: "Músico (Samba e Pagode)", pricePerHour: 150, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
@@ -45,14 +45,15 @@ export const calcularValorTotal = (
   pricePerHour: number,
   hours: number,
   professionals: number,
-  insuranceFee: number = 0
+  insuranceFee: number = INSURANCE_FEE
 ): { subtotal: number; commission: number; insurance: number; total: number; freelancerValue: number } => {
   const subtotal = pricePerHour * hours * professionals;
   const commission = subtotal * FREELA_COMMISSION;
-  const total = subtotal;
+  const insurance = insuranceFee * professionals;
+  const total = subtotal + insurance;
   const freelancerValue = (subtotal - commission) / professionals;
   
-  return { subtotal, commission, insurance: 0, total, freelancerValue };
+  return { subtotal, commission, insurance, total, freelancerValue };
 };
 
 export type ServicoPF = typeof servicosPF[number];

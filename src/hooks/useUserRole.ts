@@ -1,6 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { useMemo } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useMemo, useEffect } from "react";
 
 export type UserRole = "freelancer" | "contratante";
 
@@ -20,23 +19,30 @@ const freelancerPaths = [
 
 export const useUserRole = (): UserRole => {
   const location = useLocation();
-  const { role: authRole } = useAuth();
 
   const role = useMemo(() => {
+    // If on an explicit contratante route, set and return
     if (contratantePaths.some(p => location.pathname.startsWith(p))) {
       return "contratante" as UserRole;
     }
+    // If on an explicit freelancer route, set and return
     if (freelancerPaths.some(p => location.pathname.startsWith(p))) {
       return "freelancer" as UserRole;
     }
-    if (authRole === "contratante" || authRole === "freelancer") {
-      return authRole;
-    }
+    // For shared routes, use persisted role
+    const stored = localStorage.getItem("userRole");
+    if (stored === "contratante" || stored === "freelancer") return stored;
     return "freelancer" as UserRole;
-  }, [location.pathname, authRole]);
+  }, [location.pathname]);
+
+  // Persist role whenever it changes
+  useEffect(() => {
+    localStorage.setItem("userRole", role);
+  }, [role]);
 
   return role;
 };
 
-export const setUserRole = (_role: UserRole) => {
+export const setUserRole = (role: UserRole) => {
+  localStorage.setItem("userRole", role);
 };

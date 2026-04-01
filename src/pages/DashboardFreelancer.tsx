@@ -1,14 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Briefcase, DollarSign, Star, Clock, ChevronRight, MapPin, CheckCircle, Calendar, Hourglass } from "lucide-react";
+import { Briefcase, DollarSign, Star, Clock, ChevronRight, MapPin, CheckCircle, Calendar } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
-import { formatCurrency } from "@/lib/formatters";
-import { getDisplayValue } from "@/lib/values";
-import { useAuth } from "@/contexts/AuthContext";
 
-const API_BASE_URL = import.meta.env.API_BASE_URL;
+const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 // Format date string to DD-MM-YYYY
 const formatDateDDMMYYYY = (dateStr: string): string => {
@@ -25,26 +22,6 @@ const formatDateDDMMYYYY = (dateStr: string): string => {
   return dateStr;
 };
 
-// Extract neighborhood and city from establishment address
-// Format: "Rua X, 123 - Bairro, Cidade • CEP: 12345678"
-const extractNeighborhoodCity = (address: string): string => {
-  if (!address || address === "--") return "--";
-  // Split by " - " to get the part after dash
-  const parts = address.split(" - ");
-  if (parts.length < 2) return address;
-  const afterDash = parts.slice(1).join(" - ");
-  // Remove CEP part (starting with "•" or "CEP:")
-  const cepIndex = afterDash.indexOf("•");
-  if (cepIndex !== -1) {
-    return afterDash.substring(0, cepIndex).trim();
-  }
-  const cepLabelIndex = afterDash.toUpperCase().indexOf("CEP:");
-  if (cepLabelIndex !== -1) {
-    return afterDash.substring(0, cepLabelIndex).trim();
-  }
-  return afterDash.trim();
-};
-
 interface FlattenedVaga {
   vacancyId: string;
   serviceIndex: number;
@@ -59,318 +36,184 @@ interface FlattenedVaga {
 
 const DashboardFreelancer = () => {
   const navigate = useNavigate();
-  const { role } = useAuth();
-  const isFreelancer = role === "freelancer";
   const [averageRating, setAverageRating] = useState<string>("--");
   const [vagasDisponiveis, setVagasDisponiveis] = useState<FlattenedVaga[]>([]);
   const [vagasAtivas, setVagasAtivas] = useState<any[]>([]);
   const [vagasAgendadas, setVagasAgendadas] = useState<any[]>([]);
-  const [vagasPendentes, setVagasPendentes] = useState<any[]>([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
   const [loadingAtivas, setLoadingAtivas] = useState(true);
   const [loadingAgendadas, setLoadingAgendadas] = useState(true);
-  const [loadingPendentes, setLoadingPendentes] = useState(false);
-  const [userName, setUserName] = useState<string>("");
-  const [userNameLoading, setUserNameLoading] = useState<boolean>(true);
-  const [jobsThisMonth, setJobsThisMonth] = useState<number>(0);
-  const [monthlyEarnings, setMonthlyEarnings] = useState<string>("--");
-  const [loadingEarnings, setLoadingEarnings] = useState(false);
 
-   useEffect(() => {
-     const fetchData = async () => {
-       try {
-         const tokenRaw = localStorage.getItem("authToken");
-         if (!tokenRaw) return;
-         const token = JSON.parse(tokenRaw);
-         const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const tokenRaw = localStorage.getItem("authToken");
+        if (!tokenRaw) return;
+        const token = JSON.parse(tokenRaw);
+        const headers = { "Origin-type": "Web", Authorization: `Bearer ${token}` };
 
-         // Fetch user name from /users/me
-         try {
-           const userRes = await fetch(`${API_BASE_URL}/users/me`, {
-             method: "GET", credentials: "include", headers,
-           });
-           const userBody = await userRes.json().catch(() => null);
-           if (userRes.ok && userBody?.data?.name) {
-             setUserName(userBody.data.name);
-           } else if (userBody?.name) {
-             setUserName(userBody.name);
-           } else {
-             // Fallback if name not found in expected places
-             setUserName("Usuário");
-           }
-         } catch (userError) {
-           setUserName("Usuário"); // Fallback on error
-         } finally {
-           setUserNameLoading(false); // Always stop loading for user name
-         }
+        // 1. Get provider profile (id + services/areas)
+        const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const provBody = await provRes.json().catch(() => null);
+        const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
+        const providerId = provData?.id ?? provBody?.id;
+        if (!providerId) return;
 
-         // 1. Get provider profile (id + services/areas)
-          const provRes = await fetch(`${API_BASE_URL}/users/providers`, {
-           method: "GET", credentials: "include", headers,
-         });
-         const provBody = await provRes.json().catch(() => null);
-         const provData = Array.isArray(provBody?.data) ? provBody.data[0] : provBody?.data;
-          const providerId = provData?.id ?? provBody?.id;
-          if (!providerId) return;
+        // Extract freelancer's service areas from profile (desiredJobVacancy)
+        const providerServices: string[] = [];
+        const rawServices = provData?.desiredJobVacancy ?? [];
+        if (Array.isArray(rawServices)) {
+          rawServices.forEach((s: any) => {
+            if (typeof s === "string") providerServices.push(s.toLowerCase().trim());
+            else if (s?.name) providerServices.push(s.name.toLowerCase().trim());
+            else if (s?.assignment) providerServices.push(s.assignment.toLowerCase().trim());
+          });
+        }
 
-          // Extract freelancer's service areas from profile (desiredJobVacancy)
-         const providerServices: string[] = [];
-         const rawServices = provData?.desiredJobVacancy ?? [];
-         if (Array.isArray(rawServices)) {
-           rawServices.forEach((s: any) => {
-             if (typeof s === "string") providerServices.push(s.toLowerCase().trim());
-             else if (s?.name) providerServices.push(s.name.toLowerCase().trim());
-             else if (s?.assignment) providerServices.push(s.assignment.toLowerCase().trim());
-           });
-         }
+        // 2. Get feedbacks
+        const fbRes = await fetch(`${API_BASE_URL}/providers/${providerId}/jobs/feedbacks`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const fbBody = await fbRes.json().catch(() => null);
+        const feedbacks = fbBody?.data ?? fbBody;
 
-         // 2. Get feedbacks
-         const fbRes = await fetch(`${API_BASE_URL}/providers/${providerId}/jobs/feedbacks`, {
-           method: "GET", credentials: "include", headers,
-         });
-         const fbBody = await fbRes.json().catch(() => null);
-         const feedbacks = fbBody?.data ?? fbBody;
+        if (Array.isArray(feedbacks) && feedbacks.length > 0) {
+          const avg = feedbacks.reduce((sum: number, f: any) => sum + (f.rating ?? f.score ?? 0), 0) / feedbacks.length;
+          setAverageRating(avg.toFixed(1));
+        } else if (typeof feedbacks === "number") {
+          setAverageRating(feedbacks.toFixed(1));
+        } else if (typeof fbBody?.data === "number") {
+          setAverageRating(fbBody.data.toFixed(1));
+        }
 
-         if (Array.isArray(feedbacks) && feedbacks.length > 0) {
-           const avg = feedbacks.reduce((sum: number, f: any) => sum + (f.rating ?? f.score ?? 0), 0) / feedbacks.length;
-           setAverageRating(avg.toFixed(1));
-         } else if (typeof feedbacks === "number") {
-           setAverageRating(feedbacks.toFixed(1));
-         } else if (typeof fbBody?.data === "number") {
-           setAverageRating(fbBody.data.toFixed(1));
-         }
+        // 3. Get active jobs (IDs) then fetch details
+        setLoadingAtivas(true);
+        const activeRes = await fetch(`${API_BASE_URL}/providers/${providerId}/active-jobs`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const activeBody = await activeRes.json().catch(() => null);
+        const activeData = activeBody?.data ?? activeBody;
+        const activeIds: string[] = Array.isArray(activeData)
+          ? activeData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+          : [];
 
-         // 3. Get active jobs (IDs) then fetch details
-         setLoadingAtivas(true);
-         const activeJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/active-jobs`, {
-           method: "GET", credentials: "include", headers,
-         });
-         const activeJobsBody = await activeJobsRes.json().catch(() => null);
-         const activeJobsData = activeJobsBody?.data ?? activeJobsBody;
-         const activeIds: string[] = Array.isArray(activeJobsData)
-           ? activeJobsData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
-           : [];
+        if (activeIds.length > 0) {
+          const activeDetails = await Promise.all(
+            activeIds.filter(Boolean).map(async (vacId: string) => {
+              try {
+                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
+                  method: "GET", credentials: "include", headers,
+                });
+                const body = await res.json().catch(() => null);
+                return body?.data ?? body ?? null;
+              } catch { return null; }
+            })
+          );
+          setVagasAtivas(activeDetails.filter(Boolean));
+        } else {
+          setVagasAtivas([]);
+        }
+        setLoadingAtivas(false);
 
-         if (activeIds.length > 0) {
-           const activeDetails = await Promise.all(
-             activeIds.filter(Boolean).map(async (vacId: string) => {
-               try {
-                 const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
-                   method: "GET", credentials: "include", headers,
-                 });
-                 if (!res.ok) return null;
-                 const body = await res.json().catch(() => null);
-                 return body?.data ?? body ?? null;
-               } catch { return null; }
-             })
-           );
-           setVagasAtivas(activeDetails.filter(Boolean));
-         } else {
-           setVagasAtivas([]);
-         }
-         setLoadingAtivas(false);
+        // 3b. Get future/scheduled jobs (same logic as active jobs)
+        setLoadingAgendadas(true);
+        const futureRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const futureBody = await futureRes.json().catch(() => null);
+        const futureData = futureBody?.data ?? futureBody;
+        const futureIds: string[] = Array.isArray(futureData)
+          ? futureData.map((item: any) => typeof item === "string" ? item : item?.id ?? item?.vacancyId)
+          : [];
 
-           // 3b. Get future/scheduled jobs
-           setLoadingAgendadas(true);
-           const futureJobsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/future-jobs`, {
-             method: "GET", credentials: "include", headers,
-           });
-            const futureJobsBody = await futureJobsRes.json().catch(() => null);
-            const futureJobsData = futureJobsBody?.data ?? futureJobsBody;
+        if (futureIds.length > 0) {
+          // Keep raw items to preserve jobId mapping
+          const rawFutureItems = Array.isArray(futureData) ? futureData : [];
+          const futureDetails = await Promise.all(
+            futureIds.filter(Boolean).map(async (vacId: string, idx: number) => {
+              try {
+                const res = await fetch(`${API_BASE_URL}/vacancies/${vacId}`, {
+                  method: "GET", credentials: "include", headers,
+                });
+                const body = await res.json().catch(() => null);
+                const detail = body?.data ?? body ?? null;
+                if (detail) {
+                  // Attach jobId from the raw future-jobs response
+                  const rawItem = rawFutureItems[idx];
+                  detail._jobId = rawItem?.jobId ?? rawItem?.id ?? vacId;
+                  detail._vacancyId = vacId;
+                }
+                return detail;
+              } catch { return null; }
+            })
+          );
+          setVagasAgendadas(futureDetails.filter(Boolean));
+        } else {
+          setVagasAgendadas([]);
+        }
+        setLoadingAgendadas(false);
 
-           if (Array.isArray(futureJobsData) && futureJobsData.length > 0) {
-             // Use data directly from future-jobs API (already contains full vacancy details)
-             const futureDetails = futureJobsData.map((item: any) => {
-               const vacId = item.vacancyId || item.id;
-               return {
-                 ...item,
-                 _jobId: item.jobId || item.id || vacId,
-                 _vacancyId: vacId,
-               };
-             });
-             setVagasAgendadas(futureDetails.filter(Boolean));
-           } else {
-             setVagasAgendadas([]);
-           }
-           setLoadingAgendadas(false);
+        // 4. Get filtered vacancies and flatten services
+        setLoadingVagas(true);
+        const filteredRes = await fetch(`${API_BASE_URL}/providers/${providerId}/filtered-vacancies`, {
+          method: "GET", credentials: "include", headers,
+        });
+        const filteredBody = await filteredRes.json().catch(() => null);
+        const filteredData = filteredBody?.data ?? filteredBody;
+        const vacancies = Array.isArray(filteredData) ? filteredData : [];
 
-          // 3c. Get applied vacancies (vagas pendentes)
-           setLoadingPendentes(true);
-           const appliedRes = await fetch(`${API_BASE_URL}/providers/${providerId}/applied-vacancies`, {
-             method: "GET", credentials: "include", headers,
-           });
-           const appliedBody = await appliedRes.json().catch(() => null);
-           const appliedData = appliedBody?.data ?? appliedBody;
-
-           // Process applied vacancies with their application status
-           // The /applied-vacancies endpoint returns vacancy objects (status = vacancy status like "open")
-           // NOT candidacy objects (status = "pending"/"accepted")
-           // So we keep all results - they are already filtered by the API
-           const processedApplications = Array.isArray(appliedData) ? appliedData : [];
-
-           if (processedApplications.length > 0) {
-             const appliedDetailsWithStatus = await Promise.all(
-               processedApplications.map(async (application: any, idx: number) => {
-                 try {
-                   // Get vacancy details
-                   const vacancyId = application?.vacancyId || application?.id;
-                   if (!vacancyId) return null;
-
-                   const res = await fetch(`${API_BASE_URL}/vacancies/${vacancyId}`, {
-                     method: "GET", credentials: "include", headers,
-                   });
-                   if (!res.ok) return null;
-                   const body = await res.json().catch(() => null);
-                   const detail = body?.data ?? body ?? null;
-
-                   if (detail) {
-                     // Preserve application status and other relevant data
-                     return {
-                       ...detail,
-                       _applicationId: application.id,
-                       _jobId: application.jobId || vacancyId,
-                       _vacancyId: vacancyId,
-                       _applicationStatus: application.status || "pendente", // Assume pendente if not specified
-                       _appliedAt: application.createdAt || application.appliedAt
-                     };
-                   }
-                   return null;
-                 } catch (err) {
-                   return null;
-                 }
-               })
-             );
-             setVagasPendentes(appliedDetailsWithStatus.filter(Boolean));
-           } else {
-             setVagasPendentes([]);
-           }
-           setLoadingPendentes(false);
-
-         // Count jobs for current month from both active and future jobs
-         let currentMonthJobs = 0;
-         const currentDate = new Date();
-         const currentMonth = currentDate.getMonth(); // 0-11
-         const currentYear = currentDate.getFullYear();
-
-         // Check active jobs
-         if (Array.isArray(activeJobsData)) {
-           activeJobsData.forEach((job: any) => {
-             if (job.jobDate) {
-               const jobDate = new Date(job.jobDate);
-               if (
-                 jobDate.getMonth() === currentMonth &&
-                 jobDate.getFullYear() === currentYear
-               ) {
-                 currentMonthJobs++;
-               }
-             }
-           });
-         }
-
-         // Check future jobs
-         if (Array.isArray(futureJobsData)) {
-           futureJobsData.forEach((job: any) => {
-             if (job.jobDate) {
-               const jobDate = new Date(job.jobDate);
-               if (
-                 jobDate.getMonth() === currentMonth &&
-                 jobDate.getFullYear() === currentYear
-               ) {
-                 currentMonthJobs++;
-               }
-             }
-           });
-         }
-
-          setJobsThisMonth(currentMonthJobs);
-
-          // 3d. Get monthly earnings (current month from system date)
-          setLoadingEarnings(true);
-          const earningsNow = new Date();
-          const earningsMonth = earningsNow.getMonth() + 1; // 1-12
-          const earningsYear = earningsNow.getFullYear();
-          
-          try {
-            const earningsRes = await fetch(`${API_BASE_URL}/providers/${providerId}/monthly-earnings?month=${earningsMonth}&year=${earningsYear}`, {
-              method: "GET", credentials: "include", headers,
-            });
-            const earningsBody = await earningsRes.json().catch(() => null);
-            
-            // Extract totalAll from data.summary (API returns value in centavos)
-             const totalAll = earningsBody?.data?.summary?.totalAll;
-              if (typeof totalAll === "number") {
-                setMonthlyEarnings(formatCurrency(totalAll / 100));
-              } else {
-                setMonthlyEarnings(formatCurrency(0));
+        // Flatten: each service inside each vacancy becomes a card
+        // Filter by matching assignment with provider's profile services
+        const flattened: FlattenedVaga[] = [];
+        vacancies.forEach((vacancy: any) => {
+          const services = vacancy.services ?? vacancy.freelancers ?? [];
+          if (Array.isArray(services)) {
+            services.forEach((svc: any, idx: number) => {
+              if (svc.assignment) {
+                flattened.push({
+                  vacancyId: vacancy.id,
+                  serviceIndex: idx,
+                  assignment: svc.assignment,
+                  jobTime: svc.jobTime || "--",
+                  jobValue: svc.jobValue || "--",
+                  jobDate: vacancy.jobDate || "--",
+                  establishment: vacancy.establishment || vacancy.description || "",
+                  status: vacancy.status || "aberta",
+                  quantity: svc.quantity || 1,
+                });
               }
-          } catch (err) {
-            setMonthlyEarnings("R$ 0,00");
-          } finally {
-            setLoadingEarnings(false);
+            });
           }
+        });
 
-          // 4. Get filtered vacancies and flatten services
-         setLoadingVagas(true);
-         const filteredRes = await fetch(`${API_BASE_URL}/providers/${providerId}/filtered-vacancies`, {
-           method: "GET", credentials: "include", headers,
-         });
-         const filteredBody = await filteredRes.json().catch(() => null);
-         const filteredData = filteredBody?.data ?? filteredBody;
-         const vacancies = Array.isArray(filteredData) ? filteredData : [];
-
-         // Flatten: each service inside each vacancy becomes a card
-         // Filter by matching assignment with provider's profile services
-         const flattened: FlattenedVaga[] = [];
-         vacancies.forEach((vacancy: any) => {
-           const services = vacancy.services ?? vacancy.freelancers ?? [];
-           if (Array.isArray(services)) {
-             services.forEach((svc: any, idx: number) => {
-               if (svc.assignment) {
-                 flattened.push({
-                   vacancyId: vacancy.id,
-                   serviceIndex: idx,
-                   assignment: svc.assignment,
-                   jobTime: svc.jobTime || "--",
-                   jobValue: svc.jobValue || "--",
-                   jobDate: vacancy.jobDate || "--",
-                   establishment: vacancy.establishment || vacancy.description || "",
-                   status: vacancy.status || "aberta",
-                   quantity: svc.quantity || 1,
-                 });
-               }
-             });
-           }
-         });
-
-         setVagasDisponiveis(flattened);
-       } catch (err) {
-         // Ensure userNameLoading is false even if we error out before reaching the user fetch finally block
-         setUserNameLoading(false);
-       } finally {
-         setLoadingVagas(false);
-       }
-     };
-      fetchData();
-   }, []);
+        setVagasDisponiveis(flattened);
+      } catch (err) {
+        console.error("[DashboardFreelancer] error fetching data:", err);
+      } finally {
+        setLoadingVagas(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-5xl mx-auto pb-8 space-y-6">
-         {/* Greeting */}
-         <div>
-           <h1 className="text-2xl font-display font-bold">
-             Olá, {userNameLoading ? "..." : userName || "Usuário"}! 👋
-           </h1>
-           <p className="text-muted-foreground text-sm mt-1">Aqui está o resumo dos seus trabalhos</p>
-         </div>
+        {/* Greeting */}
+        <div>
+          <h1 className="text-2xl font-display font-bold">Olá, Carlos! 👋</h1>
+          <p className="text-muted-foreground text-sm mt-1">Aqui está o resumo dos seus trabalhos</p>
+        </div>
 
-         {/* Stats Grid */}
-         <div className="grid grid-cols-3 gap-3">
-            {[
-              { icon: DollarSign, label: "Ganhos do mês", value: loadingEarnings ? "..." : monthlyEarnings, color: "text-success", bg: "bg-success-light", path: "/carteira" },
-              { icon: Briefcase, label: "Jobs este mês", value: jobsThisMonth.toString(), color: "text-primary", bg: "bg-primary-light", path: "/agenda" },
-              { icon: Star, label: "Avaliação", value: averageRating, color: "text-warning", bg: "bg-warning-light", path: "/avaliacoes" },
-            ].map((stat) => (
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { icon: DollarSign, label: "Ganhos do mês", value: "R$ 3.650", color: "text-success", bg: "bg-success-light", path: "/carteira" },
+            { icon: Briefcase, label: "Jobs este mês", value: "8", color: "text-primary", bg: "bg-primary-light", path: "/agenda" },
+            { icon: Star, label: "Avaliação", value: averageRating, color: "text-warning", bg: "bg-warning-light", path: "/avaliacoes" },
+          ].map((stat) => (
             <Link key={stat.label} to={stat.path} className="block">
               <Card className="hover:bg-muted/50 transition-colors h-full">
                 <CardContent className="p-4">
@@ -385,7 +228,7 @@ const DashboardFreelancer = () => {
           ))}
         </div>
 
-         {/* Jobs Grid: Ativas + Disponíveis */}
+        {/* Jobs Grid: Ativas + Disponíveis */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Vagas Ativas */}
           <Card>
@@ -407,38 +250,26 @@ const DashboardFreelancer = () => {
               ) : vagasAtivas.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga ativa</p>
               ) : (
-                 vagasAtivas.slice(0, 3).map((vaga: any) => {
-                   const service = vaga.services?.[0] || {};
-                   const assignment = service.assignment || "--";
-                   const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                   const jobTime = service.jobTime || "--";
-                   const jobValue = service.jobValue || "--";
-                   const jobDate = vaga.jobDate || "--";
-                   return (
-                    <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold truncate">{assignment}</p>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">Ativa</span>
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        {neighborhoodCity && neighborhoodCity !== "--" && (
-                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
-                        )}
-                        {jobTime && jobTime !== "--" && (
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
-                        )}
-                        {jobValue && jobValue !== "--" && (
-                           <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, false)}</span>
-                        )}
-                       </div>
-                       {jobDate && jobDate !== "--" && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
-                        </p>
+                vagasAtivas.slice(0, 3).map((vaga: any) => (
+                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga.id}`)}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success-light text-success">Ativa</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      {vaga.freelancers?.[0]?.assignment && (
+                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobTime && (
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobValue && (
+                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
                       )}
                     </div>
-                  );
-                })
+                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(vaga.jobDate)}</p>}
+                  </div>
+                ))
               )}
             </CardContent>
           </Card>
@@ -463,97 +294,26 @@ const DashboardFreelancer = () => {
               ) : vagasAgendadas.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga agendada</p>
               ) : (
-                 vagasAgendadas.slice(0, 3).map((vaga: any) => {
-                   const service = vaga.services?.[0] || {};
-                   const assignment = service.assignment || "--";
-                   const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                   const jobTime = service.jobTime || "--";
-                   const jobValue = service.jobValue || "--";
-                   const jobDate = vaga.jobDate || "--";
-                   return (
-                    <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._vacancyId || vaga.id}`, { state: { source: "agendadas", jobId: vaga._jobId } })}>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold truncate">{assignment}</p>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary-light text-primary">Agendada</span>
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        {neighborhoodCity && neighborhoodCity !== "--" && (
-                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
-                        )}
-                        {jobTime && jobTime !== "--" && (
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
-                        )}
-                        {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, isFreelancer)}</span>
-                        )}
-                      </div>
-                      {jobDate && jobDate !== "--" && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
-                        </p>
+                vagasAgendadas.slice(0, 3).map((vaga: any) => (
+                  <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2" onClick={() => navigate(`/vaga/${vaga._jobId || vaga.id}`, { state: { source: "agendadas", jobId: vaga._jobId, vacancyId: vaga._vacancyId || vaga.id } })}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold truncate">{vaga.establishment || vaga.description || "Vaga"}</p>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary-light text-primary">Agendada</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      {vaga.freelancers?.[0]?.assignment && (
+                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{vaga.freelancers[0].assignment}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobTime && (
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.freelancers[0].jobTime}</span>
+                      )}
+                      {vaga.freelancers?.[0]?.jobValue && (
+                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.freelancers[0].jobValue}</span>
                       )}
                     </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Vagas Pendentes */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">
-                  <span className="flex items-center gap-2">
-                    <Hourglass className="w-5 h-5 text-warning" /> Vagas Pendentes
-                  </span>
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {loadingPendentes ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Carregando vagas pendentes...</p>
-              ) : vagasPendentes.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga pendente</p>
-              ) : (
-                  vagasPendentes.slice(0, 3).map((vaga: any) => {
-                    const service = vaga.services?.[0] || {};
-                    const assignment = service.assignment || "--";
-                    const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                    const jobTime = service.jobTime || "--";
-                    const jobValue = service.jobValue || "--";
-                    const jobDate = vaga.jobDate || "--";
-                    const applicationStatus = vaga._applicationStatus || "pendente";
-                    
-                    // Show "Recusado" badge if application was rejected
-                    const statusLabel = applicationStatus === "rejected" ? "Recusado" : "Pendente";
-                    const statusBg = applicationStatus === "rejected" ? "bg-destructive/10 text-destructive" : "bg-warning-light text-warning";
-                    
-                    return (
-                      <div key={vaga.id} className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-3" onClick={() => navigate(`/vaga/${vaga._vacancyId || vaga.id}`, { state: { source: 'pendentes', jobId: vaga._jobId } })}>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-semibold truncate">{assignment}</p>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusBg}`}>{statusLabel}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                          {neighborhoodCity && neighborhoodCity !== "--" && (
-                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
-                          )}
-                          {jobTime && jobTime !== "--" && (
-                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
-                          )}
-                          {jobValue && jobValue !== "--" && (
-                            <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, false)}</span>
-                          )}
-                        </div>
-                        {jobDate && jobDate !== "--" && (
-                         <p className="text-xs text-muted-foreground flex items-center gap-1">
-                           <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
-                         </p>
-                       )}
-                      </div>
-                    );
-                  })
+                    {vaga.jobDate && <p className="text-xs text-muted-foreground">{formatDateDDMMYYYY(vaga.jobDate)}</p>}
+                  </div>
+                ))
               )}
             </CardContent>
           </Card>
@@ -576,43 +336,38 @@ const DashboardFreelancer = () => {
               ) : vagasDisponiveis.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhuma vaga disponível</p>
               ) : (
-                vagasDisponiveis.slice(0, 3).map((vaga, idx) => {
-                  const assignment = vaga.assignment || "--";
-                  const neighborhoodCity = extractNeighborhoodCity(vaga.establishment) || "--";
-                  const jobTime = vaga.jobTime || "--";
-                  const jobValue = vaga.jobValue || "--";
-                  const jobDate = vaga.jobDate || "--";
-                  const statusLabel = vaga.status === "confirmed" || vaga.status === "confirmado" ? "Confirmada" : "Pendente";
-                  const statusBg = (vaga.status === "confirmed" || vaga.status === "confirmado") ? "bg-success-light text-success" : "bg-warning-light text-warning";
-                  return (
-                    <div
-                      key={`${vaga.vacancyId}-${vaga.serviceIndex}`}
-                      className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2"
-                      onClick={() => navigate(`/vaga/${vaga.vacancyId}`, { state: { serviceIndex: vaga.serviceIndex } })}
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold truncate">{assignment}</p>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusBg}`}>{statusLabel}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        {neighborhoodCity && neighborhoodCity !== "--" && (
-                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{neighborhoodCity}</span>
-                        )}
-                        {jobTime && jobTime !== "--" && (
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{jobTime}</span>
-                        )}
-                        {jobValue && jobValue !== "--" && (
-                          <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{getDisplayValue(jobValue, isFreelancer)}</span>
-                        )}
-                      </div>
-                      {jobDate && jobDate !== "--" && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(jobDate)}
-                        </p>
+                vagasDisponiveis.slice(0, 3).map((vaga, idx) => (
+                  <div
+                    key={`${vaga.vacancyId}-${vaga.serviceIndex}`}
+                    className="p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer space-y-2"
+                    onClick={() => navigate(`/vaga/${vaga.vacancyId}`, { state: { serviceIndex: vaga.serviceIndex } })}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold truncate">{vaga.assignment}</p>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                        vaga.status === "confirmed" || vaga.status === "confirmado"
+                          ? "bg-success-light text-success"
+                          : "bg-warning-light text-warning"
+                      }`}>{vaga.status}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      {vaga.establishment && (
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{vaga.establishment}</span>
+                      )}
+                      {vaga.jobTime && vaga.jobTime !== "--" && (
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{vaga.jobTime}</span>
+                      )}
+                      {vaga.jobValue && vaga.jobValue !== "--" && (
+                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{vaga.jobValue}</span>
                       )}
                     </div>
-                  );
-                })
+                    {vaga.jobDate && vaga.jobDate !== "--" && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />{formatDateDDMMYYYY(vaga.jobDate)}
+                      </p>
+                    )}
+                  </div>
+                ))
               )}
               <Button variant="outline" className="w-full text-xs gap-2 mt-2" onClick={() => navigate("/mapa-vagas")}>
                 <MapPin className="w-4 h-4" /> Ver todas no mapa

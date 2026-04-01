@@ -6,26 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarIcon, Clock, MapPin, Users, Briefcase, ArrowRight, Calculator, Home, Info, FileText, AlertCircle } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Briefcase, ArrowRight, Calculator, Home, Info, FileText, AlertCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useMode } from "@/contexts/ModeContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { servicosPF, calcularValorTotal } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
-import { formatCurrency } from "@/lib/formatters";
 import CriarEventoEmpresas from "@/components/criar-evento/CriarEventoEmpresas";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 
 const horasDisponiveis = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}h`);
 
 const CriarEvento = () => {
   const { isFreelaCasa, mode } = useMode();
-  const { role } = useAuth();
-  const isEmpresasMode = !isFreelaCasa || role === "contratante";
+  const userRole = useUserRole();
+  const isEmpresasMode = !isFreelaCasa || userRole === "contratante";
   const [searchParams] = useSearchParams();
   const freelancerExclusivo = searchParams.get("para");
   const { toast } = useToast();
@@ -51,23 +45,16 @@ const CriarEvento = () => {
     return isFreelaCasa ? servicoSelecionado.minHoursCasa : servicoSelecionado.minHoursEmpresa;
   }, [servicoSelecionado, isFreelaCasa]);
 
-    const valorCalculado = useMemo(() => {
-      if (!servicoSelecionado) return null;
-      const hours = Math.max(formData.horas, minHours);
-      const baseCalc = calcularValorTotal(
-        servicoSelecionado.pricePerHour,
-        hours,
-        formData.quantidade
-      );
-      
-      // Add R$ 1,00 for Pix payment (secure)
-      const totalComPix = baseCalc.total + 1.00;
-      
-      return {
-        ...baseCalc,
-        total: totalComPix
-      };
-    }, [servicoSelecionado, formData.horas, formData.quantidade, minHours]);
+  const valorCalculado = useMemo(() => {
+    if (!servicoSelecionado) return null;
+    const hours = Math.max(formData.horas, minHours);
+    return calcularValorTotal(
+      servicoSelecionado.pricePerHour,
+      hours,
+      formData.quantidade,
+      servicoSelecionado.insuranceFee
+    );
+  }, [servicoSelecionado, formData.horas, formData.quantidade, minHours]);
 
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -223,44 +210,17 @@ const CriarEvento = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="data" className="flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4" />
+                      <Calendar className="w-4 h-4" />
                       Data do evento
                     </Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full h-12 justify-start text-left font-normal",
-                            !formData.data && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.data
-                            ? format(new Date(formData.data + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })
-                            : "Selecione a data"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={formData.data ? new Date(formData.data + "T12:00:00") : undefined}
-                          onSelect={(date) => {
-                            if (date) handleChange("data", format(date, "yyyy-MM-dd"));
-                          }}
-                          initialFocus
-                          className="pointer-events-auto"
-                          captionLayout="dropdown-buttons"
-                          fromYear={new Date().getFullYear()}
-                          toYear={new Date().getFullYear() + 2}
-                          locale={ptBR}
-                          labels={{
-                            labelMonthDropdown: () => "Mês",
-                            labelYearDropdown: () => "Ano",
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <Input
+                      id="data"
+                      type="date"
+                      value={formData.data}
+                      onChange={(e) => handleChange("data", e.target.value)}
+                      className="h-12"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="horario" className="flex items-center gap-2">
@@ -294,7 +254,7 @@ const CriarEvento = () => {
                   <Input
                     id="endereco"
                     type="text"
-                    placeholder="Digite o endereço do evento"
+                    placeholder="Sua casa ou local do evento"
                     value={formData.endereco}
                     onChange={(e) => handleChange("endereco", e.target.value)}
                     className="h-12"
@@ -302,28 +262,28 @@ const CriarEvento = () => {
                   />
                 </div>
 
-                   {/* Cálculo automático para PF */}
-                     {valorCalculado && servicoSelecionado && (
-                       <div className="bg-muted rounded-xl p-6 space-y-4">
-                         <div className="flex items-center gap-2 text-sm font-medium">
-                           <Calculator className="w-4 h-4" />
-                           Valor total do serviço
-                         </div>
-                         {formData.horas < minHours && (
-                           <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
-                             ⚠️ Jornada mínima de {minHours}h para {servicoSelecionado.label}. O cálculo considera {minHours}h.
-                           </p>
-                         )}
-                         <div className="text-4xl font-display font-bold text-primary">
-                           {formatCurrency(valorCalculado.total)}
-                         </div>
-                         <div className="text-sm text-muted-foreground space-y-2">
-                           <p>{formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {Math.max(formData.horas, minHours)} horas</p>
-                           <p className="text-xs">Freelancer recebe: {formatCurrency(valorCalculado.freelancerValue)} cada</p>
-                           <p className="text-xs">Pagamento via Pix (seguro): R$ 1,00</p>
-                         </div>
-                       </div>
-                     )}
+                {/* Cálculo automático para PF */}
+                {valorCalculado && servicoSelecionado && (
+                  <div className="bg-muted rounded-xl p-6 space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Calculator className="w-4 h-4" />
+                      Valor total do serviço
+                    </div>
+                    {formData.horas < minHours && (
+                      <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
+                        ⚠️ Jornada mínima de {minHours}h para {servicoSelecionado.label}. O cálculo considera {minHours}h.
+                      </p>
+                    )}
+                    <div className="text-4xl font-display font-bold text-primary">
+                      R$ {valorCalculado.total.toFixed(2).replace(".", ",")}
+                    </div>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p>{formData.quantidade} {formData.quantidade === 1 ? "profissional" : "profissionais"} × {Math.max(formData.horas, minHours)} horas</p>
+                      <p>Taxa de seguro: R$ {valorCalculado.insurance.toFixed(2).replace(".", ",")}</p>
+                      <p className="text-xs">Freelancer recebe: R$ {valorCalculado.freelancerValue.toFixed(2).replace(".", ",")} cada</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Descrição da Vaga */}
                 <div className="space-y-2">
@@ -332,7 +292,7 @@ const CriarEvento = () => {
                     Descrição da vaga
                   </Label>
                   <Textarea
-                    placeholder="Descreva detalhes importantes para os freelancers, como vestimenta, regras e comportamento esperado."
+                    placeholder="Descreva detalhes importantes sobre o evento, como dresscode, tipo de comida, etc."
                     value={formData.descricao}
                     onChange={(e) => handleChange("descricao", e.target.value)}
                     className="min-h-[100px]"

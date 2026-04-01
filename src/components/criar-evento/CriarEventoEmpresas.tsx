@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { createVacancy, getContractorProfile, type ContractorProfile } from "@/lib/api";
@@ -10,17 +10,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Calendar as CalendarIcon, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowRight, ChevronDown, ChevronUp, Building2, Info, FileText, AlertCircle, DollarSign } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { servicosPF, FREELA_COMMISSION } from "@/lib/services";
+import { servicosPF, FREELA_COMMISSION, INSURANCE_FEE } from "@/lib/services";
 import { useToast } from "@/hooks/use-toast";
 import ServicoCard, { getServiceIcon, calcHours } from "./ServicoCard";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { errorMessages } from "@/lib/error-messages";
 
 interface SelectedService {
   id: string;
@@ -43,56 +37,15 @@ const CriarEventoEmpresas = () => {
   const [dataEvento, setDataEvento] = useState("");
   const [noEstabelecimento, setNoEstabelecimento] = useState(true);
   const [endereco, setEndereco] = useState({
-    cep: "",
     logradouro: "",
     numero: "",
-    complemento: "",
-    referencia: "",
-    bairro: "",
+    cep: "",
     cidade: "",
     estado: "",
   });
-  const [cepLoading, setCepLoading] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const maskCEP = (v: string) => {
-    const d = v.replace(/\D/g, "").slice(0, 8);
-    return d.replace(/(\d{5})(\d)/, "$1-$2");
-  };
-
-  const buscarCep = useCallback(async (digits: string) => {
-    if (digits.length !== 8) return;
-    setCepLoading(true);
-    try {
-      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = await res.json();
-      if (!data.erro) {
-        setEndereco((prev) => ({
-          ...prev,
-          logradouro: data.logradouro || "",
-          bairro: data.bairro || "",
-          cidade: data.localidade || "",
-          estado: data.uf || "",
-          complemento: data.complemento || prev.complemento,
-        }));
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setCepLoading(false);
-    }
-  }, []);
-
-  const handleCepChange = (value: string) => {
-    const masked = maskCEP(value);
-    setEndereco((prev) => ({ ...prev, cep: masked }));
-    const digits = value.replace(/\D/g, "");
-    if (digits.length === 8) {
-      buscarCep(digits);
-    }
-  };
 
   // Fetch contractor profile on mount
   useEffect(() => {
@@ -102,10 +55,12 @@ const CriarEventoEmpresas = () => {
       const token = JSON.parse(tokenRaw);
       getContractorProfile(token)
         .then((p) => {
+          console.log("[CriarEvento] profile carregado no mount:", JSON.stringify(p));
           setContractorProfile(p);
         })
-        ;
+        .catch((err) => console.error("[CriarEvento] Contractor profile error:", err));
     } catch {
+      console.error("[CriarEvento] Failed to parse authToken");
     }
   }, []);
 
@@ -145,6 +100,7 @@ const CriarEventoEmpresas = () => {
       const hours = calcHours(s.horaInicio, s.horaFim);
       const effectiveHours = hours > 0 ? Math.max(hours, s.minHours) : 0;
       const subtotal = s.pricePerHour * effectiveHours * s.quantidade;
+      const insurance = INSURANCE_FEE * s.quantidade;
       const commission = subtotal * FREELA_COMMISSION;
       const freelancerValue = s.quantidade > 0 ? (subtotal - commission) / s.quantidade : 0;
       return {
@@ -152,18 +108,21 @@ const CriarEventoEmpresas = () => {
         hours,
         effectiveHours,
         subtotal,
+        insurance,
         commission,
         freelancerValue,
-        total: subtotal,
+        total: subtotal + insurance,
       };
     });
   }, [selectedServices]);
 
-   const valorTotal = useMemo(() => {
-     const subtotal = servicePricing.reduce((sum, s) => sum + s.total, 0);
-     return subtotal + 1.00; // Add R$ 1,00 for Pix payment (secure)
-   }, [servicePricing]);
+  const valorTotal = useMemo(() => {
+    return servicePricing.reduce((sum, s) => sum + s.total, 0);
+  }, [servicePricing]);
 
+  const totalInsurance = useMemo(() => {
+    return servicePricing.reduce((sum, s) => sum + s.insurance, 0);
+  }, [servicePricing]);
 
   const totalSubtotal = useMemo(() => {
     return servicePricing.reduce((sum, s) => sum + s.subtotal, 0);
@@ -226,14 +185,6 @@ const CriarEventoEmpresas = () => {
         });
         return;
       }
-      if (hours > 12) {
-        toast({
-          title: `Horas excedidas para "${s.label}"`,
-          description: `O limite máximo é de 12h. Você configurou ${hours.toFixed(1)}h.`,
-          variant: "destructive",
-        });
-        return;
-      }
     }
 
     // Validate contractor profile
@@ -264,6 +215,7 @@ const CriarEventoEmpresas = () => {
       }
     }
 
+    console.log("[CriarEvento] contractor profile completo:", JSON.stringify(profile));
 
     // Build establishment from "Local do Evento"
     let establishment = "";
@@ -275,7 +227,6 @@ const CriarEventoEmpresas = () => {
         profile.city ? `, ${profile.city}` : "",
         profile.state ? ` - ${profile.state}` : "",
         profile.cep ? ` • CEP: ${profile.cep}` : "",
-        profile.reference ? ` • Ref: ${profile.reference}` : "",
       ];
       establishment = parts.join("").trim();
       if (!establishment) {
@@ -292,7 +243,6 @@ const CriarEventoEmpresas = () => {
         endereco.cidade ? `, ${endereco.cidade}` : "",
         endereco.estado ? ` - ${endereco.estado}` : "",
         endereco.cep ? ` • CEP: ${endereco.cep}` : "",
-        endereco.referencia ? ` • Ref: ${endereco.referencia}` : "",
       ];
       establishment = parts.join("").trim();
     }
@@ -325,19 +275,16 @@ const CriarEventoEmpresas = () => {
           jobValue: s.total.toFixed(2),
         }));
 
-      const payload = {
-        establishment,
-        description: descricaoVaga.trim(),
-        jobDate: new Date(dataEvento + "T12:00:00").toISOString(),
-        contractorId,
-        freelancers,
-      };
-
-      console.log("=== PAYLOAD PUBLICAR VAGA ===");
-      console.log(JSON.stringify(payload, null, 2));
-      console.log("=============================");
-
-      await createVacancy(payload, parsedToken);
+      await createVacancy(
+        {
+          establishment,
+          description: descricaoVaga.trim(),
+          jobDate: new Date(dataEvento + "T12:00:00").toISOString(),
+          contractorId,
+          freelancers,
+        },
+        parsedToken
+      );
 
       toast({
         title: "✅ Vaga criada com sucesso!",
@@ -455,45 +402,17 @@ const CriarEventoEmpresas = () => {
         <div className="bg-card border border-border rounded-xl p-4 space-y-2">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <CalendarIcon className="w-4 h-4 text-primary" />
+              <Calendar className="w-4 h-4 text-primary" />
             </div>
             <h2 className="text-sm font-semibold text-foreground">Data do evento</h2>
           </div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full h-12 justify-start text-left font-normal",
-                  !dataEvento && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dataEvento
-                  ? format(new Date(dataEvento + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })
-                  : "Selecione a data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={dataEvento ? new Date(dataEvento + "T12:00:00") : undefined}
-                onSelect={(date) => {
-                  if (date) setDataEvento(format(date, "yyyy-MM-dd"));
-                }}
-                initialFocus
-                className="pointer-events-auto"
-                captionLayout="dropdown-buttons"
-                fromYear={new Date().getFullYear()}
-                toYear={new Date().getFullYear() + 2}
-                locale={ptBR}
-                labels={{
-                  labelMonthDropdown: () => "Mês",
-                  labelYearDropdown: () => "Ano",
-                }}
-              />
-            </PopoverContent>
-          </Popover>
+          <Input
+            type="date"
+            value={dataEvento}
+            onChange={(e) => setDataEvento(e.target.value)}
+            className="h-10 rounded-lg max-w-xs text-sm"
+            required
+          />
         </div>
 
         {/* ========== STEP 4: Local ========== */}
@@ -541,9 +460,6 @@ const CriarEventoEmpresas = () => {
                       {contractorProfile.cep ? ` • CEP: ${String(contractorProfile.cep)}` : ""}
                     </p>
                   )}
-                  {contractorProfile.reference && (
-                    <p className="text-muted-foreground/80">Ref: {String(contractorProfile.reference)}</p>
-                  )}
                   {!contractorProfile.street && !contractorProfile.address && !contractorProfile.city && (
                     <p className="italic text-muted-foreground/70">Endereço não cadastrado. Atualize em Meus Dados.</p>
                   )}
@@ -564,23 +480,9 @@ const CriarEventoEmpresas = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div className="sm:col-span-2 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">CEP</Label>
-                  <Input
-                    placeholder="Digite o CEP"
-                    value={endereco.cep}
-                    onChange={(e) => handleCepChange(e.target.value)}
-                    className="h-9 rounded-lg text-sm"
-                  />
-                  {cepLoading && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Buscando endereço...
-                    </p>
-                  )}
-                </div>
-                <div className="sm:col-span-2 space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Logradouro</Label>
                   <Input
-                    placeholder="Digite o logradouro"
+                    placeholder="Rua, Avenida..."
                     value={endereco.logradouro}
                     onChange={(e) => setEndereco({ ...endereco, logradouro: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -590,7 +492,7 @@ const CriarEventoEmpresas = () => {
                 <div className="space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Número</Label>
                   <Input
-                    placeholder="Digite o número"
+                    placeholder="123"
                     value={endereco.numero}
                     onChange={(e) => setEndereco({ ...endereco, numero: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -598,36 +500,18 @@ const CriarEventoEmpresas = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Complemento</Label>
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">CEP</Label>
                   <Input
-                    placeholder="Opcional"
-                    value={endereco.complemento}
-                    onChange={(e) => setEndereco({ ...endereco, complemento: e.target.value })}
-                    className="h-9 rounded-lg text-sm"
-                  />
-                </div>
-                <div className="sm:col-span-2 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Referência</Label>
-                  <Input
-                    placeholder="Ponto de referência..."
-                    value={endereco.referencia}
-                    onChange={(e) => setEndereco({ ...endereco, referencia: e.target.value })}
-                    className="h-9 rounded-lg text-sm"
-                  />
-                </div>
-                <div className="sm:col-span-2 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Bairro</Label>
-                  <Input
-                    placeholder="Digite o bairro"
-                    value={endereco.bairro}
-                    onChange={(e) => setEndereco({ ...endereco, bairro: e.target.value })}
+                    placeholder="00000-000"
+                    value={endereco.cep}
+                    onChange={(e) => setEndereco({ ...endereco, cep: e.target.value })}
                     className="h-9 rounded-lg text-sm"
                   />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Cidade</Label>
                   <Input
-                    placeholder="Digite a cidade"
+                    placeholder="São Paulo"
                     value={endereco.cidade}
                     onChange={(e) => setEndereco({ ...endereco, cidade: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -637,7 +521,7 @@ const CriarEventoEmpresas = () => {
                 <div className="space-y-1">
                   <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Estado</Label>
                   <Input
-                    placeholder="UF"
+                    placeholder="SP"
                     value={endereco.estado}
                     onChange={(e) => setEndereco({ ...endereco, estado: e.target.value })}
                     className="h-9 rounded-lg text-sm"
@@ -658,7 +542,7 @@ const CriarEventoEmpresas = () => {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-foreground">Descrição da vaga</h2>
-              <p className="text-xs text-muted-foreground">Descreva detalhes importantes para os freelancers, como vestimenta, regras e comportamento esperado.</p>
+              <p className="text-xs text-muted-foreground">Descreva detalhes importantes para os freelancers</p>
             </div>
           </div>
           <Textarea
@@ -727,22 +611,26 @@ const CriarEventoEmpresas = () => {
                       <p>
                         R$ {s.pricePerHour.toFixed(2).replace(".", ",")}/h × {s.effectiveHours}h × {s.quantidade} pessoa{s.quantidade > 1 ? "s" : ""} = R$ {s.subtotal.toFixed(2).replace(".", ",")}
                       </p>
-                      
+                      <p>Taxa de seguro: R$ {s.insurance.toFixed(2).replace(".", ",")} ({s.quantidade} × R$ {INSURANCE_FEE.toFixed(2).replace(".", ",")})</p>
                     </div>
                   </div>
                 ))}
 
-                 {/* Totais gerais */}
-                 <div className="border-t border-border pt-3 space-y-1 text-xs">
-                   <div className="flex justify-between">
-                     <span>Pagamento via Pix (seguro):</span>
-                     <span>R$ 1,00</span>
-                   </div>
-                   <div className="flex justify-between font-bold text-sm text-foreground pt-1">
-                     <span>Total</span>
-                     <span>R$ {valorTotal.toFixed(2).replace(".", ",")}</span>
-                   </div>
-                 </div>
+                {/* Totais gerais */}
+                <div className="border-t border-border pt-3 space-y-1 text-xs">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Subtotal serviços</span>
+                    <span>R$ {totalSubtotal.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Taxa de seguro</span>
+                    <span>R$ {totalInsurance.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-sm text-foreground pt-1">
+                    <span>Total</span>
+                    <span>R$ {valorTotal.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>

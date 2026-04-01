@@ -39,14 +39,14 @@ const AjudaContratante = () => {
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i);
 
   const handleSuporte = () => {
-    window.location.href = "mailto:contato@freelaservicos.com.br?subject=Suporte - Preciso de ajuda como contratante";
+    window.open("https://wa.me/5511999999999?text=Olá! Preciso de ajuda como contratante.", "_blank");
   };
 
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/perfil")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-xl font-display font-bold">Ajuda</h1>

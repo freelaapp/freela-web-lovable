@@ -6,10 +6,6 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Trash2, AlertTriangle, Building2, ImagePlus, MapPin, Loader2, User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CitySelect from "@/components/CitySelect";
-import { errorMessages } from "@/lib/error-messages";
-import { extractApiError } from "@/lib/api-error";
-import EditableAvatar from "@/components/EditableAvatar";
-import { format, parseISO, isValid } from "date-fns";
 
 const estadosBR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -20,8 +16,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-
-const API_BASE_URL = import.meta.env.API_BASE_URL;
 
 // ── Helpers ──────────────────────────────────────────────────
 const maskCEP = (v: string) => {
@@ -34,21 +28,6 @@ const formatPhone = (value: string) => {
   if (digits.length <= 2) return digits;
   if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-};
-
-const formatBirthdateDisplay = (value: string): string => {
-  if (!value) return "";
-  try {
-    const digits = value.replace(/\D/g, "");
-    if (digits.length === 8 && !value.includes("-") && !value.includes("/")) {
-      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-    }
-    const date = value.includes("T") ? parseISO(value) : parseISO(value + "T00:00:00");
-    if (isValid(date)) return format(date, "dd/MM/yyyy");
-    return value;
-  } catch {
-    return value;
-  }
 };
 
 // ── Type detection ───────────────────────────────────────────
@@ -67,7 +46,6 @@ interface AddressFieldsProps {
   cep: string;
   rua: string;
   complemento: string;
-  referencia: string;
   bairro: string;
   numero: string;
   cidade: string;
@@ -76,7 +54,6 @@ interface AddressFieldsProps {
   onCepChange: (v: string) => void;
   onRuaChange: (v: string) => void;
   onComplementoChange: (v: string) => void;
-  onReferenciaChange: (v: string) => void;
   onBairroChange: (v: string) => void;
   onNumeroChange: (v: string) => void;
   onCidadeChange: (v: string) => void;
@@ -84,8 +61,8 @@ interface AddressFieldsProps {
 }
 
 const AddressFields = ({
-  cep, rua, complemento, referencia, bairro, numero, cidade, estado, cepLoading,
-  onCepChange, onRuaChange, onComplementoChange, onReferenciaChange, onBairroChange,
+  cep, rua, complemento, bairro, numero, cidade, estado, cepLoading,
+  onCepChange, onRuaChange, onComplementoChange, onBairroChange,
   onNumeroChange, onCidadeChange, onEstadoChange,
 }: AddressFieldsProps) => (
   <Card>
@@ -95,7 +72,7 @@ const AddressFields = ({
       </h3>
       <div className="space-y-2">
         <Label>CEP</Label>
-        <Input value={cep} onChange={(e) => onCepChange(e.target.value)} placeholder="Digite o CEP" />
+        <Input value={cep} onChange={(e) => onCepChange(e.target.value)} placeholder="00000-000" />
         {cepLoading && (
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             <Loader2 className="w-3 h-3 animate-spin" /> Buscando endereço...
@@ -115,10 +92,6 @@ const AddressFields = ({
           <Label>Complemento</Label>
           <Input value={complemento} onChange={(e) => onComplementoChange(e.target.value)} placeholder="Opcional" />
         </div>
-      </div>
-      <div className="space-y-2">
-        <Label>Referência</Label>
-        <Input value={referencia} onChange={(e) => onReferenciaChange(e.target.value)} placeholder="Ponto de referência..." />
       </div>
       <div className="space-y-2">
         <Label>Bairro</Label>
@@ -246,7 +219,7 @@ const DeleteAccountCard = ({ onOpen }: { onOpen: () => void }) => (
 
 // ── Snapshot types for change detection ──────────────────────
 interface FieldSnapshot {
-  cep: string; rua: string; complemento: string; referencia: string; bairro: string;
+  cep: string; rua: string; complemento: string; bairro: string;
   numero: string; cidade: string; estado: string;
   cnpj: string; razaoSocial: string;
   ramo: string; nomeEstabelecimento: string;
@@ -281,7 +254,6 @@ const MeusDadosContratante = () => {
   const [cep, setCep] = useState("");
   const [rua, setRua] = useState("");
   const [complemento, setComplemento] = useState("");
-  const [referencia, setReferencia] = useState("");
   const [bairro, setBairro] = useState("");
   const [numero, setNumero] = useState("");
   const [cidade, setCidade] = useState("");
@@ -308,17 +280,12 @@ const MeusDadosContratante = () => {
   // File objects for upload
   const [fachadaFile, setFachadaFile] = useState<File | null>(null);
   const [internoFile, setInternoFile] = useState<File | null>(null);
-  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
-  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
   // Casa CPF only
   const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
 
   const [deleteDialog, setDeleteDialog] = useState(false);
-
-  // Track if contractor exists (POST vs PUT)
-  const [contractorExists, setContractorExists] = useState(false);
 
   // Change detection: snapshot of original values
   const [originalSnapshot, setOriginalSnapshot] = useState("");
@@ -328,11 +295,11 @@ const MeusDadosContratante = () => {
 
   const getCurrentSnapshot = useCallback((): string => {
     return makeSnapshot({
-      cep, rua, complemento, referencia, bairro, numero, cidade, estado,
+      cep, rua, complemento, bairro, numero, cidade, estado,
       cnpj, razaoSocial, ramo, nomeEstabelecimento,
       responsavel, responsavelTelefone, cpf, dataNascimento,
     });
-  }, [cep, rua, complemento, referencia, bairro, numero, cidade, estado, cnpj, razaoSocial, ramo, nomeEstabelecimento, responsavel, responsavelTelefone, cpf, dataNascimento]);
+  }, [cep, rua, complemento, bairro, numero, cidade, estado, cnpj, razaoSocial, ramo, nomeEstabelecimento, responsavel, responsavelTelefone, cpf, dataNascimento]);
 
   const getCurrentUserSnapshot = useCallback((): string => {
     return makeUserSnapshot({ userName, userEmail, userPhone });
@@ -355,7 +322,7 @@ const MeusDadosContratante = () => {
           return;
         }
 
-        const res = await fetch(`${API_BASE_URL}/users/contractors`, {
+        const res = await fetch(`https://api.freelaservicos.com.br/users/contractors`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -365,23 +332,13 @@ const MeusDadosContratante = () => {
         });
 
         if (!res.ok) {
+          console.error("[MeusDados] Fetch failed:", res.status);
           setLoading(false);
           return;
         }
 
         const body = await res.json();
         const d = body?.data ?? body;
-
-        // DEBUG: Log contractor data from database
-        console.log("═══════════════════════════════════════════");
-        console.log("📦 CONTRATANTE DATA DO BANCO (GET /users/contractors)");
-        console.log("═══════════════════════════════════════════");
-        console.log(JSON.stringify(d, null, 2));
-        console.log("═══════════════════════════════════════════");
-
-        // Detect if contractor already exists in the database
-        const hasContractorData = d && (d.id || d.cpf || d.cnpj || d.street || d.cep);
-        setContractorExists(!!hasContractorData);
 
         // Detect contractor type from API data
         let detectedType: ContractorType = "empresas";
@@ -398,14 +355,7 @@ const MeusDadosContratante = () => {
         // Fotos (Buffer → base64 data URL)
         const bufferToDataUrl = (img: any): string | null => {
           if (!img) return null;
-          if (typeof img === "string") {
-            if (img.startsWith("data:") || img.startsWith("http") || img.startsWith("/")) return img;
-            if (img.startsWith("/9j/") || img.startsWith("iVBOR") || img.startsWith("R0lGO") || img.startsWith("UklGR")) {
-              const mime = img.startsWith("/9j/") ? "jpeg" : img.startsWith("iVBOR") ? "png" : img.startsWith("R0lGO") ? "gif" : "webp";
-              return `data:image/${mime};base64,${img}`;
-            }
-            return img;
-          }
+          if (typeof img === "string") return img;
           if (img.type === "Buffer" && Array.isArray(img.data)) {
             const bytes = new Uint8Array(img.data);
             let binary = "";
@@ -423,16 +373,11 @@ const MeusDadosContratante = () => {
         const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
         if (interiorUrl) { setFotoInterno(interiorUrl); setOriginalFotoInterno(interiorUrl); }
 
-        // Profile image
-        const profileUrl = bufferToDataUrl(d.profileImage);
-        if (profileUrl) { setProfileImagePreview(profileUrl); }
-
         // Collect values for snapshot
         const snapValues: FieldSnapshot = {
           cep: d.cep ? maskCEP(d.cep) : "",
           rua: d.street || "",
           complemento: d.complement || "",
-          referencia: d.reference || "",
           bairro: d.neighborhood || "",
           numero: d.number || "",
           cidade: d.city || "",
@@ -460,7 +405,6 @@ const MeusDadosContratante = () => {
         setRua(snapValues.rua);
         setNumero(snapValues.numero);
         setComplemento(snapValues.complemento);
-        setReferencia(snapValues.referencia);
         setBairro(snapValues.bairro);
         setCidade(snapValues.cidade);
         setEstado(snapValues.estado);
@@ -480,7 +424,7 @@ const MeusDadosContratante = () => {
 
         // Fetch user info from /users/me
         try {
-          const userRes = await fetch(`${API_BASE_URL}/users/me`, {
+          const userRes = await fetch("https://api.freelaservicos.com.br/users/me", {
             method: "GET",
             credentials: "include",
             headers: {
@@ -500,8 +444,10 @@ const MeusDadosContratante = () => {
             setOriginalUserSnapshot(makeUserSnapshot({ userName: uName, userEmail: uEmail, userPhone: uPhone }));
           }
         } catch (err) {
+          console.error("[MeusDados] Error fetching user info:", err);
         }
       } catch (err) {
+        console.error("[MeusDados] Error fetching profile:", err);
       } finally {
         setLoading(false);
       }
@@ -549,10 +495,9 @@ const MeusDadosContratante = () => {
     const hasUserChanges = currentUserSnap !== originalUserSnapshot;
     const hasFachadaChange = fachadaFile !== null;
     const hasInternoChange = internoFile !== null;
-    const hasProfileImageChange = profileImageFile !== null;
 
-    if (!hasFieldChanges && !hasUserChanges && !hasFachadaChange && !hasInternoChange && !hasProfileImageChange) {
-      toast({ title: errorMessages.noChangesDetected, description: "Nenhum campo foi modificado." });
+    if (!hasFieldChanges && !hasUserChanges && !hasFachadaChange && !hasInternoChange) {
+      toast({ title: "Nenhuma alteração detectada", description: "Nenhum campo foi modificado." });
       return;
     }
 
@@ -571,48 +516,41 @@ const MeusDadosContratante = () => {
       const results: boolean[] = [];
 
       // 1. Update contractor fields if changed
-      if (hasFieldChanges || hasFachadaChange || hasInternoChange || hasProfileImageChange) {
+      if (hasFieldChanges || hasFachadaChange || hasInternoChange) {
+        const cepDigits = cep.replace(/\D/g, "");
+        const addressFields = {
+          cep: cepDigits,
+          street: rua,
+          complement: complemento,
+          neighborhood: bairro,
+          number: numero,
+          city: cidade,
+          uf: estado,
+          ibge: viacepMeta.ibge,
+          gia: viacepMeta.gia,
+          ddd: viacepMeta.ddd,
+          siafi: viacepMeta.siafi,
+        };
+
         const formData = new FormData();
+        Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
 
-        if (hasFieldChanges || hasFachadaChange || hasInternoChange) {
-          const cepDigits = cep.replace(/\D/g, "");
-          const addressFields = {
-            cep: cepDigits,
-            street: rua,
-            complement: complemento,
-            reference: referencia,
-            neighborhood: bairro,
-            number: numero,
-            city: cidade,
-            uf: estado,
-            ibge: viacepMeta.ibge,
-            gia: viacepMeta.gia,
-            ddd: viacepMeta.ddd,
-            siafi: viacepMeta.siafi,
-          };
-
-          Object.entries(addressFields).forEach(([k, v]) => formData.append(k, v));
-
-          if (type === "casa_cpf") {
-            formData.append("birthdate", dataNascimento);
-          } else if (type === "casa_cnpj") {
-            formData.append("corporateReason", razaoSocial);
-          } else if (type === "empresas") {
-            formData.append("corporateReason", razaoSocial);
-            formData.append("companySegment", ramo);
-            formData.append("companyName", nomeEstabelecimento);
-            formData.append("nameOperationResponsible", responsavel);
-            formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
-            if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
-            if (internoFile) formData.append("establishmentInteriorImage", internoFile);
-          }
+        if (type === "casa_cpf") {
+          formData.append("birthdate", dataNascimento);
+        } else if (type === "casa_cnpj") {
+          formData.append("corporateReason", razaoSocial);
+        } else if (type === "empresas") {
+          formData.append("corporateReason", razaoSocial);
+          formData.append("companySegment", ramo);
+          formData.append("companyName", nomeEstabelecimento);
+          formData.append("nameOperationResponsible", responsavel);
+          formData.append("phoneOperationResponsible", responsavelTelefone.replace(/\D/g, ""));
+          if (fachadaFile) formData.append("establishmentFacadeImage", fachadaFile);
+          if (internoFile) formData.append("establishmentInteriorImage", internoFile);
         }
 
-        if (profileImageFile) formData.append("profileImage", profileImageFile, profileImageFile.name);
-
-        const method = contractorExists ? "PUT" : "POST";
-        const res = await fetch(`${API_BASE_URL}/contractors`, {
-          method,
+        const res = await fetch("https://api.freelaservicos.com.br/contractors/", {
+          method: "PUT",
           credentials: "include",
           headers: {
             "Origin-type": "Web",
@@ -625,18 +563,17 @@ const MeusDadosContratante = () => {
           setOriginalSnapshot(currentSnap);
           if (fachadaFile) { setOriginalFotoFachada(fotoFachada); setFachadaFile(null); }
           if (internoFile) { setOriginalFotoInterno(fotoInterno); setInternoFile(null); }
-          if (profileImageFile) setProfileImageFile(null);
-          setContractorExists(true);
           results.push(true);
         } else {
-          const body = await res.json().catch(() => null);
-          throw new Error(body?.message || "Erro ao atualizar dados do contratante");
+          const errBody = await res.text();
+          console.error("[MeusDados] Contractor save failed:", res.status, errBody);
+          results.push(false);
         }
       }
 
       // 2. Update user info if changed
       if (hasUserChanges && userId) {
-        const userRes = await fetch(`${API_BASE_URL}/users`, {
+        const userRes = await fetch("https://api.freelaservicos.com.br/users", {
           method: "PUT",
           credentials: "include",
           headers: {
@@ -657,8 +594,9 @@ const MeusDadosContratante = () => {
           setOriginalUserSnapshot(currentUserSnap);
           results.push(true);
         } else {
-          const body = await userRes.json().catch(() => null);
-          throw new Error(body?.message || "Erro ao atualizar dados do usuário");
+          const errBody = await userRes.text();
+          console.error("[MeusDados] User save failed:", userRes.status, errBody);
+          results.push(false);
         }
       }
 
@@ -667,20 +605,13 @@ const MeusDadosContratante = () => {
       } else if (results.some(r => r)) {
         toast({ title: "Atualização parcial", description: "Alguns dados foram salvos, mas houve erro em parte da atualização.", variant: "destructive" });
       } else {
-        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados.", variant: "destructive" });
+        toast({ title: "Erro ao salvar", description: "Não foi possível atualizar os dados. Tente novamente.", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Erro ao salvar", description: extractApiError(err), variant: "destructive" });
+      console.error("[MeusDados] Save error:", err);
+      toast({ title: "Erro ao salvar", description: "Ocorreu um erro inesperado. Tente novamente.", variant: "destructive" });
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setProfileImagePreview(URL.createObjectURL(file));
-      setProfileImageFile(file);
     }
   };
 
@@ -721,19 +652,6 @@ const MeusDadosContratante = () => {
           </div>
         ) : (
         <>
-        {/* Foto de Perfil */}
-        <div className="flex justify-center">
-          <EditableAvatar
-            src={profileImagePreview}
-            fallback={userName?.[0] || "C"}
-            size="lg"
-            onFileSelect={(file) => {
-              setProfileImagePreview(URL.createObjectURL(file));
-              setProfileImageFile(file);
-            }}
-          />
-        </div>
-
         {/* Informações do Usuário */}
         <Card>
           <CardContent className="p-6 space-y-4">
@@ -742,18 +660,18 @@ const MeusDadosContratante = () => {
             </h3>
             <div className="space-y-2">
               <Label>Nome</Label>
-              <Input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Digite seu nome completo" />
+              <Input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Seu nome completo" />
             </div>
             <div className="space-y-2">
               <Label>E-mail</Label>
-              <Input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="Digite seu email" />
+              <Input type="email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="seu@email.com" />
             </div>
             <div className="space-y-2">
               <Label>Celular</Label>
               <Input
                 value={userPhone}
                 onChange={(e) => setUserPhone(formatPhone(e.target.value))}
-                placeholder="Digite o telefone"
+                placeholder="(00) 00000-0000"
               />
             </div>
           </CardContent>
@@ -820,7 +738,7 @@ const MeusDadosContratante = () => {
                   <Input
                     value={responsavelTelefone}
                     onChange={(e) => setResponsavelTelefone(formatPhone(e.target.value))}
-placeholder="Digite o telefone"
+                    placeholder="(00) 00000-0000"
                   />
                 </div>
               </CardContent>
@@ -857,7 +775,7 @@ placeholder="Digite o telefone"
               </div>
               <div className="space-y-2">
                 <Label>Data de Nascimento</Label>
-                <Input value={formatBirthdateDisplay(dataNascimento)} disabled className="opacity-60 cursor-not-allowed" />
+                <Input value={dataNascimento} disabled className="opacity-60 cursor-not-allowed" />
               </div>
             </CardContent>
           </Card>
@@ -865,11 +783,11 @@ placeholder="Digite o telefone"
 
         {/* Endereço – all variants */}
         <AddressFields
-          cep={cep} rua={rua} complemento={complemento} referencia={referencia} bairro={bairro}
+          cep={cep} rua={rua} complemento={complemento} bairro={bairro}
           numero={numero} cidade={cidade} estado={estado} cepLoading={cepLoading}
           onCepChange={handleCepChange} onRuaChange={setRua} onComplementoChange={setComplemento}
-          onReferenciaChange={setReferencia} onBairroChange={setBairro} onNumeroChange={setNumero}
-          onCidadeChange={setCidade} onEstadoChange={setEstado}
+          onBairroChange={setBairro} onNumeroChange={setNumero} onCidadeChange={setCidade}
+          onEstadoChange={setEstado}
         />
 
         {/* Save */}

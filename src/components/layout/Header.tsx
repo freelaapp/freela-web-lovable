@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, LayoutDashboard, Calendar, Star, Map, User, CalendarPlus, Bell, LogOut } from "lucide-react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import logoFreela from "@/assets/logo-freela-red.svg";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
@@ -11,10 +12,13 @@ const Header = () => {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, role, logout } = useAuth();
+  const role = useUserRole();
+  const { isAuthenticated, isLoading, logout } = useAuth();
 
-  // Simplified: rely solely on auth state
-  const isLoggedIn = isAuthenticated;
+  // Heuristic: if we have a token in localStorage, we are likely logged in.
+  // This avoids the "flicker" of showing public nav while auth is still loading on mount.
+  const hasAuthToken = !!localStorage.getItem("authToken");
+  const isLoggedIn = isAuthenticated || (isLoading && hasAuthToken);
 
   // Close profile menu on outside click
   useEffect(() => {
@@ -49,9 +53,6 @@ const Header = () => {
   ];
 
   const loggedInNavLinks = role === "contratante" ? contratanteNavLinks : freelancerNavLinks;
-
-  const isLandingPage = location.pathname === "/" || location.pathname === "/inicio";
-  const showPublicNav = !isLoggedIn || isLandingPage;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -92,24 +93,7 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          {showPublicNav ? (
-            <nav className="hidden lg:flex items-center gap-8">
-              {publicNavLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className={`text-sm font-medium transition-colors duration-200 ${
-                    isActive(link.href)
-                      ? "text-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          ) : (
+          {isLoggedIn ? (
             <nav className="hidden lg:flex items-center gap-6">
               {loggedInNavLinks.map((link) => (
                 <Link
@@ -126,11 +110,28 @@ const Header = () => {
                 </Link>
               ))}
             </nav>
+          ) : (
+            <nav className="hidden lg:flex items-center gap-8">
+              {publicNavLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  onClick={(e) => handleNavClick(e, link.href)}
+                  className={`text-sm font-medium transition-colors duration-200 ${
+                    isActive(link.href)
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           )}
 
           {/* Desktop Right Side */}
           <div className="hidden lg:flex items-center gap-3">
-            {isLoggedIn && !isLandingPage ? (
+            {isLoggedIn ? (
               <>
                 {role === "contratante" && location.pathname !== "/dashboard-contratante" && (
                   <Button asChild size="sm" className="gap-1.5">
@@ -200,7 +201,7 @@ const Header = () => {
         {isMenuOpen && (
           <div className="lg:hidden py-4 border-t border-border animate-fade-in">
             <nav className="flex flex-col gap-2">
-              {isLoggedIn && !isLandingPage ? (
+              {isLoggedIn ? (
                 <>
                   {loggedInNavLinks.map((link) => (
                     <Link

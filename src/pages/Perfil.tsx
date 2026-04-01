@@ -3,21 +3,27 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Car, Pencil, Play, Image as ImageIconLucide, X, Check, Loader2 } from "lucide-react";
-import EditableAvatar from "@/components/EditableAvatar";
+import { User, Settings, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield, Mail, Clock, Briefcase, Camera, Video, ImagePlus, Building2, MapPin, CalendarPlus, Accessibility, Eye, Car, Pencil, Play, Image as ImageIconLucide, X, Check, Loader2 } from "lucide-react";
 import pcdIcon from "@/assets/pcd-icon.jpg";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import AppLayout from "@/components/layout/AppLayout";
 import { servicosPF } from "@/lib/services";
-import { updateProviderAvailability, updateProviderProfileImage, fetchImageWithAuth } from "@/lib/api";
-import { toast } from "sonner";
-import { errorMessages } from "@/lib/error-messages";
-import { pickImageUrlFromPayload } from "@/lib/image";
-
-const API_BASE_URL = import.meta.env.API_BASE_URL;
+import { useUserRole, setUserRole } from "@/hooks/useUserRole";
 
 type ContractorType = "empresas" | "casa_cnpj" | "casa_cpf";
+
+const bufferToDataUrl = (img: any): string | null => {
+  if (!img) return null;
+  if (typeof img === "string") return img;
+  if (img.type === "Buffer" && Array.isArray(img.data)) {
+    const bytes = new Uint8Array(img.data);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return `data:image/jpeg;base64,${btoa(binary)}`;
+  }
+  return null;
+};
 
 const freelancerMenuItems = [
 { icon: User, label: "Meus Dados", href: "/meus-dados", description: "Editar perfil e informações" },
@@ -49,8 +55,10 @@ type Horarios = Record<string, {de: string;ate: string;}>;
 
 const Perfil = () => {
   const navigate = useNavigate();
-  const { logout, role, setRole } = useAuth();
+  const { logout } = useAuth();
+  const role = useUserRole();
   const isContratante = role === "contratante";
+  const [contractorView, setContractorView] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const fachadaInputRef = useRef<HTMLInputElement>(null);
@@ -79,8 +87,6 @@ const Perfil = () => {
 
   // Availability editing
   const [editingAvailability, setEditingAvailability] = useState(false);
-  const [savingAvailability, setSavingAvailability] = useState(false);
-  const [providerId, setProviderId] = useState<string | null>(null);
   const [savedDiasAtivos, setSavedDiasAtivos] = useState<string[]>(["seg", "ter", "qua", "qui", "sex"]);
   const [savedHorarios, setSavedHorarios] = useState<Horarios>({ ...horarios });
 
@@ -126,8 +132,7 @@ const Perfil = () => {
     city: string;
     uf: string;
     desiredJobVacancy: string;
-    isPCD: boolean;
-  }>({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "", isPCD: false });
+  }>({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "" });
 
   // Fetch freelancer profile
   useEffect(() => {
@@ -135,21 +140,6 @@ const Perfil = () => {
       setFreelancerLoading(false);
       return;
     }
-    setFreelancerData({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "", isPCD: false });
-    setDiasAtivos(["seg", "ter", "qua", "qui", "sex"]);
-    setHorarios({
-      seg: { de: "08h", ate: "20h" },
-      ter: { de: "08h", ate: "20h" },
-      qua: { de: "08h", ate: "20h" },
-      qui: { de: "08h", ate: "20h" },
-      sex: { de: "08h", ate: "20h" },
-      sab: { de: "10h", ate: "16h" },
-      dom: { de: "10h", ate: "14h" }
-    });
-    setServicosSelecionados(["garcom", "barman", "churrasqueiro"]);
-
-    const abortController = new AbortController();
-
     const fetchFreelancer = async () => {
       try {
         const tokenRaw = localStorage.getItem("authToken");
@@ -157,25 +147,20 @@ const Perfil = () => {
         const token = JSON.parse(tokenRaw);
         const headers = { "Origin-type": "Web", "Authorization": `Bearer ${token}` };
 
-        // Step 1: get user info + provider ID
-        const [providerListRes, userRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/users/providers`, {
-            method: "GET", credentials: "include", headers, signal: abortController.signal,
+        const [providerRes, userRes] = await Promise.all([
+          fetch("https://api.freelaservicos.com.br/users/providers", {
+            method: "GET", credentials: "include", headers,
           }),
-          fetch(`${API_BASE_URL}/users/me`, {
-            method: "GET", credentials: "include", headers, signal: abortController.signal,
+          fetch("https://api.freelaservicos.com.br/users/me", {
+            method: "GET", credentials: "include", headers,
           }),
         ]);
 
-        let pId = "";
-        let providerListData: any = {};
-        if (providerListRes.ok) {
-          const pBody = await providerListRes.json();
+        let providerData: any = {};
+        if (providerRes.ok) {
+          const pBody = await providerRes.json();
           const raw = pBody?.data ?? pBody;
-          const first = Array.isArray(raw) ? raw[0] ?? {} : raw;
-          pId = first?.id ?? "";
-          providerListData = first;
-          if (pId) setProviderId(pId);
+          providerData = Array.isArray(raw) ? raw[0] ?? {} : raw;
         }
 
         let userName = "";
@@ -185,54 +170,10 @@ const Perfil = () => {
           userName = uData?.name || "";
         }
 
-        const avatar = pickImageUrlFromPayload(providerListData, [
-          "profileImage",
-          "profileImageUrl",
-          "avatarUrl",
-          "avatar",
-          "image",
-          "imageUrl",
-          "photoUrl",
-        ]);
+        const avatar = bufferToDataUrl(providerData.profileImage);
 
-         // Process availability from 'availability' field (JSON string)
-         const availabilityData = providerListData.availability;
-         if (availabilityData) {
-           let availability: any = null;
-           if (typeof availabilityData === 'string') {
-             try {
-               availability = JSON.parse(availabilityData);
-             } catch (e) {
-               availability = null;
-             }
-           } else {
-             availability = availabilityData;
-           }
-
-           if (availability && availability.diasAtivos && Array.isArray(availability.diasAtivos)) {
-             setDiasAtivos(availability.diasAtivos);
-             setSavedDiasAtivos(availability.diasAtivos);
-           } else {
-             setDiasAtivos([]);
-             setSavedDiasAtivos([]);
-           }
-
-           if (availability && availability.horarios && typeof availability.horarios === 'object') {
-             setHorarios(availability.horarios);
-             setSavedHorarios(availability.horarios);
-           } else {
-             setHorarios({});
-             setSavedHorarios({});
-           }
-         } else {
-           // Sem campo availability, limpar estados (sem dados fictícios)
-           setDiasAtivos([]);
-           setSavedDiasAtivos([]);
-           setHorarios({});
-           setSavedHorarios({});
-         }
-
-        const djv = providerListData.desiredJobVacancy || "";
+        // Parse desiredJobVacancy into service chips
+        const djv = providerData.desiredJobVacancy || "";
         if (djv) {
           const ids = djv.split(",").map((s: string) => s.trim().toLowerCase());
           const matched = servicosPF.filter(sv => ids.some((id: string) => sv.id === id || sv.label.toLowerCase() === id));
@@ -246,23 +187,19 @@ const Perfil = () => {
         setFreelancerData({
           name: userName,
           avatarUrl: avatar,
-          rating: providerListData.feedbackStars ? String(providerListData.feedbackStars) : "0",
-          city: providerListData.city || "",
-          uf: providerListData.uf || "",
+          rating: providerData.feedbackStars ? String(providerData.feedbackStars) : "0",
+          city: providerData.city || "",
+          uf: providerData.uf || "",
           desiredJobVacancy: djv,
-          isPCD: providerListData.deficiency === true || providerListData.deficiency === "true" || providerListData.deficiency === 1,
         });
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-        }
+        console.error("[Perfil] freelancer fetch error:", err);
       } finally {
         setFreelancerLoading(false);
       }
     };
     fetchFreelancer();
-
-    return () => abortController.abort();
-  }, [role]);
+  }, [isContratante]);
 
   // Fetch contractor profile when contratante
   useEffect(() => {
@@ -270,44 +207,34 @@ const Perfil = () => {
       setContractorLoading(false);
       return;
     }
-    setContractorData({ name: "", avatarUrl: null, rating: "0", segment: "", city: "", uf: "" });
-    setFotoFachada(null);
-    setFotoInterno(null);
-
-    const abortController = new AbortController();
-
     const fetchContractor = async () => {
       try {
         const tokenRaw = localStorage.getItem("authToken");
         if (!tokenRaw) { setContractorLoading(false); return; }
         const token = JSON.parse(tokenRaw);
 
-        const res = await fetch(`${API_BASE_URL}/users/contractors`, {
+        const res = await fetch("https://api.freelaservicos.com.br/users/contractors", {
           method: "GET",
           credentials: "include",
           headers: { "Origin-type": "Web", "Authorization": `Bearer ${token}` },
-          signal: abortController.signal,
         });
         if (!res.ok) { setContractorLoading(false); return; }
         const body = await res.json();
         const d = body?.data ?? body;
 
+        // Detect type
         let detected: ContractorType = "empresas";
         if (d.cpf && !d.cnpj) detected = "casa_cpf";
         else if (d.cnpj && !d.establishmentFacadeImage && !d.companyName) detected = "casa_cnpj";
         setContractorType(detected);
 
-        const avatar = pickImageUrlFromPayload(d, [
-          "establishmentFacadeImage",
-          "profileImage",
-          "profileImageUrl",
-          "avatarUrl",
-          "image",
-        ]);
+        // Avatar
+        const avatar = bufferToDataUrl(d.establishmentFacadeImage) || bufferToDataUrl(d.profileImage);
 
-        const facadeUrl = pickImageUrlFromPayload(d, ["establishmentFacadeImage", "facadeImage", "image"]);
+        // Fotos for empresas
+        const facadeUrl = bufferToDataUrl(d.establishmentFacadeImage);
         if (facadeUrl) setFotoFachada(facadeUrl);
-        const interiorUrl = pickImageUrlFromPayload(d, ["establishmentInteriorImage", "interiorImage", "image"]);
+        const interiorUrl = bufferToDataUrl(d.establishmentInteriorImage);
         if (interiorUrl) setFotoInterno(interiorUrl);
 
         setContractorData({
@@ -319,16 +246,13 @@ const Perfil = () => {
           uf: d.uf || "",
         });
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-        }
+        console.error("[Perfil] contractor fetch error:", err);
       } finally {
         setContractorLoading(false);
       }
     };
     fetchContractor();
-
-    return () => abortController.abort();
-  }, [role]);
+  }, [isContratante]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -352,23 +276,6 @@ const Perfil = () => {
   const handleInternoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) setFotoInterno(URL.createObjectURL(file));
-  };
-
-  const handleProfileImageUpload = async (file: File) => {
-    const previewUrl = URL.createObjectURL(file);
-
-    try {
-      if (isContratante) {
-        toast.error("Para alterar a foto de perfil, acesse Meus Dados");
-        return;
-      }
-      await updateProviderProfileImage(file);
-      setFreelancerData((prev) => ({ ...prev, avatarUrl: previewUrl }));
-      toast.success("Foto de perfil atualizada com sucesso!");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erro ao atualizar a foto de perfil.";
-      toast.error(message);
-    }
   };
 
   const toggleDia = (key: string) => {
@@ -406,59 +313,19 @@ const Perfil = () => {
     setServicosDialog(false);
   };
 
-   // Services inline edit helpers
-   const startEditingServices = () => {
-     setTempServicos([...servicosSelecionados]);
-     setEditingServices(true);
-   };
-   const cancelEditingServices = () => {
-     setTempServicos([...servicosSelecionados]);
-     setEditingServices(false);
-   };
-    const saveEditingServices = async () => {
-      try {
-        // Get auth token
-        const tokenRaw = localStorage.getItem("authToken");
-        if (!tokenRaw) {
-          toast.error(errorMessages.sessionExpired);
-          return;
-        }
-        const token = JSON.parse(tokenRaw);
-        const headers = { 
-          "Origin-type": "Web", 
-          "Authorization": `Bearer ${token}` 
-        };
-
-        // Send PUT /providers with only desiredJobVacancy
-        const payload = {
-          desiredJobVacancy: tempServicos.join(",")
-        };
-
-        const response = await fetch(`${API_BASE_URL}/providers`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...headers,
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const errBody = await response.json().catch(() => ({}));
-          throw new Error(errBody?.message || "Não foi possível atualizar os serviços.");
-        }
-
-        // Update local state with new services
-        setServicosSelecionados([...tempServicos]);
-        setEditingServices(false);
-        
-        toast.success("Serviços atualizados com sucesso!");
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Erro ao atualizar serviços. Tente novamente.";
-        toast.error(message);
-      }
-    };
+  // Services inline edit helpers
+  const startEditingServices = () => {
+    setTempServicos([...servicosSelecionados]);
+    setEditingServices(true);
+  };
+  const cancelEditingServices = () => {
+    setTempServicos([...servicosSelecionados]);
+    setEditingServices(false);
+  };
+  const saveEditingServices = () => {
+    setServicosSelecionados([...tempServicos]);
+    setEditingServices(false);
+  };
 
   // Availability edit helpers
   const startEditingAvailability = () => {
@@ -471,59 +338,10 @@ const Perfil = () => {
     setHorarios({ ...savedHorarios });
     setEditingAvailability(false);
   };
-
-  /**
-   * Valida horários e persiste no backend
-   * Validações:
-   * - 'ate' deve ser posterior a 'de'
-   * - Formato correto de hora (HHh)
-   */
-  const saveEditingAvailability = async () => {
-    try {
-      // Validar todos os dias ativos têm horários válidos
-      for (const dia of diasAtivos) {
-        const h = horarios[dia];
-        if (!h) {
-          toast.error(`Dia ${dia} está ativo mas não tem horário configurado.`);
-          return;
-        }
-
-        // Extrair apenas os dígitos para comparação numérica
-        const deNum = parseInt(h.de.replace('h', ''));
-        const ateNum = parseInt(h.ate.replace('h', ''));
-
-        if (ateNum <= deNum) {
-          toast.error(`Horário inválido para ${dia}: "até" não pode ser menor ou igual a "de"`);
-          return;
-        }
-
-        if (deNum < 0 || deNum > 23 || ateNum < 0 || ateNum > 23) {
-          toast.error(`Horas devem estar entre 00h e 23h`);
-          return;
-        }
-      }
-
-      setSavingAvailability(true);
-      if (!providerId) {
-        toast.error("ID do provider não encontrado.");
-        return;
-      }
-      await updateProviderAvailability(providerId, {
-        diasAtivos,
-        horarios,
-      });
-
-      // Atualizar estado salvo com novos valores
-      setSavedDiasAtivos([...diasAtivos]);
-      setSavedHorarios({ ...horarios });
-      setEditingAvailability(false);
-      toast.success("Disponibilidade atualizada com sucesso!");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erro ao salvar disponibilidade";
-      toast.error(message);
-    } finally {
-      setSavingAvailability(false);
-    }
+  const saveEditingAvailability = () => {
+    setSavedDiasAtivos([...diasAtivos]);
+    setSavedHorarios({ ...horarios });
+    setEditingAvailability(false);
   };
 
   const formatHorario = (key: string) => {
@@ -537,9 +355,7 @@ const Perfil = () => {
 
   const switchRole = () => {
     const newRole = isContratante ? "freelancer" : "contratante";
-    setRole(newRole);
-    setFreelancerData({ name: "", avatarUrl: null, rating: "0", city: "", uf: "", desiredJobVacancy: "", isPCD: false });
-    setContractorData({ name: "", avatarUrl: null, rating: "0", segment: "", city: "", uf: "" });
+    setUserRole(newRole);
     navigate(newRole === "contratante" ? "/dashboard-contratante" : "/dashboard-freelancer");
   };
 
@@ -559,21 +375,45 @@ const Perfil = () => {
   return (
     <AppLayout showFooter={false}>
       <div className="pt-20 lg:pt-24 px-4 max-w-2xl mx-auto pb-8 space-y-6">
+        {/* Contractor View Toggle - freelancer only */}
+        {!isContratante &&
+        <div className="flex justify-end">
+            <button
+            onClick={() => setContractorView(!contractorView)}
+            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+            contractorView ?
+            "bg-primary text-primary-foreground" :
+            "bg-muted text-muted-foreground"}`
+            }>
+
+              <Eye className="w-3.5 h-3.5" />
+              Visão Contratante
+            </button>
+          </div>
+        }
+
         {/* Profile Card */}
           <Card>
             <CardContent className="p-5">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
                 <div className="relative shrink-0">
-                   <EditableAvatar
-                     src={isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl)}
-                     fallback={isContratante ? (contractorData.name?.[0] || "C") : (freelancerData.name?.[0] || "F")}
-                     size="md"
-                     onFileSelect={handleProfileImageUpload}
-                   />
-                   {!isContratante && freelancerData.isPCD && (
-                     <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
-                   )}
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold group overflow-hidden">
+                    {(isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl)) ? (
+                      <img src={(isContratante ? contractorData.avatarUrl : (freelancerData.avatarUrl || avatarUrl))!} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{isContratante ? (contractorData.name?.[0] || "C") : (freelancerData.name?.[0] || "F")}</span>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                      <Camera className="w-5 h-5 text-white" />
+                    </div>
+                  </button>
+                  {!isContratante && (
+                    <img src={pcdIcon} alt="PCD" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-background bg-background" title="Pessoa com Deficiência" />
+                  )}
                 </div>
+                <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                 <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex items-center justify-center sm:justify-start gap-1.5">
                     <h2 className="text-lg font-display font-bold truncate">
@@ -620,7 +460,7 @@ const Perfil = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-semibold">Serviços</p>
-                {!editingServices &&
+                {!contractorView && !editingServices &&
               <button onClick={startEditingServices} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
                     <Pencil className="w-3 h-3 text-primary" />
                   </button>
@@ -716,20 +556,20 @@ const Perfil = () => {
                 <h3 className="text-base font-display font-bold flex items-center gap-2">
                   <Clock className="w-5 h-5 text-primary" /> Disponibilidade de horário
                 </h3>
-                {!editingAvailability &&
+                {!contractorView && !editingAvailability &&
               <button onClick={startEditingAvailability} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
                     <Pencil className="w-3 h-3 text-primary" />
                   </button>
               }
               </div>
               {!editingAvailability ?
-            <div className="grid grid-cols-2 sm:grid-cols-7 gap-2 sm:gap-3">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
                   {diasSemana.map((dia) => {
                 const ativo = diasAtivos.includes(dia.key);
                 return (
-                  <div key={dia.key} className="flex flex-col items-center gap-1">
+                  <div key={dia.key} className="flex flex-col items-center gap-0.5 snap-start">
                         <span
-                      className={`w-full aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-bold shrink-0 ${
+                      className={`w-14 h-14 sm:w-auto sm:h-auto sm:aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-bold shrink-0 ${
                       ativo ?
                       "bg-primary text-primary-foreground" :
                       "bg-muted/50 text-muted-foreground"}`
@@ -740,8 +580,8 @@ const Perfil = () => {
                       }
                         </span>
                       </div>);
-                })}
-                  </div> :
+              })}
+                </div> :
 
             <div className="space-y-3">
                   <div className="grid grid-cols-7 gap-1 sm:gap-2">
@@ -774,22 +614,14 @@ const Perfil = () => {
 
                 })}
                   </div>
-                   <div className="flex gap-2">
-                     <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={cancelEditingAvailability} disabled={savingAvailability}>
-                       <X className="w-3.5 h-3.5 mr-1" /> Cancelar
-                     </Button>
-                     <Button size="sm" className="flex-1 text-xs" onClick={saveEditingAvailability} disabled={savingAvailability}>
-                       {savingAvailability ? (
-                         <>
-                           <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> Salvando
-                         </>
-                       ) : (
-                         <>
-                           <Check className="w-3.5 h-3.5 mr-1" /> Salvar
-                         </>
-                       )}
-                     </Button>
-                   </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={cancelEditingAvailability}>
+                      <X className="w-3.5 h-3.5 mr-1" /> Cancelar
+                    </Button>
+                    <Button size="sm" className="flex-1 text-xs" onClick={saveEditingAvailability}>
+                      <Check className="w-3.5 h-3.5 mr-1" /> Salvar
+                    </Button>
+                  </div>
                 </div>
             }
             </CardContent>
@@ -798,7 +630,8 @@ const Perfil = () => {
 
         {/* Mídia - hidden for now */}
 
-        {/* Menu */}
+        {/* Menu - hidden in contractor view */}
+        {!contractorView &&
         <Card>
             <CardContent className="p-2">
               {menuItems.map((item, i) =>
@@ -819,33 +652,34 @@ const Perfil = () => {
             )}
             </CardContent>
           </Card>
+        }
 
-        {/* Logout */}
+        {/* Logout - hidden in contractor view */}
+        {!contractorView &&
         <Button variant="ghost" onClick={logout} className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 gap-2">
             <LogOut className="w-4 h-4" /> Sair da conta
           </Button>
+        }
       </div>
 
       {/* Dialog de horário */}
       <Dialog open={!!horarioDialog} onOpenChange={(open) => !open && setHorarioDialog(null)}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-xs">
           <DialogHeader>
             <DialogTitle>Horário — {diaLabel}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-6">
-            <div className="grid grid-cols-2 gap-8 max-w-2xl mx-auto w-full">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">De</label>
-                <select value={tempDe} onChange={(e) => setTempDe(e.target.value)} className="w-full border rounded-lg px-4 py-3 text-sm bg-background">
-                  {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Até</label>
-                <select value={tempAte} onChange={(e) => setTempAte(e.target.value)} className="w-full border rounded-lg px-4 py-3 text-sm bg-background">
-                  {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
-                </select>
-              </div>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">De</label>
+              <select value={tempDe} onChange={(e) => setTempDe(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
+                {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Até</label>
+              <select value={tempAte} onChange={(e) => setTempAte(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm bg-background">
+                {horasDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
             </div>
           </div>
           <DialogFooter className="gap-2">

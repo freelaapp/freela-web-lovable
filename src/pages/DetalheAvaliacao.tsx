@@ -7,9 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import AppLayout from "@/components/layout/AppLayout";
-import { errorMessages } from "@/lib/error-messages";
 
-const API_BASE_URL = import.meta.env.API_BASE_URL;
+const API_BASE_URL = "https://api.freelaservicos.com.br";
 const ORIGIN_TYPE = "Web";
 
 function getAuthToken(): string | null {
@@ -93,7 +92,7 @@ const DetalheAvaliacao = () => {
 
       const token = getAuthToken();
       if (!token) {
-        setError(errorMessages.sessionExpired);
+        setError("Sessão expirada. Faça login novamente.");
         setLoading(false);
         return;
       }
@@ -143,6 +142,7 @@ const DetalheAvaliacao = () => {
           setError("Avaliação não encontrada.");
         }
       } catch (err) {
+        console.error("Erro ao carregar detalhes:", err);
         setError("Erro ao carregar os dados. Tente novamente.");
       } finally {
         setLoading(false);

@@ -12,7 +12,6 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  envPrefix: ["VITE_", "API_"],
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {

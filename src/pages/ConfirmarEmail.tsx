@@ -1,14 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Mail, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { confirmEmail, generateEmailConfirmationCode, registerUser } from "@/lib/api";
+import { confirmEmail, generateEmailConfirmationCode } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { onAuthSuccess } from "@/lib/auth";
-import { errorMessages } from "@/lib/error-messages";
-
-const RESEND_COOLDOWN = 60;
 
 const ConfirmarEmail = () => {
   const navigate = useNavigate();
@@ -19,16 +15,7 @@ const ConfirmarEmail = () => {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState("");
-  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
-    return () => clearInterval(timer);
-  }, [cooldown]);
-
-  const startCooldown = useCallback(() => setCooldown(RESEND_COOLDOWN), []);
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -71,7 +58,6 @@ const ConfirmarEmail = () => {
     try {
       await generateEmailConfirmationCode(email);
       toast({ title: "Código reenviado!", description: "Verifique sua caixa de entrada." });
-      startCooldown();
     } catch {
       toast({ title: "Erro", description: "Não foi possível reenviar o código.", variant: "destructive" });
     } finally {
@@ -79,58 +65,54 @@ const ConfirmarEmail = () => {
     }
   };
 
-   const handleSubmit = async (e: React.FormEvent) => {
-     e.preventDefault();
-     const fullCode = code.join("");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const fullCode = code.join("");
 
-     // 1) Validação local
-     if (fullCode.length < 6 || !/^\d{6}$/.test(fullCode)) {
-       setError("Digite o código de 6 dígitos");
-       return;
-     }
+    // 1) Validação local
+    if (fullCode.length < 6 || !/^\d{6}$/.test(fullCode)) {
+      setError("Digite o código de 6 dígitos");
+      return;
+    }
 
-     // 2) Ler dados pendentes
-     const pendingRaw = localStorage.getItem("pendingRegisterData");
-     if (!pendingRaw) {
-       setError("Dados de cadastro não encontrados. Volte para /cadastro.");
-       return;
-     }
+    // 2) Ler dados pendentes ANTES de chamar a API
+    const pendingRaw = localStorage.getItem("pendingRegisterData");
+    if (!pendingRaw) {
+      setError("Dados de cadastro não encontrados. Volte para /cadastro.");
+      return;
+    }
 
-     const pendingData = JSON.parse(pendingRaw);
-     if (!pendingData.email) {
-       setError("Dados de cadastro não encontrados. Volte para /cadastro.");
-       return;
-     }
+    const pendingData = JSON.parse(pendingRaw);
+    if (!pendingData.email) {
+      setError("Dados de cadastro não encontrados. Volte para /cadastro.");
+      return;
+    }
 
-     setIsLoading(true);
-     setError("");
+    setIsLoading(true);
+    setError("");
 
     try {
-      // 3) Confirmar e-mail com o código digitado primeiro
-      setLoadingMessage("Validando código...");
+      // Confirmar e-mail (usuário já foi registrado em /cadastro)
+      setLoadingMessage("Validando código…");
       await confirmEmail(pendingData.email, fullCode);
 
-      // 4) Registrar usuário (POST /users/register) com dados pendentes
-      setLoadingMessage("Criando conta...");
-      const result = await registerUser(pendingData);
-      onAuthSuccess(result.data);
-
-      // 5) Limpar dados pendentes e navegar
+      // Código válido — autenticação já ocorreu no cadastro, ir direto para escolher perfil
       localStorage.removeItem("pendingRegisterData");
       await recheckAuth();
+
       navigate("/escolher-perfil");
     } catch (err: any) {
-       const msg = err?.message || "";
-const message =
-          err instanceof TypeError
-            ? errorMessages.connectionError
-            : msg || errorMessages.confirmationCodeInvalid;
-       setError(message);
-     } finally {
-       setIsLoading(false);
-       setLoadingMessage("");
-     }
-   };
+      const msg = err?.message || "";
+      const message =
+        err instanceof TypeError
+          ? "Falha de conexão. Verifique sua internet e tente novamente."
+          : msg || "Código inválido ou expirado. Tente novamente.";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage("");
+    }
+  };
 
   return (
     <div className="min-h-screen hero-gradient flex flex-col items-center justify-center container-padding py-12 relative">
@@ -191,22 +173,14 @@ const message =
           </Button>
         </form>
 
-        <p className="text-xs text-muted-foreground mt-4">
-          Não encontrou o código? Verifique também sua caixa de <strong>Spam</strong> e <strong>Lixeira</strong>.
-        </p>
-
         <button
           type="button"
           onClick={handleResend}
-          disabled={isResending || isLoading || cooldown > 0}
-          className="mt-3 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isResending || isLoading}
+          className="mt-6 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
         >
           <RotateCcw className={`w-4 h-4 ${isResending ? "animate-spin" : ""}`} />
-          {isResending
-            ? "Reenviando..."
-            : cooldown > 0
-              ? `Reenviar código em ${Math.floor(cooldown / 60)}:${String(cooldown % 60).padStart(2, "0")}`
-              : "Reenviar código"}
+          {isResending ? "Reenviando..." : "Reenviar código"}
         </button>
       </div>
     </div>

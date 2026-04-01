@@ -1,79 +1,145 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, MapPin, Shield, ChevronLeft, Building2, Home, Calendar, Briefcase, Users, Loader2 } from "lucide-react";
+import { Star, MapPin, MessageCircle, Shield, ChevronLeft, Building2, Home, Phone, Calendar, Briefcase, Users } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
-import { useEffect, useState } from "react";
-import { getContractorById, PublicContractorProfile } from "@/lib/api";
-import { errorMessages } from "@/lib/error-messages";
 
-const API_BASE_URL = import.meta.env.API_BASE_URL;
-const ORIGIN_TYPE = "Web";
+const contratantesData: Record<string, {
+  id: string;
+  name: string;
+  avatar: string;
+  type: "pf" | "pj";
+  category?: string;
+  location: string;
+  rating: number;
+  reviews: number;
+  eventsCreated: number;
+  memberSince: string;
+  verified: boolean;
+  phone: string;
+  bio: string;
+  photos: string[];
+  recentEvents: { title: string; date: string; role: string }[];
+  testimonials: { name: string; text: string; rating: number }[];
+}> = {
+  c1: {
+    id: "c1", name: "Ana Oliveira", avatar: "AO", type: "pf",
+    location: "Jundiaí, SP", rating: 4.8, reviews: 15, eventsCreated: 23,
+    memberSince: "Mar 2024", verified: true, phone: "(11) 99999-1234",
+    bio: "Adoro organizar festas e eventos para família e amigos. Sempre busco os melhores profissionais para garantir que tudo saia perfeito.",
+    photos: [],
+    recentEvents: [
+      { title: "Aniversário 30 anos", date: "22 Fev 2026", role: "Churrasqueiro" },
+      { title: "Chá de bebê", date: "10 Jan 2026", role: "Garçom" },
+    ],
+    testimonials: [
+      { name: "Carlos Silva", text: "Excelente contratante, muito organizada e pontual no pagamento.", rating: 5 },
+      { name: "Pedro Santos", text: "Comunicação clara e evento muito bem planejado.", rating: 5 },
+    ],
+  },
+  c2: {
+    id: "c2", name: "Tech Corp", avatar: "TC", type: "pj", category: "Tecnologia",
+    location: "Jundiaí, SP", rating: 4.9, reviews: 42, eventsCreated: 58,
+    memberSince: "Jan 2023", verified: true, phone: "(11) 98888-5678",
+    bio: "Empresa de tecnologia que realiza eventos corporativos frequentes, incluindo confraternizações, happy hours e workshops para colaboradores.",
+    photos: ["/lovable-uploads/6bc76b0e-48cd-43dd-9799-173f81a4f62b.png", "/lovable-uploads/8e9ea4aa-b6c7-49f5-9a45-b521e7f13075.png"],
+    recentEvents: [
+      { title: "Evento Corporativo", date: "28 Fev 2026", role: "Bartender" },
+      { title: "Confraternização de fim de ano", date: "20 Dez 2025", role: "Churrasqueiro" },
+      { title: "Happy Hour Mensal", date: "15 Nov 2025", role: "Bartender" },
+    ],
+    testimonials: [
+      { name: "Ana Costa", text: "Empresa séria, pagamento sempre em dia e eventos muito bem organizados.", rating: 5 },
+      { name: "Roberto Lima", text: "Ótima experiência, equipe muito profissional.", rating: 5 },
+      { name: "Julia Mendes", text: "Sempre contratam com antecedência e dão todo suporte necessário.", rating: 4 },
+    ],
+  },
+  c3: {
+    id: "c3", name: "Maria Santos", avatar: "MS", type: "pf",
+    location: "Jundiaí, SP", rating: 5.0, reviews: 8, eventsCreated: 5,
+    memberSince: "Jun 2025", verified: true, phone: "(11) 97777-9012",
+    bio: "Organizando meu casamento dos sonhos! Procuro profissionais dedicados e com experiência em eventos especiais.",
+    photos: [],
+    recentEvents: [
+      { title: "Casamento", date: "08 Mar 2026", role: "Garçom" },
+    ],
+    testimonials: [
+      { name: "Felipe Souza", text: "Muito atenciosa e cuidadosa com cada detalhe.", rating: 5 },
+    ],
+  },
+  c7: {
+    id: "c7", name: "Roberto Lima", avatar: "RL", type: "pf",
+    location: "Centro, Jundiaí", rating: 4.7, reviews: 12, eventsCreated: 9,
+    memberSince: "Ago 2024", verified: true, phone: "(11) 93333-5678",
+    bio: "Festeiro de carteirinha! Gosto de reunir amigos e família em churrascos e comemorações.",
+    photos: [],
+    recentEvents: [
+      { title: "Aniversário 50 anos", date: "25 Fev 2026", role: "Garçom" },
+      { title: "Churrasco de Natal", date: "25 Dez 2025", role: "Churrasqueiro" },
+    ],
+    testimonials: [
+      { name: "Marcos Silva", text: "Muito gente boa, pagamento rápido e evento divertido.", rating: 5 },
+      { name: "Ana Paula", text: "Ótimo anfitrião, tudo muito bem organizado.", rating: 4 },
+    ],
+  },
+  c8: {
+    id: "c8", name: "StartUp Inc", avatar: "SI", type: "pj", category: "Startup / Coworking",
+    location: "Anhangabaú, Jundiaí", rating: 4.6, reviews: 18, eventsCreated: 31,
+    memberSince: "Fev 2024", verified: true, phone: "(11) 92222-9012",
+    bio: "Startup inovadora com foco em cultura e bem-estar dos colaboradores. Realizamos eventos semanais e mensais.",
+    photos: ["/lovable-uploads/6c415550-33af-4ed9-96f3-fab4c495fbbe.png"],
+    recentEvents: [
+      { title: "Happy Hour Corporativo", date: "27 Fev 2026", role: "Bartender" },
+      { title: "Workshop & Almoço", date: "10 Fev 2026", role: "Cozinheiro" },
+    ],
+    testimonials: [
+      { name: "Carla Dias", text: "Ambiente descontraído e equipe muito receptiva.", rating: 5 },
+      { name: "Bruno Alves", text: "Pagamento rápido e comunicação excelente.", rating: 4 },
+    ],
+  },
+  c9: {
+    id: "c9", name: "Juliana Mendes", avatar: "JM", type: "pf",
+    location: "Eloy Chaves, Jundiaí", rating: 4.9, reviews: 6, eventsCreated: 3,
+    memberSince: "Set 2025", verified: false, phone: "(11) 91111-3456",
+    bio: "Preparando o casamento e alguns eventos familiares. Valorizo profissionais comprometidos e pontuais.",
+    photos: [],
+    recentEvents: [
+      { title: "Casamento - Buffet", date: "01 Mar 2026", role: "Churrasqueiro" },
+    ],
+    testimonials: [
+      { name: "Lucas Rocha", text: "Muito educada e organizada, recomendo trabalhar com ela.", rating: 5 },
+    ],
+  },
+  c10: {
+    id: "c10", name: "ONG Esperança", avatar: "OE", type: "pj", category: "ONG / Social",
+    location: "Vila Arens, Jundiaí", rating: 4.5, reviews: 22, eventsCreated: 40,
+    memberSince: "Jan 2022", verified: true, phone: "(11) 90000-7890",
+    bio: "Organização sem fins lucrativos que promove eventos beneficentes para a comunidade local. Sempre precisamos de profissionais voluntários e contratados.",
+    photos: [],
+    recentEvents: [
+      { title: "Evento Beneficente", date: "05 Mar 2026", role: "Cozinheiro" },
+      { title: "Almoço Solidário", date: "15 Jan 2026", role: "Garçom" },
+    ],
+    testimonials: [
+      { name: "Patrícia Lima", text: "Causa nobre e equipe muito querida. Trabalho com prazer.", rating: 5 },
+      { name: "André Costa", text: "Organização excelente mesmo com recursos limitados.", rating: 4 },
+    ],
+  },
+};
+
+// Fallback for unknown IDs
+const defaultContratante = {
+  id: "unknown", name: "Contratante", avatar: "??", type: "pf" as const,
+  location: "São Paulo, SP", rating: 4.5, reviews: 0, eventsCreated: 0,
+  memberSince: "2025", verified: false, phone: "-", bio: "Informações não disponíveis.",
+  photos: [] as string[], recentEvents: [] as { title: string; date: string; role: string }[],
+  testimonials: [] as { name: string; text: string; rating: number }[],
+};
 
 const PerfilContratante = () => {
   const { clientId } = useParams();
   const navigate = useNavigate();
-   const [loading, setLoading] = useState(true);
-   const [error, setError] = useState<string | null>(null);
-   const [profile, setProfile] = useState<PublicContractorProfile | null>(null);
-   const [reviews, setReviews] = useState<any[]>([]);
-   const [loadingReviews, setLoadingReviews] = useState(false);
-
-   useEffect(() => {
-     if (!clientId) {
-       setError("ID do contratante não fornecido.");
-       setLoading(false);
-       return;
-     }
-
-     const fetchProfile = async () => {
-       try {
-         const data = await getContractorById(clientId);
-         setProfile(data);
-       } catch (err) {
-         setError(errorMessages.profileLoadFailed);
-       } finally {
-         setLoading(false);
-       }
-     };
-
-     const fetchReviews = async () => {
-       if (!clientId) return;
-       setLoadingReviews(true);
-       try {
-         const tokenRaw = localStorage.getItem("authToken");
-         const headers: any = { "Content-Type": "application/json" };
-         if (tokenRaw) {
-           const token = JSON.parse(tokenRaw);
-           headers.Authorization = `Bearer ${token}`;
-           headers["Origin-type"] = "Web";
-         }
-
-         const res = await fetch(`${API_BASE_URL}/contractors/${clientId}/jobs/feedbacks`, {
-           method: "GET",
-           credentials: "include",
-           headers,
-         });
-
-         if (res.ok) {
-           const body = await res.json().catch(() => null);
-           const data = body?.data ?? body;
-           const reviewsArray = Array.isArray(data) ? data : [];
-           // Últimas 3 avaliações (mais recentes primeiro)
-           setReviews(reviewsArray.slice(0, 3));
-         } else {
-           setReviews([]);
-         }
-       } catch (err) {
-         setReviews([]);
-       } finally {
-         setLoadingReviews(false);
-       }
-     };
-
-     fetchProfile();
-     fetchReviews();
-   }, [clientId]);
+  const data = contratantesData[clientId || ""] || defaultContratante;
 
   const renderStars = (rating: number) => (
     <div className="flex gap-0.5">
@@ -82,67 +148,6 @@ const PerfilContratante = () => {
       ))}
     </div>
   );
-
-  // Helper para gerar iniciais
-  const getInitials = (name: string): string => {
-    return name
-      .split(" ")
-      .slice(0, 2)
-      .map(n => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
-  // Determina se é PF ou PJ
-  const isPJ = profile?.cnpj != null && profile.cnpj !== "";
-  const displayName = profile?.companyName || profile?.corporateReason || profile?.nameOperationResponsible || "Contratante";
-  const initials = getInitials(displayName);
-
-  // Formata data de criação
-  const memberSince = profile?.createdAt
-    ? new Date(profile.createdAt).toLocaleDateString("pt-BR", { month: "short", year: "numeric" })
-    : "2025";
-
-  if (loading) {
-    return (
-      <AppLayout showHeader={false} showFooter={false}>
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
-          <div className="flex items-center justify-between h-14 px-4">
-            <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-foreground">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-sm font-semibold font-display">Perfil do Contratante</h1>
-            <div className="w-9" />
-          </div>
-        </div>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (error || !profile) {
-    return (
-      <AppLayout showHeader={false} showFooter={false}>
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
-          <div className="flex items-center justify-between h-14 px-4">
-            <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-foreground">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-sm font-semibold font-display">Perfil do Contratante</h1>
-            <div className="w-9" />
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4">
-          <p className="text-muted-foreground text-center">{error || "Perfil não encontrado."}</p>
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Voltar
-          </Button>
-        </div>
-      </AppLayout>
-    );
-  }
 
   return (
     <AppLayout showHeader={false} showFooter={false}>
@@ -160,21 +165,18 @@ const PerfilContratante = () => {
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-24">
         {/* Profile Header */}
         <div className="flex flex-col items-center text-center sm:flex-row sm:text-left sm:items-start gap-5">
-          <div className="w-24 h-24 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-amber shrink-0 overflow-hidden">
-            {profile.profileImage ? (
-              <img src={profile.profileImage} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              initials
-            )}
+          <div className="w-24 h-24 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-amber shrink-0">
+            {data.avatar}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 justify-center sm:justify-start">
-               <h2 className="text-xl font-display font-bold">{displayName}</h2>
-             </div>
+              <h2 className="text-xl font-display font-bold">{data.name}</h2>
+              {data.verified && <Shield className="w-5 h-5 text-primary fill-primary/20" />}
+            </div>
             <div className="flex items-center gap-2 mt-1 justify-center sm:justify-start">
-              {isPJ ? (
+              {data.type === "pj" ? (
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Building2 className="w-4 h-4" /> Empresa{profile.companySegment ? ` • ${profile.companySegment}` : ""}
+                  <Building2 className="w-4 h-4" /> Empresa{data.category ? ` • ${data.category}` : ""}
                 </span>
               ) : (
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -182,23 +184,22 @@ const PerfilContratante = () => {
                 </span>
               )}
             </div>
-             <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground justify-center sm:justify-start flex-wrap">
-               <span className="flex items-center gap-1">
-                 <MapPin className="w-4 h-4" /> {profile.city}, {profile.uf}
-               </span>
-               <span className="flex items-center gap-1">
-                 <Calendar className="w-4 h-4" /> Desde {memberSince}
-               </span>
-             </div>
+            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground justify-center sm:justify-start flex-wrap">
+              <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {data.location}</span>
+              <span className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-primary text-primary" /> {data.rating} ({data.reviews})
+              </span>
+              <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Desde {data.memberSince}</span>
+            </div>
           </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { value: "—", label: "Eventos", icon: Briefcase },
-            { value: profile.feedbackStars.toFixed(1), label: "Avaliação", icon: Star },
-            { value: "—", label: "Avaliações", icon: Users },
+            { value: data.eventsCreated.toString(), label: "Eventos", icon: Briefcase },
+            { value: data.rating.toString(), label: "Avaliação", icon: Star },
+            { value: data.reviews.toString(), label: "Avaliações", icon: Users },
           ].map((stat) => (
             <Card key={stat.label} className="text-center">
               <CardContent className="p-4">
@@ -209,91 +210,70 @@ const PerfilContratante = () => {
           ))}
         </div>
 
-        {/* Bio / Descrição */}
+        {/* Bio */}
         <Card>
           <CardContent className="p-5">
             <h3 className="font-display font-semibold text-base mb-2">Sobre</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Dados de Perfil Pendentes
-            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{data.bio}</p>
           </CardContent>
         </Card>
 
         {/* Fotos do Estabelecimento (PJ only) */}
-        {isPJ && (profile.establishmentFacadeImage || profile.establishmentInteriorImage) && (
+        {data.type === "pj" && data.photos.length > 0 && (
           <Card>
             <CardContent className="p-5">
               <h3 className="font-display font-semibold text-base mb-3">Fotos do Estabelecimento</h3>
               <div className="grid grid-cols-2 gap-3">
-                {profile.establishmentFacadeImage && (
-                  <div className="aspect-video rounded-xl overflow-hidden bg-muted">
-                    <img src={profile.establishmentFacadeImage} alt="Fachada" className="w-full h-full object-cover" />
+                {data.photos.map((photo, i) => (
+                  <div key={i} className="aspect-video rounded-xl overflow-hidden bg-muted">
+                    <img src={photo} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
                   </div>
-                )}
-                {profile.establishmentInteriorImage && (
-                  <div className="aspect-video rounded-xl overflow-hidden bg-muted">
-                    <img src={profile.establishmentInteriorImage} alt="Ambiente Interno" className="w-full h-full object-cover" />
-                  </div>
-                )}
+                ))}
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Endereço */}
-        <Card>
-          <CardContent className="p-5">
-            <h3 className="font-display font-semibold text-base mb-2">Localização</h3>
-            <p className="text-sm text-muted-foreground">
-              {profile.street}, {profile.number}
-              {profile.complement && `, ${profile.complement}`}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {profile.neighborhood} — {profile.city}, {profile.uf}
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">CEP: {profile.cep}</p>
-          </CardContent>
-        </Card>
+        {/* Eventos Recentes */}
+        {data.recentEvents.length > 0 && (
+          <Card>
+            <CardContent className="p-5">
+              <h3 className="font-display font-semibold text-base mb-3">Eventos Recentes</h3>
+              <div className="space-y-3">
+                {data.recentEvents.map((event, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div>
+                      <p className="text-sm font-medium">{event.title}</p>
+                      <p className="text-xs text-muted-foreground">{event.role} • {event.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Avaliações */}
-        <Card>
-          <CardContent className="p-5">
-            <h3 className="font-display font-semibold text-base mb-3">Avaliação</h3>
-             <div className="flex items-center gap-3 mb-3">
-               <div className="text-3xl font-bold font-display text-primary">
-                 {profile.feedbackStars.toFixed(1)}
-               </div>
-               <div>
-                 {renderStars(profile.feedbackStars)}
-               </div>
-             </div>
-             {/* Lista das últimas 3 avaliações */}
-             {loadingReviews ? (
-               <p className="text-sm text-muted-foreground">Carregando avaliações...</p>
-             ) : reviews.length > 0 ? (
-               <div className="space-y-3">
-                 {reviews.map((review, idx) => {
-                   const rating = review.rating || review.score || 0;
-                   const comment = review.comment || review.text || "";
-                   const date = review.createdAt ? new Date(review.createdAt).toLocaleDateString('pt-BR') : "";
-                   return (
-                     <div key={idx} className="border-b border-border pb-3 last:border-0">
-                       <div className="flex items-center gap-1 mb-1">
-                         {renderStars(rating)}
-                         <span className="text-xs font-medium">{rating.toFixed(1)}</span>
-                       </div>
-                       {comment && <p className="text-sm">{comment}</p>}
-                       {date && <p className="text-xs text-muted-foreground mt-1">{date}</p>}
-                     </div>
-                   );
-                 })}
-               </div>
-             ) : (
-               <p className="text-sm text-muted-foreground">Nenhuma avaliação recebida ainda.</p>
-             )}
-          </CardContent>
-        </Card>
+        {data.testimonials.length > 0 && (
+          <Card>
+            <CardContent className="p-5">
+              <h3 className="font-display font-semibold text-base mb-3">Avaliações de Freelancers</h3>
+              <div className="space-y-4">
+                {data.testimonials.map((t, i) => (
+                  <div key={i} className="border-b border-border last:border-0 pb-4 last:pb-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold">{t.name}</span>
+                      {renderStars(t.rating)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{t.text}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
     </AppLayout>
   );
 };

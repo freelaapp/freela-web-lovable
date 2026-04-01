@@ -80,12 +80,10 @@ const ServicoCard = ({
   minHours,
   horaMinima,
 }: ServicoCardProps) => {
-  const MAX_HOURS = 12;
   const hours = calcHours(horaInicio, horaFim);
   const effectiveHours = Math.max(hours, minHours);
   const valor = pricePerHour * effectiveHours * quantidade;
   const isBelowMin = hours > 0 && hours < minHours;
-  const isAboveMax = hours > MAX_HOURS;
 
   // Horas disponíveis para início: todas >= horaMinima (se fornecida)
   const horasInicio = horaMinima
@@ -103,7 +101,7 @@ const ServicoCard = ({
     : HORAS;
 
   return (
-    <div className={`group relative bg-card border rounded-xl p-3.5 transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300 ${isBelowMin || isAboveMax ? "border-destructive/50" : "border-border hover:border-primary/30"}`}>
+    <div className={`group relative bg-card border rounded-xl p-3.5 transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300 ${isBelowMin ? "border-destructive/50" : "border-border hover:border-primary/30"}`}>
       {/* Remove button */}
       <button
         type="button"
@@ -196,13 +194,6 @@ const ServicoCard = ({
         </p>
       )}
 
-      {/* Max hours warning */}
-      {isAboveMax && (
-        <p className="mt-2 text-[11px] text-destructive font-medium">
-          *O limite máximo é de {MAX_HOURS}h
-        </p>
-      )}
-
       {/* Footer - cálculo */}
       <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between">
         <div className="text-xs text-muted-foreground">
@@ -216,7 +207,7 @@ const ServicoCard = ({
         </div>
         {hours > 0 && (
           <span className="text-sm font-bold text-primary">
-            {valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+            R$ {valor.toFixed(2).replace(".", ",")}
           </span>
         )}
       </div>

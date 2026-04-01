@@ -1,7 +1,6 @@
 import { refreshAuthToken, logout } from "@/lib/auth";
-import { errorMessages } from "./error-messages";
 
-const API_BASE_URL = import.meta.env.API_BASE_URL;
+const API_BASE_URL = "https://api.freelaservicos.com.br";
 
 // Trocar para "mobile" quando necessário
 const ORIGIN_TYPE = "Web";
@@ -22,7 +21,7 @@ export function registerSessionExpiredHandler(cb: OnSessionExpired): void {
 // but in most cases the global handler already redirected to login.
 export class SessionExpiredError extends Error {
   constructor() {
-    super(errorMessages.sessionExpired);
+    super("Sessão expirada. Faça login novamente.");
     this.name = "SessionExpiredError";
   }
 }
@@ -125,19 +124,19 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   const body = await response.json().catch(() => null);
 
   if (response.status === 401) {
-    throw new Error(errorMessages.invalidCredentials);
+    throw new Error("Credenciais incorretas.");
   }
 
   if (response.status === 429) {
-    throw new Error(errorMessages.tooManyAttempts);
+    throw new Error("Muitas tentativas. Tente novamente mais tarde.");
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || errorMessages.invalidCredentials);
+    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
   }
 
   if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || errorMessages.invalidCredentials);
+    throw new Error(body?.message || "Não foi possível entrar. Verifique seus dados e tente novamente.");
   }
 
   return body as LoginResponse;
@@ -171,17 +170,18 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
   const body = await response.json().catch(() => null);
 
   if (response.status === 409) {
-    throw new Error(errorMessages.emailAlreadyRegistered);
+    throw new Error("Este e-mail já está cadastrado.");
   }
 
   if (!response.ok) {
-    throw new Error(body?.message || errorMessages.registrationFailed);
+    throw new Error(body?.message || "Não foi possível criar sua conta. Tente novamente.");
   }
 
   if (!body?.success || !body?.data || typeof body.data !== "string") {
-    throw new Error(body?.message || errorMessages.unexpectedError);
+    throw new Error(body?.message || "Resposta inesperada do servidor.");
   }
 
+  console.log("[register] status:", response.status, "message:", body.message);
 
   return body as RegisterResponse;
 }
@@ -195,7 +195,7 @@ export async function generateEmailConfirmationCode(email: string): Promise<void
   );
 
   if (response.status !== 200) {
-    throw new Error(errorMessages.couldNotSendCode);
+    throw new Error("Não foi possível enviar o código de confirmação. Verifique o e-mail e tente novamente.");
   }
 }
 
@@ -210,7 +210,7 @@ export async function confirmEmail(email: string, code: string): Promise<void> {
   });
 
   if (response.status !== 200) {
-    throw new Error(errorMessages.confirmationCodeInvalid);
+    throw new Error("Código inválido ou expirado. Tente novamente.");
   }
 }
 
@@ -222,7 +222,7 @@ export async function registerProvider(formData: FormData): Promise<void> {
 
   if (response.status !== 200 && response.status !== 201) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.message || errorMessages.registrationFailed);
+    throw new Error(body?.message || "Não foi possível completar o cadastro. Tente novamente.");
   }
 }
 
@@ -233,7 +233,6 @@ export interface ContractorProfile {
   fantasyName?: string;
   companyName?: string;
   name?: string;
-  reference?: string;
   [key: string]: unknown;
 }
 
@@ -243,6 +242,7 @@ export async function getContractorProfile(token: string): Promise<ContractorPro
   });
 
   const body = await response.json().catch(() => null);
+  console.log("[getContractorProfile] response bruto:", JSON.stringify(body));
 
   if (!response.ok) {
     throw new Error(body?.message || "Não foi possível carregar o perfil do contratante.");
@@ -251,6 +251,7 @@ export async function getContractorProfile(token: string): Promise<ContractorPro
   // body.data pode ser objeto direto ou array com um item
   const raw = body?.data ?? body;
   const data = Array.isArray(raw) ? raw[0] : raw;
+  console.log("[getContractorProfile] data resolvido:", JSON.stringify(data));
   return data as ContractorProfile;
 }
 
@@ -294,13 +295,13 @@ export async function acceptCandidacy(candidacyId: string): Promise<CandidacyAct
   const body = await response.json().catch(() => null);
 
   if (response.status === 403) {
-    throw new Error(errorMessages.maxCandidatesReached);
+    throw new Error("Esta vaga já atingiu o número máximo de freelancers.");
   }
   if (response.status === 409) {
-    throw new Error(errorMessages.alreadyApplied);
+    throw new Error("Esta candidatura já foi aceita ou recusada anteriormente.");
   }
   if (!response.ok) {
-    throw new Error(body?.message || errorMessages.applicationFailed);
+    throw new Error(body?.message || "Não foi possível aceitar a candidatura. Tente novamente.");
   }
 
   return body.data as CandidacyActionResponse;
@@ -314,13 +315,13 @@ export async function rejectCandidacy(candidacyId: string): Promise<CandidacyAct
   const body = await response.json().catch(() => null);
 
   if (response.status === 404) {
-    throw new Error(errorMessages.jobNotFound);
+    throw new Error("Candidatura não encontrada.");
   }
   if (response.status === 409) {
-    throw new Error(errorMessages.alreadyApplied);
+    throw new Error("Esta candidatura já foi aceita ou recusada anteriormente.");
   }
   if (!response.ok) {
-    throw new Error(body?.message || errorMessages.applicationFailed);
+    throw new Error(body?.message || "Não foi possível recusar a candidatura. Tente novamente.");
   }
 
   return body.data as CandidacyActionResponse;
@@ -342,7 +343,7 @@ export async function getProviderDetails(providerId: string): Promise<ProviderDe
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || errorMessages.freelancerDataFailed);
+    throw new Error(body?.message || "Não foi possível carregar os dados do freelancer.");
   }
 
   const data = body?.data ?? body;
@@ -351,9 +352,11 @@ export async function getProviderDetails(providerId: string): Promise<ProviderDe
 
 // ── Job Payment ───────────────────────────────────────────────
 export interface CreateJobPaymentPayload {
-  method: "pix";
   vacancyId: string;
-  contractorCreditCardId?: string; // opcional para pix
+  contractorId: string;
+  providerId: string;
+  providerPixKeyId: string;
+  method: string;
 }
 
 export interface JobPaymentResponse {
@@ -369,8 +372,8 @@ export interface JobPaymentResponse {
   [key: string]: unknown;
 }
 
-export async function createJobPayment(vacancyId: string, payload: CreateJobPaymentPayload): Promise<JobPaymentResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/vacancies/jobs/payments`, {
+export async function createJobPayment(jobId: string, payload: CreateJobPaymentPayload): Promise<JobPaymentResponse> {
+  const response = await apiFetch(`${API_BASE_URL}/jobs/${jobId}/payments`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -381,7 +384,7 @@ export async function createJobPayment(vacancyId: string, payload: CreateJobPaym
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || errorMessages.paymentFailed);
+    throw new Error(body?.message || "Não foi possível criar o pagamento. Tente novamente.");
   }
 
   return (body?.data ?? body) as JobPaymentResponse;
@@ -399,411 +402,6 @@ export async function createVacancy(payload: CreateVacancyPayload, token: string
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body?.message || errorMessages.applicationFailed);
+    throw new Error(body?.message || "Não foi possível criar a vaga. Tente novamente.");
   }
-}
-
-// ── Contractor by ID (public profile) ─────────────────────────
-export interface PublicContractorProfile {
-  id: string;
-  cnpj: string | null;
-  corporateReason: string | null;
-  companyName: string | null;
-  companySegment: string | null;
-  cpf: string | null;
-  birthdate: string | null;
-  cep: string;
-  street: string;
-  complement: string | null;
-  reference: string | null;
-  neighborhood: string;
-  number: string;
-  city: string;
-  uf: string;
-  profileImage: string | null;
-  establishmentFacadeImage: string | null;
-  establishmentInteriorImage: string | null;
-  feedbackStars: number;
-  nameOperationResponsible: string | null;
-  phoneOperationResponsible: string | null;
-  createdAt: string;
-  userId: string;
-}
-
-export async function getContractorById(contractorId: string): Promise<PublicContractorProfile> {
-  const response = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}`, {
-    method: "GET",
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.contractorLoadFailed);
-  }
-
-  const raw = body?.data ?? body;
-  const data = Array.isArray(raw) ? raw[0] : raw;
-  return data as PublicContractorProfile;
-}
-
-// ── Contractor Settings ─────────────────────────────────────────
-export interface ContractorSettings {
-  id: string;
-  contractorId: string;
-  notifCandidaturas: boolean;
-  notifAvaliacoes: boolean;
-  notifPagamentos: boolean;
-  notifEmail: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface UpsertSettingsPayload {
-  notifCandidaturas?: boolean;
-  notifAvaliacoes?: boolean;
-  notifPagamentos?: boolean;
-  notifEmail?: boolean;
-}
-
-export async function getContractorSettings(contractorId: string): Promise<ContractorSettings> {
-  const response = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}/settings`, {
-    method: "GET",
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.settingsLoadFailed);
-  }
-
-  const raw = body?.data ?? body;
-  const data = Array.isArray(raw) ? raw[0] : raw;
-  return data as ContractorSettings;
-}
-
-export async function updateContractorSettings(contractorId: string, settings: UpsertSettingsPayload): Promise<ContractorSettings> {
-  const response = await apiFetch(`${API_BASE_URL}/contractors/${contractorId}/settings`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(settings),
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.settingsSaveFailed);
-  }
-
-  const raw = body?.data ?? body;
-  const data = Array.isArray(raw) ? raw[0] : raw;
-  return data as ContractorSettings;
-}
-
-// ── Password Recovery ───────────────────────────────────────────
-
-export interface ForgotPasswordPayload {
-  email: string;
-}
-
-export interface ForgotPasswordResponse {
-  success: boolean;
-  message: string;
-}
-
-/**
- * Solicita código de recuperação de senha.
- * IMPORTANTE: Resposta genérica — não revela se o email existe (BR-FP04).
- */
-export async function forgotPassword(payload: ForgotPasswordPayload): Promise<ForgotPasswordResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/users/forgot-password`, {
-    method: "POST",
-    skipAuth: true,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email: payload.email.toLowerCase().trim() }),
-  });
-
-  const body = await response.json().catch(() => null);
-
-  // Mesmo se email não existir, API retorna 200 com mensagem genérica
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.recoveryFailed);
-  }
-
-  if (!body?.success) {
-    throw new Error(body?.message || errorMessages.recoveryFailed);
-  }
-
-  return body as ForgotPasswordResponse;
-}
-
-export interface ResetPasswordPayload {
-  email: string;
-  code: string;
-  password: string;
-}
-
-export interface ResetPasswordResponse {
-  success: boolean;
-  message: string;
-}
-
-/**
- * Redefine a senha usando código de recuperação válido.
- * @throws 401 se o código for inválido ou expirado
- */
-export async function resetPassword(payload: ResetPasswordPayload): Promise<ResetPasswordResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/users/reset-password`, {
-    method: "POST",
-    skipAuth: true,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email: payload.email.toLowerCase().trim(),
-      code: payload.code.trim(),
-      password: payload.password,
-    }),
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (response.status === 401) {
-    throw new Error(errorMessages.confirmationCodeInvalid);
-  }
-
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.resetPasswordFailed);
-  }
-
-  if (!body?.success) {
-    throw new Error(body?.message || errorMessages.resetPasswordFailed);
-  }
-
-  return body as ResetPasswordResponse;
-}
-
-// ── Provider Availability ────────────────────────────────────
-
-export interface ProviderAvailability {
-  diasAtivos: string[];
-  horarios: Record<string, { de: string; ate: string }>;
-}
-
-export interface UpdateProviderAvailabilityPayload {
-  diasAtivos: string[];
-  horarios: Record<string, { de: string; ate: string }>;
-}
-
-export interface UpdateProviderAvailabilityResponse {
-  success: boolean;
-  message: string;
-  data?: ProviderAvailability;
-}
-
-/**
- * Atualiza a disponibilidade de horários do freelancer.
- * @param providerId ID do provider
- * @param payload Dias ativos e horários para cada dia
- * @returns Confirmação da atualização
- * @throws Error se validação falhar ou houver problema na persistência
- */
-export async function updateProviderAvailability(
-  providerId: string,
-  payload: UpdateProviderAvailabilityPayload,
-): Promise<UpdateProviderAvailabilityResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/providers/${providerId}/availability`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (response.status === 422) {
-    throw new Error(body?.message || errorMessages.availabilityValidationFailed);
-  }
-
-  if (response.status === 401) {
-    throw new Error(errorMessages.sessionExpired);
-  }
-
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.availabilityUpdateFailed);
-  }
-
-   if (!body?.success) {
-     throw new Error(body?.message || errorMessages.availabilityUpdateFailed);
-   }
-
-   return body as UpdateProviderAvailabilityResponse;
-}
-
-// ── Desired Job Vacancy ────────────────────────────────────────
-
-export interface UpdateDesiredJobVacancyPayload {
-  desiredJobVacancy: string;
-}
-
-export interface UpdateDesiredJobVacancyResponse {
-  success: boolean;
-  message: string;
-}
-
-/**
- * Atualiza a vaga desejada do freelancer.
- * @param payload A string contendo os IDs dos serviços separados por vírgula
- * @returns Confirmação da atualização
- * @throws Error se houver problema na persistência
- */
-export async function updateDesiredJobVacancy(
-  payload: UpdateDesiredJobVacancyPayload,
-): Promise<UpdateDesiredJobVacancyResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/users/providers`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.applicationFailed);
-  }
-
-  return body as UpdateDesiredJobVacancyResponse;
-}
-
-// ── Provider Update (PUT) ────────────────────────────────────────
-
-export interface ProviderUpdatePayload {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-}
-
-export interface ProviderUpdateResponse {
-  success: boolean;
-  message: string;
-  data?: any;
-}
-
-/**
- * Atualiza dados completos do provider via PUT /users.
- * Requer todos os campos, combinando dados existentes com as alterações.
- */
-export async function updateProvider(payload: ProviderUpdatePayload): Promise<ProviderUpdateResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/users`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.profileUpdateFailed);
-  }
-
-   return body as ProviderUpdateResponse;
-}
-
-// ── Provider Profile Image ─────────────────────────────────────
-
-export async function updateProviderProfileImage(
-  profileImage: File
-): Promise<ProviderUpdateResponse> {
-  const formData = new FormData();
-  formData.append('profileImage', profileImage, profileImage.name);
-
-  const response = await apiFetch(`${API_BASE_URL}/providers`, {
-    method: 'PUT',
-    body: formData,
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.photoUpdateFailed);
-  }
-
-  return body as ProviderUpdateResponse;
-}
-
-// ── Upload image to S3 via /images/upload ──────────────────────
-/**
- * Uploads an image file to S3 via POST /images/upload.
- * Returns the public S3 URL on success, or null on failure.
- */
-export async function uploadImageToS3(file: File): Promise<string | null> {
-  const formData = new FormData();
-  formData.append("file", file);
-  try {
-    const res = await apiFetch(`${API_BASE_URL}/images/upload`, {
-      method: "POST",
-      body: formData,
-    });
-    const body = await res.json().catch(() => null);
-    if (!res.ok) {
-      return null;
-    }
-    return body?.data?.url || body?.url || null;
-  } catch (err) {
-    return null;
-  }
-}
-
-// ── Fetch image with authentication ────────────────────────────
-/**
- * Fetches a protected image URL using the Bearer token and returns a local blob URL.
- * Use this instead of setting img src directly when the API requires auth for images.
- */
-export async function fetchImageWithAuth(url: string): Promise<string | null> {
-  if (!url) return null;
-  if (url.startsWith("data:") || url.startsWith("blob:")) return url;
-  const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
-  try {
-    const res = await apiFetch(fullUrl);
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    return URL.createObjectURL(blob);
-  } catch {
-    return null;
-  }
-}
-
-// ── Delete Vacancy ─────────────────────────────────────────────
-
-export interface DeleteVacancyResponse {
-  success: boolean;
-  message: string;
-}
-
-export async function deleteVacancy(vacancyId: string): Promise<DeleteVacancyResponse> {
-  const response = await apiFetch(`${API_BASE_URL}/vacancies/${vacancyId}`, {
-    method: "DELETE",
-  });
-
-  const body = await response.json().catch(() => null);
-
-  if (response.status === 404) {
-    throw new Error(errorMessages.jobNotFound);
-  }
-  if (response.status === 409) {
-    throw new Error(errorMessages.cannotDeleteJob);
-  }
-  if (!response.ok) {
-    throw new Error(body?.message || errorMessages.deleteJobFailed);
-  }
-
-  return body as DeleteVacancyResponse;
 }
