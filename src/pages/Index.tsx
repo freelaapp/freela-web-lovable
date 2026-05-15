@@ -1,5 +1,6 @@
 import AppLayout from "@/components/layout/AppLayout";
 import HeroSection from "@/components/home/HeroSection";
+import FreelaCasaCarousel from "@/components/home/FreelaCasaCarousel";
 import BenefitsSection from "@/components/home/BenefitsSection";
 import HowItWorksSection from "@/components/home/HowItWorksSection";
 import CategoriesSection from "@/components/home/CategoriesSection";
@@ -35,6 +36,7 @@ const Index = () => {
   return (
     <AppLayout>
       <HeroSection />
+      <FreelaCasaCarousel />
       <BenefitsSection />
       <CategoriesSection />
       <PartnersBenefitsSection />
