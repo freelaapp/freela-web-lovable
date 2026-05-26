@@ -18,6 +18,7 @@ export const servicosPF = [
   { id: "credenciamento-corp", label: "Operador(a) de Credenciamento (Corporativo)", pricePerHour: 40, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "coordenador-corp", label: "Coordenador(a) de Evento (Corporativo)", pricePerHour: 70, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "brigadista-corp", label: "Brigadista (Corporativo)", pricePerHour: 45, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
+  { id: "modelo-corp", label: "Modelo (Corporativo)", pricePerHour: 50, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "auxiliar-limpeza", label: "Auxiliar de Limpeza", pricePerHour: 20, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "auxiliar-cozinha", label: "Auxiliar de Cozinha", pricePerHour: 20, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "camareira", label: "Camareira", pricePerHour: 20, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
