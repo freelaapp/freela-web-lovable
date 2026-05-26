@@ -6,6 +6,7 @@ export const servicosPF = [
   { id: "copeiro", label: "Copeiro(a)", pricePerHour: 20, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "atendente", label: "Atendente", pricePerHour: 20, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "garcom", label: "Garçom/Garçonete", pricePerHour: 25, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
+  { id: "garcom-evento", label: "Garçom/Garçonete (Evento)", pricePerHour: 65, minHoursCasa: 4, minHoursEmpresa: 4, insuranceFee: 1 },
   { id: "auxiliar-limpeza", label: "Auxiliar de Limpeza", pricePerHour: 20, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "auxiliar-cozinha", label: "Auxiliar de Cozinha", pricePerHour: 20, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
   { id: "camareira", label: "Camareira", pricePerHour: 20, minHoursCasa: 6, minHoursEmpresa: 6, insuranceFee: 1 },
