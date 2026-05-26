@@ -40,6 +40,7 @@ export const servicosPF = [
   { id: "musico-mpb", label: "Músico (MPB)", pricePerHour: 150, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
   { id: "musico-multi", label: "Músico (Multi Estilo)", pricePerHour: 150, minHoursCasa: 3, minHoursEmpresa: 3, insuranceFee: 1 },
   { id: "private-chef", label: "Privata Chef / Chef em Casa", pricePerHour: 150, minHoursCasa: 4, minHoursEmpresa: 4, insuranceFee: 1 },
+  { id: "bartender-autorail", label: "Bartender Especializado Autorail", pricePerHour: 100, minHoursCasa: 4, minHoursEmpresa: 4, insuranceFee: 1 },
 ] as const;
 
 // Estilos musicais para músicos
